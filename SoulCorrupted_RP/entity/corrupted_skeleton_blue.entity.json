@@ -15,6 +15,7 @@
       "animations": {
         "look": "animation.soul.look_at_target",
         "controller": "controller.animation.soul.skeleton",
+        "soul_particles": "animation.soul.soul_particles",
         "skeleton_emerge": "animation.soul.skeleton_emerge",
         "skeleton_walk": "animation.soul.skeleton_walk",
         "skeleton_idle": "animation.soul.skeleton_idle",
@@ -23,19 +24,27 @@
       },
       "particle_effects": {
         "wisps": "soul:wisp_blue",
+        "drips": "soul:drip_blue",
         "burst": "soul:burst_blue"
       },
       "scripts": {
+        "pre_animation": [
+          "variable.s_speed = math.lerp(variable.s_speed ?? 0.0, query.modified_move_speed, 0.1);",
+          "variable.s_turn = math.lerp(variable.s_turn ?? 0.0, math.clamp(query.yaw_speed, -120.0, 120.0), 0.05);",
+          "variable.s_attack = math.lerp(variable.s_attack ?? 0.0, math.sin(variable.attack_time * 180.0), 0.35);",
+          "variable.s_aim = math.lerp(variable.s_aim ?? 0.0, query.has_target ? 1.0 : 0.0, 0.08);"
+        ],
         "animate": [
           "look",
-          "controller"
+          "controller",
+          "soul_particles"
         ]
       },
       "render_controllers": [
         "controller.render.soul.default"
       ],
       "spawn_egg": {
-        "base_color": "#3a6f8f",
+        "base_color": "#3d7396",
         "overlay_color": "#3fe0ff"
       },
       "enable_attachables": true

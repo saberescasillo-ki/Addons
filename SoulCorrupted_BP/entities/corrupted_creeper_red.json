@@ -19,7 +19,7 @@
       "soul:emerging": {
         "minecraft:timer": {
           "looping": false,
-          "time": 1.6,
+          "time": 1.8,
           "time_down_event": {
             "event": "soul:emerged"
           }

@@ -15,6 +15,7 @@
       "animations": {
         "look": "animation.soul.look_at_target",
         "controller": "controller.animation.soul.zombie",
+        "soul_particles": "animation.soul.soul_particles",
         "zombie_emerge": "animation.soul.zombie_emerge",
         "zombie_walk": "animation.soul.zombie_walk",
         "zombie_arms": "animation.soul.zombie_arms",
@@ -23,19 +24,26 @@
       },
       "particle_effects": {
         "wisps": "soul:wisp_red",
+        "drips": "soul:drip_red",
         "burst": "soul:burst_red"
       },
       "scripts": {
+        "pre_animation": [
+          "variable.s_speed = math.lerp(variable.s_speed ?? 0.0, query.modified_move_speed, 0.1);",
+          "variable.s_turn = math.lerp(variable.s_turn ?? 0.0, math.clamp(query.yaw_speed, -120.0, 120.0), 0.05);",
+          "variable.s_attack = math.lerp(variable.s_attack ?? 0.0, math.sin(variable.attack_time * 180.0), 0.35);"
+        ],
         "animate": [
           "look",
-          "controller"
+          "controller",
+          "soul_particles"
         ]
       },
       "render_controllers": [
         "controller.render.soul.default"
       ],
       "spawn_egg": {
-        "base_color": "#7a3438",
+        "base_color": "#7d3540",
         "overlay_color": "#ff3d2e"
       }
     }

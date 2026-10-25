@@ -15,7 +15,7 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 ![Mobs de alma corrupta (frente y espalda)](docs/soul_preview.png)
 
 Zombis, creepers y esqueletos corrompidos por almas, al estilo de Minecraft Dungeons.
-Tienen texturas HD brillantes (emisivas: brillan en la oscuridad), cristales de alma y estelas de partículas.
+Tienen texturas al estilo vanilla (16x16, con venas que brillan en la oscuridad), cristales de alma y sueltan partículas de alma de su color: unas suben y otras caen al suelo.
 Hay 3 colores de cada uno, y cada color es un mob aparte con su propio huevo:
 
 | Mob | IDs |
@@ -41,7 +41,7 @@ Hay 3 colores de cada uno, y cada color es un mob aparte con su propio huevo:
   - el esqueleto sale a tirones;
   - el creeper **crece girando** hasta su tamaño, con un rebote.
   - No atacan hasta terminar de salir.
-- Al moverse:
+- Al moverse (todas las animaciones están suavizadas, sin cambios bruscos):
   - el creeper **se inclina hacia donde camina** y hacia los giros, rebota al andar y "respira";
   - el zombi se tambalea al caminar, ladea la cabeza y se abalanza al golpear;
   - el esqueleto mueve la cabeza a tirones y apunta con el arco.

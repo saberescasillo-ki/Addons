@@ -21,9 +21,6 @@
           "particle_effects": [
             {
               "effect": "burst"
-            },
-            {
-              "effect": "wisps"
             }
           ],
           "transitions": [
@@ -31,7 +28,7 @@
               "alive": "!query.property('soul:emerging')"
             }
           ],
-          "blend_transition": 0.25
+          "blend_transition": 0.5
         },
         "alive": {
           "animations": [
@@ -40,11 +37,7 @@
             "zombie_idle",
             "zombie_attack"
           ],
-          "particle_effects": [
-            {
-              "effect": "wisps"
-            }
-          ]
+          "blend_transition": 0.5
         }
       }
     },
@@ -68,9 +61,6 @@
           "particle_effects": [
             {
               "effect": "burst"
-            },
-            {
-              "effect": "wisps"
             }
           ],
           "transitions": [
@@ -78,18 +68,14 @@
               "alive": "!query.property('soul:emerging')"
             }
           ],
-          "blend_transition": 0.25
+          "blend_transition": 0.5
         },
         "alive": {
           "animations": [
             "creeper_walk",
             "creeper_idle"
           ],
-          "particle_effects": [
-            {
-              "effect": "wisps"
-            }
-          ]
+          "blend_transition": 0.5
         }
       }
     },
@@ -113,9 +99,6 @@
           "particle_effects": [
             {
               "effect": "burst"
-            },
-            {
-              "effect": "wisps"
             }
           ],
           "transitions": [
@@ -123,24 +106,20 @@
               "alive": "!query.property('soul:emerging')"
             }
           ],
-          "blend_transition": 0.25
+          "blend_transition": 0.5
         },
         "alive": {
           "animations": [
             "skeleton_walk",
             "skeleton_idle",
             {
-              "skeleton_arms": "!query.has_target"
+              "skeleton_arms": "1.0 - variable.s_aim"
             },
             {
-              "skeleton_aim": "query.has_target"
+              "skeleton_aim": "variable.s_aim"
             }
           ],
-          "particle_effects": [
-            {
-              "effect": "wisps"
-            }
-          ]
+          "blend_transition": 0.5
         }
       }
     }
