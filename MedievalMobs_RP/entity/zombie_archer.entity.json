@@ -1,0 +1,42 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "medieval:zombie_archer",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/medieval/zombie_archer"
+      },
+      "geometry": {
+        "default": "geometry.medieval.zombie_archer"
+      },
+      "animations": {
+        "look": "animation.medieval.look_at_target",
+        "legs_walk": "animation.medieval.legs_walk",
+        "zombie_arms": "animation.medieval.zombie_arms",
+        "punch_throw": "animation.medieval.punch_throw"
+      },
+      "scripts": {
+        "animate": [
+          "look",
+          "legs_walk",
+          {
+            "zombie_arms": "!query.has_target"
+          },
+          {
+            "punch_throw": "query.has_target"
+          }
+        ]
+      },
+      "render_controllers": [
+        "controller.render.medieval.default"
+      ],
+      "spawn_egg": {
+        "base_color": "#3e5c2b",
+        "overlay_color": "#6b4423"
+      }
+    }
+  }
+}

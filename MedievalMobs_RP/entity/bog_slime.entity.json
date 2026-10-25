@@ -1,0 +1,35 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "medieval:bog_slime",
+      "materials": {
+        "default": "entity_alphatest",
+        "outer": "slime_outer"
+      },
+      "textures": {
+        "default": "textures/entity/medieval/bog_slime"
+      },
+      "geometry": {
+        "default": "geometry.medieval.bog_slime",
+        "outer": "geometry.medieval.bog_slime_outer"
+      },
+      "animations": {
+        "slime_squish": "animation.medieval.slime_squish"
+      },
+      "scripts": {
+        "animate": [
+          "slime_squish"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.medieval.default",
+        "controller.render.medieval.slime_outer"
+      ],
+      "spawn_egg": {
+        "base_color": "#5f8f3a",
+        "overlay_color": "#b02a2a"
+      }
+    }
+  }
+}

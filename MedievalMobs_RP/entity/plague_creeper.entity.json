@@ -1,0 +1,46 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "medieval:plague_creeper",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/medieval/plague_creeper"
+      },
+      "geometry": {
+        "default": "geometry.medieval.plague_creeper"
+      },
+      "animations": {
+        "look": "animation.medieval.look_at_target",
+        "creeper_legs": "animation.medieval.creeper_legs",
+        "creeper_attack": "animation.medieval.creeper_attack"
+      },
+      "scripts": {
+        "pre_animation": [
+          "variable.wobble = Math.sin(query.swell_amount * 5730) * query.swell_amount * 0.01 + 1.0;",
+          "variable.swelled = Math.pow(Math.clamp(query.swell_amount, 0.0, 1.0), 4.0);",
+          "variable.scale_xz = (1.0 + variable.swelled * 0.4) * variable.wobble;",
+          "variable.scale_y = (1.0 + variable.swelled * 0.1) / variable.wobble;",
+          "variable.flash = math.mod(math.round(query.swell_amount * 10.0), 2.0) * 0.5;"
+        ],
+        "scalex": "variable.scale_xz",
+        "scaley": "variable.scale_y",
+        "scalez": "variable.scale_xz",
+        "animate": [
+          "look",
+          "creeper_legs",
+          "creeper_attack"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.medieval.creeper"
+      ],
+      "spawn_egg": {
+        "base_color": "#6a7a3a",
+        "overlay_color": "#7b2f8a"
+      }
+    }
+  }
+}

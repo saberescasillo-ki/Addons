@@ -1,0 +1,28 @@
+pack.name=Medieval Mobs (Resources)
+pack.description=Modelos y texturas medievales
+
+entity.medieval:zombie_knight.name=Fallen Zombie Knight
+entity.medieval:zombie_archer.name=Fist-Archer Zombie
+entity.medieval:zombie_plague.name=Plague Zombie
+entity.medieval:skeleton_swordsman.name=Skeleton Swordsman
+entity.medieval:skeleton_longbowman.name=Skeleton Longbowman
+entity.medieval:skeleton_warlord.name=Skeleton Warlord
+entity.medieval:ender_wraith.name=Ender Wraith
+entity.medieval:ender_knight.name=Ender Knight
+entity.medieval:bog_slime.name=Bog Slime
+entity.medieval:royal_slime.name=Royal Slime
+entity.medieval:siege_creeper.name=Siege Creeper
+entity.medieval:plague_creeper.name=Plague Creeper
+
+item.spawn_egg.entity.medieval:zombie_knight.name=Spawn Fallen Zombie Knight
+item.spawn_egg.entity.medieval:zombie_archer.name=Spawn Fist-Archer Zombie
+item.spawn_egg.entity.medieval:zombie_plague.name=Spawn Plague Zombie
+item.spawn_egg.entity.medieval:skeleton_swordsman.name=Spawn Skeleton Swordsman
+item.spawn_egg.entity.medieval:skeleton_longbowman.name=Spawn Skeleton Longbowman
+item.spawn_egg.entity.medieval:skeleton_warlord.name=Spawn Skeleton Warlord
+item.spawn_egg.entity.medieval:ender_wraith.name=Spawn Ender Wraith
+item.spawn_egg.entity.medieval:ender_knight.name=Spawn Ender Knight
+item.spawn_egg.entity.medieval:bog_slime.name=Spawn Bog Slime
+item.spawn_egg.entity.medieval:royal_slime.name=Spawn Royal Slime
+item.spawn_egg.entity.medieval:siege_creeper.name=Spawn Siege Creeper
+item.spawn_egg.entity.medieval:plague_creeper.name=Spawn Plague Creeper

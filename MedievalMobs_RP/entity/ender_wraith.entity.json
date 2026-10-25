@@ -1,0 +1,36 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "medieval:ender_wraith",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/medieval/ender_wraith"
+      },
+      "geometry": {
+        "default": "geometry.medieval.ender_wraith"
+      },
+      "animations": {
+        "look": "animation.medieval.look_at_target",
+        "ender_walk": "animation.medieval.ender_walk",
+        "ender_attack": "animation.medieval.ender_attack"
+      },
+      "scripts": {
+        "animate": [
+          "look",
+          "ender_walk",
+          "ender_attack"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.medieval.default"
+      ],
+      "spawn_egg": {
+        "base_color": "#2a1838",
+        "overlay_color": "#7cf6ff"
+      }
+    }
+  }
+}

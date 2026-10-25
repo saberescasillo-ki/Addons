@@ -1,0 +1,39 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "medieval:skeleton_swordsman",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/medieval/skeleton_swordsman"
+      },
+      "geometry": {
+        "default": "geometry.medieval.skeleton_swordsman"
+      },
+      "animations": {
+        "look": "animation.medieval.look_at_target",
+        "legs_walk": "animation.medieval.legs_walk",
+        "arms_walk": "animation.medieval.arms_walk",
+        "attack_swing": "animation.medieval.attack_swing"
+      },
+      "scripts": {
+        "animate": [
+          "look",
+          "legs_walk",
+          "arms_walk",
+          "attack_swing"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.medieval.default"
+      ],
+      "spawn_egg": {
+        "base_color": "#2b3f8c",
+        "overlay_color": "#d9d3be"
+      },
+      "enable_attachables": true
+    }
+  }
+}

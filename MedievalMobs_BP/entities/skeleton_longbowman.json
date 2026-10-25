@@ -1,0 +1,165 @@
+{
+  "format_version": "1.20.80",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "medieval:skeleton_longbowman",
+      "is_spawnable": true,
+      "is_summonable": true,
+      "is_experimental": false
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "skeleton",
+          "undead",
+          "monster",
+          "mob",
+          "medieval"
+        ]
+      },
+      "minecraft:collision_box": {
+        "width": 0.6,
+        "height": 1.99
+      },
+      "minecraft:movement": {
+        "value": 0.25
+      },
+      "minecraft:movement.basic": {},
+      "minecraft:jump.static": {},
+      "minecraft:can_climb": {},
+      "minecraft:physics": {},
+      "minecraft:pushable": {
+        "is_pushable": true,
+        "is_pushable_by_piston": true
+      },
+      "minecraft:nameable": {},
+      "minecraft:is_hidden_when_invisible": {},
+      "minecraft:despawn": {
+        "despawn_from_distance": {}
+      },
+      "minecraft:conditional_bandwidth_optimization": {},
+      "minecraft:experience_reward": {
+        "on_death": "query.last_hit_by_player ? 5 + (query.equipment_count * Math.Random(1,3)) : 0"
+      },
+      "minecraft:loot": {
+        "table": "loot_tables/medieval/skeleton_longbowman.json"
+      },
+      "minecraft:behavior.float": {
+        "priority": 0
+      },
+      "minecraft:behavior.hurt_by_target": {
+        "priority": 1
+      },
+      "minecraft:behavior.random_stroll": {
+        "priority": 7,
+        "speed_multiplier": 1.0
+      },
+      "minecraft:behavior.look_at_player": {
+        "priority": 8,
+        "look_distance": 8,
+        "probability": 0.02
+      },
+      "minecraft:behavior.random_look_around": {
+        "priority": 9
+      },
+      "minecraft:health": {
+        "value": 20,
+        "max": 20
+      },
+      "minecraft:equipment": {
+        "table": "loot_tables/medieval/equipment/skeleton_longbowman.json",
+        "slot_drop_chance": [
+          {
+            "slot": "slot.weapon.mainhand",
+            "drop_chance": 0.085
+          }
+        ]
+      },
+      "minecraft:burns_in_daylight": {},
+      "minecraft:breathable": {
+        "total_supply": 15,
+        "suffocate_time": 0,
+        "breathes_water": true
+      },
+      "minecraft:navigation.walk": {
+        "is_amphibious": true,
+        "can_pass_doors": true,
+        "can_open_doors": false,
+        "avoid_water": true,
+        "avoid_sun": true
+      },
+      "minecraft:behavior.nearest_attackable_target": {
+        "priority": 2,
+        "must_see": true,
+        "reselect_targets": true,
+        "within_radius": 25,
+        "must_see_forget_duration": 17.0,
+        "entity_types": [
+          {
+            "filters": {
+              "test": "is_family",
+              "subject": "other",
+              "value": "player"
+            },
+            "max_dist": 35
+          },
+          {
+            "filters": {
+              "any_of": [
+                {
+                  "test": "is_family",
+                  "subject": "other",
+                  "value": "villager"
+                },
+                {
+                  "test": "is_family",
+                  "subject": "other",
+                  "value": "wandering_trader"
+                }
+              ]
+            },
+            "max_dist": 25
+          },
+          {
+            "filters": {
+              "test": "is_family",
+              "subject": "other",
+              "value": "irongolem"
+            },
+            "max_dist": 25
+          }
+        ]
+      },
+      "minecraft:behavior.avoid_mob_type": {
+        "priority": 4,
+        "entity_types": [
+          {
+            "filters": {
+              "test": "is_family",
+              "subject": "other",
+              "value": "wolf"
+            },
+            "max_dist": 6,
+            "walk_speed_multiplier": 1.2,
+            "sprint_speed_multiplier": 1.2
+          }
+        ]
+      },
+      "minecraft:attack": {
+        "damage": 2,
+        "effect_name": "slowness",
+        "effect_duration": 4
+      },
+      "minecraft:shooter": {
+        "def": "minecraft:arrow",
+        "aux_val": 19
+      },
+      "minecraft:behavior.ranged_attack": {
+        "priority": 2,
+        "attack_interval_min": 1.5,
+        "attack_interval_max": 3.0,
+        "attack_radius": 15.0
+      }
+    }
+  }
+}

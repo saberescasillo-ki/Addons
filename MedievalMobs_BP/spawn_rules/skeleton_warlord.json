@@ -1,0 +1,35 @@
+{
+  "format_version": "1.8.0",
+  "minecraft:spawn_rules": {
+    "description": {
+      "identifier": "medieval:skeleton_warlord",
+      "population_control": "monster"
+    },
+    "conditions": [
+      {
+        "minecraft:brightness_filter": {
+          "min": 0,
+          "max": 7,
+          "adjust_for_weather": true
+        },
+        "minecraft:difficulty_filter": {
+          "min": "easy",
+          "max": "hard"
+        },
+        "minecraft:weight": {
+          "default": 6
+        },
+        "minecraft:herd": {
+          "min_size": 1,
+          "max_size": 2
+        },
+        "minecraft:spawns_on_surface": {},
+        "minecraft:spawns_underground": {},
+        "minecraft:biome_filter": {
+          "test": "has_biome_tag",
+          "value": "monster"
+        }
+      }
+    ]
+  }
+}

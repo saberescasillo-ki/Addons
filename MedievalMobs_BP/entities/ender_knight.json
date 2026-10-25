@@ -1,0 +1,163 @@
+{
+  "format_version": "1.20.80",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "medieval:ender_knight",
+      "is_spawnable": true,
+      "is_summonable": true,
+      "is_experimental": false
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "enderman",
+          "monster",
+          "mob",
+          "medieval"
+        ]
+      },
+      "minecraft:collision_box": {
+        "width": 0.6,
+        "height": 2.9
+      },
+      "minecraft:movement": {
+        "value": 0.3
+      },
+      "minecraft:movement.basic": {},
+      "minecraft:jump.static": {},
+      "minecraft:can_climb": {},
+      "minecraft:physics": {},
+      "minecraft:pushable": {
+        "is_pushable": true,
+        "is_pushable_by_piston": true
+      },
+      "minecraft:nameable": {},
+      "minecraft:is_hidden_when_invisible": {},
+      "minecraft:despawn": {
+        "despawn_from_distance": {}
+      },
+      "minecraft:conditional_bandwidth_optimization": {},
+      "minecraft:experience_reward": {
+        "on_death": "query.last_hit_by_player ? 8 + (query.equipment_count * Math.Random(1,3)) : 0"
+      },
+      "minecraft:loot": {
+        "table": "loot_tables/medieval/ender_knight.json"
+      },
+      "minecraft:behavior.float": {
+        "priority": 0
+      },
+      "minecraft:behavior.hurt_by_target": {
+        "priority": 1
+      },
+      "minecraft:behavior.random_stroll": {
+        "priority": 7,
+        "speed_multiplier": 1.0
+      },
+      "minecraft:behavior.look_at_player": {
+        "priority": 8,
+        "look_distance": 8,
+        "probability": 0.02
+      },
+      "minecraft:behavior.random_look_around": {
+        "priority": 9
+      },
+      "minecraft:health": {
+        "value": 50,
+        "max": 50
+      },
+      "minecraft:knockback_resistance": {
+        "value": 0.6
+      },
+      "minecraft:equipment": {
+        "table": "loot_tables/medieval/equipment/ender_knight.json",
+        "slot_drop_chance": [
+          {
+            "slot": "slot.weapon.mainhand",
+            "drop_chance": 0.085
+          }
+        ]
+      },
+      "minecraft:breathable": {
+        "total_supply": 15,
+        "suffocate_time": 0
+      },
+      "minecraft:navigation.walk": {
+        "can_pass_doors": true,
+        "avoid_water": true
+      },
+      "minecraft:teleport": {
+        "random_teleports": true,
+        "max_random_teleport_time": 30,
+        "random_teleport_cube": [
+          32,
+          32,
+          32
+        ],
+        "target_distance": 16,
+        "target_teleport_chance": 0.05,
+        "light_teleport_chance": 0.05
+      },
+      "minecraft:hurt_on_condition": {
+        "damage_conditions": [
+          {
+            "filters": {
+              "test": "in_contact_with_water",
+              "operator": "==",
+              "value": true
+            },
+            "cause": "drowning",
+            "damage_per_tick": 1
+          }
+        ]
+      },
+      "minecraft:lookat": {
+        "search_radius": 64.0,
+        "set_target": true,
+        "look_cooldown": 5.0,
+        "filters": {
+          "all_of": [
+            {
+              "test": "is_family",
+              "subject": "other",
+              "value": "player"
+            },
+            {
+              "test": "has_equipment",
+              "domain": "head",
+              "subject": "other",
+              "operator": "not",
+              "value": "carved_pumpkin"
+            }
+          ]
+        }
+      },
+      "minecraft:attack": {
+        "damage": 8,
+        "effect_name": "slowness",
+        "effect_duration": 5
+      },
+      "minecraft:behavior.melee_attack": {
+        "priority": 3,
+        "speed_multiplier": 1.2,
+        "track_target": false,
+        "require_complete_path": false
+      },
+      "minecraft:behavior.nearest_attackable_target": {
+        "priority": 2,
+        "must_see": true,
+        "reselect_targets": true,
+        "within_radius": 16,
+        "entity_types": [
+          {
+            "filters": {
+              "test": "is_family",
+              "subject": "other",
+              "value": "endermite"
+            },
+            "max_dist": 16
+          }
+        ]
+      }
+    }
+  }
+}

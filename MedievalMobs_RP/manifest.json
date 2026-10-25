@@ -1,0 +1,39 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Medieval Mobs (Resources)",
+    "description": "Modelos y texturas de los mobs medievales.",
+    "uuid": "9c4f5d1b-6e70-4182-8d43-5e6f7a8b9ca3",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      0
+    ]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "ad506e2c-7f81-4293-9e54-6f7a8b9cadb4",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "6f1c2a8e-3b4d-4e5f-9a10-2b3c4d5e6f70",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ]
+}

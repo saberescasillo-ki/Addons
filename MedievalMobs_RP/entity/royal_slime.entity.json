@@ -1,0 +1,35 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "medieval:royal_slime",
+      "materials": {
+        "default": "entity_alphatest",
+        "outer": "slime_outer"
+      },
+      "textures": {
+        "default": "textures/entity/medieval/royal_slime"
+      },
+      "geometry": {
+        "default": "geometry.medieval.royal_slime",
+        "outer": "geometry.medieval.royal_slime_outer"
+      },
+      "animations": {
+        "slime_squish": "animation.medieval.slime_squish"
+      },
+      "scripts": {
+        "animate": [
+          "slime_squish"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.medieval.default",
+        "controller.render.medieval.slime_outer"
+      ],
+      "spawn_egg": {
+        "base_color": "#e8b23a",
+        "overlay_color": "#8e1b1b"
+      }
+    }
+  }
+}

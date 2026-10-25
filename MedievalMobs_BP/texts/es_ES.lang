@@ -1,0 +1,28 @@
+pack.name=Medieval Mobs (Behavior)
+pack.description=Mobs medievales nuevos
+
+entity.medieval:zombie_knight.name=Caballero Zombi Caído
+entity.medieval:zombie_archer.name=Zombi Lanzaflechas
+entity.medieval:zombie_plague.name=Zombi de la Peste
+entity.medieval:skeleton_swordsman.name=Esqueleto Espadachín
+entity.medieval:skeleton_longbowman.name=Esqueleto Arquero Real
+entity.medieval:skeleton_warlord.name=Señor de la Guerra Esqueleto
+entity.medieval:ender_wraith.name=Espectro del End
+entity.medieval:ender_knight.name=Caballero del End
+entity.medieval:bog_slime.name=Slime del Pantano
+entity.medieval:royal_slime.name=Slime Real
+entity.medieval:siege_creeper.name=Creeper de Asedio
+entity.medieval:plague_creeper.name=Creeper Pestilente
+
+item.spawn_egg.entity.medieval:zombie_knight.name=Generar Caballero Zombi Caído
+item.spawn_egg.entity.medieval:zombie_archer.name=Generar Zombi Lanzaflechas
+item.spawn_egg.entity.medieval:zombie_plague.name=Generar Zombi de la Peste
+item.spawn_egg.entity.medieval:skeleton_swordsman.name=Generar Esqueleto Espadachín
+item.spawn_egg.entity.medieval:skeleton_longbowman.name=Generar Esqueleto Arquero Real
+item.spawn_egg.entity.medieval:skeleton_warlord.name=Generar Señor de la Guerra Esqueleto
+item.spawn_egg.entity.medieval:ender_wraith.name=Generar Espectro del End
+item.spawn_egg.entity.medieval:ender_knight.name=Generar Caballero del End
+item.spawn_egg.entity.medieval:bog_slime.name=Generar Slime del Pantano
+item.spawn_egg.entity.medieval:royal_slime.name=Generar Slime Real
+item.spawn_egg.entity.medieval:siege_creeper.name=Generar Creeper de Asedio
+item.spawn_egg.entity.medieval:plague_creeper.name=Generar Creeper Pestilente

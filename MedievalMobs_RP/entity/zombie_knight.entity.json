@@ -1,0 +1,37 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "medieval:zombie_knight",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/medieval/zombie_knight"
+      },
+      "geometry": {
+        "default": "geometry.medieval.zombie_knight"
+      },
+      "animations": {
+        "look": "animation.medieval.look_at_target",
+        "legs_walk": "animation.medieval.legs_walk",
+        "zombie_arms": "animation.medieval.zombie_arms"
+      },
+      "scripts": {
+        "animate": [
+          "look",
+          "legs_walk",
+          "zombie_arms"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.medieval.default"
+      ],
+      "spawn_egg": {
+        "base_color": "#5b6169",
+        "overlay_color": "#8e1b1b"
+      },
+      "enable_attachables": true
+    }
+  }
+}

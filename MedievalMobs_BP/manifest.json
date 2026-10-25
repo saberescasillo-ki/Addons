@@ -1,0 +1,54 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Medieval Mobs (Behavior)",
+    "description": "Mobs medievales: zombis, esqueletos, slimes, endermen y creepers nuevos.",
+    "uuid": "6f1c2a8e-3b4d-4e5f-9a10-2b3c4d5e6f70",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      0
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "7a2d3b9f-4c5e-4f60-8b21-3c4d5e6f7a81",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "8b3e4c0a-5d6f-4071-9c32-4d5e6f7a8b92",
+      "version": [
+        1,
+        0,
+        0
+      ],
+      "entry": "scripts/main.js"
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "9c4f5d1b-6e70-4182-8d43-5e6f7a8b9ca3",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "1.11.0"
+    }
+  ]
+}

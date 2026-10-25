@@ -1,0 +1,43 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "medieval:skeleton_longbowman",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/medieval/skeleton_longbowman"
+      },
+      "geometry": {
+        "default": "geometry.medieval.skeleton_longbowman"
+      },
+      "animations": {
+        "look": "animation.medieval.look_at_target",
+        "legs_walk": "animation.medieval.legs_walk",
+        "arms_walk": "animation.medieval.arms_walk",
+        "bow_aim": "animation.medieval.bow_aim"
+      },
+      "scripts": {
+        "animate": [
+          "look",
+          "legs_walk",
+          {
+            "arms_walk": "!query.has_target"
+          },
+          {
+            "bow_aim": "query.has_target"
+          }
+        ]
+      },
+      "render_controllers": [
+        "controller.render.medieval.default"
+      ],
+      "spawn_egg": {
+        "base_color": "#2f5a26",
+        "overlay_color": "#cfc6a8"
+      },
+      "enable_attachables": true
+    }
+  }
+}

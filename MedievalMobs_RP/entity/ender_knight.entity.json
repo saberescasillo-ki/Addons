@@ -1,0 +1,39 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "medieval:ender_knight",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/medieval/ender_knight"
+      },
+      "geometry": {
+        "default": "geometry.medieval.ender_knight"
+      },
+      "animations": {
+        "look": "animation.medieval.look_at_target",
+        "ender_walk": "animation.medieval.ender_walk",
+        "ender_attack": "animation.medieval.ender_attack",
+        "cape_sway": "animation.medieval.cape_sway"
+      },
+      "scripts": {
+        "animate": [
+          "look",
+          "ender_walk",
+          "ender_attack",
+          "cape_sway"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.medieval.default"
+      ],
+      "spawn_egg": {
+        "base_color": "#1e1530",
+        "overlay_color": "#e070ff"
+      },
+      "enable_attachables": true
+    }
+  }
+}
