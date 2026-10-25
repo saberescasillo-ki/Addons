@@ -1,0 +1,51 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "soul:corrupted_creeper_green",
+      "materials": {
+        "default": "entity_emissive_alpha"
+      },
+      "textures": {
+        "default": "textures/entity/soul/corrupted_creeper_green"
+      },
+      "geometry": {
+        "default": "geometry.soul.corrupted_creeper"
+      },
+      "animations": {
+        "look": "animation.soul.look_at_target",
+        "controller": "controller.animation.soul.creeper",
+        "creeper_spawn": "animation.soul.creeper_spawn",
+        "creeper_walk": "animation.soul.creeper_walk",
+        "creeper_idle": "animation.soul.creeper_idle"
+      },
+      "particle_effects": {
+        "wisps": "soul:wisp_green",
+        "burst": "soul:burst_green"
+      },
+      "scripts": {
+        "pre_animation": [
+          "variable.wobble = Math.sin(query.swell_amount * 5730) * query.swell_amount * 0.01 + 1.0;",
+          "variable.swelled = Math.pow(Math.clamp(query.swell_amount, 0.0, 1.0), 4.0);",
+          "variable.scale_xz = (1.0 + variable.swelled * 0.4) * variable.wobble;",
+          "variable.scale_y = (1.0 + variable.swelled * 0.1) / variable.wobble;",
+          "variable.flash = math.mod(math.round(query.swell_amount * 10.0), 2.0) * 0.5;"
+        ],
+        "scalex": "variable.scale_xz",
+        "scaley": "variable.scale_y",
+        "scalez": "variable.scale_xz",
+        "animate": [
+          "look",
+          "controller"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.soul.creeper"
+      ],
+      "spawn_egg": {
+        "base_color": "#356c43",
+        "overlay_color": "#46ff5a"
+      }
+    }
+  }
+}

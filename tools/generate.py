@@ -635,7 +635,7 @@ def pack_icon():
     return img.resize((128, 128), Image.NEAREST)
 
 
-def preview(model, img, path, scale=8):
+def preview(model, img, path, scale=8, res=1):
     """Orthographic front + back view (ignores rotations) to check textures."""
     cubes = [c for key in ("default", "outer") for b in model.geos.get(key, []) for c in b["cubes"]]
     xs = [c.origin[0] for c in cubes] + [c.origin[0] + c.size[0] for c in cubes]
@@ -649,10 +649,11 @@ def preview(model, img, path, scale=8):
             w, h, d = c.size
             u, v = c.uv
             if view == 0:
-                face = img.crop((u + d, v + d, u + d + w, v + d + h))
+                face = img.crop(tuple(k * res for k in (u + d, v + d, u + d + w, v + d + h)))
                 x0 = c.origin[0] - minx
             else:
-                face = img.crop((u + 2 * d + w, v + d, u + 2 * d + 2 * w, v + d + h)).transpose(Image.FLIP_LEFT_RIGHT)
+                face = img.crop(tuple(k * res for k in (u + 2 * d + w, v + d, u + 2 * d + 2 * w, v + d + h)))
+                face = face.transpose(Image.FLIP_LEFT_RIGHT)
                 x0 = W + 2 + (maxx - (c.origin[0] + w))
             y0 = maxy - (c.origin[1] + h)
             face = face.resize((w * scale, h * scale), Image.NEAREST)
@@ -660,8 +661,8 @@ def preview(model, img, path, scale=8):
     out.save(path)
 
 
-def sheet(prev_dir, path, cols=4):
-    ims = [Image.open(os.path.join(prev_dir, f"{i}.png")) for i in MOBS]
+def sheet(prev_dir, path, cols=4, names=None):
+    ims = [Image.open(os.path.join(prev_dir, f"{i}.png")) for i in (names or MOBS)]
     cw, ch = max(i.width for i in ims), max(i.height for i in ims)
     out = Image.new("RGBA", (cw * cols, ch * ((len(ims) + cols - 1) // cols)), (40, 40, 50, 255))
     for k, im in enumerate(ims):
@@ -672,7 +673,7 @@ def sheet(prev_dir, path, cols=4):
 
 
 def main():
-    for d in (BP, RP, DIST):
+    for d in (BP, RP):
         shutil.rmtree(d, ignore_errors=True)
     prev_dir = None
     if "--preview" in sys.argv:

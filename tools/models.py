@@ -37,8 +37,8 @@ class Cube:
 
 
 class Model:
-    def __init__(self, name, tex_w=128, bounds=(2.5, 3.0)):
-        self.name, self.tex_w, self.bounds = name, tex_w, bounds
+    def __init__(self, name, tex_w=128, bounds=(2.5, 3.0), ns="medieval"):
+        self.name, self.tex_w, self.bounds, self.ns = name, tex_w, bounds, ns
         self.geos = {"default": []}  # geometry key -> list of bones
 
     def bone(self, name, pivot, parent=None, geo="default", rotation=None):
@@ -58,7 +58,9 @@ class Model:
     def all_cubes(self):
         return [c for bones in self.geos.values() for b in bones for c in b["cubes"]]
 
-    def build(self, seed):
+    def build(self, seed, res=1):
+        """Packs UVs and paints the texture. res > 1 paints an HD texture
+        (res texels per model pixel); the geometry UVs stay in model units."""
         cubes = sorted(self.all_cubes(), key=lambda c: (-c.rh, -c.rw))
         tw = max([self.tex_w] + [c.rw for c in cubes])
         x = y = row_h = 0
@@ -71,18 +73,18 @@ class Model:
         th = 16
         while th < y + row_h:
             th *= 2
-        img = Image.new("RGBA", (tw, th), (0, 0, 0, 0))
+        img = Image.new("RGBA", (tw * res, th * res), (0, 0, 0, 0))
         rng = random.Random(seed)
         for c in cubes:
             w, h, d = c.size
-            c.mat.paint(img, c.uv[0], c.uv[1], w, h, d, rng)
+            c.mat.paint(img, c.uv[0] * res, c.uv[1] * res, w, h, d, rng, res=res)
         self.tex_size = (tw, th)
         return img
 
     def geometry_json(self):
         out = []
         for key, bones in self.geos.items():
-            ident = f"geometry.medieval.{self.name}" + ("" if key == "default" else f"_{key}")
+            ident = f"geometry.{self.ns}.{self.name}" + ("" if key == "default" else f"_{key}")
             jb = []
             for b in bones:
                 nb = {k: v for k, v in b.items() if k != "cubes"}

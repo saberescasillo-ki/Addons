@@ -1,0 +1,22 @@
+pack.name=Soul Corrupted
+pack.description=Mobs de alma corrupta
+
+entity.soul:corrupted_zombie_blue.name=Zombi de Alma Corrupta (Azul)
+item.spawn_egg.entity.soul:corrupted_zombie_blue.name=Generar Zombi de Alma Corrupta (Azul)
+entity.soul:corrupted_zombie_red.name=Zombi de Alma Corrupta (Roja)
+item.spawn_egg.entity.soul:corrupted_zombie_red.name=Generar Zombi de Alma Corrupta (Roja)
+entity.soul:corrupted_zombie_green.name=Zombi de Alma Corrupta (Verde)
+item.spawn_egg.entity.soul:corrupted_zombie_green.name=Generar Zombi de Alma Corrupta (Verde)
+entity.soul:corrupted_creeper_blue.name=Creeper de Alma Corrupta (Azul)
+item.spawn_egg.entity.soul:corrupted_creeper_blue.name=Generar Creeper de Alma Corrupta (Azul)
+entity.soul:corrupted_creeper_red.name=Creeper de Alma Corrupta (Roja)
+item.spawn_egg.entity.soul:corrupted_creeper_red.name=Generar Creeper de Alma Corrupta (Roja)
+entity.soul:corrupted_creeper_green.name=Creeper de Alma Corrupta (Verde)
+item.spawn_egg.entity.soul:corrupted_creeper_green.name=Generar Creeper de Alma Corrupta (Verde)
+entity.soul:corrupted_skeleton_blue.name=Esqueleto de Alma Corrupta (Azul)
+item.spawn_egg.entity.soul:corrupted_skeleton_blue.name=Generar Esqueleto de Alma Corrupta (Azul)
+entity.soul:corrupted_skeleton_red.name=Esqueleto de Alma Corrupta (Roja)
+item.spawn_egg.entity.soul:corrupted_skeleton_red.name=Generar Esqueleto de Alma Corrupta (Roja)
+entity.soul:corrupted_skeleton_green.name=Esqueleto de Alma Corrupta (Verde)
+item.spawn_egg.entity.soul:corrupted_skeleton_green.name=Generar Esqueleto de Alma Corrupta (Verde)
+item.soul:corrupted_soul_sword.name=Espada de Alma Corrupta

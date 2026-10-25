@@ -1,0 +1,9 @@
+{
+  "resource_pack_name": "soul_corrupted",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "corrupted_soul_sword": {
+      "textures": "textures/items/corrupted_soul_sword"
+    }
+  }
+}

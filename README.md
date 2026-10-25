@@ -1,16 +1,81 @@
-# Medieval Mobs – Addon para Minecraft Bedrock
+# Addons de mobs para Minecraft Bedrock
+
+| Addon | Descarga | Generador |
+|---|---|---|
+| **Soul Corrupted** – mobs de alma corrupta + espada | [`dist/SoulCorrupted.mcaddon`](dist/SoulCorrupted.mcaddon) | `tools/soul_generate.py` |
+| **Medieval Mobs** – mobs medievales | [`dist/MedievalMobs.mcaddon`](dist/MedievalMobs.mcaddon) | `tools/generate.py` |
+
+Requieren Minecraft Bedrock **1.21.0 o superior**. No hace falta activar experimentos.
+Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo.
+
+---
+
+# Soul Corrupted
+
+![Mobs de alma corrupta (frente y espalda)](docs/soul_preview.png)
+
+Zombis, creepers y esqueletos corrompidos por almas, al estilo de Minecraft Dungeons.
+Tienen texturas HD brillantes (emisivas: brillan en la oscuridad), cristales de alma y estelas de partículas.
+Hay 3 colores de cada uno, y cada color es un mob aparte con su propio huevo:
+
+| Mob | IDs |
+|---|---|
+| Zombi de Alma Corrupta | `soul:corrupted_zombie_blue` / `_red` / `_green` |
+| Creeper de Alma Corrupta | `soul:corrupted_creeper_blue` / `_red` / `_green` |
+| Esqueleto de Alma Corrupta | `soul:corrupted_skeleton_blue` / `_red` / `_green` |
+
+**Comportamiento**
+
+- **Oscuridad** (el efecto del Warden) en cada golpe, flecha o explosión.
+- Extra según el color:
+  - azul: lentitud.
+  - rojo: prende fuego al objetivo, y su creeper deja fuego al explotar.
+  - verde: veneno.
+- **Ojos blancos brillantes** en todos.
+- **Inmunes** a fuego, lava, bloques de magma, congelación, ahogamiento y wither. No se queman con el sol.
+
+**Animaciones**
+
+- Al aparecer:
+  - el zombi **sale arrastrándose del suelo**;
+  - el esqueleto sale a tirones;
+  - el creeper **crece girando** hasta su tamaño, con un rebote.
+  - No atacan hasta terminar de salir.
+- Al moverse:
+  - el creeper **se inclina hacia donde camina** y hacia los giros, rebota al andar y "respira";
+  - el zombi se tambalea al caminar, ladea la cabeza y se abalanza al golpear;
+  - el esqueleto mueve la cabeza a tirones y apunta con el arco.
+
+**Dónde aparecen**
+
+- De noche, en el Overworld (los azules son los más comunes).
+- En el Nether, cada color en su bioma:
+  - azul: valle de arena de almas;
+  - rojo: bosque carmesí;
+  - verde: bosque distorsionado.
+- También con huevos en los generadores de monstruos y con `/summon`.
+
+### Espada de Alma Corrupta (`soul:corrupted_soul_sword`)
+
+![Espada](docs/soul_sword.png)
+
+- 9 de daño: más que la de netherita.
+- Al golpear deja **Wither II** (5 s) y **quemadura** (5 s).
+- **No se puede craftear.** Sale con un 2,5 % de probabilidad (más con Botín) al matar mobs de alma corrupta.
+  También está en el inventario creativo.
+- Se encanta como una espada y se repara con **fragmentos de eco**.
+- Lleva el tag `minecraft:is_sword`, el mismo que las espadas vanilla. Los paquetes de animación que detectan
+  espadas por ese tag la tratan como una espada de diamante.
+
+---
+
+# Medieval Mobs
 
 12 mobs **nuevos e independientes** (no reemplazan a los vanilla) inspirados en los
 zombis, esqueletos, slimes, endermen y creepers, con aspecto medieval, modelos
 propios y golpes que dejan **efectos negativos**.
 
 ![Vista previa (frente y espalda de cada mob)](docs/preview.png)
-
-## Instalación
-
-1. Descarga [`dist/MedievalMobs.mcaddon`](dist/MedievalMobs.mcaddon) y ábrelo: Minecraft importa los dos packs.
-2. En el mundo, activa **Medieval Mobs (Behavior)**. El pack de recursos se añade solo.
-3. Requiere Minecraft Bedrock **1.21.0 o superior**. No hace falta activar ningún experimento.
 
 ## Los mobs
 
@@ -46,20 +111,22 @@ Los efectos de la columna "Al golpear" se aplican en cada golpe, flecha o explos
 ## Estructura del proyecto
 
 ```
-MedievalMobs_BP/   behavior pack: entidades, spawn rules, loot tables, script
-MedievalMobs_RP/   resource pack: modelos, texturas, animaciones, nombres
-tools/             generador en Python (modelos + texturas pixel-art + JSON)
-dist/              MedievalMobs.mcaddon listo para instalar
+SoulCorrupted_BP/  SoulCorrupted_RP/   addon de alma corrupta
+MedievalMobs_BP/   MedievalMobs_RP/    addon medieval
+tools/             generadores en Python (modelos + texturas + JSON)
+dist/              los .mcaddon listos para instalar
 ```
 
-Todo el contenido de los packs se genera con `tools/generate.py`, que necesita Python 3 y Pillow.
-Para cambiar vida, daño, efectos, colores o modelos:
+Los packs se generan con Python 3 y Pillow. Para cambiar vida, daño, efectos, colores o modelos:
 
-1. Edita la tabla `MOBS` en `tools/generate.py`, o el modelo del mob en `tools/models.py`.
-2. Ejecuta:
+1. Edita las tablas al principio del generador:
+   - Soul Corrupted: `TYPES` y `COLORS` en `tools/soul_generate.py`.
+   - Medieval Mobs: `MOBS` en `tools/generate.py`, y los modelos en `tools/models.py`.
+2. Ejecuta el generador:
 
 ```
+python3 tools/soul_generate.py --preview
 python3 tools/generate.py --preview
 ```
 
-Esto vuelve a generar los packs y el `.mcaddon`. `--preview` además crea `docs/preview.png`.
+Cada uno vuelve a generar sus packs y su `.mcaddon`. `--preview` además actualiza las imágenes de `docs/`.

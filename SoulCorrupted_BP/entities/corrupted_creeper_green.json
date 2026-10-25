@@ -1,0 +1,292 @@
+{
+  "format_version": "1.20.80",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "soul:corrupted_creeper_green",
+      "is_spawnable": true,
+      "is_summonable": true,
+      "is_experimental": false,
+      "properties": {
+        "soul:emerging": {
+          "type": "bool",
+          "default": false,
+          "client_sync": true
+        }
+      },
+      "runtime_identifier": "minecraft:creeper"
+    },
+    "component_groups": {
+      "soul:emerging": {
+        "minecraft:timer": {
+          "looping": false,
+          "time": 1.6,
+          "time_down_event": {
+            "event": "soul:emerged"
+          }
+        }
+      },
+      "soul:active": {
+        "minecraft:behavior.float": {
+          "priority": 0
+        },
+        "minecraft:behavior.hurt_by_target": {
+          "priority": 1
+        },
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 2,
+          "must_see": true,
+          "reselect_targets": true,
+          "within_radius": 25,
+          "must_see_forget_duration": 17.0,
+          "entity_types": [
+            {
+              "filters": {
+                "test": "is_family",
+                "subject": "other",
+                "value": "player"
+              },
+              "max_dist": 35
+            },
+            {
+              "filters": {
+                "test": "is_family",
+                "subject": "other",
+                "value": "irongolem"
+              },
+              "max_dist": 25
+            }
+          ]
+        },
+        "minecraft:behavior.random_stroll": {
+          "priority": 7,
+          "speed_multiplier": 1.0
+        },
+        "minecraft:behavior.look_at_player": {
+          "priority": 8,
+          "look_distance": 8,
+          "probability": 0.02
+        },
+        "minecraft:behavior.random_look_around": {
+          "priority": 9
+        },
+        "minecraft:behavior.swell": {
+          "priority": 2,
+          "start_distance": 2.5,
+          "stop_distance": 6.0
+        },
+        "minecraft:behavior.melee_attack": {
+          "priority": 4,
+          "speed_multiplier": 1.25,
+          "track_target": false
+        },
+        "minecraft:behavior.avoid_mob_type": {
+          "priority": 3,
+          "entity_types": [
+            {
+              "filters": {
+                "any_of": [
+                  {
+                    "test": "is_family",
+                    "subject": "other",
+                    "value": "ocelot"
+                  },
+                  {
+                    "test": "is_family",
+                    "subject": "other",
+                    "value": "cat"
+                  }
+                ]
+              },
+              "max_dist": 6,
+              "walk_speed_multiplier": 1,
+              "sprint_speed_multiplier": 1.2
+            }
+          ]
+        },
+        "minecraft:target_nearby_sensor": {
+          "inside_range": 2.5,
+          "outside_range": 6.0,
+          "must_see": true,
+          "on_inside_range": {
+            "event": "minecraft:start_exploding",
+            "target": "self"
+          },
+          "on_outside_range": {
+            "event": "minecraft:stop_exploding",
+            "target": "self"
+          },
+          "on_vision_lost_inside_range": {
+            "event": "minecraft:stop_exploding",
+            "target": "self"
+          }
+        }
+      },
+      "minecraft:exploding": {
+        "minecraft:explode": {
+          "fuse_length": 1.5,
+          "fuse_lit": true,
+          "power": 3,
+          "causes_fire": false,
+          "destroy_affected_by_griefing": true
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "creeper",
+          "monster",
+          "mob",
+          "soul_corrupted"
+        ]
+      },
+      "minecraft:health": {
+        "value": 24,
+        "max": 24
+      },
+      "minecraft:collision_box": {
+        "width": 0.6,
+        "height": 1.7
+      },
+      "minecraft:movement": {
+        "value": 0.23
+      },
+      "minecraft:movement.basic": {},
+      "minecraft:navigation.walk": {
+        "can_pass_doors": true,
+        "avoid_water": true,
+        "can_walk_in_lava": true,
+        "can_path_over_lava": true,
+        "is_amphibious": true
+      },
+      "minecraft:jump.static": {},
+      "minecraft:can_climb": {},
+      "minecraft:physics": {},
+      "minecraft:pushable": {
+        "is_pushable": true,
+        "is_pushable_by_piston": true
+      },
+      "minecraft:nameable": {},
+      "minecraft:is_hidden_when_invisible": {},
+      "minecraft:despawn": {
+        "despawn_from_distance": {}
+      },
+      "minecraft:conditional_bandwidth_optimization": {},
+      "minecraft:fire_immune": {},
+      "minecraft:breathable": {
+        "total_supply": 15,
+        "suffocate_time": 0,
+        "breathes_water": true
+      },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "cause": "fire",
+            "deals_damage": false
+          },
+          {
+            "cause": "fire_tick",
+            "deals_damage": false
+          },
+          {
+            "cause": "lava",
+            "deals_damage": false
+          },
+          {
+            "cause": "magma",
+            "deals_damage": false
+          },
+          {
+            "cause": "freezing",
+            "deals_damage": false
+          },
+          {
+            "cause": "drowning",
+            "deals_damage": false
+          },
+          {
+            "cause": "wither",
+            "deals_damage": false
+          }
+        ]
+      },
+      "minecraft:attack": {
+        "damage": 3,
+        "effect_name": "darkness",
+        "effect_duration": 8
+      },
+      "minecraft:loot": {
+        "table": "loot_tables/soul/corrupted_creeper_green.json"
+      },
+      "minecraft:experience_reward": {
+        "on_death": "query.last_hit_by_player ? 7 : 0"
+      }
+    },
+    "events": {
+      "minecraft:entity_spawned": {
+        "add": {
+          "component_groups": [
+            "soul:emerging"
+          ]
+        },
+        "set_property": {
+          "soul:emerging": true
+        }
+      },
+      "soul:emerged": {
+        "remove": {
+          "component_groups": [
+            "soul:emerging"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "soul:active"
+          ]
+        },
+        "set_property": {
+          "soul:emerging": false
+        }
+      },
+      "minecraft:start_exploding": {
+        "sequence": [
+          {
+            "filters": {
+              "test": "has_component",
+              "operator": "!=",
+              "value": "minecraft:explode"
+            },
+            "add": {
+              "component_groups": [
+                "minecraft:exploding"
+              ]
+            }
+          }
+        ]
+      },
+      "minecraft:start_exploding_forced": {
+        "sequence": [
+          {
+            "filters": {
+              "test": "has_component",
+              "operator": "!=",
+              "value": "minecraft:explode"
+            },
+            "add": {
+              "component_groups": [
+                "minecraft:exploding"
+              ]
+            }
+          }
+        ]
+      },
+      "minecraft:stop_exploding": {
+        "remove": {
+          "component_groups": [
+            "minecraft:exploding"
+          ]
+        }
+      }
+    }
+  }
+}

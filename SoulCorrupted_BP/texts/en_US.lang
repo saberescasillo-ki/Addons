@@ -1,0 +1,22 @@
+pack.name=Soul Corrupted
+pack.description=Mobs de alma corrupta
+
+entity.soul:corrupted_zombie_blue.name=Soul Corrupted Zombie (Blue)
+item.spawn_egg.entity.soul:corrupted_zombie_blue.name=Spawn Soul Corrupted Zombie (Blue)
+entity.soul:corrupted_zombie_red.name=Soul Corrupted Zombie (Red)
+item.spawn_egg.entity.soul:corrupted_zombie_red.name=Spawn Soul Corrupted Zombie (Red)
+entity.soul:corrupted_zombie_green.name=Soul Corrupted Zombie (Green)
+item.spawn_egg.entity.soul:corrupted_zombie_green.name=Spawn Soul Corrupted Zombie (Green)
+entity.soul:corrupted_creeper_blue.name=Soul Corrupted Creeper (Blue)
+item.spawn_egg.entity.soul:corrupted_creeper_blue.name=Spawn Soul Corrupted Creeper (Blue)
+entity.soul:corrupted_creeper_red.name=Soul Corrupted Creeper (Red)
+item.spawn_egg.entity.soul:corrupted_creeper_red.name=Spawn Soul Corrupted Creeper (Red)
+entity.soul:corrupted_creeper_green.name=Soul Corrupted Creeper (Green)
+item.spawn_egg.entity.soul:corrupted_creeper_green.name=Spawn Soul Corrupted Creeper (Green)
+entity.soul:corrupted_skeleton_blue.name=Soul Corrupted Skeleton (Blue)
+item.spawn_egg.entity.soul:corrupted_skeleton_blue.name=Spawn Soul Corrupted Skeleton (Blue)
+entity.soul:corrupted_skeleton_red.name=Soul Corrupted Skeleton (Red)
+item.spawn_egg.entity.soul:corrupted_skeleton_red.name=Spawn Soul Corrupted Skeleton (Red)
+entity.soul:corrupted_skeleton_green.name=Soul Corrupted Skeleton (Green)
+item.spawn_egg.entity.soul:corrupted_skeleton_green.name=Spawn Soul Corrupted Skeleton (Green)
+item.soul:corrupted_soul_sword.name=Corrupted Soul Sword

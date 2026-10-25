@@ -1,0 +1,148 @@
+{
+  "format_version": "1.10.0",
+  "animation_controllers": {
+    "controller.animation.soul.zombie": {
+      "initial_state": "start",
+      "states": {
+        "start": {
+          "transitions": [
+            {
+              "emerging": "query.property('soul:emerging')"
+            },
+            {
+              "alive": "!query.property('soul:emerging')"
+            }
+          ]
+        },
+        "emerging": {
+          "animations": [
+            "zombie_emerge"
+          ],
+          "particle_effects": [
+            {
+              "effect": "burst"
+            },
+            {
+              "effect": "wisps"
+            }
+          ],
+          "transitions": [
+            {
+              "alive": "!query.property('soul:emerging')"
+            }
+          ],
+          "blend_transition": 0.25
+        },
+        "alive": {
+          "animations": [
+            "zombie_walk",
+            "zombie_arms",
+            "zombie_idle",
+            "zombie_attack"
+          ],
+          "particle_effects": [
+            {
+              "effect": "wisps"
+            }
+          ]
+        }
+      }
+    },
+    "controller.animation.soul.creeper": {
+      "initial_state": "start",
+      "states": {
+        "start": {
+          "transitions": [
+            {
+              "emerging": "query.property('soul:emerging')"
+            },
+            {
+              "alive": "!query.property('soul:emerging')"
+            }
+          ]
+        },
+        "emerging": {
+          "animations": [
+            "creeper_spawn"
+          ],
+          "particle_effects": [
+            {
+              "effect": "burst"
+            },
+            {
+              "effect": "wisps"
+            }
+          ],
+          "transitions": [
+            {
+              "alive": "!query.property('soul:emerging')"
+            }
+          ],
+          "blend_transition": 0.25
+        },
+        "alive": {
+          "animations": [
+            "creeper_walk",
+            "creeper_idle"
+          ],
+          "particle_effects": [
+            {
+              "effect": "wisps"
+            }
+          ]
+        }
+      }
+    },
+    "controller.animation.soul.skeleton": {
+      "initial_state": "start",
+      "states": {
+        "start": {
+          "transitions": [
+            {
+              "emerging": "query.property('soul:emerging')"
+            },
+            {
+              "alive": "!query.property('soul:emerging')"
+            }
+          ]
+        },
+        "emerging": {
+          "animations": [
+            "skeleton_emerge"
+          ],
+          "particle_effects": [
+            {
+              "effect": "burst"
+            },
+            {
+              "effect": "wisps"
+            }
+          ],
+          "transitions": [
+            {
+              "alive": "!query.property('soul:emerging')"
+            }
+          ],
+          "blend_transition": 0.25
+        },
+        "alive": {
+          "animations": [
+            "skeleton_walk",
+            "skeleton_idle",
+            {
+              "skeleton_arms": "!query.has_target"
+            },
+            {
+              "skeleton_aim": "query.has_target"
+            }
+          ],
+          "particle_effects": [
+            {
+              "effect": "wisps"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

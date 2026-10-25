@@ -1,0 +1,44 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "soul:corrupted_skeleton_red",
+      "materials": {
+        "default": "entity_emissive_alpha"
+      },
+      "textures": {
+        "default": "textures/entity/soul/corrupted_skeleton_red"
+      },
+      "geometry": {
+        "default": "geometry.soul.corrupted_skeleton"
+      },
+      "animations": {
+        "look": "animation.soul.look_at_target",
+        "controller": "controller.animation.soul.skeleton",
+        "skeleton_emerge": "animation.soul.skeleton_emerge",
+        "skeleton_walk": "animation.soul.skeleton_walk",
+        "skeleton_idle": "animation.soul.skeleton_idle",
+        "skeleton_arms": "animation.soul.skeleton_arms",
+        "skeleton_aim": "animation.soul.skeleton_aim"
+      },
+      "particle_effects": {
+        "wisps": "soul:wisp_red",
+        "burst": "soul:burst_red"
+      },
+      "scripts": {
+        "animate": [
+          "look",
+          "controller"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.soul.default"
+      ],
+      "spawn_egg": {
+        "base_color": "#7a3438",
+        "overlay_color": "#ff3d2e"
+      },
+      "enable_attachables": true
+    }
+  }
+}

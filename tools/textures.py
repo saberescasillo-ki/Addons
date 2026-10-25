@@ -200,7 +200,8 @@ class Mat:
         m.deco = merged
         return m
 
-    def paint(self, img, u, v, w, h, d, rng):
+    def paint(self, img, u, v, w, h, d, rng, res=1):
+        assert res == 1, "Mat paints 1:1 textures only"
         regions = {
             "top": (u + d, v, w, d),
             "bottom": (u + d + w, v, w, d),

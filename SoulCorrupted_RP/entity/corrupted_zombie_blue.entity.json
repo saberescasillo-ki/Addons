@@ -1,0 +1,43 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "soul:corrupted_zombie_blue",
+      "materials": {
+        "default": "entity_emissive_alpha"
+      },
+      "textures": {
+        "default": "textures/entity/soul/corrupted_zombie_blue"
+      },
+      "geometry": {
+        "default": "geometry.soul.corrupted_zombie"
+      },
+      "animations": {
+        "look": "animation.soul.look_at_target",
+        "controller": "controller.animation.soul.zombie",
+        "zombie_emerge": "animation.soul.zombie_emerge",
+        "zombie_walk": "animation.soul.zombie_walk",
+        "zombie_arms": "animation.soul.zombie_arms",
+        "zombie_idle": "animation.soul.zombie_idle",
+        "zombie_attack": "animation.soul.zombie_attack"
+      },
+      "particle_effects": {
+        "wisps": "soul:wisp_blue",
+        "burst": "soul:burst_blue"
+      },
+      "scripts": {
+        "animate": [
+          "look",
+          "controller"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.soul.default"
+      ],
+      "spawn_egg": {
+        "base_color": "#3a6f8f",
+        "overlay_color": "#3fe0ff"
+      }
+    }
+  }
+}
