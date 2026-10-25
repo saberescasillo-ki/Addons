@@ -75,12 +75,12 @@ y cada color es un mob aparte con su propio huevo.
 - Si estás a **10 bloques o menos**:
   - te apunta con un **rayo de partículas**;
   - te cura **1 de vida por segundo**, más rápido que la regeneración normal.
-- **Receta** (mesa de crafteo):
+- **Receta** (mesa de crafteo). C = pizarra profunda rocosa (`minecraft:cobbled_deepslate`), F = farol de almas, M = manzana dorada:
 
   ```
-  pizarra profunda labrada   farol de almas    pizarra profunda labrada
-  pizarra profunda labrada   manzana dorada    pizarra profunda labrada
-  pizarra profunda labrada   pizarra p. labr.  pizarra profunda labrada
+  C F C
+  C M C
+  C C C
   ```
 
 - Se coloca como un huevo de generación.
