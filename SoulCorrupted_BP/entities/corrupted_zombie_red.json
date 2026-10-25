@@ -18,7 +18,7 @@
       "soul:emerging": {
         "minecraft:timer": {
           "looping": false,
-          "time": 2.2,
+          "time": 1.2,
           "time_down_event": {
             "event": "soul:emerged"
           }
@@ -113,16 +113,6 @@
       "minecraft:movement": {
         "value": 0.24
       },
-      "minecraft:movement.basic": {},
-      "minecraft:navigation.walk": {
-        "can_pass_doors": true,
-        "avoid_water": true,
-        "can_walk_in_lava": true,
-        "can_path_over_lava": true,
-        "is_amphibious": true
-      },
-      "minecraft:jump.static": {},
-      "minecraft:can_climb": {},
       "minecraft:physics": {},
       "minecraft:pushable": {
         "is_pushable": true,
@@ -182,7 +172,17 @@
       },
       "minecraft:experience_reward": {
         "on_death": "query.last_hit_by_player ? 7 : 0"
-      }
+      },
+      "minecraft:movement.basic": {},
+      "minecraft:navigation.walk": {
+        "can_pass_doors": true,
+        "avoid_water": true,
+        "can_walk_in_lava": true,
+        "can_path_over_lava": true,
+        "is_amphibious": true
+      },
+      "minecraft:jump.static": {},
+      "minecraft:can_climb": {}
     },
     "events": {
       "minecraft:entity_spawned": {

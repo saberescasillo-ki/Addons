@@ -2,17 +2,17 @@
   "format_version": 2,
   "header": {
     "name": "Soul Corrupted (Resources)",
-    "description": "Modelos, texturas brillantes y animaciones.",
+    "description": "Modelos, texturas 16x16 y animaciones.",
     "uuid": "f4051627-3d4e-4f50-b162-d7e8f90a1b2c",
     "version": [
       1,
-      0,
+      1,
       0
     ],
     "min_engine_version": [
       1,
       21,
-      0
+      90
     ]
   },
   "modules": [
@@ -21,7 +21,7 @@
       "uuid": "05162738-4e5f-4061-8273-e8f90a1b2c3d",
       "version": [
         1,
-        0,
+        1,
         0
       ]
     }
@@ -31,7 +31,7 @@
       "uuid": "c1d2e3f4-0a1b-4c2d-8e3f-a4b5c6d7e8f9",
       "version": [
         1,
-        0,
+        1,
         0
       ]
     }

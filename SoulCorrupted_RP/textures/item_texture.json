@@ -4,6 +4,9 @@
   "texture_data": {
     "corrupted_soul_sword": {
       "textures": "textures/items/corrupted_soul_sword"
+    },
+    "healing_altar_egg": {
+      "textures": "textures/items/healing_altar_egg"
     }
   }
 }

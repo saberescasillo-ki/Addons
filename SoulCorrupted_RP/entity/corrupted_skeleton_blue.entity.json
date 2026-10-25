@@ -44,8 +44,8 @@
         "controller.render.soul.default"
       ],
       "spawn_egg": {
-        "base_color": "#3d7396",
-        "overlay_color": "#3fe0ff"
+        "base_color": "#a3e6ee",
+        "overlay_color": "#178aa6"
       },
       "enable_attachables": true
     }

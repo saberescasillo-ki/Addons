@@ -1,0 +1,36 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "soul:healing_altar",
+      "materials": {
+        "default": "entity_emissive_alpha"
+      },
+      "textures": {
+        "default": "textures/entity/soul/healing_altar"
+      },
+      "geometry": {
+        "default": "geometry.soul.healing_altar"
+      },
+      "animations": {
+        "float": "animation.soul.altar_float",
+        "particles": "animation.soul.altar_particles"
+      },
+      "particle_effects": {
+        "wisps": "soul:altar_wisp"
+      },
+      "scripts": {
+        "animate": [
+          "float",
+          "particles"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.soul.default"
+      ],
+      "spawn_egg": {
+        "texture": "healing_altar_egg"
+      }
+    }
+  }
+}

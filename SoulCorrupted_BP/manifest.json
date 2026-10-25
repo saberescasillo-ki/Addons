@@ -2,17 +2,17 @@
   "format_version": 2,
   "header": {
     "name": "Soul Corrupted (Behavior)",
-    "description": "Zombis, creepers y esqueletos de alma corrupta + espada.",
+    "description": "Mobs de alma corrupta, phantom montable, altar de curación y espada.",
     "uuid": "c1d2e3f4-0a1b-4c2d-8e3f-a4b5c6d7e8f9",
     "version": [
       1,
-      0,
+      1,
       0
     ],
     "min_engine_version": [
       1,
       21,
-      0
+      90
     ]
   },
   "modules": [
@@ -21,7 +21,7 @@
       "uuid": "d2e3f405-1b2c-4d3e-9f40-b5c6d7e8f90a",
       "version": [
         1,
-        0,
+        1,
         0
       ]
     },
@@ -31,7 +31,7 @@
       "uuid": "e3f40516-2c3d-4e4f-a051-c6d7e8f90a1b",
       "version": [
         1,
-        0,
+        1,
         0
       ],
       "entry": "scripts/main.js"
@@ -42,7 +42,7 @@
       "uuid": "f4051627-3d4e-4f50-b162-d7e8f90a1b2c",
       "version": [
         1,
-        0,
+        1,
         0
       ]
     },

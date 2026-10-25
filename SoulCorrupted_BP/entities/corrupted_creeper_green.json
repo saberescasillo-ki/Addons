@@ -11,6 +11,10 @@
           "type": "bool",
           "default": false,
           "client_sync": true
+        },
+        "soul:lit": {
+          "type": "bool",
+          "default": false
         }
       },
       "runtime_identifier": "minecraft:creeper"
@@ -19,7 +23,7 @@
       "soul:emerging": {
         "minecraft:timer": {
           "looping": false,
-          "time": 1.8,
+          "time": 0.9,
           "time_down_event": {
             "event": "soul:emerged"
           }
@@ -135,6 +139,7 @@
       "minecraft:type_family": {
         "family": [
           "creeper",
+          "soul_creeper",
           "monster",
           "mob",
           "soul_corrupted"
@@ -151,16 +156,6 @@
       "minecraft:movement": {
         "value": 0.23
       },
-      "minecraft:movement.basic": {},
-      "minecraft:navigation.walk": {
-        "can_pass_doors": true,
-        "avoid_water": true,
-        "can_walk_in_lava": true,
-        "can_path_over_lava": true,
-        "is_amphibious": true
-      },
-      "minecraft:jump.static": {},
-      "minecraft:can_climb": {},
       "minecraft:physics": {},
       "minecraft:pushable": {
         "is_pushable": true,
@@ -220,7 +215,17 @@
       },
       "minecraft:experience_reward": {
         "on_death": "query.last_hit_by_player ? 7 : 0"
-      }
+      },
+      "minecraft:movement.basic": {},
+      "minecraft:navigation.walk": {
+        "can_pass_doors": true,
+        "avoid_water": true,
+        "can_walk_in_lava": true,
+        "can_path_over_lava": true,
+        "is_amphibious": true
+      },
+      "minecraft:jump.static": {},
+      "minecraft:can_climb": {}
     },
     "events": {
       "minecraft:entity_spawned": {
@@ -260,6 +265,9 @@
               "component_groups": [
                 "minecraft:exploding"
               ]
+            },
+            "set_property": {
+              "soul:lit": true
             }
           }
         ]
@@ -276,6 +284,9 @@
               "component_groups": [
                 "minecraft:exploding"
               ]
+            },
+            "set_property": {
+              "soul:lit": true
             }
           }
         ]
@@ -285,6 +296,9 @@
           "component_groups": [
             "minecraft:exploding"
           ]
+        },
+        "set_property": {
+          "soul:lit": false
         }
       }
     }

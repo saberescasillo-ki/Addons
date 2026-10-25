@@ -5,7 +5,7 @@
       "description": {
         "identifier": "geometry.soul.corrupted_skeleton",
         "texture_width": 64,
-        "texture_height": 64,
+        "texture_height": 32,
         "visible_bounds_width": 2.5,
         "visible_bounds_height": 3.0,
         "visible_bounds_offset": [
@@ -47,100 +47,6 @@
                 32,
                 0
               ]
-            },
-            {
-              "origin": [
-                -4.5,
-                21,
-                -2.5
-              ],
-              "size": [
-                9,
-                3,
-                5
-              ],
-              "uv": [
-                24,
-                16
-              ]
-            },
-            {
-              "origin": [
-                4.5,
-                23,
-                -1
-              ],
-              "size": [
-                2,
-                4,
-                2
-              ],
-              "uv": [
-                0,
-                30
-              ],
-              "pivot": [
-                5.5,
-                23,
-                0
-              ],
-              "rotation": [
-                0,
-                0,
-                -25
-              ]
-            },
-            {
-              "origin": [
-                -1,
-                16,
-                1.5
-              ],
-              "size": [
-                2,
-                5,
-                2
-              ],
-              "uv": [
-                52,
-                16
-              ],
-              "pivot": [
-                0,
-                16,
-                2.5
-              ],
-              "rotation": [
-                -35,
-                0,
-                0
-              ]
-            },
-            {
-              "origin": [
-                -3,
-                13,
-                1.5
-              ],
-              "size": [
-                1,
-                3,
-                1
-              ],
-              "uv": [
-                8,
-                30
-              ],
-              "pivot": [
-                -2.5,
-                13,
-                2
-              ],
-              "rotation": [
-                -40,
-                0,
-                -20
-              ]
             }
           ]
         },
@@ -167,32 +73,6 @@
               "uv": [
                 0,
                 0
-              ]
-            },
-            {
-              "origin": [
-                -2,
-                31,
-                -1
-              ],
-              "size": [
-                1,
-                3,
-                1
-              ],
-              "uv": [
-                12,
-                30
-              ],
-              "pivot": [
-                -1.5,
-                31,
-                -0.5
-              ],
-              "rotation": [
-                0,
-                0,
-                15
               ]
             }
           ]

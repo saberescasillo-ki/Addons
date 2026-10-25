@@ -49,8 +49,8 @@
         "controller.render.soul.creeper"
       ],
       "spawn_egg": {
-        "base_color": "#3d7396",
-        "overlay_color": "#3fe0ff"
+        "base_color": "#a3e6ee",
+        "overlay_color": "#178aa6"
       }
     }
   }

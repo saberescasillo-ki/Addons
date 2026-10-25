@@ -28,7 +28,7 @@
               "alive": "!query.property('soul:emerging')"
             }
           ],
-          "blend_transition": 0.5
+          "blend_transition": 0.3
         },
         "alive": {
           "animations": [
@@ -37,7 +37,7 @@
             "zombie_idle",
             "zombie_attack"
           ],
-          "blend_transition": 0.5
+          "blend_transition": 0.3
         }
       }
     },
@@ -68,14 +68,14 @@
               "alive": "!query.property('soul:emerging')"
             }
           ],
-          "blend_transition": 0.5
+          "blend_transition": 0.3
         },
         "alive": {
           "animations": [
             "creeper_walk",
             "creeper_idle"
           ],
-          "blend_transition": 0.5
+          "blend_transition": 0.3
         }
       }
     },
@@ -106,7 +106,7 @@
               "alive": "!query.property('soul:emerging')"
             }
           ],
-          "blend_transition": 0.5
+          "blend_transition": 0.3
         },
         "alive": {
           "animations": [
@@ -119,7 +119,44 @@
               "skeleton_aim": "variable.s_aim"
             }
           ],
-          "blend_transition": 0.5
+          "blend_transition": 0.3
+        }
+      }
+    },
+    "controller.animation.soul.phantom": {
+      "initial_state": "start",
+      "states": {
+        "start": {
+          "transitions": [
+            {
+              "emerging": "query.property('soul:emerging')"
+            },
+            {
+              "alive": "!query.property('soul:emerging')"
+            }
+          ]
+        },
+        "emerging": {
+          "animations": [
+            "phantom_spawn"
+          ],
+          "particle_effects": [
+            {
+              "effect": "burst"
+            }
+          ],
+          "transitions": [
+            {
+              "alive": "!query.property('soul:emerging')"
+            }
+          ],
+          "blend_transition": 0.3
+        },
+        "alive": {
+          "animations": [
+            "phantom_fly"
+          ],
+          "blend_transition": 0.3
         }
       }
     }
