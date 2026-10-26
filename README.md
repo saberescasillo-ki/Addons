@@ -16,19 +16,64 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 
 # Ruleta de Colores
 
-![La ruleta en cada color, el resultado oculto y las espadas del PvP](docs/roulette_preview.png)
+![La ruleta en cada color, el resultado oculto y la ruleta rota](docs/roulette_preview.png)
 
 Ruleta de 6 colores (**rojo, verde, azul, blanco, celeste y amarillo**) con aspecto natural: borde de corteza,
-lianas con hojas y flores, ramitas entre los colores y un tronco en el centro. Aparece en la
-**esquina superior izquierda, bajo la barra de vida y de armadura** (HUD de móvil), y es solo para el administrador (operador).
+lianas con hojas y flores, ramitas entre los colores y un tronco en el centro. Por defecto aparece
+**encima de la barra de objetos**. Solo la maneja el administrador (operador) y lo que hace se aplica a todos los jugadores.
 
 ### El control de la ruleta
 
 Cógelo del inventario creativo (*Control de la Ruleta*), con `/give @s roulette:controller` o con `/roulette:item`.
-Al hacer **clic derecho** se abre un menú que se aplica a todos los jugadores:
+Al hacer **clic derecho** se abre un menú:
 
 | Opción | Qué hace |
 |---|---|
+| Giro aleatorio | Gira y cae en un color al azar. |
+| Girar a un color | Eliges el color y, si quieres, un **mensaje** que sale en la barra de acción al caer (ej. blanco → "¡Los creepers de azalea vienen!"). |
+| Mostrar / Ocultar ruleta | Aparece creciendo desde muy pequeña, o se encoge hasta desaparecer. |
+| Ocultar resultado | Deja todo en blanco con una **carita feliz** en blanco y negro en el centro. El siguiente giro vuelve a mostrar los colores. |
+| Girar sin control | Sin resultado: empieza a girar despacio, cada vez más rápido hasta **10 veces** la velocidad normal, desaparece medio segundo y vuelve **rota por la mitad**. |
+| Cambiar posición | Encima de la barra de objetos, debajo de la barra de hambre o en el centro. |
+
+### Giro
+
+- Antes de girar suenan **tres campanas de aviso**; luego gira durante **15 segundos**, frena poco a poco y suena un clic en cada color.
+- Al parar suena un aviso y la ruleta se hace **1,5 veces más grande durante 1 segundo**.
+- No se muestra ningún título ni mensaje en el chat con el resultado, solo el mensaje que hayas escrito (si lo hay).
+- El resultado se guarda en el marcador `ruleta`, jugador `resultado`
+  (1 rojo, 2 verde, 3 azul, 4 blanco, 5 celeste, 6 amarillo).
+
+### Comandos
+
+| Comando | Qué hace |
+|---|---|
+| `/spin_roulette:rojo` | Gira la ruleta y cae en rojo. También `:verde`, `:azul`, `:blanco`, `:celeste`, `:amarillo` y `:aleatorio`. |
+| `/spin_roulette:blanco "Los creepers de azalea vienen"` | Igual, con mensaje al caer. |
+| `/roulette:show` / `/roulette:hide` | Muestra / oculta la ruleta. |
+| `/roulette:blank` | Oculta el resultado (todo en blanco con la carita). |
+| `/roulette:wild` | Gira sin control hasta romperse. |
+| `/roulette:pos_hotbar`, `/roulette:pos_hambre`, `/roulette:pos_centro` | Cambia la posición para todos. |
+| `/roulette:item` | Te da el control de la ruleta. |
+
+- Al final se puede añadir un selector de jugadores (`/roulette:show @a[tag=juego]`); sin él se aplica a todos.
+  En `spin_roulette` el selector va después del mensaje.
+- Con `/scriptevent` (bloques de comandos): `spin_roulette:rojo <mensaje>`, `roulette:show`, `roulette:hide`,
+  `roulette:blank`, `roulette:wild`, `roulette:pos_hotbar`, `roulette:pos_hambre`, `roulette:pos_centro`.
+
+### Aviso de tótem
+
+Cuando un jugador gasta un tótem de la inmortalidad, sale en el chat para todos:
+*[Totem] El jugador Steve ha consumido un totem*.
+
+### Notas
+
+- Es ligero: el script solo envía algo a un jugador cuando su ruleta cambia, y la interfaz solo calcula la posición activa.
+- La ruleta se dibuja con JSON UI usando títulos ocultos que empiezan por `_roul:`; el resto de títulos se ve normal.
+- El tamaño, las posiciones y las duraciones se cambian en `tools/roulette.py`
+  (`UI_SIZE`, `POSITIONS`, `SPIN_TICKS`, `WILD_TICKS`...).
+
+---|---|
 | Giro aleatorio | Gira y cae en un color al azar. |
 | Girar a un color | Eliges el color y, si quieres, un **mensaje** que sale al caer (ej. blanco → "¡Los creepers de azalea vienen!"). |
 | Mostrar / Ocultar ruleta | Aparece creciendo desde muy pequeña, o se encoge hasta desaparecer. |

@@ -64,10 +64,6 @@
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left",
-          "offset": [
-            4,
-            30
-          ],
           "controls": [
             {
               "pre_f00": {
@@ -873,20 +869,9 @@
               }
             },
             {
-              "pre_pvp_on": {
+              "pre_broken": {
                 "type": "image",
-                "texture": "textures/ui/roulette/pvp_on",
-                "size": [
-                  1,
-                  1
-                ],
-                "alpha": 0.01
-              }
-            },
-            {
-              "pre_pvp_off": {
-                "type": "image",
-                "texture": "textures/ui/roulette/pvp_off",
+                "texture": "textures/ui/roulette/broken",
                 "size": [
                   1,
                   1
@@ -920,36 +905,36 @@
         }
       },
       {
-        "roulette_wheel": {
+        "roulette_at_hotbar": {
           "type": "panel",
           "size": [
-            64,
-            72
+            96,
+            108
           ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left",
+          "anchor_from": "bottom_middle",
+          "anchor_to": "bottom_middle",
           "offset": [
-            4,
-            30
+            0,
+            -28
           ],
           "bindings": [
             {
               "binding_type": "view",
               "source_control_name": "roul_data_control",
-              "source_property_name": "((not ((#preserved_text - '_roul:') = #preserved_text)) and not (#preserved_text = '_roul:hide'))",
+              "source_property_name": "(((not ((#preserved_text - '_roul:') = #preserved_text)) and not (#preserved_text = '_roul:hide')) and (not ((#preserved_text - '~photbar~') = #preserved_text)))",
               "target_property_name": "#visible"
             }
           ],
           "controls": [
             {
-              "roulette_scale_1": {
+              "scale_1": {
                 "type": "panel",
                 "size": [
                   6,
                   6
                 ],
-                "anchor_from": "center",
-                "anchor_to": "center",
+                "anchor_from": "bottom_middle",
+                "anchor_to": "bottom_middle",
                 "bindings": [
                   {
                     "binding_type": "view",
@@ -974,7 +959,7 @@
                         {
                           "binding_type": "view",
                           "source_control_name": "roul_data_control",
-                          "source_property_name": "('textures/ui/roulette/' + (((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~'))",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
                           "target_property_name": "#texture"
                         }
                       ]
@@ -991,7 +976,7 @@
                         {
                           "binding_type": "view",
                           "source_control_name": "roul_data_control",
-                          "source_property_name": "((#preserved_text - 'pvp') = #preserved_text)",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
                           "target_property_name": "#visible"
                         }
                       ],
@@ -1029,14 +1014,14 @@
               }
             },
             {
-              "roulette_scale_2": {
+              "scale_2": {
                 "type": "panel",
                 "size": [
                   13,
                   14
                 ],
-                "anchor_from": "center",
-                "anchor_to": "center",
+                "anchor_from": "bottom_middle",
+                "anchor_to": "bottom_middle",
                 "bindings": [
                   {
                     "binding_type": "view",
@@ -1061,7 +1046,7 @@
                         {
                           "binding_type": "view",
                           "source_control_name": "roul_data_control",
-                          "source_property_name": "('textures/ui/roulette/' + (((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~'))",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
                           "target_property_name": "#texture"
                         }
                       ]
@@ -1078,7 +1063,7 @@
                         {
                           "binding_type": "view",
                           "source_control_name": "roul_data_control",
-                          "source_property_name": "((#preserved_text - 'pvp') = #preserved_text)",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
                           "target_property_name": "#visible"
                         }
                       ],
@@ -1116,14 +1101,14 @@
               }
             },
             {
-              "roulette_scale_3": {
+              "scale_3": {
                 "type": "panel",
                 "size": [
                   19,
                   21
                 ],
-                "anchor_from": "center",
-                "anchor_to": "center",
+                "anchor_from": "bottom_middle",
+                "anchor_to": "bottom_middle",
                 "bindings": [
                   {
                     "binding_type": "view",
@@ -1148,7 +1133,7 @@
                         {
                           "binding_type": "view",
                           "source_control_name": "roul_data_control",
-                          "source_property_name": "('textures/ui/roulette/' + (((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~'))",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
                           "target_property_name": "#texture"
                         }
                       ]
@@ -1165,7 +1150,7 @@
                         {
                           "binding_type": "view",
                           "source_control_name": "roul_data_control",
-                          "source_property_name": "((#preserved_text - 'pvp') = #preserved_text)",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
                           "target_property_name": "#visible"
                         }
                       ],
@@ -1203,14 +1188,14 @@
               }
             },
             {
-              "roulette_scale_4": {
+              "scale_4": {
                 "type": "panel",
                 "size": [
                   26,
                   29
                 ],
-                "anchor_from": "center",
-                "anchor_to": "center",
+                "anchor_from": "bottom_middle",
+                "anchor_to": "bottom_middle",
                 "bindings": [
                   {
                     "binding_type": "view",
@@ -1235,7 +1220,7 @@
                         {
                           "binding_type": "view",
                           "source_control_name": "roul_data_control",
-                          "source_property_name": "('textures/ui/roulette/' + (((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~'))",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
                           "target_property_name": "#texture"
                         }
                       ]
@@ -1252,7 +1237,7 @@
                         {
                           "binding_type": "view",
                           "source_control_name": "roul_data_control",
-                          "source_property_name": "((#preserved_text - 'pvp') = #preserved_text)",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
                           "target_property_name": "#visible"
                         }
                       ],
@@ -1290,14 +1275,14 @@
               }
             },
             {
-              "roulette_scale_5": {
+              "scale_5": {
                 "type": "panel",
                 "size": [
                   32,
                   36
                 ],
-                "anchor_from": "center",
-                "anchor_to": "center",
+                "anchor_from": "bottom_middle",
+                "anchor_to": "bottom_middle",
                 "bindings": [
                   {
                     "binding_type": "view",
@@ -1322,7 +1307,7 @@
                         {
                           "binding_type": "view",
                           "source_control_name": "roul_data_control",
-                          "source_property_name": "('textures/ui/roulette/' + (((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~'))",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
                           "target_property_name": "#texture"
                         }
                       ]
@@ -1339,7 +1324,7 @@
                         {
                           "binding_type": "view",
                           "source_control_name": "roul_data_control",
-                          "source_property_name": "((#preserved_text - 'pvp') = #preserved_text)",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
                           "target_property_name": "#visible"
                         }
                       ],
@@ -1377,14 +1362,14 @@
               }
             },
             {
-              "roulette_scale_6": {
+              "scale_6": {
                 "type": "panel",
                 "size": [
                   38,
                   42
                 ],
-                "anchor_from": "center",
-                "anchor_to": "center",
+                "anchor_from": "bottom_middle",
+                "anchor_to": "bottom_middle",
                 "bindings": [
                   {
                     "binding_type": "view",
@@ -1409,7 +1394,7 @@
                         {
                           "binding_type": "view",
                           "source_control_name": "roul_data_control",
-                          "source_property_name": "('textures/ui/roulette/' + (((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~'))",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
                           "target_property_name": "#texture"
                         }
                       ]
@@ -1426,7 +1411,7 @@
                         {
                           "binding_type": "view",
                           "source_control_name": "roul_data_control",
-                          "source_property_name": "((#preserved_text - 'pvp') = #preserved_text)",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
                           "target_property_name": "#visible"
                         }
                       ],
@@ -1464,14 +1449,14 @@
               }
             },
             {
-              "roulette_scale_7": {
+              "scale_7": {
                 "type": "panel",
                 "size": [
                   45,
                   50
                 ],
-                "anchor_from": "center",
-                "anchor_to": "center",
+                "anchor_from": "bottom_middle",
+                "anchor_to": "bottom_middle",
                 "bindings": [
                   {
                     "binding_type": "view",
@@ -1496,7 +1481,7 @@
                         {
                           "binding_type": "view",
                           "source_control_name": "roul_data_control",
-                          "source_property_name": "('textures/ui/roulette/' + (((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~'))",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
                           "target_property_name": "#texture"
                         }
                       ]
@@ -1513,7 +1498,7 @@
                         {
                           "binding_type": "view",
                           "source_control_name": "roul_data_control",
-                          "source_property_name": "((#preserved_text - 'pvp') = #preserved_text)",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
                           "target_property_name": "#visible"
                         }
                       ],
@@ -1551,14 +1536,14 @@
               }
             },
             {
-              "roulette_scale_8": {
+              "scale_8": {
                 "type": "panel",
                 "size": [
                   51,
                   57
                 ],
-                "anchor_from": "center",
-                "anchor_to": "center",
+                "anchor_from": "bottom_middle",
+                "anchor_to": "bottom_middle",
                 "bindings": [
                   {
                     "binding_type": "view",
@@ -1583,7 +1568,7 @@
                         {
                           "binding_type": "view",
                           "source_control_name": "roul_data_control",
-                          "source_property_name": "('textures/ui/roulette/' + (((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~'))",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
                           "target_property_name": "#texture"
                         }
                       ]
@@ -1600,7 +1585,7 @@
                         {
                           "binding_type": "view",
                           "source_control_name": "roul_data_control",
-                          "source_property_name": "((#preserved_text - 'pvp') = #preserved_text)",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
                           "target_property_name": "#visible"
                         }
                       ],
@@ -1638,14 +1623,14 @@
               }
             },
             {
-              "roulette_scale_9": {
+              "scale_9": {
                 "type": "panel",
                 "size": [
                   58,
                   65
                 ],
-                "anchor_from": "center",
-                "anchor_to": "center",
+                "anchor_from": "bottom_middle",
+                "anchor_to": "bottom_middle",
                 "bindings": [
                   {
                     "binding_type": "view",
@@ -1670,7 +1655,7 @@
                         {
                           "binding_type": "view",
                           "source_control_name": "roul_data_control",
-                          "source_property_name": "('textures/ui/roulette/' + (((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~'))",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
                           "target_property_name": "#texture"
                         }
                       ]
@@ -1687,7 +1672,7 @@
                         {
                           "binding_type": "view",
                           "source_control_name": "roul_data_control",
-                          "source_property_name": "((#preserved_text - 'pvp') = #preserved_text)",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
                           "target_property_name": "#visible"
                         }
                       ],
@@ -1725,7 +1710,2667 @@
               }
             },
             {
-              "roulette_scale_10": {
+              "scale_10": {
+                "type": "panel",
+                "size": [
+                  64,
+                  72
+                ],
+                "anchor_from": "bottom_middle",
+                "anchor_to": "bottom_middle",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~10~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        64,
+                        64
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              64,
+                              64
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              16,
+                              16
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_11": {
+                "type": "panel",
+                "size": [
+                  70,
+                  78
+                ],
+                "anchor_from": "bottom_middle",
+                "anchor_to": "bottom_middle",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~11~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        70,
+                        70
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              70,
+                              70
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              17,
+                              17
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_12": {
+                "type": "panel",
+                "size": [
+                  77,
+                  86
+                ],
+                "anchor_from": "bottom_middle",
+                "anchor_to": "bottom_middle",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~12~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        77,
+                        77
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              77,
+                              77
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              19,
+                              19
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_13": {
+                "type": "panel",
+                "size": [
+                  83,
+                  93
+                ],
+                "anchor_from": "bottom_middle",
+                "anchor_to": "bottom_middle",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~13~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        83,
+                        83
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              83,
+                              83
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              20,
+                              20
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_14": {
+                "type": "panel",
+                "size": [
+                  90,
+                  101
+                ],
+                "anchor_from": "bottom_middle",
+                "anchor_to": "bottom_middle",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~14~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        90,
+                        90
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              90,
+                              90
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              22,
+                              22
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_15": {
+                "type": "panel",
+                "size": [
+                  96,
+                  108
+                ],
+                "anchor_from": "bottom_middle",
+                "anchor_to": "bottom_middle",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~15~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        96,
+                        96
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              96,
+                              96
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              24,
+                              24
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "roulette_at_hambre": {
+          "type": "panel",
+          "size": [
+            96,
+            108
+          ],
+          "anchor_from": "top_right",
+          "anchor_to": "top_right",
+          "offset": [
+            -4,
+            30
+          ],
+          "bindings": [
+            {
+              "binding_type": "view",
+              "source_control_name": "roul_data_control",
+              "source_property_name": "(((not ((#preserved_text - '_roul:') = #preserved_text)) and not (#preserved_text = '_roul:hide')) and (not ((#preserved_text - '~phambre~') = #preserved_text)))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "controls": [
+            {
+              "scale_1": {
+                "type": "panel",
+                "size": [
+                  6,
+                  6
+                ],
+                "anchor_from": "top_right",
+                "anchor_to": "top_right",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~1~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        6,
+                        6
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              6,
+                              6
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              1,
+                              1
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_2": {
+                "type": "panel",
+                "size": [
+                  13,
+                  14
+                ],
+                "anchor_from": "top_right",
+                "anchor_to": "top_right",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~2~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        13,
+                        13
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              13,
+                              13
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              3,
+                              3
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_3": {
+                "type": "panel",
+                "size": [
+                  19,
+                  21
+                ],
+                "anchor_from": "top_right",
+                "anchor_to": "top_right",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~3~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        19,
+                        19
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              19,
+                              19
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              4,
+                              4
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_4": {
+                "type": "panel",
+                "size": [
+                  26,
+                  29
+                ],
+                "anchor_from": "top_right",
+                "anchor_to": "top_right",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~4~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        26,
+                        26
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              26,
+                              26
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              6,
+                              6
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_5": {
+                "type": "panel",
+                "size": [
+                  32,
+                  36
+                ],
+                "anchor_from": "top_right",
+                "anchor_to": "top_right",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~5~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        32,
+                        32
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              32,
+                              32
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              8,
+                              8
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_6": {
+                "type": "panel",
+                "size": [
+                  38,
+                  42
+                ],
+                "anchor_from": "top_right",
+                "anchor_to": "top_right",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~6~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        38,
+                        38
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              38,
+                              38
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              9,
+                              9
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_7": {
+                "type": "panel",
+                "size": [
+                  45,
+                  50
+                ],
+                "anchor_from": "top_right",
+                "anchor_to": "top_right",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~7~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        45,
+                        45
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              45,
+                              45
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              11,
+                              11
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_8": {
+                "type": "panel",
+                "size": [
+                  51,
+                  57
+                ],
+                "anchor_from": "top_right",
+                "anchor_to": "top_right",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~8~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        51,
+                        51
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              51,
+                              51
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              12,
+                              12
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_9": {
+                "type": "panel",
+                "size": [
+                  58,
+                  65
+                ],
+                "anchor_from": "top_right",
+                "anchor_to": "top_right",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~9~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        58,
+                        58
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              58,
+                              58
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              14,
+                              14
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_10": {
+                "type": "panel",
+                "size": [
+                  64,
+                  72
+                ],
+                "anchor_from": "top_right",
+                "anchor_to": "top_right",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~10~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        64,
+                        64
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              64,
+                              64
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              16,
+                              16
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_11": {
+                "type": "panel",
+                "size": [
+                  70,
+                  78
+                ],
+                "anchor_from": "top_right",
+                "anchor_to": "top_right",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~11~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        70,
+                        70
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              70,
+                              70
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              17,
+                              17
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_12": {
+                "type": "panel",
+                "size": [
+                  77,
+                  86
+                ],
+                "anchor_from": "top_right",
+                "anchor_to": "top_right",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~12~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        77,
+                        77
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              77,
+                              77
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              19,
+                              19
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_13": {
+                "type": "panel",
+                "size": [
+                  83,
+                  93
+                ],
+                "anchor_from": "top_right",
+                "anchor_to": "top_right",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~13~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        83,
+                        83
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              83,
+                              83
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              20,
+                              20
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_14": {
+                "type": "panel",
+                "size": [
+                  90,
+                  101
+                ],
+                "anchor_from": "top_right",
+                "anchor_to": "top_right",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~14~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        90,
+                        90
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              90,
+                              90
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              22,
+                              22
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_15": {
+                "type": "panel",
+                "size": [
+                  96,
+                  108
+                ],
+                "anchor_from": "top_right",
+                "anchor_to": "top_right",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~15~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        96,
+                        96
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              96,
+                              96
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              24,
+                              24
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "roulette_at_centro": {
+          "type": "panel",
+          "size": [
+            96,
+            108
+          ],
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "offset": [
+            0,
+            0
+          ],
+          "bindings": [
+            {
+              "binding_type": "view",
+              "source_control_name": "roul_data_control",
+              "source_property_name": "(((not ((#preserved_text - '_roul:') = #preserved_text)) and not (#preserved_text = '_roul:hide')) and (not ((#preserved_text - '~pcentro~') = #preserved_text)))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "controls": [
+            {
+              "scale_1": {
+                "type": "panel",
+                "size": [
+                  6,
+                  6
+                ],
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~1~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        6,
+                        6
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              6,
+                              6
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              1,
+                              1
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_2": {
+                "type": "panel",
+                "size": [
+                  13,
+                  14
+                ],
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~2~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        13,
+                        13
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              13,
+                              13
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              3,
+                              3
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_3": {
+                "type": "panel",
+                "size": [
+                  19,
+                  21
+                ],
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~3~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        19,
+                        19
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              19,
+                              19
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              4,
+                              4
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_4": {
+                "type": "panel",
+                "size": [
+                  26,
+                  29
+                ],
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~4~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        26,
+                        26
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              26,
+                              26
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              6,
+                              6
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_5": {
+                "type": "panel",
+                "size": [
+                  32,
+                  36
+                ],
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~5~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        32,
+                        32
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              32,
+                              32
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              8,
+                              8
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_6": {
+                "type": "panel",
+                "size": [
+                  38,
+                  42
+                ],
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~6~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        38,
+                        38
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              38,
+                              38
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              9,
+                              9
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_7": {
+                "type": "panel",
+                "size": [
+                  45,
+                  50
+                ],
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~7~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        45,
+                        45
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              45,
+                              45
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              11,
+                              11
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_8": {
+                "type": "panel",
+                "size": [
+                  51,
+                  57
+                ],
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~8~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        51,
+                        51
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              51,
+                              51
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              12,
+                              12
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_9": {
+                "type": "panel",
+                "size": [
+                  58,
+                  65
+                ],
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~9~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        58,
+                        58
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              58,
+                              58
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              14,
+                              14
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_10": {
                 "type": "panel",
                 "size": [
                   64,
@@ -1757,7 +4402,7 @@
                         {
                           "binding_type": "view",
                           "source_control_name": "roul_data_control",
-                          "source_property_name": "('textures/ui/roulette/' + (((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~'))",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
                           "target_property_name": "#texture"
                         }
                       ]
@@ -1774,7 +4419,7 @@
                         {
                           "binding_type": "view",
                           "source_control_name": "roul_data_control",
-                          "source_property_name": "((#preserved_text - 'pvp') = #preserved_text)",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
                           "target_property_name": "#visible"
                         }
                       ],
@@ -1799,6 +4444,441 @@
                             "size": [
                               16,
                               16
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_11": {
+                "type": "panel",
+                "size": [
+                  70,
+                  78
+                ],
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~11~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        70,
+                        70
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              70,
+                              70
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              17,
+                              17
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_12": {
+                "type": "panel",
+                "size": [
+                  77,
+                  86
+                ],
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~12~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        77,
+                        77
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              77,
+                              77
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              19,
+                              19
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_13": {
+                "type": "panel",
+                "size": [
+                  83,
+                  93
+                ],
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~13~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        83,
+                        83
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              83,
+                              83
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              20,
+                              20
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_14": {
+                "type": "panel",
+                "size": [
+                  90,
+                  101
+                ],
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~14~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        90,
+                        90
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              90,
+                              90
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              22,
+                              22
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "scale_15": {
+                "type": "panel",
+                "size": [
+                  96,
+                  108
+                ],
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~15~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        96,
+                        96
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~') - '~11~') - '~12~') - '~13~') - '~14~') - '~15~') - '~photbar~') - '~phambre~') - '~pcentro~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'broken') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              96,
+                              96
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              24,
+                              24
                             ],
                             "layer": 3,
                             "anchor_from": "top_middle",
