@@ -1,0 +1,258 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "eu_sc:soul_blade_zombie",
+      "is_spawnable": true,
+      "is_summonable": true,
+      "spawn_category": "monster",
+      "properties": {
+        "eu_sc:state": {
+          "type": "int",
+          "range": [
+            0,
+            2
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "eu_sc:action": {
+          "type": "int",
+          "range": [
+            0,
+            3
+          ],
+          "default": 0,
+          "client_sync": true
+        }
+      }
+    },
+    "component_groups": {
+      "eu_sc:active": {
+        "minecraft:behavior.float": {
+          "priority": 0
+        },
+        "minecraft:behavior.hurt_by_target": {
+          "priority": 1
+        },
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 2,
+          "must_see": false,
+          "reselect_targets": true,
+          "within_radius": 32,
+          "entity_types": [
+            {
+              "filters": {
+                "test": "is_family",
+                "subject": "other",
+                "value": "player"
+              },
+              "max_dist": 40
+            },
+            {
+              "filters": {
+                "test": "is_family",
+                "subject": "other",
+                "value": "irongolem"
+              },
+              "max_dist": 32
+            }
+          ]
+        },
+        "minecraft:behavior.melee_attack": {
+          "priority": 3,
+          "speed_multiplier": 1.15,
+          "track_target": true,
+          "require_complete_path": false
+        },
+        "minecraft:behavior.random_stroll": {
+          "priority": 7,
+          "speed_multiplier": 0.8
+        },
+        "minecraft:behavior.look_at_player": {
+          "priority": 8,
+          "look_distance": 16,
+          "probability": 0.05
+        },
+        "minecraft:behavior.random_look_around": {
+          "priority": 9
+        }
+      },
+      "eu_sc:dying": {
+        "minecraft:damage_sensor": {
+          "triggers": [
+            {
+              "cause": "all",
+              "deals_damage": "no"
+            }
+          ]
+        },
+        "minecraft:movement": {
+          "value": 0.0
+        },
+        "minecraft:knockback_resistance": {
+          "value": 1.0
+        }
+      },
+      "eu_sc:intro": {
+        "minecraft:timer": {
+          "looping": false,
+          "time": 2.0,
+          "time_down_event": {
+            "event": "eu_sc:activate"
+          }
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "soul_boss",
+          "monster",
+          "mob",
+          "soul_corrupted",
+          "undead",
+          "zombie"
+        ]
+      },
+      "minecraft:health": {
+        "value": 700,
+        "max": 700
+      },
+      "minecraft:collision_box": {
+        "width": 0.6,
+        "height": 1.95
+      },
+      "minecraft:movement": {
+        "value": 0.33
+      },
+      "minecraft:movement.basic": {},
+      "minecraft:navigation.walk": {
+        "can_pass_doors": true,
+        "avoid_water": true,
+        "can_walk_in_lava": true,
+        "can_path_over_lava": true,
+        "is_amphibious": true
+      },
+      "minecraft:jump.static": {},
+      "minecraft:can_climb": {},
+      "minecraft:physics": {},
+      "minecraft:pushable_by_entity": {},
+      "minecraft:pushable_by_block": {},
+      "minecraft:knockback_resistance": {
+        "value": 0.6
+      },
+      "minecraft:attack": {
+        "damage": 8,
+        "effect_name": "darkness",
+        "effect_duration": 8
+      },
+      "minecraft:fire_immune": {},
+      "minecraft:breathable": {
+        "total_supply": 15,
+        "suffocate_time": 0,
+        "breathes_air": true,
+        "breathes_water": true
+      },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "cause": "fire",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "fire_tick",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "lava",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "magma",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "freezing",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "drowning",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "wither",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "fall",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "entity_explosion",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "block_explosion",
+            "deals_damage": "no"
+          }
+        ]
+      },
+      "minecraft:follow_range": {
+        "value": 40,
+        "max": 40
+      },
+      "minecraft:nameable": {},
+      "minecraft:persistent": {},
+      "minecraft:is_hidden_when_invisible": {},
+      "minecraft:conditional_bandwidth_optimization": {}
+    },
+    "events": {
+      "eu_sc:activate": {
+        "remove": {
+          "component_groups": [
+            "eu_sc:intro",
+            "eu_sc:landing"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "eu_sc:active"
+          ]
+        },
+        "set_property": {
+          "eu_sc:state": 1
+        }
+      },
+      "eu_sc:start_dying": {
+        "remove": {
+          "component_groups": [
+            "eu_sc:active",
+            "eu_sc:intro",
+            "eu_sc:landing"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "eu_sc:dying"
+          ]
+        },
+        "set_property": {
+          "eu_sc:state": 2
+        },
+        "reset_target": {}
+      },
+      "minecraft:entity_spawned": {
+        "add": {
+          "component_groups": [
+            "eu_sc:intro"
+          ]
+        },
+        "set_property": {
+          "eu_sc:state": 0,
+          "eu_sc:action": 0
+        }
+      }
+    }
+  }
+}

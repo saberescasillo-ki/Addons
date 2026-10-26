@@ -10,14 +10,17 @@ loot and (skeleton) summons a creeper and a zombie. There is no boss bar, so
 the buffer is never visible.
 """
 import copy
+import json
 import math
+import os
 
 from PIL import Image
 
 from models import Model
-from soul_mobs import (A, NS, PALETTE, WHITE, Pal16, fam, hx, immunities, kf)
+from soul_mobs import (A, NS, PALETTE, ROOT, WHITE, Pal16, fam, hx, immunities, kf, mix_hex)
 
 HP_BUFFER = 500
+MUTANT_SRC = os.path.join(ROOT, "sources", "mutant_skeleton")  # model, texture and animations provided by the user
 SKELETON_BOSS = "soul_mutant_skeleton"
 ZOMBIE_BOSS = "soul_blade_zombie"
 STAR = f"{NS}:soul_corrupted_star"
@@ -32,7 +35,7 @@ BOSSES = {
                         loot=[("eu_sc:soul_corrupted_sword", 1, 1), (ESSENCE, 4, 8), ("minecraft:bone", 4, 8)],
                         xp=60, minions=["soul_corrupted_creeper", "soul_corrupted_zombie"]),
     ZOMBIE_BOSS: dict(es="Zombi Cuchilla de Alma Corrupta", en="Soul Corrupted Blade Zombie",
-                      color="red", hp=120, dmg=7, speed=0.3, box=(0.6, 1.95), death_ticks=50,
+                      color="red", hp=200, dmg=8, speed=0.33, box=(0.6, 1.95), death_ticks=50,
                       egg=("#F4A3A0", "#C7242A"),
                       loot=[(CORE, 1, 1), (ESSENCE, 3, 6), ("minecraft:rotten_flesh", 2, 5)],
                       xp=40, minions=[]),
@@ -62,54 +65,97 @@ def d_blade():
     return fn
 
 
-def mutant_skeleton_model():
-    """Hunched giant skeleton (twice a player) after the Mutant Creatures
-    mutant skeleton: huge ribcage, spine, long two-part limbs, big skull,
-    and a giant soul sword in the right hand."""
-    m = Model(SKELETON_BOSS, tex_w=128, bounds=(5.0, 5.0), ns="eu.sc")
-    bone = Pal16("bone", 0.5)
+def _subtree(bones, root_name):
+    names = {root_name}
+    changed = True
+    while changed:
+        changed = False
+        for b in bones:
+            if b.get("parent") in names and b["name"] not in names:
+                names.add(b["name"])
+                changed = True
+    return names
+
+
+def mutant_skeleton_assets():
+    """The user's mutant skeleton model: the bow is removed, a giant soul
+    sword (bone 'rsword', used by the model's own sword animations) is put in
+    the right hand, and the grey texture is recoloured to the soul palette
+    with white eyes."""
+    geo = json.load(open(os.path.join(MUTANT_SRC, "mutant_skeleton.json")))
+    g = geo["minecraft:geometry"][0]
+    drop = _subtree(g["bones"], "bow_main")
+    g["bones"] = [b for b in g["bones"] if b["name"] not in drop]
+    g["description"]["identifier"] = f"geometry.eu.sc.{SKELETON_BOSS}"
+    for b in g["bones"]:
+        if b["name"] == "root":
+            b["locators"] = {"particle_locator": [0, 0, 0]}
+        elif b["name"] == "topbody":
+            b["locators"] = {"slash_point": [0, 34, -18]}
+
+    src = Image.open(os.path.join(MUTANT_SRC, "skeleton.png")).convert("RGBA")
+    tex = Image.new("RGBA", src.size, (0, 0, 0, 0))
+    px, out = src.load(), tex.load()
+    for y in range(src.height):
+        for x in range(src.width):
+            r, gg, b, a = px[x, y]
+            if not a:
+                continue
+            lum = (0.3 * r + 0.59 * gg + 0.11 * b) / 255
+            # light bone -> white/pale cyan, dark crevices -> deep cyan
+            t = max(0.0, min(1.0, (1.0 - lum) * 1.5))
+            i = min(len(PALETTE) - 2, int(t * (len(PALETTE) - 1)))
+            out[x, y] = hx(mix_hex(PALETTE[i], PALETTE[i + 1], t * (len(PALETTE) - 1) - i))[:3] + (a,)
+    head = next(b for b in g["bones"] if b["name"] == "head")["cubes"][0]
+    u, v = head["uv"]
+    for y in range(8):  # white eyes: the dark sockets of the skull's face
+        for x in range(8):
+            r, gg, b, a = px[u + 8 + x, v + 8 + y]
+            if a and (0.3 * r + 0.59 * gg + 0.11 * b) / 255 < 0.42 and 2 <= y <= 5:
+                out[u + 8 + x, v + 8 + y] = WHITE
+
+    sword = Model("sword", tex_w=64, ns="eu.sc")
+    bone = sword.bone("rsword", [-8, 24, 2], "rightarm2")
     dark = Pal16("deep", 0.4)
-    root = m.bone("root", [0, 0, 0])
-    root["locators"] = {"particle_locator": [0, 0, 0]}
-    pelvis = m.bone("pelvis", [0, 24, 0], "root")
-    m.cube(pelvis, [-5, 22, -3], [10, 4, 6], bone)
-    for s, x in (("right", -3.5), ("left", 3.5)):
-        thigh = m.bone(f"{s}Leg", [x, 23, 0], "pelvis")
-        m.cube(thigh, [x - 1.5, 12, -1.5], [3, 11, 3], bone)
-        shin = m.bone(f"{s}Shin", [x, 12, 0], thigh["name"])
-        m.cube(shin, [x - 1.5, 11, -2], [3, 2, 3], dark)  # knee
-        m.cube(shin, [x - 1, 0, -1], [2, 11, 2], bone)
-        m.cube(shin, [x - 1.5, 0, -3], [3, 1, 4], dark)  # foot
-    spine = m.bone("spine", [0, 26, 0], "pelvis")
-    m.cube(spine, [-1, 26, -1], [2, 10, 2], dark)
-    chest = m.bone("chest", [0, 36, 0], "spine")
-    chest["locators"] = {"slash_point": [0, 34, -18]}
-    m.cube(chest, [-1, 36, 0], [2, 14, 2], dark)  # upper spine
-    m.cube(chest, [-1, 36, -6], [2, 13, 1], bone)  # sternum
-    for y in (37, 40, 43, 46):  # ribcage
-        m.cube(chest, [-7, y, -6], [14, 1, 1], bone)
-        m.cube(chest, [-8, y, -6], [1, 1, 8], bone)
-        m.cube(chest, [7, y, -6], [1, 1, 8], bone)
-    m.cube(chest, [-10, 47, -3], [20, 3, 5], bone)  # collarbones / shoulders
-    head = m.bone("head", [0, 50, -1], "chest")
-    m.cube(head, [-1, 49, -2], [2, 3, 2], dark)
-    m.cube(head, [-4.5, 52, -6], [9, 8, 9], bone.with_deco(front=d_skull()))
-    m.cube(head, [-3.5, 50, -6.5], [7, 2, 6], dark)  # jaw
-    for s, side in (("right", -1), ("left", 1)):
-        ax = 9 * side
-        arm = m.bone(f"{s}Arm", [ax, 48, 0], "chest")
-        m.cube(arm, [ax - 1, 34, -1], [2, 14, 2], bone)
-        fore = m.bone(f"{s}Forearm", [ax, 34, 0], arm["name"])
-        m.cube(fore, [ax - 1.5, 33, -1.5], [3, 2, 3], dark)  # elbow
-        m.cube(fore, [ax - 1, 21, -1], [2, 12, 2], bone)
-        m.cube(fore, [ax - 1.5, 18, -1.5], [3, 3, 3], dark)  # fist
-    sword = m.bone("sword", [-9, 19.5, 0], "rightForearm")
-    steel = Pal16("skin", 0.3)
-    m.cube(sword, [-9.5, 19, -2], [1, 1, 5], dark)  # grip
-    m.cube(sword, [-11, 18, -4], [4, 3, 1], dark)  # crossguard
-    m.cube(sword, [-9.5, 18, -26], [1, 3, 22], steel.with_deco(right=d_blade(), left=d_blade()))
-    m.cube(sword, [-9.5, 18.5, -29], [1, 2, 3], steel.with_deco(right=d_blade(), left=d_blade()))
-    return m
+    steel = Pal16("skin", 0.3).with_deco(right=d_blade(), left=d_blade())
+    sword.cube(bone, [-8.5, 22.5, -1], [1, 2, 6], dark)  # grip through the fist
+    sword.cube(bone, [-10.5, 22, -2], [5, 3, 1], dark)  # crossguard
+    sword.cube(bone, [-8.5, 22, -26], [1, 3, 24], steel)
+    sword.cube(bone, [-8.5, 22.5, -29], [1, 2, 3], steel)
+    sword_img = sword.build(seed=99)
+    tex.alpha_composite(sword_img, (64, 64))  # free area of the original texture
+    for b in sword.geos["default"]:
+        nb = {k: v for k, v in b.items() if k != "cubes"}
+        nb["cubes"] = []
+        for c in b["cubes"]:
+            j = c.to_json()
+            j["uv"] = [j["uv"][0] + 64, j["uv"][1] + 64]
+            nb["cubes"].append(j)
+        g["bones"].append(nb)
+    return geo, tex
+
+
+# The model's own animations that the boss uses: our name -> original name
+MUTANT_ANIMS = {
+    "mskel_walk": "animation.mskeleton.walk",
+    "mskel_walk_arms": "animation.mskeleton.walk_arms",
+    "mskel_idle": "animation.mskeleton.general",
+    "mskel_look": "animation.mskeleton.look_at_target",
+    "mskel_slash": "animation.mskele.swing_right_sword",
+    "mskel_blast": "animation.mskeleton.wither_power",
+    "mskel_land": "animation.mskeleton.land",
+}
+
+
+def mutant_animations():
+    src = json.load(open(os.path.join(MUTANT_SRC, "mskeleton_anim.json")))["animations"]
+    out = {name: copy.deepcopy(src[orig]) for name, orig in MUTANT_ANIMS.items()}
+    out["mskel_slash"]["bones"].pop("lsword", None)  # this model only has the right sword
+    out["mskel_slash"]["particle_effects"] = {"0.5": [{"effect": "slash", "locator": "slash_point"}]}
+    out["mskel_slash"]["sound_effects"] = {"0.48": {"effect": "slash"}}
+    out["mskel_land"]["particle_effects"] = {"0.0": [{"effect": "burst"}, {"effect": "land"}]}
+    out["mskel_land"]["loop"] = "hold_on_last_frame"
+    return out
 
 
 def blade_zombie_geometry(base_geo, base_tex):
@@ -161,72 +207,27 @@ STATE = f"query.property('{NS}:state')"
 ACTION = f"query.property('{NS}:action')"
 
 ANIMS = {
-    # ---------------- mutant skeleton
-    "mskel_walk": {"loop": True, "bones": {
-        "rightLeg": {"rotation": [f"math.cos({WALK} * 0.6) * 32.0 * {SPD}", 0.0, 0.0]},
-        "leftLeg": {"rotation": [f"math.cos({WALK} * 0.6) * -32.0 * {SPD}", 0.0, 0.0]},
-        "rightShin": {"rotation": [f"math.max(0.0, -math.sin({WALK} * 0.6)) * 35.0 * {SPD}", 0.0, 0.0]},
-        "leftShin": {"rotation": [f"math.max(0.0, math.sin({WALK} * 0.6)) * 35.0 * {SPD}", 0.0, 0.0]},
-        "spine": {"rotation": [f"12.0 + {SPD} * 8.0", f"math.sin({WALK} * 0.6) * 6.0 * {SPD}", 0.0]},
-        "rightArm": {"rotation": [f"-20.0 + math.cos({WALK} * 0.6) * -14.0 * {SPD}", 0.0, 8.0]},
-        "leftArm": {"rotation": [f"math.cos({WALK} * 0.6) * 22.0 * {SPD}", 0.0, -6.0]},
-        "rightForearm": {"rotation": [-35.0, 0.0, 0.0]},
-        "leftForearm": {"rotation": [-15.0, 0.0, 0.0]},
-        "root": {"position": [0.0, f"math.abs(math.sin({WALK} * 0.6)) * 0.8 * {SPD}", 0.0]}}},
-    "mskel_idle": {"loop": True, "bones": {
-        "chest": {"scale": ["1.0 + math.sin(query.life_time * 70.0) * 0.02", 1.0,
-                            "1.0 + math.sin(query.life_time * 70.0) * 0.02"]},
-        "head": {"rotation": ["query.target_x_rotation * 0.7 + math.sin(query.life_time * 20.0) * 3.0",
-                              "query.target_y_rotation * 0.7", "math.sin(query.life_time * 14.0) * 4.0"]}}},
-    # Epic slash: raise the giant sword overhead, cut down diagonally, recover
-    "mskel_slash": {"animation_length": 0.9,
-                    "particle_effects": {"0.42": [{"effect": "slash", "locator": "slash_point"}]},
-                    "sound_effects": {"0.4": {"effect": "slash"}},
-                    "bones": {
-        "rightArm": {"rotation": kf({0.0: [-20, 0, 8], 0.3: [-175, -20, 30], 0.45: [-40, 30, -10],
-                                     0.6: [10, 25, -15], 0.9: [-20, 0, 8]})},
-        "rightForearm": {"rotation": kf({0.0: [-35, 0, 0], 0.3: [-10, 0, 0], 0.45: [-20, 0, 0], 0.9: [-35, 0, 0]})},
-        "spine": {"rotation": kf({0.0: [12, 0, 0], 0.3: [-8, 25, 0], 0.45: [30, -30, 0], 0.6: [28, -25, 0],
-                                  0.9: [12, 0, 0]})},
-        "leftArm": {"rotation": kf({0.0: [0, 0, -6], 0.3: [-30, 0, -40], 0.45: [20, 0, -20], 0.9: [0, 0, -6]})}}},
-    # Blast: throws its arms open and roars
-    "mskel_blast": {"animation_length": 0.8, "bones": {
-        "rightArm": {"rotation": kf({0.0: [-20, 0, 8], 0.3: [-60, 0, 85], 0.6: [-50, 0, 80], 0.8: [-20, 0, 8]})},
-        "leftArm": {"rotation": kf({0.0: [0, 0, -6], 0.3: [-60, 0, -85], 0.6: [-50, 0, -80], 0.8: [0, 0, -6]})},
-        "spine": {"rotation": kf({0.0: [12, 0, 0], 0.3: [-20, 0, 0], 0.6: [-15, 0, 0], 0.8: [12, 0, 0]})},
-        "head": {"rotation": kf({0.0: [0, 0, 0], 0.3: [-35, 0, 0], 0.6: [-30, 0, 0], 0.8: [0, 0, 0]})}}},
+    # ---------------- mutant skeleton (the rest come from the model's own animations)
     # Spawn part 1: falling from the sky, flailing
     "mskel_fall": {"loop": True, "bones": {
-        "rightArm": {"rotation": ["-160.0 + math.sin(query.life_time * 500.0) * 15.0", 0.0, 25.0]},
-        "leftArm": {"rotation": ["-160.0 - math.sin(query.life_time * 500.0) * 15.0", 0.0, -25.0]},
-        "rightLeg": {"rotation": ["math.sin(query.life_time * 400.0) * 20.0", 0.0, 0.0]},
-        "leftLeg": {"rotation": ["-math.sin(query.life_time * 400.0) * 20.0", 0.0, 0.0]},
+        "rightarm": {"rotation": ["-150.0 + math.sin(query.life_time * 500.0) * 15.0", 0.0, 25.0]},
+        "leftarm": {"rotation": ["-150.0 - math.sin(query.life_time * 500.0) * 15.0", 0.0, -25.0]},
+        "rightleg": {"rotation": ["math.sin(query.life_time * 400.0) * 20.0", 0.0, 0.0]},
+        "leftleg": {"rotation": ["-math.sin(query.life_time * 400.0) * 20.0", 0.0, 0.0]},
         "head": {"rotation": [-30.0, 0.0, 0.0]}}},
-    # Spawn part 2: crashes down crouched, then rises
-    "mskel_land": {"loop": "hold_on_last_frame", "animation_length": 1.6,
-                   "particle_effects": {"0.0": [{"effect": "burst"}, {"effect": "land"}]}, "bones": {
-        "root": {"position": kf({0.0: [0, -9, 0], 0.5: [0, -9, 0], 1.3: [0, -1, 0], 1.6: [0, 0, 0]})},
-        "rightLeg": {"rotation": kf({0.0: [-70, 0, 8], 0.5: [-70, 0, 8], 1.3: [-10, 0, 0], 1.6: [0, 0, 0]})},
-        "leftLeg": {"rotation": kf({0.0: [-70, 0, -8], 0.5: [-70, 0, -8], 1.3: [-10, 0, 0], 1.6: [0, 0, 0]})},
-        "rightShin": {"rotation": kf({0.0: [110, 0, 0], 0.5: [110, 0, 0], 1.3: [20, 0, 0], 1.6: [0, 0, 0]})},
-        "leftShin": {"rotation": kf({0.0: [110, 0, 0], 0.5: [110, 0, 0], 1.3: [20, 0, 0], 1.6: [0, 0, 0]})},
-        "spine": {"rotation": kf({0.0: [45, 0, 0], 0.6: [40, 0, 0], 1.3: [5, 0, 0], 1.6: [12, 0, 0]})},
-        "rightArm": {"rotation": kf({0.0: [-10, 0, 40], 0.6: [-10, 0, 40], 1.3: [-60, 0, 20], 1.6: [-20, 0, 8]})},
-        "leftArm": {"rotation": kf({0.0: [-10, 0, -40], 0.6: [-10, 0, -40], 1.3: [-30, 0, -20], 1.6: [0, 0, -6]})},
-        "head": {"rotation": kf({0.0: [30, 0, 0], 0.7: [25, 0, 0], 1.3: [-25, 0, 0], 1.6: [0, 0, 0]})}}},
-    # Death: drops to its knees, slumps, the sword falls
+    # Death: drops to its knees, slumps forward, the sword falls
     "mskel_death": {"loop": "hold_on_last_frame", "animation_length": 2.8,
                     "particle_effects": {"2.4": [{"effect": "burst"}]}, "bones": {
-        "root": {"position": kf({0.0: [0, 0, 0], 0.8: [0, -12, 0], 2.8: [0, -12, 0]})},
-        "rightLeg": {"rotation": kf({0.0: [0, 0, 0], 0.8: [-90, 0, 0], 2.8: [-90, 0, 0]})},
-        "rightShin": {"rotation": kf({0.0: [0, 0, 0], 0.8: [90, 0, 0], 2.8: [90, 0, 0]})},
-        "leftLeg": {"rotation": kf({0.0: [0, 0, 0], 0.8: [0, 0, 0], 2.8: [0, 0, 0]})},
-        "leftShin": {"rotation": kf({0.0: [0, 0, 0], 0.8: [90, 0, 0], 2.8: [90, 0, 0]})},
-        "spine": {"rotation": kf({0.0: [12, 0, 0], 0.8: [20, 0, 0], 1.6: [45, 0, 5], 2.8: [55, 0, 8]})},
-        "head": {"rotation": kf({0.0: [0, 0, 0], 1.0: [-20, 0, 0], 1.8: [40, 0, 10], 2.8: [45, 0, 12]})},
-        "rightArm": {"rotation": kf({0.0: [-20, 0, 8], 0.8: [-30, 0, 10], 1.6: [10, 0, 5], 2.8: [15, 0, 4]})},
-        "leftArm": {"rotation": kf({0.0: [0, 0, -6], 0.8: [-40, 0, -10], 1.6: [5, 0, -5], 2.8: [10, 0, -4]})},
-        "sword": {"rotation": kf({0.0: [0, 0, 0], 1.4: [0, 0, 0], 1.8: [70, 0, 20], 2.8: [80, 0, 25]})}}},
+        "waist": {"position": kf({0.0: [0, 0, 0], 0.8: [0, -12, 0], 2.8: [0, -12, 0]})},
+        "rightleg": {"rotation": kf({0.0: [0, 0, 0], 0.8: [-85, 0, 0], 2.8: [-85, 0, 0]})},
+        "rightleg2": {"rotation": kf({0.0: [0, 0, 0], 0.8: [85, 0, 0], 2.8: [85, 0, 0]})},
+        "leftleg2": {"rotation": kf({0.0: [0, 0, 0], 0.8: [85, 0, 0], 2.8: [85, 0, 0]})},
+        "body": {"rotation": kf({0.0: [0, 0, 0], 0.8: [10, 0, 0], 1.6: [30, 0, 4], 2.8: [38, 0, 6]})},
+        "topbody": {"rotation": kf({0.0: [0, 0, 0], 1.0: [-10, 0, 0], 1.8: [25, 0, 0], 2.8: [30, 0, 0]})},
+        "head": {"rotation": kf({0.0: [0, 0, 0], 1.0: [-25, 0, 0], 1.8: [35, 0, 10], 2.8: [40, 0, 12]})},
+        "rightarm": {"rotation": kf({0.0: [0, 0, 0], 0.8: [-25, 0, 10], 1.6: [15, 0, 5], 2.8: [20, 0, 4]})},
+        "leftarm": {"rotation": kf({0.0: [0, 0, 0], 0.8: [-35, 0, -10], 1.6: [10, 0, -5], 2.8: [15, 0, -4]})},
+        "rsword": {"rotation": kf({0.0: [0, 0, 0], 1.4: [0, 0, 0], 1.8: [70, 0, 20], 2.8: [80, 0, 25]})}}},
 
     # ---------------- blade zombie
     "bzombie_walk": {"loop": True, "bones": {
@@ -241,12 +242,16 @@ ANIMS = {
         "head": {"rotation": ["query.target_x_rotation", "query.target_y_rotation",
                               "math.sin(query.life_time * 24.0) * 4.0"]}}},
     # Normal attack: pull both blades back, thrust them forward, return
-    "bzombie_thrust": {"animation_length": 0.55, "bones": {
-        "rightArm": {"rotation": kf({0.0: [0, 0, 0], 0.15: [35, 0, 10], 0.28: [-12, 0, -6], 0.55: [0, 0, 0]}),
-                     "position": kf({0.0: [0, 0, 0], 0.15: [0, 0, 2], 0.28: [0, 0, -4], 0.55: [0, 0, 0]})},
-        "leftArm": {"rotation": kf({0.0: [0, 0, 0], 0.15: [35, 0, -10], 0.28: [-12, 0, 6], 0.55: [0, 0, 0]}),
-                    "position": kf({0.0: [0, 0, 0], 0.15: [0, 0, 2], 0.28: [0, 0, -4], 0.55: [0, 0, 0]})},
-        "body": {"rotation": kf({0.0: [0, 0, 0], 0.15: [-8, 0, 0], 0.28: [18, 0, 0], 0.55: [0, 0, 0]})}}},
+    "bzombie_thrust": {"animation_length": 0.7, "bones": {
+        "rightArm": {"rotation": kf({0.0: [0, 0, 0], 0.2: [75, 0, 25], 0.32: [-40, 0, -12], 0.45: [-35, 0, -10],
+                                     0.7: [0, 0, 0]}),
+                     "position": kf({0.0: [0, 0, 0], 0.2: [0, 1, 4], 0.32: [0, 0, -7], 0.45: [0, 0, -6], 0.7: [0, 0, 0]})},
+        "leftArm": {"rotation": kf({0.0: [0, 0, 0], 0.2: [75, 0, -25], 0.32: [-40, 0, 12], 0.45: [-35, 0, 10],
+                                    0.7: [0, 0, 0]}),
+                    "position": kf({0.0: [0, 0, 0], 0.2: [0, 1, 4], 0.32: [0, 0, -7], 0.45: [0, 0, -6], 0.7: [0, 0, 0]})},
+        "body": {"rotation": kf({0.0: [0, 0, 0], 0.2: [-20, 0, 0], 0.32: [35, 0, 0], 0.45: [32, 0, 0], 0.7: [0, 0, 0]})},
+        "head": {"rotation": kf({0.0: [0, 0, 0], 0.2: [-20, 0, 0], 0.32: [-25, 0, 0], 0.7: [0, 0, 0]})},
+        "waist": {"position": kf({0.0: [0, 0, 0], 0.2: [0, 0, 2], 0.32: [0, 1.5, -4], 0.45: [0, 0, -3], 0.7: [0, 0, 0]})}}},
     "bzombie_dash": {"animation_length": 0.8, "particle_effects": {"0.0": [{"effect": "burst"}]}, "bones": {
         "body": {"rotation": kf({0.0: [0, 0, 0], 0.15: [35, 0, 0], 0.6: [35, 0, 0], 0.8: [0, 0, 0]})},
         "rightArm": {"rotation": kf({0.0: [0, 0, 0], 0.15: [-15, 20, 0], 0.6: [-15, 20, 0], 0.8: [0, 0, 0]})},
@@ -301,11 +306,15 @@ def controllers():
         "fall": {"animations": ["mskel_fall"], "transitions": [{"land": "query.is_on_ground"}]},
         "land": {"animations": ["mskel_land"], "transitions": [{"alive": f"{STATE} == 1"}],
                  "blend_transition": 0.3},
-        "alive": {"animations": ["mskel_walk", "mskel_idle"], "blend_transition": 0.3,
+        "alive": {"animations": [{"mskel_walk": "math.clamp(query.modified_move_speed * 3.0, 0.0, 1.0)"},
+                                 {"mskel_walk_arms": "math.clamp(query.modified_move_speed * 3.0, 0.0, 1.0)"},
+                                 "mskel_idle", "mskel_look"], "blend_transition": 0.3,
                   "transitions": [alive_to_dying, {"slash": "variable.attack_time > 0.0"},
                                   {"blast": f"{ACTION} == 1"}]},
-        "slash": special("mskel_slash", None, "query.all_animations_finished"),
-        "blast": special("mskel_blast", None, f"{ACTION} != 1 && query.all_animations_finished"),
+        "slash": dict(special("mskel_slash", None, "query.all_animations_finished"),
+                      animations=["mskel_look", "mskel_slash"]),
+        "blast": dict(special("mskel_blast", None, f"{ACTION} != 1 && query.all_animations_finished"),
+                      animations=["mskel_idle", "mskel_blast"]),
         "dying": {"animations": ["mskel_death"], "blend_transition": 0.3},
     }}
     zom = {"initial_state": "start", "states": {
@@ -330,7 +339,8 @@ def controllers():
 
 def client_entity(name):
     B = BOSSES[name]
-    anim_names = [n for n in ANIMS if n.startswith("mskel" if name == SKELETON_BOSS else "bzombie")]
+    anim_names = [n for n in ANIMS if n.startswith("bzombie")] if name == ZOMBIE_BOSS else \
+        [n for n in ANIMS if n.startswith("mskel")] + list(MUTANT_ANIMS)
     desc = {
         "identifier": f"{NS}:{name}",
         "materials": {"default": "outline_base", "outline_main": "outline_main"},

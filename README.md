@@ -2,17 +2,17 @@
 
 | Addon | Descarga | Generador |
 |---|---|---|
-| **Soul Corrupted Mobs** (base de Euforia + variantes, phantoms, altar y espada) | [`dist/SoulCorruptedMobs.mcaddon`](dist/SoulCorruptedMobs.mcaddon) | `tools/soul_mobs.py` |
+| **The Revamp of the Soul** (antes Soul Corrupted Mobs; base de Euforia) | [`dist/TheRevampOfTheSoul.mcaddon`](dist/TheRevampOfTheSoul.mcaddon) | `tools/soul_mobs.py` |
 | **Medieval Mobs** – mobs medievales | [`dist/MedievalMobs.mcaddon`](dist/MedievalMobs.mcaddon) | `tools/generate.py` |
 
 Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo. No hace falta activar experimentos.
 
-- Soul Corrupted Mobs requiere Minecraft Bedrock **1.26.0** o superior.
+- The Revamp of the Soul requiere Minecraft Bedrock **1.26.0** o superior.
 - Medieval Mobs requiere **1.21.0** o superior.
 
 ---
 
-# Soul Corrupted Mobs
+# The Revamp of the Soul
 
 ![Todos los mobs con su outline](docs/soul_mobs_preview.png)
 
@@ -29,13 +29,14 @@ El generador `tools/soul_mobs.py` (con `tools/soul_bosses.py`) lo copia y le añ
 | Esqueleto de Alma Corrupta | `eu_sc:soul_corrupted_skeleton` / `_red` / `_green` |
 | Phantom de Alma Corrupta (4 alas puntiagudas, 2,5 veces más grande) | `eu_sc:soul_corrupted_phantom` / `_red` / `_green` |
 | Phantom de Alma Domable (montable) | `eu_sc:soul_corrupted_phantom_mount` |
+| Esqueleto Wither de Alma Corrupta | `eu_sc:soul_corrupted_wither_skeleton` / `_red` / `_green` |
 | **Mini jefe**: Esqueleto Mutante de Alma Corrupta | `eu_sc:soul_mutant_skeleton` |
 | **Mini jefe**: Zombi Cuchilla de Alma Corrupta | `eu_sc:soul_blade_zombie` |
 | Altar de Curación | `eu_sc:healing_altar` |
 
 ### Progresión
 
-1. Los mobs de alma sueltan **Esencia de Alma**: 35 % de probabilidad, más con Botín.
+1. Los mobs de alma sueltan **Esencia de Alma**: un 9 % de probabilidad, más con Botín. Todos los drops son un 75 % menos frecuentes.
 2. **Planta de Alma Corrupta**: 4 esencias, hongo carmesí y tierra de almas. Úsala para invocar al **Zombi Cuchilla**.
 3. El Zombi Cuchilla suelta el **Núcleo de Alma**.
 4. **Estrella de Alma Corrupta**: 7 esencias, el núcleo y un diamante. Úsala para invocar al **Esqueleto Mutante**.
@@ -44,6 +45,7 @@ El generador `tools/soul_mobs.py` (con `tools/soul_bosses.py`) lo copia y le añ
 ### Mini jefes (sin barra de vida)
 
 **Esqueleto Mutante (azul):**
+- Usa el modelo de Mutant Creatures: modelo, textura recoloreada y animaciones, guardados en `sources/mutant_skeleton/`.
 - Mide el doble que un jugador.
 - Ataca con una espada gigante y hace un **slash épico**.
 - De vez en cuando lanza una **explosión** que no rompe bloques: te empuja y te deja **ciego 3 s**.
@@ -52,14 +54,25 @@ El generador `tools/soul_mobs.py` (con `tools/soul_bosses.py`) lo copia y le añ
 
 **Zombi Cuchilla (rojo):**
 - Tamaño de jugador, con cuchillas en vez de brazos.
-- Su ataque normal empuja las dos cuchillas hacia delante.
+- 200 de vida y velocidad 0,33.
+- Su ataque normal es exagerado: echa las cuchillas atrás y se lanza con ellas hacia delante.
 - **Explosión**: lentitud II 3 s.
 - **Embestida**: si te alcanza, lentitud 255 durante 1 s.
 - **Invoca zombis rojos** (máximo 4 cerca).
 - **Entrada**: sale del suelo.
 - **Muerte**: algo lo arrastra bajo tierra mientras se resiste.
 
+### Esqueleto Wither de Alma Corrupta
+
+- Hay uno en cada color, más oscuro y 1,2 veces más grande.
+- Corre a 0,4 (el wither skeleton normal va a 0,25), con una carrera exagerada: inclinado y con los brazos hacia atrás.
+- Su **slash** hace 60 de daño: mata de un golpe aunque lleves armadura de hierro completa.
+- **Muere de un golpe** (1 de vida) y no suelta nada.
+
 ### Resto
+
+- **Colores**: más suaves y apagados que antes, con el outline blanco. El altar y el phantom domable conservan sus colores.
+- **Inclinación al ir hacia el objetivo**: el zombi se inclina un poco más que el creeper y el esqueleto, menos que los dos.
 
 - **Al golpear**: Oscuridad, más un extra según el color:
   - azul: lentitud.
@@ -127,7 +140,8 @@ Los efectos de la columna "Al golpear" se aplican en cada golpe, flecha o explos
 ## Estructura del proyecto
 
 ```
-SoulCorruptedMobs_BP/  SoulCorruptedMobs_RP/   Soul Corrupted Mobs (generado)
+TheRevampOfTheSoul_BP/  TheRevampOfTheSoul_RP/  The Revamp of the Soul (generado)
+sources/mutant_skeleton/                      modelo de Mutant Creatures (con permiso)
 sources/soul_corrupted_mobs_v1.0.0/           addon original (base)
 MedievalMobs_BP/   MedievalMobs_RP/    addon medieval
 tools/             generadores en Python (modelos + texturas + JSON)
@@ -137,7 +151,7 @@ dist/              los .mcaddon listos para instalar
 Los packs se generan con Python 3 y Pillow. Para cambiar vida, daño, efectos, colores o modelos:
 
 1. Edita las tablas al principio del generador:
-   - Soul Corrupted Mobs: `COLORS`, `BASE_MOBS` y `PHANTOM` en `tools/soul_mobs.py`.
+   - The Revamp of the Soul: `COLORS`, `BASE_MOBS`, `PHANTOM` y `WITHER` en `tools/soul_mobs.py`, y `BOSSES` en `tools/soul_bosses.py`.
    - Medieval Mobs: `MOBS` en `tools/generate.py`, y los modelos en `tools/models.py`.
 2. Ejecuta el generador:
 

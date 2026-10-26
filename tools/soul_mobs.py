@@ -29,12 +29,13 @@ from textures import SIDES, hx  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "sources", "soul_corrupted_mobs_v1.0.0")
-BP = os.path.join(ROOT, "SoulCorruptedMobs_BP")
-RP = os.path.join(ROOT, "SoulCorruptedMobs_RP")
+ADDON_NAME = "The Revamp of the Soul"
+BP = os.path.join(ROOT, "TheRevampOfTheSoul_BP")
+RP = os.path.join(ROOT, "TheRevampOfTheSoul_RP")
 DIST = os.path.join(ROOT, "dist")
 
 NS = "eu_sc"
-VERSION = [1, 2, 0]
+VERSION = [1, 3, 0]
 SCRIPT_API = "2.0.0"  # stable: no "Beta APIs" experiment needed
 TEX = "textures/entity/soul_corrupted"
 OUTLINE_TEX = f"{TEX}/white_outline"
@@ -123,6 +124,29 @@ def recolor(img, color):
             if p[3]:
                 px[x, y] = recolor_rgb(p, color)
     return out
+
+
+def soften(img):
+    """Less intense, slightly duller colours for the mob textures (whites,
+    and so the eyes, stay white; the outline is a separate texture)."""
+    out = img.convert("RGBA").copy()
+    px = out.load()
+    for y in range(out.height):
+        for x in range(out.width):
+            r, g, b, a = px[x, y]
+            if not a:
+                continue
+            h, s, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
+            if s < 0.06:
+                continue
+            r2, g2, b2 = colorsys.hsv_to_rgb(h, s * 0.6, v * 0.92 + 0.03)
+            px[x, y] = (round(r2 * 255), round(g2 * 255), round(b2 * 255), a)
+    return out
+
+
+def mix_hex(a, b, t):
+    ca, cb = hx(a), hx(b)
+    return "#%02x%02x%02x" % tuple(round(ca[i] * (1 - t) + cb[i] * t) for i in range(3))
 
 
 def hexcol(rgb):
@@ -652,42 +676,88 @@ def spawn_rules(identifier, weight, color, flying=False):
         "conditions": [cond]}}
 
 
+DROP_RATE = 0.25  # mobs drop items 75% less often
+
+
 def loot(items, sword=True):
-    pools = [{"rolls": 1, "entries": [{"type": "item", "name": f"minecraft:{item}", "weight": 1, "functions": [
-        {"function": "set_count", "count": {"min": lo, "max": hi}},
+    rare = {"condition": "random_chance", "chance": DROP_RATE}
+    pools = [{"rolls": 1, "conditions": [rare], "entries": [{"type": "item", "name": f"minecraft:{item}", "weight": 1,
+                                                            "functions": [
+        {"function": "set_count", "count": {"min": max(1, lo), "max": hi}},
         {"function": "looting_enchant", "count": {"min": 0, "max": 1}}]}]} for item, lo, hi in items]
     if sword:  # soul corrupted mobs: essence for the boss items, and the uncraftable sword
         pools.append({"rolls": 1, "conditions": [
             {"condition": "killed_by_player"},
-            {"condition": "random_chance_with_looting", "chance": 0.35, "looting_multiplier": 0.1}],
+            {"condition": "random_chance_with_looting", "chance": 0.35 * DROP_RATE, "looting_multiplier": 0.025}],
             "entries": [{"type": "item", "name": ESSENCE, "weight": 1, "functions": [
                 {"function": "set_count", "count": {"min": 1, "max": 2}}]}]})
         pools.append({"rolls": 1, "conditions": [
             {"condition": "killed_by_player"},
-            {"condition": "random_chance_with_looting", "chance": 0.025, "looting_multiplier": 0.01}],
+            {"condition": "random_chance_with_looting", "chance": 0.025 * DROP_RATE, "looting_multiplier": 0.0025}],
             "entries": [{"type": "item", "name": SWORD, "weight": 1}]})
     return {"pools": pools}
 
 
 def sword_item():
-    # Same format as Microsoft's custom item samples: the icon is a plain string
+    # Only forms used by Microsoft's own item samples (format 1.21.70, icon as
+    # a plain string, hand_equipped as a bool): an unrecognised component can
+    # stop the whole item from loading.
     return {"format_version": "1.21.70", "minecraft:item": {
-        "description": {"identifier": SWORD,
-                        "menu_category": {"category": "equipment", "group": "itemGroup.name.sword"}},
+        "description": {"identifier": SWORD, "menu_category": {"category": "equipment"}},
         "components": {
             "minecraft:icon": "soul_corrupted_sword",
             "minecraft:display_name": {"value": f"item.{SWORD}.name"},
             "minecraft:max_stack_size": 1,
-            "minecraft:hand_equipped": {"value": True},
-            "minecraft:damage": {"value": 9},
+            "minecraft:hand_equipped": True,
+            "minecraft:damage": 9,
             "minecraft:durability": {"max_durability": 2031, "damage_chance": {"min": 100, "max": 100}},
             "minecraft:enchantable": {"slot": "sword", "value": 15},
-            "minecraft:repairable": {"repair_items": [{"items": ["minecraft:echo_shard"], "repair_amount": 600}]},
+            "minecraft:repairable": {"repair_items": [{"items": ["minecraft:echo_shard"],
+                                                       "repair_amount": "query.max_durability * 0.3"}]},
             # same tag as vanilla swords, so player animation packs treat it as one
             "minecraft:tags": {"tags": ["minecraft:is_sword"]},
-            "minecraft:can_destroy_in_creative": {"value": False},
-            "minecraft:digger": {"use_efficiency": True, "destroy_speeds": [{"block": "minecraft:web", "speed": 15}]},
         }}}
+
+
+# ---- soul corrupted wither skeleton: fast, deadly slash, dies in one hit, drops nothing
+WITHER = dict(es="Esqueleto Wither de Alma Corrupta", en="Soul Corrupted Wither Skeleton", weight=4,
+              speed=0.4, damage=60, scale=1.2)
+
+
+def wither_behavior(src_skeleton, color):
+    d = patch_mob(src_skeleton, "skeleton", color)
+    e = d["minecraft:entity"]
+    e["description"]["identifier"] = f"{NS}:{ident('wither_skeleton', color)}"
+    comps = e["components"]
+
+    def fix(k, v, parent):
+        if k == "minecraft:attack":
+            v["damage"] = WITHER["damage"]  # one slash kills through full iron armour
+        elif k == "minecraft:movement" and isinstance(v, dict):
+            v["value"] = WITHER["speed"]  # vanilla wither skeleton: 0.25
+        elif k == "minecraft:collision_box":
+            v.update({"width": 0.7, "height": 2.4})
+        elif k == "minecraft:type_family" and "soul_wither" not in v["family"]:
+            v["family"].append("soul_wither")
+        elif k == "minecraft:behavior.melee_box_attack":
+            v["speed_multiplier"] = 1.4
+    walk(e, fix)
+
+    def strip(node):
+        if isinstance(node, dict):
+            for key in ("minecraft:loot", "minecraft:shooter"):
+                node.pop(key, None)
+            for v in node.values():
+                strip(v)
+    strip(e)
+    comps["minecraft:health"] = {"value": 1, "max": 1}
+    comps["minecraft:scale"] = {"value": WITHER["scale"]}
+    comps["minecraft:experience_reward"] = {"on_death": "0"}
+    comps["minecraft:equipment"] = {"table": f"loot_tables/{NS}/equipment/wither_sword.json",
+                                    "slot_drop_chance": [{"slot": "slot.weapon.mainhand", "drop_chance": 0.0}]}
+    comps.pop("minecraft:shareables", None)
+    comps.pop("minecraft:behavior.pickup_items", None)
+    return d
 
 
 def script(bosses):
@@ -697,7 +767,7 @@ def script(bosses):
         if COLORS[B["color"]]["ignite"]:
             ignite[f"{NS}:{name}"] = COLORS[B["color"]]["ignite"]
     for color, C in COLORS.items():
-        for kind in list(BASE_MOBS) + ["phantom"]:
+        for kind in list(BASE_MOBS) + ["phantom", "wither_skeleton"]:
             mob = f"{NS}:{ident(kind, color)}"
             effects[mob] = [DARKNESS] + C["extra"]
             if C["ignite"]:
@@ -713,6 +783,9 @@ const HIT_EFFECTS = {json.dumps(effects, indent=2)};
 
 // Seconds the red variants set their victims on fire for.
 const IGNITE = {json.dumps(ignite, indent=2)};
+
+// Soul corrupted wither skeletons: their slash leaves a burst of soul sparks.
+const WITHERS = {json.dumps([f"{NS}:{ident('wither_skeleton', c)}" for c in COLORS])};
 
 // Original add-on: soul corrupted skeleton arrows become lightning (all colours).
 const LIGHTNING_SKELETONS = {json.dumps(skeletons)};
@@ -778,6 +851,10 @@ world.afterEvents.entityHurt.subscribe((event) => {{
   const victim = event.hurtEntity;
   try {{
     const effects = HIT_EFFECTS[attacker.typeId];
+    if (WITHERS.includes(attacker.typeId)) {{
+      const at = victim.location;
+      particle(victim.dimension, "{NS}:slash", {{ x: at.x, y: at.y + 1, z: at.z }});
+    }}
     if (effects) {{
       for (const [id, ticks, amplifier] of effects) {{
         victim.addEffect(id, ticks, {{ amplifier, showParticles: true }});
@@ -1127,15 +1204,32 @@ ANIMS = {
                   "particle_effects": {"0.0": [{"effect": "wisps"}, {"effect": "drips"}]}},
     # ---- extra life on top of the vanilla animations
     "zombie_life": {"loop": True, "bones": {
-        "body": {"rotation": [0.0, 0.0, f"math.sin({WALK} * 0.5) * 3.5 * {SPEED}"]},
+        "body": {"rotation": [f"{SPEED} * (query.has_target ? 17.0 : 9.0)", 0.0,
+                              f"math.sin({WALK} * 0.5) * 3.5 * {SPEED}"]},
         "head": {"rotation": ["math.sin(query.life_time * 18.0) * 2.5", 0.0, "math.sin(query.life_time * 24.0) * 4.0"]}}},
     "creeper_life": {"loop": True, "bones": {
         "body": {"rotation": [f"{SPEED} * 14.0", 0.0, f"math.clamp({TURN} * 0.1, -9.0, 9.0)"],
                  "position": [0.0, f"math.abs(math.sin({WALK})) * 0.4 * {SPEED}", 0.0]},
         "head": {"rotation": [f"-{SPEED} * 10.0", 0.0, "math.sin(query.life_time * 28.0) * 2.5"]}}},
     "skeleton_life": {"loop": True, "bones": {
+        "body": {"rotation": [f"{SPEED} * (query.has_target ? 8.0 : 4.0)", 0.0, 0.0]},
         "head": {"rotation": ["math.sin(query.life_time * 15.0) * 2.0", "math.sin(query.life_time * 12.0) * 8.0",
                               "math.sin(query.life_time * 21.0) * 3.0"]}}},
+    # ---- soul corrupted wither skeleton: leaning sprint with the arms swept back, huge slash
+    "wither_run": {"loop": True, "bones": {
+        "body": {"rotation": [f"{SPEED} * 32.0", f"math.sin({WALK}) * 10.0 * {SPEED}", 0.0]},
+        "head": {"rotation": [f"-{SPEED} * 26.0", 0.0, 0.0]},
+        "rightArm": {"rotation": [f"{SPEED} * 60.0 + math.cos({WALK}) * -25.0 * {SPEED}", 0.0, f"{SPEED} * 18.0"]},
+        "leftArm": {"rotation": [f"{SPEED} * 60.0 + math.cos({WALK}) * 25.0 * {SPEED}", 0.0, f"-{SPEED} * 18.0"]},
+        "rightLeg": {"rotation": [f"math.cos({WALK}) * 35.0 * {SPEED} - {SPEED} * 20.0", 0.0, 0.0]},
+        "leftLeg": {"rotation": [f"math.cos({WALK}) * -35.0 * {SPEED} - {SPEED} * 20.0", 0.0, 0.0]}}},
+    "wither_slash": {"loop": True, "bones": {
+        "rightArm": {"rotation": ["-math.sin(variable.attack_time * 180.0) * 140.0",
+                                  "math.sin(variable.attack_time * 360.0) * 40.0", 0.0]},
+        "body": {"rotation": ["math.sin(variable.attack_time * 180.0) * 20.0",
+                              "math.sin(variable.attack_time * 360.0) * -45.0", 0.0]},
+        "leftArm": {"rotation": ["-math.sin(variable.attack_time * 180.0) * 45.0", 0.0,
+                                 "-math.sin(variable.attack_time * 180.0) * 35.0"]}}},
     # ---- spawn animations
     "zombie_spawn": {"loop": "hold_on_last_frame", "animation_length": 1.2, "bones": {
         "waist": {"position": kf({0.0: [0, -30, 0], 0.35: [0, -20, 0], 0.75: [0, -8, 0], 1.0: [0, -1, 0], 1.2: [0, 0, 0]}),
@@ -1446,7 +1540,7 @@ def preview_geo(geo, img, path, view="front", scale=8):
 
 # ================================================================== build
 def lang(es):
-    lines = ["pack.name=Soul Corrupted Mobs", "pack.description=Have fun!", ""]
+    lines = [f"pack.name={ADDON_NAME}", "pack.description=Have fun!", ""]
 
     def add(identifier, name, egg_prefix=True):
         lines.append(f"entity.{NS}:{identifier}.name={name}")
@@ -1457,6 +1551,9 @@ def lang(es):
         for color, C in COLORS.items():
             base = M["es"] if es else M["en"]
             add(ident(kind, color), base if color == "blue" else f"{base} ({C['es'] if es else C['en']})")
+    for color, C in COLORS.items():
+        base = WITHER["es"] if es else WITHER["en"]
+        add(ident("wither_skeleton", color), base if color == "blue" else f"{base} ({C['es'] if es else C['en']})")
     add(MOUNT, "Phantom de Alma Domable" if es else "Tameable Soul Phantom")
     add(ALTAR, "Altar de Curación" if es else "Healing Altar", egg_prefix=False)
     lines += [f"item.{SWORD}.name={'Espada de Alma Corrupta' if es else 'Soul Corrupted Sword'}",
@@ -1499,7 +1596,7 @@ def main():
             if client["format_version"] == "1.8.0":  # "animate" needs 1.10.0 (hotfix: invisible skeletons)
                 client["format_version"] = "1.10.0"
             write(os.path.join(RP, f"entity/{mob}.entity.json"), client)
-            tex = recolor(src_tex, color)
+            tex = soften(recolor(src_tex, color))
             save_png(tex, RP, TEX, f"{mob}.png")
             if kind == "creeper":
                 ent_sounds[f"{NS}:{mob}"] = copy.deepcopy(ent_sounds[f"{NS}:soul_corrupted_creeper"])
@@ -1509,6 +1606,44 @@ def main():
                 preview_geo(geo, tex, os.path.join(prev_dir, f"{mob}.png"))
                 previews.append(mob)
 
+    # ---- soul corrupted wither skeletons
+    src_skel_bp = load(os.path.join(SRC, "BP/entities/soul_corrupted_skeleton.json"))
+    src_skel_rp = load(os.path.join(SRC, "RP/entity/soul_corrupted_skeleton.entity.json"))
+    src_skel_tex = Image.open(os.path.join(SRC, f"RP/{TEX}/soul_corrupted_skeleton.png"))
+    skel_geo = load(os.path.join(SRC, "RP/models/entity/soul_corrupted_skeleton.geo.json"))
+    write(os.path.join(BP, f"loot_tables/{NS}/equipment/wither_sword.json"),
+          {"pools": [{"rolls": 1, "entries": [{"type": "item", "name": "minecraft:stone_sword", "weight": 1}]}]})
+    for color in COLORS:
+        mob = ident("wither_skeleton", color)
+        write(os.path.join(BP, f"entities/{mob}.json"), wither_behavior(src_skel_bp, color))
+        write(os.path.join(BP, f"spawn_rules/{mob}.json"), spawn_rules(mob, WITHER["weight"], color))
+        client = copy.deepcopy(src_skel_rp)
+        client["format_version"] = "1.10.0"
+        desc = client["minecraft:client_entity"]["description"]
+        desc["identifier"] = f"{NS}:{mob}"
+        desc["textures"]["default"] = f"{TEX}/{mob}"
+        desc["spawn_egg"] = {"base_color": hexcol(recolor_rgb(hx("#2E5F66"), color)),
+                             "overlay_color": hexcol(recolor_rgb(hx("#CEF8F9"), color))}
+        add_soul_extras(desc, "skeleton", color)
+        desc["animations"].update({"wither_run": f"{A}.wither_run", "wither_slash": f"{A}.wither_slash"})
+        desc["scripts"]["animate"] += ["wither_run", "wither_slash"]
+        desc["scripts"]["scale"] = str(WITHER["scale"])
+        write(os.path.join(RP, f"entity/{mob}.entity.json"), client)
+        # darker, wither-like version of the soul skeleton (whites, so the eyes, stay white)
+        tex = recolor(src_skel_tex, color)
+        dark = tex.load()
+        for y in range(tex.height):
+            for x in range(tex.width):
+                r, g, b, a = dark[x, y]
+                if a and not (r > 240 and g > 240 and b > 240):
+                    dark[x, y] = (int(r * 0.5), int(g * 0.5), int(b * 0.5), a)
+        tex = soften(tex)
+        save_png(tex, RP, TEX, f"{mob}.png")
+        ent_sounds[f"{NS}:{mob}"] = dict(SOUNDS["skeleton"], pitch=[0.55, 0.65])
+        if prev:
+            preview_geo(skel_geo, tex, os.path.join(prev_dir, f"{mob}.png"))
+            previews.append(mob)
+
     # ---- phantoms
     pm = phantom_model()
     ptex = pm.build(seed=2024)
@@ -1516,7 +1651,7 @@ def main():
     write(os.path.join(BP, f"loot_tables/{NS}/phantom.json"), loot(PHANTOM["loot"]))
     for color in COLORS:
         mob = ident("phantom", color)
-        tex = recolor(ptex, color)
+        tex = soften(recolor(ptex, color))
         save_png(tex, RP, TEX, f"{mob}.png")
         write(os.path.join(BP, f"entities/{mob}.json"), phantom_behavior(color))
         write(os.path.join(BP, f"spawn_rules/{mob}.json"), spawn_rules(mob, PHANTOM["weight"], color, flying=True))
@@ -1562,10 +1697,9 @@ def main():
     zgeo = load(os.path.join(SRC, "RP/models/entity/soul_corrupted_zombie.geo.json"))
     zgeo = zgeo["geometry.eu.sc.soul_corrupted_zombie"]
     bz_geo, bz_tex = bosses.blade_zombie_geometry(zgeo, Image.open(os.path.join(SRC, f"RP/{TEX}/soul_corrupted_zombie.png")))
-    bz_tex = recolor(bz_tex, "red")
-    sk = bosses.mutant_skeleton_model()
-    sk_tex = sk.build(seed=777)
-    boss_assets = {bosses.SKELETON_BOSS: (sk.geometry_json(), sk_tex),
+    bz_tex = soften(recolor(bz_tex, "red"))
+    sk_geo, sk_tex = bosses.mutant_skeleton_assets()
+    boss_assets = {bosses.SKELETON_BOSS: (sk_geo, soften(sk_tex)),
                    bosses.ZOMBIE_BOSS: (bz_geo, bz_tex)}
     for name, (geo_json, tex) in boss_assets.items():
         save_png(tex, RP, TEX, f"{name}.png")
@@ -1586,6 +1720,7 @@ def main():
     for name, data in bosses.recipes().items():
         write(os.path.join(BP, f"recipes/{name}.json"), data)
     ANIMS.update(bosses.ANIMS)
+    ANIMS.update(bosses.mutant_animations())
 
     # ---- sword
     write(os.path.join(BP, "items/soul_corrupted_sword.json"), sword_item())
@@ -1627,6 +1762,7 @@ def main():
     for pack, other in ((BP, "RP"), (RP, "BP")):
         man = load(os.path.join(pack, "manifest.json"))
         man["header"]["version"] = VERSION
+        man["header"]["name"] = ADDON_NAME
         for mod in man["modules"]:
             mod["version"] = VERSION
         for dep in man["dependencies"]:
@@ -1637,7 +1773,7 @@ def main():
         write(os.path.join(pack, "manifest.json"), man)
 
     os.makedirs(DIST, exist_ok=True)
-    with zipfile.ZipFile(os.path.join(DIST, "SoulCorruptedMobs.mcaddon"), "w", zipfile.ZIP_DEFLATED) as z:
+    with zipfile.ZipFile(os.path.join(DIST, "TheRevampOfTheSoul.mcaddon"), "w", zipfile.ZIP_DEFLATED) as z:
         for pack in (BP, RP):
             for folder, _, files in os.walk(pack):
                 for f in sorted(files):
@@ -1652,7 +1788,7 @@ def main():
             icon = Image.open(os.path.join(RP, f"textures/items/{n}.png")).resize((128, 128), Image.NEAREST)
             strip.alpha_composite(icon, (i * 136 + 4, 4))
         strip.save(os.path.join(ROOT, "docs", "soul_mobs_items.png"))
-    print("Built Soul Corrupted Mobs", ".".join(map(str, VERSION)), "->", os.path.relpath(DIST, ROOT))
+    print("Built", ADDON_NAME, ".".join(map(str, VERSION)), "->", os.path.relpath(DIST, ROOT))
 
 
 def sheet(prev_dir, names, path, cols=4):
