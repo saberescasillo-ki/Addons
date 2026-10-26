@@ -1,0 +1,44 @@
+{
+	"format_version": 2,
+	"metadata": {
+		"authors": [
+			"Euforia"
+		]
+	},
+	"header": {
+		"name": "Soul Corrupted Mobs",
+		"description": "Have fun!",
+		"min_engine_version": [
+			1,
+			26,
+			0
+		],
+		"uuid": "c01b790e-6cfa-4c62-b381-51d51d7c34c0",
+		"version": [
+			1,
+			0,
+			0
+		]
+	},
+	"modules": [
+		{
+			"type": "resources",
+			"uuid": "21d06505-c0c5-4671-be16-7cd8ae2a2e5d",
+			"version": [
+				1,
+				0,
+				0
+			]
+		}
+	],
+	"dependencies": [
+		{
+			"uuid": "a5bee9fb-9763-42a4-aba7-3a86bcb20d89",
+			"version": [
+				1,
+				0,
+				0
+			]
+		}
+	]
+}

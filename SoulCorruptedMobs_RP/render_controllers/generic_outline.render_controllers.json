@@ -1,0 +1,51 @@
+{
+  "format_version": "1.8.0",
+  "render_controllers": {
+    "controller.render.eu_sc.outline_base": {
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Texture.default"
+      ]
+    },
+    "controller.render.eu_sc.outline_base.glow": {
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Texture.default"
+      ],
+      "ignore_lighting": true
+    },
+    "controller.render.eu_sc.outline_main": {
+      "geometry": "Geometry.outline_main",
+      "materials": [
+        {
+          "*": "Material.outline_main"
+        }
+      ],
+      "textures": [
+        "Texture.outline_main"
+      ]
+    },
+    "controller.render.eu_sc.outline_main.glow": {
+      "geometry": "Geometry.outline_main",
+      "materials": [
+        {
+          "*": "Material.outline_main"
+        }
+      ],
+      "textures": [
+        "Texture.outline_main"
+      ],
+      "ignore_lighting": true
+    }
+  }
+}

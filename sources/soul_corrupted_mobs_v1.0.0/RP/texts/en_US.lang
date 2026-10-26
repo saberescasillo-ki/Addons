@@ -1,0 +1,6 @@
+entity.eu_sc:soul_corrupted_creeper.name=Soul Corrupted Creeper
+entity.eu_sc:soul_corrupted_skeleton.name=Soul Corrupted Skeleton
+entity.eu_sc:soul_corrupted_zombie.name=Soul Corrupted Zombie
+item.spawn_egg.entity.eu_sc:soul_corrupted_creeper.name=Spawn Soul Corrupted Creeper
+item.spawn_egg.entity.eu_sc:soul_corrupted_skeleton.name=Spawn Soul Corrupted Skeleton
+item.spawn_egg.entity.eu_sc:soul_corrupted_zombie.name=Spawn Soul Corrupted Zombie

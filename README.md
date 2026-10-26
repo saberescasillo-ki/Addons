@@ -2,100 +2,69 @@
 
 | Addon | Descarga | Generador |
 |---|---|---|
-| **Soul Corrupted** – mobs de alma corrupta + espada | [`dist/SoulCorrupted.mcaddon`](dist/SoulCorrupted.mcaddon) | `tools/soul_generate.py` |
+| **Soul Corrupted Mobs** (base de Euforia + variantes, phantoms, altar y espada) | [`dist/SoulCorruptedMobs.mcaddon`](dist/SoulCorruptedMobs.mcaddon) | `tools/soul_mobs.py` |
 | **Medieval Mobs** – mobs medievales | [`dist/MedievalMobs.mcaddon`](dist/MedievalMobs.mcaddon) | `tools/generate.py` |
 
-Requieren Minecraft Bedrock **1.21.0 o superior** (Soul Corrupted: **1.21.90 o superior**). No hace falta activar experimentos.
-Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo.
+Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo. No hace falta activar experimentos.
+
+- Soul Corrupted Mobs requiere Minecraft Bedrock **1.26.0** o superior.
+- Medieval Mobs requiere **1.21.0** o superior.
 
 ---
 
-# Soul Corrupted
+# Soul Corrupted Mobs
 
-![Mobs de alma corrupta, phantom domable y altar](docs/soul_preview.png)
+![Todos los mobs con su outline](docs/soul_mobs_preview.png)
 
-Mobs corrompidos por almas, con texturas 16x16 de un azul celeste luminoso con vetas más oscuras.
-Su modelo es igual al vanilla, sin piezas que sobresalgan. Hay 3 colores (azul, rojo y verde),
-y cada color es un mob aparte con su propio huevo.
+La base es el addon original *Soul Corrupted Mobs v1.0.0*: sus texturas, el **outline blanco**,
+las animaciones vanilla y los identificadores `eu_sc:`. Se guarda sin cambios en `sources/soul_corrupted_mobs_v1.0.0/`.
+El generador `tools/soul_mobs.py` lo copia y le añade todo lo demás.
 
 | Mob | IDs |
 |---|---|
-| Zombi de Alma Corrupta | `soul:corrupted_zombie_blue` / `_red` / `_green` |
-| Creeper de Alma Corrupta | `soul:corrupted_creeper_blue` / `_red` / `_green` |
-| Esqueleto de Alma Corrupta | `soul:corrupted_skeleton_blue` / `_red` / `_green` |
-| Phantom de Alma Corrupta (4 alas, 2,5 veces más grande) | `soul:corrupted_phantom_blue` / `_red` / `_green` |
-| Phantom de Alma Domable (azul, montable) | `soul:corrupted_phantom_mount` |
-| Altar de Curación | `soul:healing_altar` |
+| Zombi de Alma Corrupta | `eu_sc:soul_corrupted_zombie` (azul, original) / `_red` / `_green` |
+| Creeper de Alma Corrupta | `eu_sc:soul_corrupted_creeper` / `_red` / `_green` |
+| Esqueleto de Alma Corrupta | `eu_sc:soul_corrupted_skeleton` / `_red` / `_green` |
+| Phantom de Alma Corrupta (4 alas puntiagudas, 2,5 veces más grande) | `eu_sc:soul_corrupted_phantom` / `_red` / `_green` |
+| Phantom de Alma Domable (montable) | `eu_sc:soul_corrupted_phantom_mount` |
+| Altar de Curación | `eu_sc:healing_altar` |
+| Espada de Alma Corrupta | `eu_sc:soul_corrupted_sword` |
 
-**Comportamiento**
-
-- **Oscuridad** (el efecto del Warden) en cada golpe, flecha o explosión.
-- Extra según el color:
+- **Variantes rojas y verdes**: recoloreadas a partir de las texturas originales, con su outline.
+- **Al golpear**: Oscuridad, más un extra según el color:
   - azul: lentitud.
-  - rojo: prende fuego al objetivo, y su creeper deja fuego al explotar.
+  - rojo: prende fuego.
   - verde: veneno.
-- **Ojos blancos brillantes** en todos.
-- **Inmunes** a fuego, lava, bloques de magma, congelación, ahogamiento y wither. No se queman con el sol.
-- Sueltan partículas de su color todo el tiempo.
-- Las **explosiones del creeper** sueltan una nube de partículas de su color.
-- El **phantom** se comporta como el vanilla, pero ataca mucho más seguido (cada 2-5 s) y vuela más bajo, más cerca de ti.
-
-**Animaciones** (suavizadas)
-
-- Al aparecer, en 1 segundo o menos:
-  - el zombi y el esqueleto salen del suelo;
-  - el creeper y el phantom crecen girando.
-- El creeper se inclina hacia donde camina y hacia los giros.
-- El zombi se tambalea.
-- El esqueleto mira a su alrededor y sube el arco.
-- El phantom bate sus 4 alas desfasadas y se inclina al girar y al subir o bajar.
-
-**Dónde aparecen**
-
-- De noche, en el Overworld.
-- En el Nether, cada color en su bioma:
-  - azul: valle de arena de almas;
-  - rojo: bosque carmesí;
-  - verde: bosque distorsionado.
-- También con huevos en los generadores y con `/summon`.
-
-### Phantom de Alma Domable
-
-- No aparece de forma natural: solo con su huevo, desde el inventario creativo o con `/summon`.
-- Es pacífico y vuela libremente, como un ghast.
-- Se **domestica dándole huesos**, con un 33 % de probabilidad por hueso. Domesticado:
-  - te sigue;
-  - **se monta**: interactúa con él y dirígelo con el movimiento y la mirada, como un happy ghast;
-  - se cura con huesos.
-- Velocidad de vuelo 0,065, algo más rápido que el happy ghast (0,05). Es igual con o sin jinete.
-
-### Altar de Curación
-
-- Mide 2 bloques: un pedestal de pizarra profunda con runas de alma, un cuenco de fuego de alma y un cristal que flota y gira.
-- Si estás a **10 bloques o menos**:
-  - te apunta con un **rayo de partículas**;
-  - te cura **1 de vida por segundo**, más rápido que la regeneración normal.
-- **Receta** (mesa de crafteo). C = pizarra profunda rocosa (`minecraft:cobbled_deepslate`), F = farol de almas, M = manzana dorada:
-
-  ```
-  C F C
-  C M C
-  C C C
-  ```
-
-- Se coloca como un huevo de generación.
-- Solo los jugadores pueden romperlo, y al romperlo suelta el altar.
-
-### Espada de Alma Corrupta (`soul:corrupted_soul_sword`)
-
-![Espada](docs/soul_sword.png)
-
-- Textura 16x16. 9 de daño, más que la de netherita.
-- Al golpear deja **Wither II** (5 s) y **quemadura** (5 s).
-- **Daño en área**: los mobs a 3 bloques del objetivo reciben 5 de daño y Wither. No afecta a jugadores, mascotas, la montura ni el altar.
-- **No se puede craftear.** Sale con un 2,5 % de probabilidad (más con Botín) al matar mobs de alma corrupta.
-- Se encanta como una espada y se repara con fragmentos de eco.
-- Lleva el tag `minecraft:is_sword`, el mismo que las espadas vanilla. Los paquetes de animación la tratan como una espada.
+- Las flechas de los esqueletos siguen invocando rayos, como en el original, ahora en los tres colores.
+- **Inmunes** a fuego, lava, magma, congelación, ahogamiento y wither.
+  - No se queman con el sol.
+  - Ya no se convierten en ahogados ni en *strays*.
+- **Animaciones**:
+  - las vanilla del addon original;
+  - al aparecer: el zombi y el esqueleto salen del suelo; el creeper y el phantom crecen girando;
+  - el creeper se inclina hacia donde camina;
+  - el zombi se tambalea;
+  - el esqueleto mira a su alrededor;
+  - el phantom bate sus 4 alas.
+- **Partículas** de su color, y el creeper suelta una nube de su color al explotar.
+- **Phantom hostil**: la misma IA que el vanilla, pero ataca cada 2-5 s y vuela a 6-12 bloques sobre ti, en vez de 20-40.
+- **Phantom domable**:
+  - se domestica con huesos;
+  - se monta con el mismo sistema que el happy ghast: dirección con la cámara, y botones de subir y bajar;
+  - vuela a 0,02 (el happy ghast va a 0,016).
+- **Altar de Curación**:
+  - mide 2 bloques y es inmune a todo tipo de daño;
+  - siempre mira hacia el mismo lado;
+  - a 10 bloques o menos te lanza un rayo de partículas y te cura 1 de vida por segundo;
+  - se recoge **agachado + interactuar**;
+  - receta: 7 de pizarra profunda rocosa + farol de almas + manzana dorada (`C F C / C M C / C C C`).
+- **Espada**:
+  - 16x16, 9 de daño;
+  - Wither II + quemadura al objetivo;
+  - daño en área (5 de daño + Wither a los mobs a 3 bloques);
+  - no se craftea: sale con un 2,5 % de probabilidad de los mobs de alma;
+  - lleva el tag `minecraft:is_sword`.
+- **Spawn natural**: de noche en el Overworld, y cada color en su bioma del Nether.
 
 ---
 
@@ -141,7 +110,8 @@ Los efectos de la columna "Al golpear" se aplican en cada golpe, flecha o explos
 ## Estructura del proyecto
 
 ```
-SoulCorrupted_BP/  SoulCorrupted_RP/   addon de alma corrupta
+SoulCorruptedMobs_BP/  SoulCorruptedMobs_RP/   Soul Corrupted Mobs (generado)
+sources/soul_corrupted_mobs_v1.0.0/           addon original (base)
 MedievalMobs_BP/   MedievalMobs_RP/    addon medieval
 tools/             generadores en Python (modelos + texturas + JSON)
 dist/              los .mcaddon listos para instalar
@@ -150,12 +120,12 @@ dist/              los .mcaddon listos para instalar
 Los packs se generan con Python 3 y Pillow. Para cambiar vida, daño, efectos, colores o modelos:
 
 1. Edita las tablas al principio del generador:
-   - Soul Corrupted: `TYPES` y `COLORS` en `tools/soul_generate.py`.
+   - Soul Corrupted Mobs: `COLORS`, `BASE_MOBS` y `PHANTOM` en `tools/soul_mobs.py`.
    - Medieval Mobs: `MOBS` en `tools/generate.py`, y los modelos en `tools/models.py`.
 2. Ejecuta el generador:
 
 ```
-python3 tools/soul_generate.py --preview
+python3 tools/soul_mobs.py --preview
 python3 tools/generate.py --preview
 ```
 

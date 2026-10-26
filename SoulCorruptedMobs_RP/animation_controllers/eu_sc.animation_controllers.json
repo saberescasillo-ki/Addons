@@ -1,0 +1,153 @@
+{
+  "format_version": "1.10.0",
+  "animation_controllers": {
+    "controller.animation.eu_sc.zombie": {
+      "initial_state": "start",
+      "states": {
+        "start": {
+          "transitions": [
+            {
+              "emerging": "query.property('eu_sc:emerging')"
+            },
+            {
+              "alive": "!query.property('eu_sc:emerging')"
+            }
+          ]
+        },
+        "emerging": {
+          "animations": [
+            "zombie_spawn"
+          ],
+          "particle_effects": [
+            {
+              "effect": "burst"
+            }
+          ],
+          "transitions": [
+            {
+              "alive": "!query.property('eu_sc:emerging')"
+            }
+          ],
+          "blend_transition": 0.3
+        },
+        "alive": {
+          "animations": [
+            "zombie_life"
+          ],
+          "blend_transition": 0.3
+        }
+      }
+    },
+    "controller.animation.eu_sc.creeper": {
+      "initial_state": "start",
+      "states": {
+        "start": {
+          "transitions": [
+            {
+              "emerging": "query.property('eu_sc:emerging')"
+            },
+            {
+              "alive": "!query.property('eu_sc:emerging')"
+            }
+          ]
+        },
+        "emerging": {
+          "animations": [
+            "creeper_spawn"
+          ],
+          "particle_effects": [
+            {
+              "effect": "burst"
+            }
+          ],
+          "transitions": [
+            {
+              "alive": "!query.property('eu_sc:emerging')"
+            }
+          ],
+          "blend_transition": 0.3
+        },
+        "alive": {
+          "animations": [
+            "creeper_life"
+          ],
+          "blend_transition": 0.3
+        }
+      }
+    },
+    "controller.animation.eu_sc.skeleton": {
+      "initial_state": "start",
+      "states": {
+        "start": {
+          "transitions": [
+            {
+              "emerging": "query.property('eu_sc:emerging')"
+            },
+            {
+              "alive": "!query.property('eu_sc:emerging')"
+            }
+          ]
+        },
+        "emerging": {
+          "animations": [
+            "skeleton_spawn"
+          ],
+          "particle_effects": [
+            {
+              "effect": "burst"
+            }
+          ],
+          "transitions": [
+            {
+              "alive": "!query.property('eu_sc:emerging')"
+            }
+          ],
+          "blend_transition": 0.3
+        },
+        "alive": {
+          "animations": [
+            "skeleton_life"
+          ],
+          "blend_transition": 0.3
+        }
+      }
+    },
+    "controller.animation.eu_sc.phantom": {
+      "initial_state": "start",
+      "states": {
+        "start": {
+          "transitions": [
+            {
+              "emerging": "query.property('eu_sc:emerging')"
+            },
+            {
+              "alive": "!query.property('eu_sc:emerging')"
+            }
+          ]
+        },
+        "emerging": {
+          "animations": [
+            "phantom_spawn"
+          ],
+          "particle_effects": [
+            {
+              "effect": "burst"
+            }
+          ],
+          "transitions": [
+            {
+              "alive": "!query.property('eu_sc:emerging')"
+            }
+          ],
+          "blend_transition": 0.3
+        },
+        "alive": {
+          "animations": [
+            "phantom_fly"
+          ],
+          "blend_transition": 0.3
+        }
+      }
+    }
+  }
+}

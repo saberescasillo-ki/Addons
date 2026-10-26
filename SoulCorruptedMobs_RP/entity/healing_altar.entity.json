@@ -1,0 +1,40 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "eu_sc:healing_altar",
+      "materials": {
+        "default": "outline_base",
+        "outline_main": "outline_main"
+      },
+      "textures": {
+        "default": "textures/entity/soul_corrupted/healing_altar",
+        "outline_main": "textures/entity/soul_corrupted/white_outline"
+      },
+      "geometry": {
+        "default": "geometry.eu.sc.healing_altar",
+        "outline_main": "geometry.eu.sc.healing_altar.outline"
+      },
+      "animations": {
+        "float": "animation.eu_sc.altar_float",
+        "particles": "animation.eu_sc.altar_particles"
+      },
+      "particle_effects": {
+        "wisps": "eu_sc:altar_wisp"
+      },
+      "scripts": {
+        "animate": [
+          "float",
+          "particles"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.eu_sc.outline_base",
+        "controller.render.eu_sc.outline_main.glow"
+      ],
+      "spawn_egg": {
+        "texture": "healing_altar_egg"
+      }
+    }
+  }
+}

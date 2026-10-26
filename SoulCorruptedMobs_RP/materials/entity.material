@@ -1,0 +1,53 @@
+{
+  "materials": {
+    "version": "1.0.0",
+    // Outline Base material.
+    // Requires a non-outline entity to properly work.
+    // This forces the non-outline entity to render on top of objects within 6 layer (stencilRef)
+    // Higher layer value can replace stuff i.e crosshair, doors, block entities.
+    "outline_base:entity_alphatest": {
+      "+defines": [ "USE_SKINNING", "USE_OVERLAY" ],
+      "+states": [ "EnableStencilTest", "StencilWrite" ],
+      "frontFace": {
+        "stencilFunc": "Always",
+        // Uncomment to cut entity in outline, giving it a outline-looking when behind in the block.
+        // This has a trade, Enabling it will make outline clips in the floor instead of showing in the block.
+        // "stencilFailOp": "Replace",
+        // "stencilDepthFailOp": "Replace",
+        "stencilPassOp": "Replace"
+      },
+      "backFace": {
+        "stencilFunc": "Always",
+        // ^^^ Comment at line 13, both has to be uncommented in order to work.
+        // "stencilFailOp": "Replace",
+        // "stencilDepthFailOp": "Replace",
+        "stencilPassOp": "Replace"
+      },
+      "stencilRef": 6
+    },
+    // Attempt to render outline behind pretty much like 'DisableDepthWrite'
+    "outline_main:outline_base": {
+      // Removing "FANCY" shadow shading allows near full ignored lighting,
+      // This improves visuals especially in VV.
+      "-defines": [ "FANCY" ],
+      // "+states": [ "Blending" ],
+      // Keep the default depth test so the outline is hidden by blocks and walls.
+      "frontFace": {
+        "stencilFunc": "Greater",
+        "stencilPassOp": "Keep"
+      },
+      "backFace": {
+        "stencilFunc": "Greater",
+        "stencilPassOp": "Keep"
+      }
+    },
+    // Enables 'DisableDepthWrite' to combat z-fighting issues exclusively first person.
+    // However using it outside will cause the outline not to be rendered in Vibrant Visual's Sky.
+    // For complex models with alot of cubes, displaying on first person with outline will cause it to
+    // freak the hell out with z-fighting.
+    // Even then it's still pretty buggy.
+    "outline_main_firstperson:outline_main": {
+      "+states": [ "DisableDepthWrite" ]
+    }
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "eu_sc:soul_corrupted_creeper_red",
+      "min_engine_version": "1.8.0",
+      "materials": {
+        "default": "outline_base",
+        "outline_main": "outline_main",
+        "charged": "charged_creeper"
+      },
+      "textures": {
+        "default": "textures/entity/soul_corrupted/soul_corrupted_creeper_red",
+        "outline_main": "textures/entity/soul_corrupted/white_outline",
+        "charged": "textures/entity/creeper/creeper_armor"
+      },
+      "geometry": {
+        "default": "geometry.eu.sc.soul_corrupted_creeper",
+        "outline_main": "geometry.eu.sc.soul_corrupted_creeper.outline",
+        "charged": "geometry.creeper.charged.v1.8"
+      },
+      "spawn_egg": {
+        "base_color": "#F79794",
+        "overlay_color": "#B51B15"
+      },
+      "scripts": {
+        "pre_animation": [
+          "variable.wobble = Math.sin(query.swell_amount * 5730) * query.swell_amount * 0.01 + 1.0;",
+          "variable.swelling_scale1 = (Math.pow(Math.clamp(query.swell_amount, 0.0, 1.0), 4.0) * 0.4 + 1.0) * variable.wobble;",
+          "variable.swelling_scale2 = (Math.pow(Math.clamp(query.swell_amount, 0.0, 1.0), 4.0) * 0.1 + 1.0) / variable.wobble;",
+          "variable.leg_rot = Math.cos(query.modified_distance_moved * 38.17326) * 80.22 * query.modified_move_speed;",
+          "variable.flash = Math.mod(Math.Round(query.swell_amount * 10.0), 2.0);",
+          "v.s_speed = math.lerp(v.s_speed ?? 0.0, query.modified_move_speed, 0.1);",
+          "v.s_turn = math.lerp(v.s_turn ?? 0.0, math.clamp(query.yaw_speed, -120.0, 120.0), 0.05);"
+        ],
+        "animate": [
+          "creeper_head_controller",
+          "creeper_legs_controller",
+          "creeper_swelling_controller",
+          "emitter_particle_controller",
+          "eu_sc_controller",
+          "eu_sc_particles"
+        ]
+      },
+      "particle_effects": {
+        "emitter": "eu_sc:soul_ascending_particle_red",
+        "wisps": "eu_sc:wisp_red",
+        "drips": "eu_sc:drip_red",
+        "burst": "eu_sc:burst_red"
+      },
+      "animations": {
+        "creeper_head": "animation.common.look_at_target",
+        "creeper_legs": "animation.creeper.legs",
+        "creeper_swelling": "animation.creeper.swelling",
+        "creeper_head_controller": "controller.animation.creeper.head",
+        "creeper_legs_controller": "controller.animation.creeper.legs",
+        "creeper_swelling_controller": "controller.animation.creeper.swelling",
+        "emitter_particle_controller": "controller.animation.eu.emitter_particle",
+        "eu_sc_controller": "controller.animation.eu_sc.creeper",
+        "eu_sc_particles": "animation.eu_sc.particles",
+        "creeper_spawn": "animation.eu_sc.creeper_spawn",
+        "creeper_life": "animation.eu_sc.creeper_life"
+      },
+      "render_controllers": [
+        "controller.render.eu_sc.outline_base.glow",
+        "controller.render.eu_sc.outline_main.glow",
+        {
+          "controller.render.creeper_armor": "query.is_powered"
+        }
+      ]
+    }
+  }
+}

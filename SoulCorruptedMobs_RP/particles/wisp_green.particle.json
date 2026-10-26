@@ -1,0 +1,80 @@
+{
+  "format_version": "1.10.0",
+  "particle_effect": {
+    "description": {
+      "identifier": "eu_sc:wisp_green",
+      "basic_render_parameters": {
+        "material": "particles_alpha",
+        "texture": "textures/particles/soul_corrupted/soul_spark"
+      }
+    },
+    "components": {
+      "minecraft:emitter_local_space": {
+        "position": false,
+        "rotation": false
+      },
+      "minecraft:particle_appearance_tinting": {
+        "color": [
+          0.25,
+          0.92,
+          0.32,
+          1.0
+        ]
+      },
+      "minecraft:particle_appearance_billboard": {
+        "size": [
+          "0.14 * (1.0 - math.pow(variable.particle_age / variable.particle_lifetime, 2.0))",
+          "0.14 * (1.0 - math.pow(variable.particle_age / variable.particle_lifetime, 2.0))"
+        ],
+        "facing_camera_mode": "rotate_xyz",
+        "uv": {
+          "texture_width": 8,
+          "texture_height": 8,
+          "uv": [
+            0,
+            0
+          ],
+          "uv_size": [
+            8,
+            8
+          ]
+        }
+      },
+      "minecraft:emitter_rate_instant": {
+        "num_particles": 2
+      },
+      "minecraft:emitter_lifetime_once": {
+        "active_time": 0.1
+      },
+      "minecraft:emitter_shape_box": {
+        "offset": [
+          0,
+          0.9,
+          0
+        ],
+        "half_dimensions": [
+          0.3,
+          0.7,
+          0.3
+        ],
+        "direction": [
+          0,
+          1,
+          0
+        ]
+      },
+      "minecraft:particle_lifetime_expression": {
+        "max_lifetime": "math.random(0.8, 1.4)"
+      },
+      "minecraft:particle_initial_speed": "math.random(0.2, 0.5)",
+      "minecraft:particle_motion_dynamic": {
+        "linear_acceleration": [
+          0,
+          0.8,
+          0
+        ],
+        "linear_drag_coefficient": 0.8
+      }
+    }
+  }
+}

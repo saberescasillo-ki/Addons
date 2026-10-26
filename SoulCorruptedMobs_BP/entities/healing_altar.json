@@ -1,0 +1,89 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "eu_sc:healing_altar",
+      "is_spawnable": true,
+      "is_summonable": true
+    },
+    "component_groups": {
+      "eu_sc:picked_up": {
+        "minecraft:instant_despawn": {}
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "soul_altar",
+          "inanimate"
+        ]
+      },
+      "minecraft:health": {
+        "value": 20,
+        "max": 20
+      },
+      "minecraft:collision_box": {
+        "width": 0.9,
+        "height": 2.0
+      },
+      "minecraft:physics": {},
+      "minecraft:knockback_resistance": {
+        "value": 1.0
+      },
+      "minecraft:movement": {
+        "value": 0.0
+      },
+      "minecraft:body_rotation_blocked": {},
+      "minecraft:rotation_axis_aligned": {},
+      "minecraft:persistent": {},
+      "minecraft:fire_immune": {},
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "cause": "all",
+            "deals_damage": "no"
+          }
+        ]
+      },
+      "minecraft:interact": {
+        "interactions": [
+          {
+            "on_interact": {
+              "filters": {
+                "all_of": [
+                  {
+                    "test": "is_family",
+                    "subject": "other",
+                    "value": "player"
+                  },
+                  {
+                    "test": "is_sneak_held",
+                    "subject": "other",
+                    "value": true
+                  }
+                ]
+              },
+              "event": "eu_sc:pick_up",
+              "target": "self"
+            },
+            "spawn_items": {
+              "table": "loot_tables/eu_sc/healing_altar.json"
+            },
+            "play_sounds": "break",
+            "swing": true,
+            "interact_text": "action.interact.eu_sc.pick_up_altar"
+          }
+        ]
+      }
+    },
+    "events": {
+      "eu_sc:pick_up": {
+        "add": {
+          "component_groups": [
+            "eu_sc:picked_up"
+          ]
+        }
+      }
+    }
+  }
+}

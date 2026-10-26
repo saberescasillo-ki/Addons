@@ -1,0 +1,30 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "eu_sc:healing_altar"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      "CLC",
+      "CAC",
+      "CCC"
+    ],
+    "key": {
+      "C": {
+        "item": "minecraft:cobbled_deepslate"
+      },
+      "L": {
+        "item": "minecraft:soul_lantern"
+      },
+      "A": {
+        "item": "minecraft:golden_apple"
+      }
+    },
+    "result": {
+      "item": "eu_sc:healing_altar_spawn_egg"
+    }
+  }
+}

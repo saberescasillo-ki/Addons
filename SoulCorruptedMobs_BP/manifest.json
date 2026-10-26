@@ -1,0 +1,59 @@
+{
+  "format_version": 2,
+  "metadata": {
+    "authors": [
+      "Euforia"
+    ]
+  },
+  "header": {
+    "name": "Soul Corrupted Mobs",
+    "description": "Have fun!",
+    "min_engine_version": [
+      1,
+      26,
+      0
+    ],
+    "uuid": "a5bee9fb-9763-42a4-aba7-3a86bcb20d89",
+    "version": [
+      1,
+      1,
+      0
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "35b4336f-1e6d-464b-9396-bebcba5d7581",
+      "version": [
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "27efe39e-e0cb-4c2f-a54e-a4a12b6a54d5",
+      "entry": "scripts/main.js",
+      "version": [
+        1,
+        1,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "c01b790e-6cfa-4c62-b381-51d51d7c34c0",
+      "version": [
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.0.0"
+    }
+  ]
+}

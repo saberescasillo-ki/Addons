@@ -1,0 +1,14 @@
+{
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "item",
+          "name": "eu_sc:healing_altar_spawn_egg",
+          "weight": 1
+        }
+      ]
+    }
+  ]
+}

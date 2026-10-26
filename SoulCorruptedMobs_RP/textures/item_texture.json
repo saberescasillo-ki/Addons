@@ -1,0 +1,12 @@
+{
+  "resource_pack_name": "Soul Corrupted Mobs",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "soul_corrupted_sword": {
+      "textures": "textures/items/soul_corrupted_sword"
+    },
+    "healing_altar_egg": {
+      "textures": "textures/items/healing_altar_egg"
+    }
+  }
+}

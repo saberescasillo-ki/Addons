@@ -1,0 +1,264 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "eu_sc:soul_corrupted_phantom_mount",
+      "is_spawnable": true,
+      "is_summonable": true,
+      "spawn_category": "creature",
+      "properties": {
+        "eu_sc:emerging": {
+          "type": "bool",
+          "default": false,
+          "client_sync": true
+        }
+      }
+    },
+    "component_groups": {
+      "eu_sc:wild": {
+        "minecraft:tameable": {
+          "probability": 0.33,
+          "tame_items": "minecraft:bone",
+          "tame_event": {
+            "event": "eu_sc:on_tame",
+            "target": "self"
+          }
+        },
+        "minecraft:behavior.float_tempt": {
+          "priority": 4,
+          "can_tempt_vertically": true,
+          "items": [
+            "minecraft:bone"
+          ],
+          "within_radius": 16,
+          "stop_distance": 5
+        }
+      },
+      "eu_sc:tamed": {
+        "minecraft:is_tamed": {},
+        "minecraft:rideable": {
+          "seat_count": 1,
+          "family_types": [
+            "player"
+          ],
+          "dismount_mode": "on_top_center",
+          "interact_text": "action.interact.ride.horse",
+          "seats": [
+            {
+              "min_rider_count": 0,
+              "max_rider_count": 1,
+              "position": [
+                0.0,
+                1.45,
+                0.2
+              ],
+              "third_person_camera_radius": 7.0,
+              "camera_relax_distance_smoothing": 6.0
+            }
+          ]
+        },
+        "minecraft:free_camera_controlled": {
+          "strafe_speed_modifier": 1.0,
+          "backwards_movement_modifier": 0.5
+        },
+        "minecraft:vertical_movement_action": {
+          "vertical_velocity": 0.5
+        },
+        "minecraft:behavior.player_ride_tamed": {
+          "priority": 1
+        },
+        "minecraft:behavior.follow_owner": {
+          "priority": 5,
+          "speed_multiplier": 1.0,
+          "start_distance": 14,
+          "stop_distance": 5
+        },
+        "minecraft:behavior.float_tempt": {
+          "priority": 6,
+          "can_tempt_vertically": true,
+          "items": [
+            "minecraft:bone"
+          ],
+          "within_radius": 16,
+          "stop_distance": 5
+        },
+        "minecraft:healable": {
+          "items": [
+            {
+              "item": "minecraft:bone",
+              "heal_amount": 6
+            }
+          ]
+        }
+      },
+      "eu_sc:emerging": {
+        "minecraft:timer": {
+          "looping": false,
+          "time": 0.8,
+          "time_down_event": {
+            "event": "eu_sc:emerged"
+          }
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "soul_mount",
+          "phantom",
+          "mob",
+          "soul_corrupted"
+        ]
+      },
+      "minecraft:health": {
+        "value": 40,
+        "max": 40
+      },
+      "minecraft:scale": {
+        "value": 2.5
+      },
+      "minecraft:collision_box": {
+        "width": 2.0,
+        "height": 1.0
+      },
+      "minecraft:physics": {
+        "has_gravity": false
+      },
+      "minecraft:can_fly": {},
+      "minecraft:jump.static": {},
+      "minecraft:movement": {
+        "value": 0.02
+      },
+      "minecraft:flying_speed": {
+        "value": 0.02
+      },
+      "minecraft:navigation.float": {
+        "can_path_over_water": true,
+        "avoid_damage_blocks": true,
+        "avoid_water": true
+      },
+      "minecraft:behavior.float_wander": {
+        "priority": 7,
+        "must_reach": true,
+        "random_reselect": true,
+        "navigate_around_surface": true,
+        "additional_collision_buffer": true,
+        "allow_navigating_through_liquids": false,
+        "surface_xz_dist": 16,
+        "surface_y_dist": 8,
+        "float_duration": [
+          2.0,
+          7.0
+        ]
+      },
+      "minecraft:behavior.float": {
+        "priority": 0
+      },
+      "minecraft:behavior.look_at_player": {
+        "priority": 9,
+        "look_distance": 8,
+        "probability": 0.05
+      },
+      "minecraft:body_rotation_always_follows_head": {},
+      "minecraft:follow_range": {
+        "value": 16,
+        "max": 16
+      },
+      "minecraft:fire_immune": {},
+      "minecraft:breathable": {
+        "total_supply": 15,
+        "suffocate_time": 0,
+        "breathes_air": true,
+        "breathes_water": true
+      },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "cause": "fire",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "fire_tick",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "lava",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "magma",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "freezing",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "drowning",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "wither",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "fall",
+            "deals_damage": "no"
+          }
+        ]
+      },
+      "minecraft:pushable_by_entity": {},
+      "minecraft:pushable_by_block": {},
+      "minecraft:nameable": {},
+      "minecraft:persistent": {},
+      "minecraft:leashable": {
+        "presets": [
+          {
+            "hard_distance": 10,
+            "max_distance": 14
+          }
+        ]
+      },
+      "minecraft:conditional_bandwidth_optimization": {},
+      "minecraft:is_hidden_when_invisible": {},
+      "minecraft:loot": {
+        "table": "loot_tables/eu_sc/soul_corrupted_phantom_mount.json"
+      }
+    },
+    "events": {
+      "minecraft:entity_spawned": {
+        "add": {
+          "component_groups": [
+            "eu_sc:wild",
+            "eu_sc:emerging"
+          ]
+        },
+        "set_property": {
+          "eu_sc:emerging": true
+        }
+      },
+      "eu_sc:emerged": {
+        "remove": {
+          "component_groups": [
+            "eu_sc:emerging"
+          ]
+        },
+        "set_property": {
+          "eu_sc:emerging": false
+        }
+      },
+      "eu_sc:on_tame": {
+        "remove": {
+          "component_groups": [
+            "eu_sc:wild"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "eu_sc:tamed"
+          ]
+        }
+      }
+    }
+  }
+}
