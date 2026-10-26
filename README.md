@@ -10,7 +10,7 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 
 - The Revamp of the Soul requiere Minecraft Bedrock **1.26.0** o superior.
 - Medieval Mobs requiere **1.21.0** o superior.
-- Ruleta de Colores requiere **1.21.90** o superior.
+- Ruleta de Colores requiere **1.21.100** o superior.
 
 ---
 
@@ -60,11 +60,6 @@ Al hacer **clic derecho** se abre un menú:
   En `spin_roulette` el selector va después del mensaje.
 - Con `/scriptevent` (bloques de comandos): `spin_roulette:rojo <mensaje>`, `roulette:show`, `roulette:hide`,
   `roulette:blank`, `roulette:wild`, `roulette:pos_hotbar`, `roulette:pos_hambre`, `roulette:pos_centro`.
-
-### Aviso de tótem
-
-Cuando un jugador gasta un tótem de la inmortalidad, sale en el chat para todos:
-*[Totem] El jugador Steve ha consumido un totem*.
 
 ### Notas
 
