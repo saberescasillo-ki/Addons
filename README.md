@@ -16,14 +16,51 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 
 # Ruleta de Colores
 
-![La ruleta parada en cada color](docs/roulette_preview.png)
+![La ruleta en cada color, el resultado oculto y las espadas del PvP](docs/roulette_preview.png)
 
-Comandos para el administrador (operador) del mundo. La ruleta aparece en la **esquina inferior derecha**
-de la pantalla de los jugadores y gira hasta caer en el color que elijas.
-Tiene 6 colores: **rojo, verde, azul, blanco, celeste y amarillo**.
+Ruleta de 6 colores (**rojo, verde, azul, blanco, celeste y amarillo**) con aspecto natural: borde de corteza,
+lianas con hojas y flores, ramitas entre los colores y un tronco en el centro. Aparece en la
+**esquina superior izquierda, bajo la barra de vida y de armadura** (HUD de móvil), y es solo para el administrador (operador).
+
+### El control de la ruleta
+
+Cógelo del inventario creativo (*Control de la Ruleta*), con `/give @s roulette:controller` o con `/roulette:item`.
+Al hacer **clic derecho** se abre un menú que se aplica a todos los jugadores:
+
+| Opción | Qué hace |
+|---|---|
+| Giro aleatorio | Gira y cae en un color al azar. |
+| Girar a un color | Eliges el color y, si quieres, un **mensaje** que sale al caer (ej. blanco → "¡Los creepers de azalea vienen!"). |
+| Mostrar / Ocultar ruleta | Aparece creciendo desde muy pequeña, o se encoge hasta desaparecer. |
+| Ocultar resultado | Deja todos los colores en blanco. El siguiente giro los vuelve a mostrar. |
+| Activar PvP | Activa el PvP: la ruleta se cambia 5 s por **dos espadas cruzadas** y luego vuelve. |
+| Desactivar PvP | Desactiva el PvP: la ruleta se cambia 5 s por **dos espadas separadas** y luego vuelve. |
+
+### Comandos
 
 | Comando | Qué hace |
 |---|---|
+| `/spin_roulette:rojo` | Gira la ruleta y cae en rojo. También `:verde`, `:azul`, `:blanco`, `:celeste`, `:amarillo` y `:aleatorio`. |
+| `/spin_roulette:blanco "Los creepers de azalea vienen"` | Igual, con mensaje al caer. |
+| `/roulette:show` / `/roulette:hide` | Muestra / oculta la ruleta. |
+| `/roulette:blank` | Oculta el resultado (todo en blanco). |
+| `/roulette:pvp_on` / `/roulette:pvp_off` | Activa / desactiva el PvP con las espadas. |
+| `/roulette:item` | Te da el control de la ruleta. |
+
+- Al final se puede añadir un selector de jugadores (`/roulette:show @a[tag=juego]`); sin él se aplica a todos.
+  En `spin_roulette` el selector va después del mensaje.
+- Con `/scriptevent` (bloques de comandos): `spin_roulette:rojo <mensaje>`, `roulette:show`, `roulette:hide`,
+  `roulette:blank`, `roulette:pvp_on`, `roulette:pvp_off`.
+- El giro dura **15 segundos**: da varias vueltas, frena poco a poco y suena un clic en cada color.
+  Al parar, el color y el mensaje salen en grande en la pantalla y en el chat.
+- El PvP se cambia con la regla del mundo `pvp`.
+- El resultado se guarda en el marcador `ruleta`, jugador `resultado`
+  (1 rojo, 2 verde, 3 azul, 4 blanco, 5 celeste, 6 amarillo).
+- La ruleta se dibuja con JSON UI usando títulos ocultos que empiezan por `_roul:`; el resto de títulos se ve normal.
+  El tamaño, la esquina, la posición y la duración del giro se cambian en `tools/roulette.py`
+  (`UI_SIZE`, `ANCHOR`, `OFFSET`, `SPIN_TICKS`).
+
+---|---|
 | `/roulette:show` | Muestra la ruleta. |
 | `/spin_roulette:rojo` | Gira la ruleta y la hace caer en rojo. Si estaba oculta, la muestra. |
 | `/spin_roulette:verde`, `:azul`, `:blanco`, `:celeste`, `:amarillo` | Igual, con los otros colores. |

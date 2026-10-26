@@ -1,0 +1,23 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "roulette:controller",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "textures": {
+          "default": "roulette_controller"
+        }
+      },
+      "minecraft:display_name": {
+        "value": "§6Control de la Ruleta"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:glint": true
+    }
+  }
+}

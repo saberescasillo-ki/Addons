@@ -1,0 +1,9 @@
+{
+  "resource_pack_name": "roulette",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "roulette_controller": {
+      "textures": "textures/items/roulette_controller"
+    }
+  }
+}

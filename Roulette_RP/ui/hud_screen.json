@@ -62,15 +62,15 @@
             1,
             1
           ],
-          "anchor_from": "bottom_right",
-          "anchor_to": "bottom_right",
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
           "offset": [
-            -4,
-            -4
+            4,
+            30
           ],
           "controls": [
             {
-              "pre_00": {
+              "pre_f00": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f00",
                 "size": [
@@ -81,7 +81,7 @@
               }
             },
             {
-              "pre_01": {
+              "pre_f01": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f01",
                 "size": [
@@ -92,7 +92,7 @@
               }
             },
             {
-              "pre_02": {
+              "pre_f02": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f02",
                 "size": [
@@ -103,7 +103,7 @@
               }
             },
             {
-              "pre_03": {
+              "pre_f03": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f03",
                 "size": [
@@ -114,7 +114,7 @@
               }
             },
             {
-              "pre_04": {
+              "pre_f04": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f04",
                 "size": [
@@ -125,7 +125,7 @@
               }
             },
             {
-              "pre_05": {
+              "pre_f05": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f05",
                 "size": [
@@ -136,7 +136,7 @@
               }
             },
             {
-              "pre_06": {
+              "pre_f06": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f06",
                 "size": [
@@ -147,7 +147,7 @@
               }
             },
             {
-              "pre_07": {
+              "pre_f07": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f07",
                 "size": [
@@ -158,7 +158,7 @@
               }
             },
             {
-              "pre_08": {
+              "pre_f08": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f08",
                 "size": [
@@ -169,7 +169,7 @@
               }
             },
             {
-              "pre_09": {
+              "pre_f09": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f09",
                 "size": [
@@ -180,7 +180,7 @@
               }
             },
             {
-              "pre_10": {
+              "pre_f10": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f10",
                 "size": [
@@ -191,7 +191,7 @@
               }
             },
             {
-              "pre_11": {
+              "pre_f11": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f11",
                 "size": [
@@ -202,7 +202,7 @@
               }
             },
             {
-              "pre_12": {
+              "pre_f12": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f12",
                 "size": [
@@ -213,7 +213,7 @@
               }
             },
             {
-              "pre_13": {
+              "pre_f13": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f13",
                 "size": [
@@ -224,7 +224,7 @@
               }
             },
             {
-              "pre_14": {
+              "pre_f14": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f14",
                 "size": [
@@ -235,7 +235,7 @@
               }
             },
             {
-              "pre_15": {
+              "pre_f15": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f15",
                 "size": [
@@ -246,7 +246,7 @@
               }
             },
             {
-              "pre_16": {
+              "pre_f16": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f16",
                 "size": [
@@ -257,7 +257,7 @@
               }
             },
             {
-              "pre_17": {
+              "pre_f17": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f17",
                 "size": [
@@ -268,7 +268,7 @@
               }
             },
             {
-              "pre_18": {
+              "pre_f18": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f18",
                 "size": [
@@ -279,7 +279,7 @@
               }
             },
             {
-              "pre_19": {
+              "pre_f19": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f19",
                 "size": [
@@ -290,7 +290,7 @@
               }
             },
             {
-              "pre_20": {
+              "pre_f20": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f20",
                 "size": [
@@ -301,7 +301,7 @@
               }
             },
             {
-              "pre_21": {
+              "pre_f21": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f21",
                 "size": [
@@ -312,7 +312,7 @@
               }
             },
             {
-              "pre_22": {
+              "pre_f22": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f22",
                 "size": [
@@ -323,7 +323,7 @@
               }
             },
             {
-              "pre_23": {
+              "pre_f23": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f23",
                 "size": [
@@ -334,7 +334,7 @@
               }
             },
             {
-              "pre_24": {
+              "pre_f24": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f24",
                 "size": [
@@ -345,7 +345,7 @@
               }
             },
             {
-              "pre_25": {
+              "pre_f25": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f25",
                 "size": [
@@ -356,7 +356,7 @@
               }
             },
             {
-              "pre_26": {
+              "pre_f26": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f26",
                 "size": [
@@ -367,7 +367,7 @@
               }
             },
             {
-              "pre_27": {
+              "pre_f27": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f27",
                 "size": [
@@ -378,7 +378,7 @@
               }
             },
             {
-              "pre_28": {
+              "pre_f28": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f28",
                 "size": [
@@ -389,7 +389,7 @@
               }
             },
             {
-              "pre_29": {
+              "pre_f29": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f29",
                 "size": [
@@ -400,7 +400,7 @@
               }
             },
             {
-              "pre_30": {
+              "pre_f30": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f30",
                 "size": [
@@ -411,7 +411,7 @@
               }
             },
             {
-              "pre_31": {
+              "pre_f31": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f31",
                 "size": [
@@ -422,7 +422,7 @@
               }
             },
             {
-              "pre_32": {
+              "pre_f32": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f32",
                 "size": [
@@ -433,7 +433,7 @@
               }
             },
             {
-              "pre_33": {
+              "pre_f33": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f33",
                 "size": [
@@ -444,7 +444,7 @@
               }
             },
             {
-              "pre_34": {
+              "pre_f34": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f34",
                 "size": [
@@ -455,7 +455,7 @@
               }
             },
             {
-              "pre_35": {
+              "pre_f35": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f35",
                 "size": [
@@ -466,7 +466,7 @@
               }
             },
             {
-              "pre_36": {
+              "pre_f36": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f36",
                 "size": [
@@ -477,7 +477,7 @@
               }
             },
             {
-              "pre_37": {
+              "pre_f37": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f37",
                 "size": [
@@ -488,7 +488,7 @@
               }
             },
             {
-              "pre_38": {
+              "pre_f38": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f38",
                 "size": [
@@ -499,7 +499,7 @@
               }
             },
             {
-              "pre_39": {
+              "pre_f39": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f39",
                 "size": [
@@ -510,7 +510,7 @@
               }
             },
             {
-              "pre_40": {
+              "pre_f40": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f40",
                 "size": [
@@ -521,7 +521,7 @@
               }
             },
             {
-              "pre_41": {
+              "pre_f41": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f41",
                 "size": [
@@ -532,7 +532,7 @@
               }
             },
             {
-              "pre_42": {
+              "pre_f42": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f42",
                 "size": [
@@ -543,7 +543,7 @@
               }
             },
             {
-              "pre_43": {
+              "pre_f43": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f43",
                 "size": [
@@ -554,7 +554,7 @@
               }
             },
             {
-              "pre_44": {
+              "pre_f44": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f44",
                 "size": [
@@ -565,7 +565,7 @@
               }
             },
             {
-              "pre_45": {
+              "pre_f45": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f45",
                 "size": [
@@ -576,7 +576,7 @@
               }
             },
             {
-              "pre_46": {
+              "pre_f46": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f46",
                 "size": [
@@ -587,7 +587,7 @@
               }
             },
             {
-              "pre_47": {
+              "pre_f47": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f47",
                 "size": [
@@ -598,7 +598,7 @@
               }
             },
             {
-              "pre_48": {
+              "pre_f48": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f48",
                 "size": [
@@ -609,7 +609,7 @@
               }
             },
             {
-              "pre_49": {
+              "pre_f49": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f49",
                 "size": [
@@ -620,7 +620,7 @@
               }
             },
             {
-              "pre_50": {
+              "pre_f50": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f50",
                 "size": [
@@ -631,7 +631,7 @@
               }
             },
             {
-              "pre_51": {
+              "pre_f51": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f51",
                 "size": [
@@ -642,7 +642,7 @@
               }
             },
             {
-              "pre_52": {
+              "pre_f52": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f52",
                 "size": [
@@ -653,7 +653,7 @@
               }
             },
             {
-              "pre_53": {
+              "pre_f53": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f53",
                 "size": [
@@ -664,7 +664,7 @@
               }
             },
             {
-              "pre_54": {
+              "pre_f54": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f54",
                 "size": [
@@ -675,7 +675,7 @@
               }
             },
             {
-              "pre_55": {
+              "pre_f55": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f55",
                 "size": [
@@ -686,7 +686,7 @@
               }
             },
             {
-              "pre_56": {
+              "pre_f56": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f56",
                 "size": [
@@ -697,7 +697,7 @@
               }
             },
             {
-              "pre_57": {
+              "pre_f57": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f57",
                 "size": [
@@ -708,7 +708,7 @@
               }
             },
             {
-              "pre_58": {
+              "pre_f58": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f58",
                 "size": [
@@ -719,7 +719,7 @@
               }
             },
             {
-              "pre_59": {
+              "pre_f59": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f59",
                 "size": [
@@ -730,7 +730,7 @@
               }
             },
             {
-              "pre_60": {
+              "pre_f60": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f60",
                 "size": [
@@ -741,7 +741,7 @@
               }
             },
             {
-              "pre_61": {
+              "pre_f61": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f61",
                 "size": [
@@ -752,7 +752,7 @@
               }
             },
             {
-              "pre_62": {
+              "pre_f62": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f62",
                 "size": [
@@ -763,7 +763,7 @@
               }
             },
             {
-              "pre_63": {
+              "pre_f63": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f63",
                 "size": [
@@ -774,7 +774,7 @@
               }
             },
             {
-              "pre_64": {
+              "pre_f64": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f64",
                 "size": [
@@ -785,7 +785,7 @@
               }
             },
             {
-              "pre_65": {
+              "pre_f65": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f65",
                 "size": [
@@ -796,7 +796,7 @@
               }
             },
             {
-              "pre_66": {
+              "pre_f66": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f66",
                 "size": [
@@ -807,7 +807,7 @@
               }
             },
             {
-              "pre_67": {
+              "pre_f67": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f67",
                 "size": [
@@ -818,7 +818,7 @@
               }
             },
             {
-              "pre_68": {
+              "pre_f68": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f68",
                 "size": [
@@ -829,7 +829,7 @@
               }
             },
             {
-              "pre_69": {
+              "pre_f69": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f69",
                 "size": [
@@ -840,7 +840,7 @@
               }
             },
             {
-              "pre_70": {
+              "pre_f70": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f70",
                 "size": [
@@ -851,9 +851,64 @@
               }
             },
             {
-              "pre_71": {
+              "pre_f71": {
                 "type": "image",
                 "texture": "textures/ui/roulette/f71",
+                "size": [
+                  1,
+                  1
+                ],
+                "alpha": 0.01
+              }
+            },
+            {
+              "pre_blank": {
+                "type": "image",
+                "texture": "textures/ui/roulette/blank",
+                "size": [
+                  1,
+                  1
+                ],
+                "alpha": 0.01
+              }
+            },
+            {
+              "pre_pvp_on": {
+                "type": "image",
+                "texture": "textures/ui/roulette/pvp_on",
+                "size": [
+                  1,
+                  1
+                ],
+                "alpha": 0.01
+              }
+            },
+            {
+              "pre_pvp_off": {
+                "type": "image",
+                "texture": "textures/ui/roulette/pvp_off",
+                "size": [
+                  1,
+                  1
+                ],
+                "alpha": 0.01
+              }
+            },
+            {
+              "pre_ring": {
+                "type": "image",
+                "texture": "textures/ui/roulette/ring",
+                "size": [
+                  1,
+                  1
+                ],
+                "alpha": 0.01
+              }
+            },
+            {
+              "pre_pointer": {
+                "type": "image",
+                "texture": "textures/ui/roulette/pointer",
                 "size": [
                   1,
                   1
@@ -871,66 +926,889 @@
             64,
             72
           ],
-          "anchor_from": "bottom_right",
-          "anchor_to": "bottom_right",
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
           "offset": [
-            -4,
-            -4
+            4,
+            30
           ],
           "bindings": [
             {
               "binding_type": "view",
               "source_control_name": "roul_data_control",
-              "source_property_name": "(not ((#preserved_text - '_roul:') = #preserved_text) and not (#preserved_text = '_roul:hide'))",
+              "source_property_name": "((not ((#preserved_text - '_roul:') = #preserved_text)) and not (#preserved_text = '_roul:hide'))",
               "target_property_name": "#visible"
             }
           ],
           "controls": [
             {
-              "disk": {
-                "type": "image",
-                "texture": "#texture",
+              "roulette_scale_1": {
+                "type": "panel",
                 "size": [
-                  64,
-                  64
+                  6,
+                  6
                 ],
-                "anchor_from": "bottom_middle",
-                "anchor_to": "bottom_middle",
-                "layer": 1,
+                "anchor_from": "center",
+                "anchor_to": "center",
                 "bindings": [
                   {
                     "binding_type": "view",
                     "source_control_name": "roul_data_control",
-                    "source_property_name": "('textures/ui/roulette/' + (#preserved_text - '_roul:'))",
-                    "target_property_name": "#texture"
+                    "source_property_name": "(not ((#preserved_text - '~1~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        6,
+                        6
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'pvp') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              6,
+                              6
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              1,
+                              1
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
                   }
                 ]
               }
             },
             {
-              "rim": {
-                "type": "image",
-                "texture": "textures/ui/roulette/ring",
+              "roulette_scale_2": {
+                "type": "panel",
                 "size": [
-                  64,
-                  64
+                  13,
+                  14
                 ],
-                "anchor_from": "bottom_middle",
-                "anchor_to": "bottom_middle",
-                "layer": 2
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~2~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        13,
+                        13
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'pvp') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              13,
+                              13
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              3,
+                              3
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
               }
             },
             {
-              "pointer": {
-                "type": "image",
-                "texture": "textures/ui/roulette/pointer",
+              "roulette_scale_3": {
+                "type": "panel",
                 "size": [
-                  16,
-                  16
+                  19,
+                  21
                 ],
-                "anchor_from": "top_middle",
-                "anchor_to": "top_middle",
-                "layer": 3
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~3~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        19,
+                        19
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'pvp') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              19,
+                              19
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              4,
+                              4
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "roulette_scale_4": {
+                "type": "panel",
+                "size": [
+                  26,
+                  29
+                ],
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~4~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        26,
+                        26
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'pvp') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              26,
+                              26
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              6,
+                              6
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "roulette_scale_5": {
+                "type": "panel",
+                "size": [
+                  32,
+                  36
+                ],
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~5~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        32,
+                        32
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'pvp') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              32,
+                              32
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              8,
+                              8
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "roulette_scale_6": {
+                "type": "panel",
+                "size": [
+                  38,
+                  42
+                ],
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~6~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        38,
+                        38
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'pvp') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              38,
+                              38
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              9,
+                              9
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "roulette_scale_7": {
+                "type": "panel",
+                "size": [
+                  45,
+                  50
+                ],
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~7~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        45,
+                        45
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'pvp') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              45,
+                              45
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              11,
+                              11
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "roulette_scale_8": {
+                "type": "panel",
+                "size": [
+                  51,
+                  57
+                ],
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~8~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        51,
+                        51
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'pvp') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              51,
+                              51
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              12,
+                              12
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "roulette_scale_9": {
+                "type": "panel",
+                "size": [
+                  58,
+                  65
+                ],
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~9~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        58,
+                        58
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'pvp') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              58,
+                              58
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              14,
+                              14
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "roulette_scale_10": {
+                "type": "panel",
+                "size": [
+                  64,
+                  72
+                ],
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "roul_data_control",
+                    "source_property_name": "(not ((#preserved_text - '~10~') = #preserved_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "controls": [
+                  {
+                    "disk": {
+                      "type": "image",
+                      "texture": "#texture",
+                      "size": [
+                        64,
+                        64
+                      ],
+                      "layer": 1,
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "('textures/ui/roulette/' + (((((((((((#preserved_text - '_roul:') - '~1~') - '~2~') - '~3~') - '~4~') - '~5~') - '~6~') - '~7~') - '~8~') - '~9~') - '~10~'))",
+                          "target_property_name": "#texture"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "rim_and_pointer": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "bindings": [
+                        {
+                          "binding_type": "view",
+                          "source_control_name": "roul_data_control",
+                          "source_property_name": "((#preserved_text - 'pvp') = #preserved_text)",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "rim": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/ring",
+                            "size": [
+                              64,
+                              64
+                            ],
+                            "layer": 2,
+                            "anchor_from": "bottom_middle",
+                            "anchor_to": "bottom_middle"
+                          }
+                        },
+                        {
+                          "pointer": {
+                            "type": "image",
+                            "texture": "textures/ui/roulette/pointer",
+                            "size": [
+                              16,
+                              16
+                            ],
+                            "layer": 3,
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
               }
             }
           ]
