@@ -81,7 +81,7 @@
           }
         },
         "minecraft:movement": {
-          "value": 0.23
+          "value": 0.2576
         },
         "minecraft:rideable": {
           "family_types": [

@@ -1,0 +1,30 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "eu_sc:soul_corrupted_plant"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      "E E",
+      " F ",
+      "ESE"
+    ],
+    "key": {
+      "E": {
+        "item": "eu_sc:soul_essence"
+      },
+      "F": {
+        "item": "minecraft:crimson_fungus"
+      },
+      "S": {
+        "item": "minecraft:soul_soil"
+      }
+    },
+    "result": {
+      "item": "eu_sc:soul_corrupted_plant"
+    }
+  }
+}

@@ -30,8 +30,8 @@
           "variable.swelling_scale2 = (Math.pow(Math.clamp(query.swell_amount, 0.0, 1.0), 4.0) * 0.1 + 1.0) / variable.wobble;",
           "variable.leg_rot = Math.cos(query.modified_distance_moved * 38.17326) * 80.22 * query.modified_move_speed;",
           "variable.flash = Math.mod(Math.Round(query.swell_amount * 10.0), 2.0);",
-          "v.s_speed = math.lerp(v.s_speed ?? 0.0, query.modified_move_speed, 0.1);",
-          "v.s_turn = math.lerp(v.s_turn ?? 0.0, math.clamp(query.yaw_speed, -120.0, 120.0), 0.05);"
+          "variable.s_speed = math.lerp(variable.s_speed, query.modified_move_speed, 0.1);",
+          "variable.s_turn = math.lerp(variable.s_turn, math.clamp(query.yaw_speed, -120.0, 120.0), 0.05);"
         ],
         "animate": [
           "creeper_head_controller",
@@ -40,6 +40,10 @@
           "emitter_particle_controller",
           "eu_sc_controller",
           "eu_sc_particles"
+        ],
+        "initialize": [
+          "variable.s_speed = 0.0;",
+          "variable.s_turn = 0.0;"
         ]
       },
       "particle_effects": {

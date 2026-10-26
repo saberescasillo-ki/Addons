@@ -86,6 +86,35 @@
         },
         {
           "condition": "random_chance_with_looting",
+          "chance": 0.35,
+          "looting_multiplier": 0.1
+        }
+      ],
+      "entries": [
+        {
+          "type": "item",
+          "name": "eu_sc:soul_essence",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "set_count",
+              "count": {
+                "min": 1,
+                "max": 2
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "conditions": [
+        {
+          "condition": "killed_by_player"
+        },
+        {
+          "condition": "random_chance_with_looting",
           "chance": 0.025,
           "looting_multiplier": 0.01
         }

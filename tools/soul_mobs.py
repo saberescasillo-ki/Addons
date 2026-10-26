@@ -34,7 +34,7 @@ RP = os.path.join(ROOT, "SoulCorruptedMobs_RP")
 DIST = os.path.join(ROOT, "dist")
 
 NS = "eu_sc"
-VERSION = [1, 1, 0]
+VERSION = [1, 2, 0]
 SCRIPT_API = "2.0.0"  # stable: no "Beta APIs" experiment needed
 TEX = "textures/entity/soul_corrupted"
 OUTLINE_TEX = f"{TEX}/white_outline"
@@ -67,8 +67,13 @@ PHANTOM_SCALE = 2.5
 MOUNT = "soul_corrupted_phantom_mount"
 ALTAR = "healing_altar"
 SWORD = f"{NS}:soul_corrupted_sword"
+ESSENCE = f"{NS}:soul_essence"
+FLIGHT_BOOST = 1.65  # every phantom flies 1.65x faster
+MOB_SPEED_BOOST = 1.12  # soul corrupted mobs walk a little faster than vanilla
 HAPPY_GHAST_SPEED = 0.016  # vanilla Bedrock adult happy ghast flying_speed
-MOUNT_SPEED = 0.02
+MOUNT_SPEED = round(0.02 * FLIGHT_BOOST, 4)
+PHANTOM_DETECT = 96  # vanilla: 64
+ALTAR_RANGE = 12
 
 
 # ================================================================== helpers
@@ -157,7 +162,7 @@ class Pal16:
     def __init__(self, kind="skin", veins=1.0, deco=None):
         self.kind, self.veins, self.deco = kind, veins, deco or {}
         self.tones = [hx(c) for c in (self.STONE if kind == "stone" else PALETTE)]
-        self.base_idx = 3 if kind == "deep" else 2
+        self.base_idx = {"deep": 3, "bone": 1}.get(kind, 2)
 
     def tone(self, i):
         return self.tones[max(0, min(5, i))]
@@ -391,6 +396,8 @@ def patch_mob(src, kind, color):
     def fix(k, v, parent):
         if k == "minecraft:attack":
             v.update({"effect_name": "darkness", "effect_duration": 8})
+        elif k == "minecraft:movement" and isinstance(v, dict) and "value" in v:
+            v["value"] = round(v["value"] * MOB_SPEED_BOOST, 4)
         elif k == "minecraft:loot":
             v["table"] = f"loot_tables/{NS}/{kind}.json"
         elif k == "minecraft:type_family":
@@ -462,9 +469,9 @@ def phantom_behavior(color):
                 "height_offset_range": {"min": -2, "max": 3},
                 "height_above_target_range": {"min": 6, "max": 12}},
             "minecraft:behavior.nearest_attackable_target": {
-                "priority": 1, "reselect_targets": True, "scan_interval": 10, "target_search_height": 80,
-                "within_radius": 64, "must_see_forget_duration": 0.5,
-                "entity_types": [{"filters": fam("player"), "max_dist": 64}]},
+                "priority": 1, "reselect_targets": True, "scan_interval": 10, "target_search_height": 120,
+                "within_radius": PHANTOM_DETECT, "must_see_forget_duration": 0.5,
+                "entity_types": [{"filters": fam("player"), "max_dist": PHANTOM_DETECT}]},
             "minecraft:behavior.swoop_attack": {"priority": 2, "damage_reach": 0.5, "speed_multiplier": 1.1,
                                                 "delay_range": {"min": 2, "max": 5}},
             "minecraft:breathable": {"breathes_air": True, "breathes_water": True, "suffocate_time": 0,
@@ -474,15 +481,16 @@ def phantom_behavior(color):
             "minecraft:conditional_bandwidth_optimization": {},
             "minecraft:despawn": {"despawn_from_distance": {}},
             "minecraft:experience_reward": {"on_death": "query.last_hit_by_player ? 8 : 0"},
-            "minecraft:follow_range": {"max": 64, "value": 64},
+            "minecraft:follow_range": {"max": PHANTOM_DETECT, "value": PHANTOM_DETECT},
             "minecraft:game_event_movement_tracking": {"emit_flap": True},
             "minecraft:health": {"max": 34, "value": 34},
             "minecraft:fire_immune": {},
             "minecraft:damage_sensor": {"triggers": immunities(["fall"])},
             "minecraft:is_hidden_when_invisible": {},
             "minecraft:loot": {"table": f"loot_tables/{NS}/phantom.json"},
-            "minecraft:movement": {"value": 1.8},
-            "minecraft:movement.glide": {"speed_when_turning": 0.2, "start_speed": 0.1},
+            "minecraft:movement": {"value": round(1.8 * FLIGHT_BOOST, 3)},
+            "minecraft:movement.glide": {"speed_when_turning": round(0.2 * FLIGHT_BOOST, 3),
+                                         "start_speed": round(0.1 * FLIGHT_BOOST, 3)},
             "minecraft:nameable": {},
             "minecraft:physics": {"has_gravity": False},
             "minecraft:pushable": {"is_pushable": True, "is_pushable_by_piston": True},
@@ -611,32 +619,49 @@ def altar_recipe():
         "result": {"item": f"{NS}:{ALTAR}_spawn_egg"}}}
 
 
+# Blue and red only spawn in the Nether (their biomes); green only in the
+# Overworld, in any biome except savannas and cold/frozen ones.
+NETHER_BIOMES = {"blue": ["soul_sand_valley", "warped_forest", "basalt_deltas"],
+                 "red": ["crimson_forest", "nether_wastes"]}
+GREEN_OVERWORLD = {"all_of": [
+    {"test": "has_biome_tag", "value": "overworld"},
+    {"test": "has_biome_tag", "value": "monster"},
+    {"test": "has_biome_tag", "operator": "!=", "value": "savanna"},
+    {"test": "has_biome_tag", "operator": "!=", "value": "cold"},
+    {"test": "has_biome_tag", "operator": "!=", "value": "frozen"}]}
+
+
 def spawn_rules(identifier, weight, color, flying=False):
-    surface = {"minecraft:spawns_on_surface": {}}
-    if not flying:
-        surface["minecraft:spawns_underground"] = {}
     herd = {"min_size": 1, "max_size": 1 if flying else 2}
+    cond = {"minecraft:spawns_on_surface": {},
+            "minecraft:difficulty_filter": {"min": "easy", "max": "hard"},
+            "minecraft:herd": herd}
+    if color == "green":
+        if not flying:
+            cond["minecraft:spawns_underground"] = {}
+        cond.update({"minecraft:brightness_filter": {"min": 0, "max": 7, "adjust_for_weather": True},
+                     "minecraft:weight": {"default": weight},
+                     "minecraft:biome_filter": GREEN_OVERWORLD})
+    else:
+        cond.update({"minecraft:spawns_underground": {},
+                     "minecraft:weight": {"default": weight * (1 if flying else 2)},
+                     "minecraft:biome_filter": {"any_of": [{"test": "has_biome_tag", "value": b}
+                                                           for b in NETHER_BIOMES[color]]}})
     return {"format_version": "1.8.0", "minecraft:spawn_rules": {
         "description": {"identifier": f"{NS}:{identifier}", "population_control": "monster"},
-        "conditions": [
-            dict(surface, **{"minecraft:brightness_filter": {"min": 0, "max": 7, "adjust_for_weather": True},
-                             "minecraft:difficulty_filter": {"min": "easy", "max": "hard"},
-                             "minecraft:weight": {"default": weight if color == "blue" else max(1, weight // 2)},
-                             "minecraft:herd": herd,
-                             "minecraft:biome_filter": {"test": "has_biome_tag", "value": "monster"}}),
-            # each colour also haunts its Nether biome
-            dict(surface, **{"minecraft:difficulty_filter": {"min": "easy", "max": "hard"},
-                             "minecraft:weight": {"default": 4 if flying else 20},
-                             "minecraft:herd": herd,
-                             "minecraft:biome_filter": {"test": "has_biome_tag", "value": COLORS[color]["nether"]}}),
-        ]}}
+        "conditions": [cond]}}
 
 
 def loot(items, sword=True):
     pools = [{"rolls": 1, "entries": [{"type": "item", "name": f"minecraft:{item}", "weight": 1, "functions": [
         {"function": "set_count", "count": {"min": lo, "max": hi}},
         {"function": "looting_enchant", "count": {"min": 0, "max": 1}}]}]} for item, lo, hi in items]
-    if sword:  # the sword can't be crafted: it only drops from soul corrupted mobs
+    if sword:  # soul corrupted mobs: essence for the boss items, and the uncraftable sword
+        pools.append({"rolls": 1, "conditions": [
+            {"condition": "killed_by_player"},
+            {"condition": "random_chance_with_looting", "chance": 0.35, "looting_multiplier": 0.1}],
+            "entries": [{"type": "item", "name": ESSENCE, "weight": 1, "functions": [
+                {"function": "set_count", "count": {"min": 1, "max": 2}}]}]})
         pools.append({"rolls": 1, "conditions": [
             {"condition": "killed_by_player"},
             {"condition": "random_chance_with_looting", "chance": 0.025, "looting_multiplier": 0.01}],
@@ -645,16 +670,17 @@ def loot(items, sword=True):
 
 
 def sword_item():
-    return {"format_version": "1.21.40", "minecraft:item": {
+    # Same format as Microsoft's custom item samples: the icon is a plain string
+    return {"format_version": "1.21.70", "minecraft:item": {
         "description": {"identifier": SWORD,
                         "menu_category": {"category": "equipment", "group": "itemGroup.name.sword"}},
         "components": {
-            "minecraft:icon": {"textures": {"default": "soul_corrupted_sword"}},
+            "minecraft:icon": "soul_corrupted_sword",
             "minecraft:display_name": {"value": f"item.{SWORD}.name"},
-            "minecraft:max_stack_size": {"value": 1},
+            "minecraft:max_stack_size": 1,
             "minecraft:hand_equipped": {"value": True},
             "minecraft:damage": {"value": 9},
-            "minecraft:durability": {"max_durability": 2031},
+            "minecraft:durability": {"max_durability": 2031, "damage_chance": {"min": 100, "max": 100}},
             "minecraft:enchantable": {"slot": "sword", "value": 15},
             "minecraft:repairable": {"repair_items": [{"items": ["minecraft:echo_shard"], "repair_amount": 600}]},
             # same tag as vanilla swords, so player animation packs treat it as one
@@ -664,8 +690,12 @@ def sword_item():
         }}}
 
 
-def script():
+def script(bosses):
     effects, ignite = {}, {}
+    for name, B in bosses.BOSSES.items():
+        effects[f"{NS}:{name}"] = [DARKNESS] + COLORS[B["color"]]["extra"]
+        if COLORS[B["color"]]["ignite"]:
+            ignite[f"{NS}:{name}"] = COLORS[B["color"]]["ignite"]
     for color, C in COLORS.items():
         for kind in list(BASE_MOBS) + ["phantom"]:
             mob = f"{NS}:{ident(kind, color)}"
@@ -675,7 +705,7 @@ def script():
     skeletons = [f"{NS}:{ident('skeleton', c)}" for c in COLORS]
     return f"""// Soul Corrupted Mobs: effects on hit, lightning arrows, sword, healing altar,
 // coloured creeper explosions. Generated by tools/soul_mobs.py.
-import {{ system, world }} from "@minecraft/server";
+import {{ GameMode, ItemStack, system, world }} from "@minecraft/server";
 
 // [effect, duration in ticks, amplifier] applied to whatever the mob hurts
 // (melee hit, arrow or explosion).
@@ -690,7 +720,7 @@ const LIGHTNING_SKELETONS = {json.dumps(skeletons)};
 const SWORD = "{SWORD}";
 const SWORD_AREA = {{ radius: 3, damage: 5 }};
 const ALTAR = "{NS}:{ALTAR}";
-const ALTAR_RANGE = 10;
+const ALTAR_RANGE = {ALTAR_RANGE};
 const DIMENSIONS = ["overworld", "nether", "the_end"];
 
 function particle(dimension, id, location) {{
@@ -854,6 +884,223 @@ system.runInterval(() => {{
     litCreepers.delete(key);
   }}
 }}, 2);
+""" + boss_script(bosses)
+
+
+def boss_script(bosses):
+    cfg = {f"{NS}:{n}": {"hp": B["hp"], "deathTicks": B["death_ticks"], "color": B["color"],
+                         "loot": B["loot"], "xp": B["xp"], "minions": [f"{NS}:{m}" for m in B["minions"]]}
+           for n, B in bosses.BOSSES.items()}
+    return f"""
+// ============================================================ mini bosses
+// A boss never really dies: when its health reaches HP_BUFFER it becomes
+// invulnerable (state 2), the death animation plays, then it is removed here.
+const BOSSES = {json.dumps(cfg, indent=2)};
+const SKELETON_BOSS = "{NS}:{bosses.SKELETON_BOSS}";
+const ZOMBIE_BOSS = "{NS}:{bosses.ZOMBIE_BOSS}";
+const RED_ZOMBIE = "{NS}:{ident('zombie', 'red')}";
+const HP_BUFFER = {bosses.HP_BUFFER};
+const SUMMON_ITEMS = {{ "{bosses.STAR}": SKELETON_BOSS, "{bosses.PLANT}": ZOMBIE_BOSS }};
+const ACTION = {{ none: 0, blast: 1, dash: 2, summon: 3 }};
+const NOT_PLAYING = [GameMode.Creative ?? GameMode.creative, GameMode.Spectator ?? GameMode.spectator];
+const timers = new Map();
+const dying = new Set();
+
+function prop(entity, name) {{
+  try {{
+    return entity.getProperty(name);
+  }} catch {{
+    return undefined;
+  }}
+}}
+
+function setAction(boss, action, ticks) {{
+  try {{
+    boss.setProperty("{NS}:action", action);
+  }} catch {{
+    return;
+  }}
+  system.runTimeout(() => {{
+    try {{
+      if (boss.getProperty("{NS}:action") === action) boss.setProperty("{NS}:action", ACTION.none);
+    }} catch {{
+      // gone
+    }}
+  }}, ticks);
+}}
+
+function around(location, radius) {{
+  const a = Math.random() * Math.PI * 2;
+  return {{ x: location.x + Math.cos(a) * radius, y: location.y, z: location.z + Math.sin(a) * radius }};
+}}
+
+function startDying(boss) {{
+  const cfg = BOSSES[boss.typeId];
+  if (!cfg || dying.has(boss.id)) return;
+  dying.add(boss.id);
+  boss.triggerEvent("{NS}:start_dying");
+  system.runTimeout(() => {{
+    dying.delete(boss.id);
+    try {{
+      const dimension = boss.dimension;
+      const location = boss.location;
+      particle(dimension, `{NS}:explosion_${{cfg.color}}`, {{ x: location.x, y: location.y + 1, z: location.z }});
+      for (const [item, min, max] of cfg.loot) {{
+        const amount = min + Math.floor(Math.random() * (max - min + 1));
+        if (amount > 0) dimension.spawnItem(new ItemStack(item, amount), location);
+      }}
+      for (let i = 0; i < Math.ceil(cfg.xp / 10); i++) dimension.spawnEntity("minecraft:xp_orb", around(location, 0.5));
+      for (const minion of cfg.minions) dimension.spawnEntity(minion, around(location, 1.5));
+      boss.remove();
+    }} catch {{
+      // unloaded
+    }}
+  }}, cfg.deathTicks);
+}}
+
+world.afterEvents.entityHurt.subscribe(({{ hurtEntity }}) => {{
+  if (!BOSSES[hurtEntity.typeId]) return;
+  try {{
+    const health = hurtEntity.getComponent("minecraft:health");
+    if (health && health.currentValue <= HP_BUFFER) startDying(hurtEntity);
+  }} catch {{
+    // gone
+  }}
+}});
+
+function blast(boss, effect, amplifier) {{
+  setAction(boss, ACTION.blast, 16);
+  system.runTimeout(() => {{
+    try {{
+      const {{ dimension, location }} = boss;
+      dimension.createExplosion(location, 2.2, {{ breaksBlocks: false, causesFire: false, source: boss }});
+      particle(dimension, `{NS}:explosion_${{BOSSES[boss.typeId].color}}`, {{ x: location.x, y: location.y + 1, z: location.z }});
+      for (const player of dimension.getPlayers({{ location, maxDistance: 6 }})) {{
+        player.addEffect(effect, 60, {{ amplifier, showParticles: true }});
+      }}
+    }} catch {{
+      // gone
+    }}
+  }}, 8);
+}}
+
+function dash(boss, target) {{
+  setAction(boss, ACTION.dash, 16);
+  const from = boss.location;
+  const dx = target.location.x - from.x, dz = target.location.z - from.z;
+  const len = Math.max(0.1, Math.hypot(dx, dz));
+  try {{
+    boss.applyImpulse({{ x: (dx / len) * 1.6, y: 0.25, z: (dz / len) * 1.6 }});
+  }} catch {{
+    return;
+  }}
+  let hit = false;
+  for (let t = 2; t <= 14; t += 2) {{
+    system.runTimeout(() => {{
+      if (hit) return;
+      try {{
+        const b = boss.location, p = target.location;
+        if (Math.hypot(b.x - p.x, b.y - p.y, b.z - p.z) < 2.0) {{
+          hit = true;
+          target.addEffect("slowness", 20, {{ amplifier: 254, showParticles: true }});
+          target.applyDamage(6, {{ cause: "entityAttack", damagingEntity: boss }});
+        }}
+      }} catch {{
+        // gone
+      }}
+    }}, t);
+  }}
+}}
+
+function summonMinions(boss) {{
+  const nearby = boss.dimension.getEntities({{ type: RED_ZOMBIE, location: boss.location, maxDistance: 16 }}).length;
+  if (nearby >= 4) return false;
+  setAction(boss, ACTION.summon, 22);
+  system.runTimeout(() => {{
+    try {{
+      for (let i = 0; i < 2; i++) boss.dimension.spawnEntity(RED_ZOMBIE, around(boss.location, 2));
+    }} catch {{
+      // gone
+    }}
+  }}, 11);
+  return true;
+}}
+
+const rand = (min, max) => min + Math.floor(Math.random() * (max - min));
+
+system.runInterval(() => {{
+  const now = system.currentTick;
+  for (const id of DIMENSIONS) {{
+    let dimension;
+    try {{
+      dimension = world.getDimension(id);
+    }} catch {{
+      continue;
+    }}
+    for (const boss of dimension.getEntities({{ families: ["soul_boss"] }})) {{
+      if (prop(boss, "{NS}:state") !== 1 || prop(boss, "{NS}:action") !== ACTION.none) continue;
+      const target = dimension.getPlayers({{
+        location: boss.location, maxDistance: 24, closest: 1, excludeGameModes: NOT_PLAYING,
+      }})[0];
+      if (!target) continue;
+      let t = timers.get(boss.id);
+      if (!t) {{
+        t = {{ blast: now + rand(100, 200), dash: now + rand(60, 140), summon: now + rand(160, 260) }};
+        timers.set(boss.id, t);
+      }}
+      const b = boss.location, p = target.location;
+      const dist = Math.hypot(b.x - p.x, b.y - p.y, b.z - p.z);
+      if (boss.typeId === SKELETON_BOSS) {{
+        if (now >= t.blast && dist < 6) {{
+          blast(boss, "blindness", 0);
+          t.blast = now + rand(160, 280);
+        }}
+      }} else if (boss.typeId === ZOMBIE_BOSS) {{
+        if (now >= t.blast && dist < 5) {{
+          blast(boss, "slowness", 1);
+          t.blast = now + rand(180, 300);
+        }} else if (now >= t.dash && dist > 3 && dist < 14) {{
+          dash(boss, target);
+          t.dash = now + rand(120, 200);
+        }} else if (now >= t.summon) {{
+          summonMinions(boss);
+          t.summon = now + rand(300, 420);
+        }}
+      }}
+    }}
+  }}
+}}, 10);
+
+// Summoning items: the star drops the Mutant Skeleton from the sky,
+// the plant makes the Blade Zombie claw its way out of the ground.
+world.afterEvents.itemUse.subscribe(({{ source: player, itemStack }}) => {{
+  const boss = SUMMON_ITEMS[itemStack?.typeId];
+  if (!boss) return;
+  try {{
+    const dir = player.getViewDirection();
+    const len = Math.max(0.1, Math.hypot(dir.x, dir.z));
+    const at = {{
+      x: player.location.x + (dir.x / len) * 4,
+      y: player.location.y + (boss === SKELETON_BOSS ? 18 : 0),
+      z: player.location.z + (dir.z / len) * 4,
+    }};
+    player.dimension.spawnEntity(boss, at);
+    if (player.getGameMode() !== (GameMode.Creative ?? GameMode.creative)) {{
+      const equipment = player.getComponent("minecraft:equippable");
+      const held = equipment.getEquipment("Mainhand");
+      if (held?.typeId === itemStack.typeId) {{
+        if (held.amount > 1) {{
+          held.amount -= 1;
+          equipment.setEquipment("Mainhand", held);
+        }} else {{
+          equipment.setEquipment("Mainhand", undefined);
+        }}
+      }}
+    }}
+  }} catch {{
+    // could not summon here
+  }}
+}});
 """
 
 
@@ -863,11 +1110,14 @@ def kf(d):
 
 
 WALK = "query.modified_distance_moved * 38.17"
-SPEED = "v.s_speed"
-TURN = "v.s_turn"
+SPEED = "variable.s_speed"
+TURN = "variable.s_turn"
+# No '??' here: it isn't valid Molang for the older client entity formats the
+# original files use, and a Molang error makes the mob invisible.
+SMOOTHING_INIT = ["variable.s_speed = 0.0;", "variable.s_turn = 0.0;"]
 SMOOTHING = [
-    "v.s_speed = math.lerp(v.s_speed ?? 0.0, query.modified_move_speed, 0.1);",
-    "v.s_turn = math.lerp(v.s_turn ?? 0.0, math.clamp(query.yaw_speed, -120.0, 120.0), 0.05);",
+    "variable.s_speed = math.lerp(variable.s_speed, query.modified_move_speed, 0.1);",
+    "variable.s_turn = math.lerp(variable.s_turn, math.clamp(query.yaw_speed, -120.0, 120.0), 0.05);",
 ]
 FLAP = "query.life_time * 300.0"
 A = f"animation.{NS}"
@@ -943,10 +1193,12 @@ def controllers():
 def add_soul_extras(desc, kind, color):
     """Adds the spawn animation, extra life, coloured particles to a client entity."""
     scripts = desc.setdefault("scripts", {})
+    scripts["initialize"] = scripts.get("initialize", []) + SMOOTHING_INIT
     scripts["pre_animation"] = scripts.get("pre_animation", []) + SMOOTHING
     anims = desc.setdefault("animations", {})
     animate = scripts.setdefault("animate", [])
-    # the original skeleton lists its controllers the legacy way: move them to animate
+    # the original skeleton lists its controllers the legacy way (format 1.8.0):
+    # move them to "animate", which needs format 1.10.0
     for entry in desc.pop("animation_controllers", []):
         for name, ctrl in entry.items():
             anims[name] = ctrl
@@ -1067,6 +1319,11 @@ def particles(ascending):
         "minecraft:particle_lifetime_expression": {"max_lifetime": 0.45},
         "minecraft:particle_initial_speed": 7.0,
         "minecraft:particle_motion_dynamic": {"linear_drag_coefficient": 5.0}}), size=0.16)
+    out["slash"] = my_particle("slash", (0.75, 0.97, 1.0), dict(once(60), **{
+        "minecraft:emitter_shape_disc": {"radius": 0.6, "plane_normal": [0.4, 1, 0], "direction": "outwards"},
+        "minecraft:particle_lifetime_expression": {"max_lifetime": "math.random(0.25, 0.45)"},
+        "minecraft:particle_initial_speed": "math.random(6.0, 9.0)",
+        "minecraft:particle_motion_dynamic": {"linear_drag_coefficient": 6.0}}), size=0.22)
     out["altar_wisp"] = my_particle("altar_wisp", blue, dict(once(2), **{
         "minecraft:emitter_shape_disc": {"offset": [0, 1.5, 0], "radius": 0.35, "plane_normal": "y",
                                          "direction": [0, 1, 0]},
@@ -1239,6 +1496,8 @@ def main():
             for key in ("base_color", "overlay_color"):
                 egg[key] = hexcol(recolor_rgb(hx(egg[key]), color))
             add_soul_extras(desc, kind, color)
+            if client["format_version"] == "1.8.0":  # "animate" needs 1.10.0 (hotfix: invisible skeletons)
+                client["format_version"] = "1.10.0"
             write(os.path.join(RP, f"entity/{mob}.entity.json"), client)
             tex = recolor(src_tex, color)
             save_png(tex, RP, TEX, f"{mob}.png")
@@ -1298,6 +1557,36 @@ def main():
         preview_geo(am.geometry_json()["minecraft:geometry"][0], atex, os.path.join(prev_dir, f"{ALTAR}.png"))
         previews.append(ALTAR)
 
+    # ---- mini bosses
+    import soul_bosses as bosses
+    zgeo = load(os.path.join(SRC, "RP/models/entity/soul_corrupted_zombie.geo.json"))
+    zgeo = zgeo["geometry.eu.sc.soul_corrupted_zombie"]
+    bz_geo, bz_tex = bosses.blade_zombie_geometry(zgeo, Image.open(os.path.join(SRC, f"RP/{TEX}/soul_corrupted_zombie.png")))
+    bz_tex = recolor(bz_tex, "red")
+    sk = bosses.mutant_skeleton_model()
+    sk_tex = sk.build(seed=777)
+    boss_assets = {bosses.SKELETON_BOSS: (sk.geometry_json(), sk_tex),
+                   bosses.ZOMBIE_BOSS: (bz_geo, bz_tex)}
+    for name, (geo_json, tex) in boss_assets.items():
+        save_png(tex, RP, TEX, f"{name}.png")
+        write(os.path.join(RP, f"models/entity/{name}.geo.json"), with_outline(geo_json))
+        write(os.path.join(RP, f"entity/{name}.entity.json"), bosses.client_entity(name))
+        write(os.path.join(BP, f"entities/{name}.json"), bosses.behavior(name))
+        ent_sounds[f"{NS}:{name}"] = bosses.SOUNDS[name]
+        if prev:
+            preview_geo(geo_json["minecraft:geometry"][0], tex, os.path.join(prev_dir, f"{name}.png"),
+                        scale=6 if name == bosses.SKELETON_BOSS else 8)
+            previews.append(name)
+    item_icons = {}
+    for name, data in bosses.items().items():
+        write(os.path.join(BP, f"items/{name}.json"), data)
+    for name, img in bosses.item_textures().items():
+        save_png(img, RP, f"textures/items/{name}.png")
+        item_icons[name] = {"textures": f"textures/items/{name}"}
+    for name, data in bosses.recipes().items():
+        write(os.path.join(BP, f"recipes/{name}.json"), data)
+    ANIMS.update(bosses.ANIMS)
+
     # ---- sword
     write(os.path.join(BP, "items/soul_corrupted_sword.json"), sword_item())
     sword = pixel_art(SWORD_ROWS, SWORD_COLORS)
@@ -1307,6 +1596,7 @@ def main():
     items["texture_data"].update({
         "soul_corrupted_sword": {"textures": "textures/items/soul_corrupted_sword"},
         "healing_altar_egg": {"textures": "textures/items/healing_altar_egg"}})
+    items["texture_data"].update(item_icons)
     write(os.path.join(RP, "textures/item_texture.json"), items)
 
     # ---- shared resources
@@ -1316,13 +1606,15 @@ def main():
     save_png(pixel_art(SPARK_ROWS, {"#": "#ffffff"}), RP, "textures/particles/soul_corrupted/soul_spark.png")
     write(os.path.join(RP, f"animations/{NS}.animation.json"), {"format_version": "1.8.0", "animations": {
         f"{A}.{n}": a for n, a in ANIMS.items()}})
-    write(os.path.join(RP, f"animation_controllers/{NS}.animation_controllers.json"), controllers())
+    ctrls = controllers()
+    ctrls["animation_controllers"].update(bosses.controllers())
+    write(os.path.join(RP, f"animation_controllers/{NS}.animation_controllers.json"), ctrls)
     write(os.path.join(RP, "sounds.json"), sounds)
     for pack in (BP, RP):
         write(os.path.join(pack, "texts/languages.json"), ["en_US", "es_ES", "es_MX"])
-        write(os.path.join(pack, "texts/en_US.lang"), lang(False))
-        write(os.path.join(pack, "texts/es_ES.lang"), lang(True))
-        write(os.path.join(pack, "texts/es_MX.lang"), lang(True))
+        write(os.path.join(pack, "texts/en_US.lang"), lang(False) + "\n".join(bosses.lang(False)) + "\n")
+        write(os.path.join(pack, "texts/es_ES.lang"), lang(True) + "\n".join(bosses.lang(True)) + "\n")
+        write(os.path.join(pack, "texts/es_MX.lang"), lang(True) + "\n".join(bosses.lang(True)) + "\n")
 
     # ---- scripts + manifests
     for f in ("main.js", "entities/index.js", "entities/soulCorruptedSkeleton.js"):
@@ -1331,7 +1623,7 @@ def main():
         except FileNotFoundError:
             pass
     shutil.rmtree(os.path.join(BP, "scripts", "entities"), ignore_errors=True)
-    write(os.path.join(BP, "scripts/main.js"), script())
+    write(os.path.join(BP, "scripts/main.js"), script(bosses))
     for pack, other in ((BP, "RP"), (RP, "BP")):
         man = load(os.path.join(pack, "manifest.json"))
         man["header"]["version"] = VERSION
@@ -1353,7 +1645,13 @@ def main():
                     z.write(full, os.path.relpath(full, ROOT))
     if prev:
         sheet(prev_dir, previews, os.path.join(ROOT, "docs", "soul_mobs_preview.png"))
-        sword.resize((256, 256), Image.NEAREST).save(os.path.join(ROOT, "docs", "soul_mobs_sword.png"))
+        names = ["soul_corrupted_sword", "soul_essence", "soul_core", "soul_corrupted_plant",
+                 "soul_corrupted_star", "healing_altar_egg"]
+        strip = Image.new("RGBA", (len(names) * 136, 136), (50, 55, 70, 255))
+        for i, n in enumerate(names):
+            icon = Image.open(os.path.join(RP, f"textures/items/{n}.png")).resize((128, 128), Image.NEAREST)
+            strip.alpha_composite(icon, (i * 136 + 4, 4))
+        strip.save(os.path.join(ROOT, "docs", "soul_mobs_items.png"))
     print("Built Soul Corrupted Mobs", ".".join(map(str, VERSION)), "->", os.path.relpath(DIST, ROOT))
 
 

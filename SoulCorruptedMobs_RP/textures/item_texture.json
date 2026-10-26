@@ -7,6 +7,18 @@
     },
     "healing_altar_egg": {
       "textures": "textures/items/healing_altar_egg"
+    },
+    "soul_essence": {
+      "textures": "textures/items/soul_essence"
+    },
+    "soul_core": {
+      "textures": "textures/items/soul_core"
+    },
+    "soul_corrupted_star": {
+      "textures": "textures/items/soul_corrupted_star"
+    },
+    "soul_corrupted_plant": {
+      "textures": "textures/items/soul_corrupted_plant"
     }
   }
 }

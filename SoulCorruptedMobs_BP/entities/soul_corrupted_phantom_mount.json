@@ -127,10 +127,10 @@
       "minecraft:can_fly": {},
       "minecraft:jump.static": {},
       "minecraft:movement": {
-        "value": 0.02
+        "value": 0.033
       },
       "minecraft:flying_speed": {
-        "value": 0.02
+        "value": 0.033
       },
       "minecraft:navigation.float": {
         "can_path_over_water": true,

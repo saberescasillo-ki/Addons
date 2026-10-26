@@ -264,7 +264,7 @@
         "table": "loot_tables/eu_sc/creeper.json"
       },
       "minecraft:movement": {
-        "value": 0.2
+        "value": 0.224
       },
       "minecraft:movement.basic": {},
       "minecraft:nameable": {},

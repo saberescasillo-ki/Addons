@@ -1,0 +1,59 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "eu_sc:soul_mutant_skeleton",
+      "materials": {
+        "default": "outline_base",
+        "outline_main": "outline_main"
+      },
+      "textures": {
+        "default": "textures/entity/soul_corrupted/soul_mutant_skeleton",
+        "outline_main": "textures/entity/soul_corrupted/white_outline"
+      },
+      "geometry": {
+        "default": "geometry.eu.sc.soul_mutant_skeleton",
+        "outline_main": "geometry.eu.sc.soul_mutant_skeleton.outline"
+      },
+      "spawn_egg": {
+        "base_color": "#CEF8F9",
+        "overlay_color": "#24C7DD"
+      },
+      "scripts": {
+        "animate": [
+          "controller",
+          "emitter_particle_controller",
+          "particles"
+        ],
+        "should_update_effects_offscreen": "1.0"
+      },
+      "animations": {
+        "mskel_walk": "animation.eu_sc.mskel_walk",
+        "mskel_idle": "animation.eu_sc.mskel_idle",
+        "mskel_slash": "animation.eu_sc.mskel_slash",
+        "mskel_blast": "animation.eu_sc.mskel_blast",
+        "mskel_fall": "animation.eu_sc.mskel_fall",
+        "mskel_land": "animation.eu_sc.mskel_land",
+        "mskel_death": "animation.eu_sc.mskel_death",
+        "controller": "controller.animation.eu_sc.soul_mutant_skeleton",
+        "particles": "animation.eu_sc.particles",
+        "emitter_particle_controller": "controller.animation.eu.emitter_particle"
+      },
+      "particle_effects": {
+        "emitter": "eu_sc:soul_ascending_particle",
+        "wisps": "eu_sc:wisp_blue",
+        "drips": "eu_sc:drip_blue",
+        "burst": "eu_sc:burst_blue",
+        "slash": "eu_sc:slash",
+        "land": "eu_sc:explosion_blue"
+      },
+      "sound_effects": {
+        "slash": "mob.irongolem.throw"
+      },
+      "render_controllers": [
+        "controller.render.eu_sc.outline_base.glow",
+        "controller.render.eu_sc.outline_main.glow"
+      ]
+    }
+  }
+}

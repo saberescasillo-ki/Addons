@@ -16,9 +16,11 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 
 ![Todos los mobs con su outline](docs/soul_mobs_preview.png)
 
+![Espada, esencia, núcleo, planta, estrella y altar](docs/soul_mobs_items.png)
+
 La base es el addon original *Soul Corrupted Mobs v1.0.0*: sus texturas, el **outline blanco**,
 las animaciones vanilla y los identificadores `eu_sc:`. Se guarda sin cambios en `sources/soul_corrupted_mobs_v1.0.0/`.
-El generador `tools/soul_mobs.py` lo copia y le añade todo lo demás.
+El generador `tools/soul_mobs.py` (con `tools/soul_bosses.py`) lo copia y le añade todo lo demás.
 
 | Mob | IDs |
 |---|---|
@@ -27,44 +29,59 @@ El generador `tools/soul_mobs.py` lo copia y le añade todo lo demás.
 | Esqueleto de Alma Corrupta | `eu_sc:soul_corrupted_skeleton` / `_red` / `_green` |
 | Phantom de Alma Corrupta (4 alas puntiagudas, 2,5 veces más grande) | `eu_sc:soul_corrupted_phantom` / `_red` / `_green` |
 | Phantom de Alma Domable (montable) | `eu_sc:soul_corrupted_phantom_mount` |
+| **Mini jefe**: Esqueleto Mutante de Alma Corrupta | `eu_sc:soul_mutant_skeleton` |
+| **Mini jefe**: Zombi Cuchilla de Alma Corrupta | `eu_sc:soul_blade_zombie` |
 | Altar de Curación | `eu_sc:healing_altar` |
-| Espada de Alma Corrupta | `eu_sc:soul_corrupted_sword` |
 
-- **Variantes rojas y verdes**: recoloreadas a partir de las texturas originales, con su outline.
+### Progresión
+
+1. Los mobs de alma sueltan **Esencia de Alma**: 35 % de probabilidad, más con Botín.
+2. **Planta de Alma Corrupta**: 4 esencias, hongo carmesí y tierra de almas. Úsala para invocar al **Zombi Cuchilla**.
+3. El Zombi Cuchilla suelta el **Núcleo de Alma**.
+4. **Estrella de Alma Corrupta**: 7 esencias, el núcleo y un diamante. Úsala para invocar al **Esqueleto Mutante**.
+5. El Esqueleto Mutante suelta la **Espada de Alma Corrupta** (siempre).
+
+### Mini jefes (sin barra de vida)
+
+**Esqueleto Mutante (azul):**
+- Mide el doble que un jugador.
+- Ataca con una espada gigante y hace un **slash épico**.
+- De vez en cuando lanza una **explosión** que no rompe bloques: te empuja y te deja **ciego 3 s**.
+- **Entrada**: cae del cielo, aterriza agachado y se levanta.
+- **Muerte**: se arrodilla y se desploma. Después invoca un creeper y un zombi de alma.
+
+**Zombi Cuchilla (rojo):**
+- Tamaño de jugador, con cuchillas en vez de brazos.
+- Su ataque normal empuja las dos cuchillas hacia delante.
+- **Explosión**: lentitud II 3 s.
+- **Embestida**: si te alcanza, lentitud 255 durante 1 s.
+- **Invoca zombis rojos** (máximo 4 cerca).
+- **Entrada**: sale del suelo.
+- **Muerte**: algo lo arrastra bajo tierra mientras se resiste.
+
+### Resto
+
 - **Al golpear**: Oscuridad, más un extra según el color:
   - azul: lentitud.
   - rojo: prende fuego.
   - verde: veneno.
-- Las flechas de los esqueletos siguen invocando rayos, como en el original, ahora en los tres colores.
-- **Inmunes** a fuego, lava, magma, congelación, ahogamiento y wither.
-  - No se queman con el sol.
-  - Ya no se convierten en ahogados ni en *strays*.
-- **Animaciones**:
-  - las vanilla del addon original;
-  - al aparecer: el zombi y el esqueleto salen del suelo; el creeper y el phantom crecen girando;
-  - el creeper se inclina hacia donde camina;
-  - el zombi se tambalea;
-  - el esqueleto mira a su alrededor;
-  - el phantom bate sus 4 alas.
-- **Partículas** de su color, y el creeper suelta una nube de su color al explotar.
-- **Phantom hostil**: la misma IA que el vanilla, pero ataca cada 2-5 s y vuela a 6-12 bloques sobre ti, en vez de 20-40.
-- **Phantom domable**:
-  - se domestica con huesos;
-  - se monta con el mismo sistema que el happy ghast: dirección con la cámara, y botones de subir y bajar;
-  - vuela a 0,02 (el happy ghast va a 0,016).
+- Las flechas de los esqueletos invocan rayos, en los tres colores.
+- **Inmunes** a fuego, lava, magma, congelación, ahogamiento y wither. No se convierten en ahogados ni en *strays*.
+- Caminan un 12 % más rápido que sus versiones vanilla.
+- **Spawn natural**:
+  - Azules: solo en el Nether (valle de arena de almas, bosque distorsionado y deltas de basalto).
+  - Rojos: solo en el Nether (bosque carmesí y desiertos del Nether).
+  - Verdes: solo en el Overworld, en cualquier bioma salvo sabanas y biomas fríos.
+- **Phantoms**:
+  - todos vuelan 1,65 veces más rápido;
+  - el hostil detecta jugadores a 96 bloques, ataca cada 2-5 s y vuela a 6-12 bloques sobre ti;
+  - el domable se domestica con huesos y se monta como el happy ghast, a 0,033 de velocidad (happy ghast: 0,016).
 - **Altar de Curación**:
-  - mide 2 bloques y es inmune a todo tipo de daño;
-  - siempre mira hacia el mismo lado;
-  - a 10 bloques o menos te lanza un rayo de partículas y te cura 1 de vida por segundo;
-  - se recoge **agachado + interactuar**;
-  - receta: 7 de pizarra profunda rocosa + farol de almas + manzana dorada (`C F C / C M C / C C C`).
-- **Espada**:
-  - 16x16, 9 de daño;
-  - Wither II + quemadura al objetivo;
-  - daño en área (5 de daño + Wither a los mobs a 3 bloques);
-  - no se craftea: sale con un 2,5 % de probabilidad de los mobs de alma;
-  - lleva el tag `minecraft:is_sword`.
-- **Spawn natural**: de noche en el Overworld, y cada color en su bioma del Nether.
+  - mide 2 bloques, es inmune a todo daño y siempre mira hacia el mismo lado;
+  - a **12 bloques** o menos te lanza un rayo de partículas y te cura 1 de vida por segundo;
+  - se recoge agachado + interactuar;
+  - receta: `C F C / C M C / C C C` (C = pizarra profunda rocosa, F = farol de almas, M = manzana dorada).
+- **Espada**: 9 de daño, Wither II + quemadura, daño en área, y lleva el tag `minecraft:is_sword`.
 
 ---
 

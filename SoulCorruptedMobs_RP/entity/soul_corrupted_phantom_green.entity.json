@@ -26,9 +26,13 @@
           "eu_sc_particles"
         ],
         "should_update_effects_offscreen": "1.0",
+        "initialize": [
+          "variable.s_speed = 0.0;",
+          "variable.s_turn = 0.0;"
+        ],
         "pre_animation": [
-          "v.s_speed = math.lerp(v.s_speed ?? 0.0, query.modified_move_speed, 0.1);",
-          "v.s_turn = math.lerp(v.s_turn ?? 0.0, math.clamp(query.yaw_speed, -120.0, 120.0), 0.05);"
+          "variable.s_speed = math.lerp(variable.s_speed, query.modified_move_speed, 0.1);",
+          "variable.s_turn = math.lerp(variable.s_turn, math.clamp(query.yaw_speed, -120.0, 120.0), 0.05);"
         ]
       },
       "animations": {

@@ -148,6 +148,223 @@
           "blend_transition": 0.3
         }
       }
+    },
+    "controller.animation.eu_sc.soul_mutant_skeleton": {
+      "initial_state": "start",
+      "states": {
+        "start": {
+          "transitions": [
+            {
+              "alive": "query.property('eu_sc:state') == 1"
+            },
+            {
+              "dying": "query.property('eu_sc:state') == 2"
+            },
+            {
+              "land": "query.is_on_ground"
+            },
+            {
+              "fall": "!query.is_on_ground"
+            }
+          ]
+        },
+        "fall": {
+          "animations": [
+            "mskel_fall"
+          ],
+          "transitions": [
+            {
+              "land": "query.is_on_ground"
+            }
+          ]
+        },
+        "land": {
+          "animations": [
+            "mskel_land"
+          ],
+          "transitions": [
+            {
+              "alive": "query.property('eu_sc:state') == 1"
+            }
+          ],
+          "blend_transition": 0.3
+        },
+        "alive": {
+          "animations": [
+            "mskel_walk",
+            "mskel_idle"
+          ],
+          "blend_transition": 0.3,
+          "transitions": [
+            {
+              "dying": "query.property('eu_sc:state') == 2"
+            },
+            {
+              "slash": "variable.attack_time > 0.0"
+            },
+            {
+              "blast": "query.property('eu_sc:action') == 1"
+            }
+          ]
+        },
+        "slash": {
+          "animations": [
+            "mskel_slash"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "dying": "query.property('eu_sc:state') == 2"
+            },
+            {
+              "alive": "query.all_animations_finished"
+            }
+          ]
+        },
+        "blast": {
+          "animations": [
+            "mskel_blast"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "dying": "query.property('eu_sc:state') == 2"
+            },
+            {
+              "alive": "query.property('eu_sc:action') != 1 && query.all_animations_finished"
+            }
+          ]
+        },
+        "dying": {
+          "animations": [
+            "mskel_death"
+          ],
+          "blend_transition": 0.3
+        }
+      }
+    },
+    "controller.animation.eu_sc.soul_blade_zombie": {
+      "initial_state": "start",
+      "states": {
+        "start": {
+          "transitions": [
+            {
+              "alive": "query.property('eu_sc:state') == 1"
+            },
+            {
+              "dying": "query.property('eu_sc:state') == 2"
+            },
+            {
+              "emerge": "query.property('eu_sc:state') == 0"
+            }
+          ]
+        },
+        "emerge": {
+          "animations": [
+            "bzombie_emerge"
+          ],
+          "transitions": [
+            {
+              "alive": "query.property('eu_sc:state') == 1"
+            }
+          ],
+          "blend_transition": 0.3
+        },
+        "alive": {
+          "animations": [
+            "bzombie_walk",
+            "bzombie_blades"
+          ],
+          "blend_transition": 0.2,
+          "transitions": [
+            {
+              "dying": "query.property('eu_sc:state') == 2"
+            },
+            {
+              "dash": "query.property('eu_sc:action') == 2"
+            },
+            {
+              "summon": "query.property('eu_sc:action') == 3"
+            },
+            {
+              "blast": "query.property('eu_sc:action') == 1"
+            },
+            {
+              "thrust": "variable.attack_time > 0.0"
+            }
+          ]
+        },
+        "thrust": {
+          "animations": [
+            "bzombie_walk",
+            "bzombie_blades",
+            "bzombie_thrust"
+          ],
+          "blend_transition": 0.1,
+          "transitions": [
+            {
+              "dying": "query.property('eu_sc:state') == 2"
+            },
+            {
+              "alive": "query.all_animations_finished"
+            }
+          ]
+        },
+        "dash": {
+          "animations": [
+            "bzombie_walk",
+            "bzombie_blades",
+            "bzombie_dash"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "dying": "query.property('eu_sc:state') == 2"
+            },
+            {
+              "alive": "query.property('eu_sc:action') != 2 && query.all_animations_finished"
+            }
+          ]
+        },
+        "summon": {
+          "animations": [
+            "bzombie_walk",
+            "bzombie_blades",
+            "bzombie_summon"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "dying": "query.property('eu_sc:state') == 2"
+            },
+            {
+              "alive": "query.property('eu_sc:action') != 3 && query.all_animations_finished"
+            }
+          ]
+        },
+        "blast": {
+          "animations": [
+            "bzombie_walk",
+            "bzombie_blades",
+            "bzombie_blast"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "dying": "query.property('eu_sc:state') == 2"
+            },
+            {
+              "alive": "query.property('eu_sc:action') != 1 && query.all_animations_finished"
+            }
+          ]
+        },
+        "dying": {
+          "animations": [
+            "bzombie_death"
+          ],
+          "blend_transition": 0.2
+        }
+      }
     }
   }
 }

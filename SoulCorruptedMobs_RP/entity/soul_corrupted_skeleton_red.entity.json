@@ -1,5 +1,5 @@
 {
-  "format_version": "1.8.0",
+  "format_version": "1.10.0",
   "minecraft:client_entity": {
     "description": {
       "identifier": "eu_sc:soul_corrupted_skeleton_red",
@@ -26,8 +26,12 @@
           "variable.riding_y_offset_with_respect_to_player = 0.5;",
           "variable.riding_y_offset_on_vehicle_where_other_entites_can_stand = query.is_riding_any_entity_of_type('minecraft:minecart', 'minecraft:boat', 'minecraft:chest_boat') ? -3.0 : 0.0;",
           "variable.riding_y_offset = variable.riding_y_offset_with_respect_to_player + variable.riding_y_offset_on_vehicle_where_other_entites_can_stand;",
-          "v.s_speed = math.lerp(v.s_speed ?? 0.0, query.modified_move_speed, 0.1);",
-          "v.s_turn = math.lerp(v.s_turn ?? 0.0, math.clamp(query.yaw_speed, -120.0, 120.0), 0.05);"
+          "variable.s_speed = math.lerp(variable.s_speed, query.modified_move_speed, 0.1);",
+          "variable.s_turn = math.lerp(variable.s_turn, math.clamp(query.yaw_speed, -120.0, 120.0), 0.05);"
+        ],
+        "initialize": [
+          "variable.s_speed = 0.0;",
+          "variable.s_turn = 0.0;"
         ],
         "animate": [
           "emitter_particle_controller",

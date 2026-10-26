@@ -57,8 +57,8 @@
           "  v.tp_melee_spear_use_item_rotation_x = t.melee_spear_use_raise_progress * 60.0 + t.melee_spear_use_raise_back_progress * -60.0;",
           "  v.tp_melee_spear_use_attachable_rotation_z = t.melee_spear_use_raise_progress * 90.0 + t.melee_spear_use_sway_progress * -90.0;",
           "};",
-          "v.s_speed = math.lerp(v.s_speed ?? 0.0, query.modified_move_speed, 0.1);",
-          "v.s_turn = math.lerp(v.s_turn ?? 0.0, math.clamp(query.yaw_speed, -120.0, 120.0), 0.05);"
+          "variable.s_speed = math.lerp(variable.s_speed, query.modified_move_speed, 0.1);",
+          "variable.s_turn = math.lerp(variable.s_turn, math.clamp(query.yaw_speed, -120.0, 120.0), 0.05);"
         ],
         "variables": {
           "variable.item_use_normalized": "public",
@@ -66,7 +66,9 @@
           "variable.use_dedicated_baby_armor": "public"
         },
         "initialize": [
-          "v.tp_melee_spear_base_arm_rotation_x = -30.0;"
+          "v.tp_melee_spear_base_arm_rotation_x = -30.0;",
+          "variable.s_speed = 0.0;",
+          "variable.s_turn = 0.0;"
         ],
         "animate": [
           "emitter_particle_controller",

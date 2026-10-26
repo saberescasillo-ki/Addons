@@ -1,0 +1,60 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "eu_sc:soul_blade_zombie",
+      "materials": {
+        "default": "outline_base",
+        "outline_main": "outline_main"
+      },
+      "textures": {
+        "default": "textures/entity/soul_corrupted/soul_blade_zombie",
+        "outline_main": "textures/entity/soul_corrupted/white_outline"
+      },
+      "geometry": {
+        "default": "geometry.eu.sc.soul_blade_zombie",
+        "outline_main": "geometry.eu.sc.soul_blade_zombie.outline"
+      },
+      "spawn_egg": {
+        "base_color": "#F4A3A0",
+        "overlay_color": "#C7242A"
+      },
+      "scripts": {
+        "animate": [
+          "controller",
+          "emitter_particle_controller",
+          "particles"
+        ],
+        "should_update_effects_offscreen": "1.0"
+      },
+      "animations": {
+        "bzombie_walk": "animation.eu_sc.bzombie_walk",
+        "bzombie_blades": "animation.eu_sc.bzombie_blades",
+        "bzombie_thrust": "animation.eu_sc.bzombie_thrust",
+        "bzombie_dash": "animation.eu_sc.bzombie_dash",
+        "bzombie_summon": "animation.eu_sc.bzombie_summon",
+        "bzombie_blast": "animation.eu_sc.bzombie_blast",
+        "bzombie_emerge": "animation.eu_sc.bzombie_emerge",
+        "bzombie_death": "animation.eu_sc.bzombie_death",
+        "controller": "controller.animation.eu_sc.soul_blade_zombie",
+        "particles": "animation.eu_sc.particles",
+        "emitter_particle_controller": "controller.animation.eu.emitter_particle"
+      },
+      "particle_effects": {
+        "emitter": "eu_sc:soul_ascending_particle_red",
+        "wisps": "eu_sc:wisp_red",
+        "drips": "eu_sc:drip_red",
+        "burst": "eu_sc:burst_red",
+        "slash": "eu_sc:slash",
+        "land": "eu_sc:explosion_blue"
+      },
+      "sound_effects": {
+        "slash": "mob.irongolem.throw"
+      },
+      "render_controllers": [
+        "controller.render.eu_sc.outline_base.glow",
+        "controller.render.eu_sc.outline_main.glow"
+      ]
+    }
+  }
+}

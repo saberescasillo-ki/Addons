@@ -176,7 +176,7 @@
         "table": "loot_tables/eu_sc/skeleton.json"
       },
       "minecraft:movement": {
-        "value": 0.25
+        "value": 0.28
       },
       "minecraft:movement.basic": {},
       "minecraft:nameable": {},

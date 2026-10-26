@@ -8,43 +8,48 @@
     "conditions": [
       {
         "minecraft:spawns_on_surface": {},
+        "minecraft:difficulty_filter": {
+          "min": "easy",
+          "max": "hard"
+        },
+        "minecraft:herd": {
+          "min_size": 1,
+          "max_size": 1
+        },
         "minecraft:brightness_filter": {
           "min": 0,
           "max": 7,
           "adjust_for_weather": true
         },
-        "minecraft:difficulty_filter": {
-          "min": "easy",
-          "max": "hard"
-        },
         "minecraft:weight": {
-          "default": 1
-        },
-        "minecraft:herd": {
-          "min_size": 1,
-          "max_size": 1
+          "default": 3
         },
         "minecraft:biome_filter": {
-          "test": "has_biome_tag",
-          "value": "monster"
-        }
-      },
-      {
-        "minecraft:spawns_on_surface": {},
-        "minecraft:difficulty_filter": {
-          "min": "easy",
-          "max": "hard"
-        },
-        "minecraft:weight": {
-          "default": 4
-        },
-        "minecraft:herd": {
-          "min_size": 1,
-          "max_size": 1
-        },
-        "minecraft:biome_filter": {
-          "test": "has_biome_tag",
-          "value": "warped_forest"
+          "all_of": [
+            {
+              "test": "has_biome_tag",
+              "value": "overworld"
+            },
+            {
+              "test": "has_biome_tag",
+              "value": "monster"
+            },
+            {
+              "test": "has_biome_tag",
+              "operator": "!=",
+              "value": "savanna"
+            },
+            {
+              "test": "has_biome_tag",
+              "operator": "!=",
+              "value": "cold"
+            },
+            {
+              "test": "has_biome_tag",
+              "operator": "!=",
+              "value": "frozen"
+            }
+          ]
         }
       }
     ]

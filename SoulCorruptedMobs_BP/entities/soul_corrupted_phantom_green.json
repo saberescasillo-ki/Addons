@@ -73,8 +73,8 @@
         "priority": 1,
         "reselect_targets": true,
         "scan_interval": 10,
-        "target_search_height": 80,
-        "within_radius": 64,
+        "target_search_height": 120,
+        "within_radius": 96,
         "must_see_forget_duration": 0.5,
         "entity_types": [
           {
@@ -83,7 +83,7 @@
               "subject": "other",
               "value": "player"
             },
-            "max_dist": 64
+            "max_dist": 96
           }
         ]
       },
@@ -117,8 +117,8 @@
         "on_death": "query.last_hit_by_player ? 8 : 0"
       },
       "minecraft:follow_range": {
-        "max": 64,
-        "value": 64
+        "max": 96,
+        "value": 96
       },
       "minecraft:game_event_movement_tracking": {
         "emit_flap": true
@@ -169,11 +169,11 @@
         "table": "loot_tables/eu_sc/phantom.json"
       },
       "minecraft:movement": {
-        "value": 1.8
+        "value": 2.97
       },
       "minecraft:movement.glide": {
-        "speed_when_turning": 0.2,
-        "start_speed": 0.1
+        "speed_when_turning": 0.33,
+        "start_speed": 0.165
       },
       "minecraft:nameable": {},
       "minecraft:physics": {
