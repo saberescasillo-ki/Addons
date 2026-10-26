@@ -4,11 +4,43 @@
 |---|---|---|
 | **The Revamp of the Soul** (antes Soul Corrupted Mobs; base de Euforia) | [`dist/TheRevampOfTheSoul.mcaddon`](dist/TheRevampOfTheSoul.mcaddon) | `tools/soul_mobs.py` |
 | **Medieval Mobs** – mobs medievales | [`dist/MedievalMobs.mcaddon`](dist/MedievalMobs.mcaddon) | `tools/generate.py` |
+| **Ruleta de Colores** – ruleta en el HUD con comandos de administrador | [`dist/Roulette.mcaddon`](dist/Roulette.mcaddon) | `tools/roulette.py` |
 
 Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo. No hace falta activar experimentos.
 
 - The Revamp of the Soul requiere Minecraft Bedrock **1.26.0** o superior.
 - Medieval Mobs requiere **1.21.0** o superior.
+- Ruleta de Colores requiere **1.21.90** o superior.
+
+---
+
+# Ruleta de Colores
+
+![La ruleta parada en cada color](docs/roulette_preview.png)
+
+Comandos para el administrador (operador) del mundo. La ruleta aparece en la **esquina inferior derecha**
+de la pantalla de los jugadores y gira hasta caer en el color que elijas.
+Tiene 6 colores: **rojo, verde, azul, blanco, celeste y amarillo**.
+
+| Comando | Qué hace |
+|---|---|
+| `/roulette:show` | Muestra la ruleta. |
+| `/spin_roulette:rojo` | Gira la ruleta y la hace caer en rojo. Si estaba oculta, la muestra. |
+| `/spin_roulette:verde`, `:azul`, `:blanco`, `:celeste`, `:amarillo` | Igual, con los otros colores. |
+| `/spin_roulette:aleatorio` | Gira la ruleta y cae en un color al azar. |
+| `/roulette:hide` | Oculta la ruleta. |
+
+- Todos aceptan un selector de jugadores al final, por ejemplo `/spin_roulette:azul @a[tag=juego]`.
+  Sin selector se aplican a todos los jugadores.
+- Los mismos comandos funcionan con `/scriptevent` (por ejemplo en bloques de comandos):
+  `/scriptevent spin_roulette:rojo`, `/scriptevent roulette:show` y `/scriptevent roulette:hide`.
+- El giro dura 6 segundos: da varias vueltas, frena poco a poco y suena un clic en cada color.
+  Al parar, el color sale en la barra de acción y en el chat.
+- El resultado se guarda en el marcador `ruleta`, jugador `resultado`
+  (1 rojo, 2 verde, 3 azul, 4 blanco, 5 celeste, 6 amarillo).
+- Si un jugador sale y vuelve a entrar con la ruleta abierta, la vuelve a ver.
+- La ruleta se dibuja con JSON UI usando títulos ocultos que empiezan por `_roul:`; el resto de títulos se ve normal.
+  El tamaño, la esquina y la duración del giro se cambian en `tools/roulette.py` (`UI_SIZE`, `ANCHOR`, `SPIN_TICKS`).
 
 ---
 
@@ -171,6 +203,7 @@ TheRevampOfTheSoul_BP/  TheRevampOfTheSoul_RP/  The Revamp of the Soul (generado
 sources/mutant_skeleton/                      modelo de Mutant Creatures (con permiso)
 sources/soul_corrupted_mobs_v1.0.0/           addon original (base)
 MedievalMobs_BP/   MedievalMobs_RP/    addon medieval
+Roulette_BP/       Roulette_RP/        ruleta de colores (generado)
 tools/             generadores en Python (modelos + texturas + JSON)
 dist/              los .mcaddon listos para instalar
 ```
@@ -185,6 +218,7 @@ Los packs se generan con Python 3 y Pillow. Para cambiar vida, daño, efectos, c
 ```
 python3 tools/soul_mobs.py --preview
 python3 tools/generate.py --preview
+python3 tools/roulette.py --preview
 ```
 
 Cada uno vuelve a generar sus packs y su `.mcaddon`. `--preview` además actualiza las imágenes de `docs/`.

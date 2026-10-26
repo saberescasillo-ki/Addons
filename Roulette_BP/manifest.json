@@ -1,0 +1,54 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Ruleta de Colores",
+    "description": "Comandos de administrador para girar una ruleta de 6 colores.",
+    "uuid": "cebd64fa-ccb8-4f9f-a744-dc03c3d56ea8",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      90
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "de1aa5e9-fa5f-47a0-8041-dcc2b0df6867",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "ce237dc6-fa54-47fc-b7ae-907460106128",
+      "version": [
+        1,
+        0,
+        0
+      ],
+      "entry": "scripts/main.js"
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "3dcf6310-841c-4f10-9844-c8b91af2d428",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.0.0"
+    }
+  ]
+}
