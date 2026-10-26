@@ -150,7 +150,7 @@
       "minecraft:attack": {
         "damage": 4,
         "effect_name": "darkness",
-        "effect_duration": 8
+        "effect_duration": 2
       },
       "minecraft:behavior.equip_item": {
         "priority": 2

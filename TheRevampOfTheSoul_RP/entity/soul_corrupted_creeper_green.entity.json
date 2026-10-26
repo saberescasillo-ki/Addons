@@ -60,10 +60,10 @@
         "creeper_legs_controller": "controller.animation.creeper.legs",
         "creeper_swelling_controller": "controller.animation.creeper.swelling",
         "emitter_particle_controller": "controller.animation.eu.emitter_particle",
-        "eu_sc_controller": "controller.animation.eu_sc.creeper",
         "eu_sc_particles": "animation.eu_sc.particles",
         "creeper_spawn": "animation.eu_sc.creeper_spawn",
-        "creeper_life": "animation.eu_sc.creeper_life"
+        "creeper_life": "animation.eu_sc.creeper_life",
+        "eu_sc_controller": "controller.animation.eu_sc.creeper"
       },
       "render_controllers": [
         "controller.render.eu_sc.outline_base.glow",

@@ -145,10 +145,10 @@
         "melee_spear_controller": "controller.animation.humanoid.melee_spear",
         "baby_zombie_attack_bare_hand": "animation.zombie.baby_attack_bare_hand",
         "emitter_particle_controller": "controller.animation.eu.emitter_particle",
-        "eu_sc_controller": "controller.animation.eu_sc.zombie",
         "eu_sc_particles": "animation.eu_sc.particles",
         "zombie_spawn": "animation.eu_sc.zombie_spawn",
-        "zombie_life": "animation.eu_sc.zombie_life"
+        "zombie_life": "animation.eu_sc.zombie_life",
+        "eu_sc_controller": "controller.animation.eu_sc.zombie"
       },
       "render_controllers": [
         "controller.render.eu_sc.outline_base.glow",

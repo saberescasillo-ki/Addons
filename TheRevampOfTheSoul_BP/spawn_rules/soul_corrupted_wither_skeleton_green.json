@@ -8,22 +8,22 @@
     "conditions": [
       {
         "minecraft:spawns_on_surface": {},
+        "minecraft:spawns_underground": {},
         "minecraft:difficulty_filter": {
           "min": "easy",
           "max": "hard"
         },
         "minecraft:herd": {
           "min_size": 1,
-          "max_size": 2
+          "max_size": 1
         },
-        "minecraft:spawns_underground": {},
         "minecraft:brightness_filter": {
           "min": 0,
           "max": 7,
           "adjust_for_weather": true
         },
         "minecraft:weight": {
-          "default": 4
+          "default": 14
         },
         "minecraft:biome_filter": {
           "all_of": [

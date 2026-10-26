@@ -8,7 +8,7 @@ const HIT_EFFECTS = {
   "eu_sc:soul_mutant_skeleton": [
     [
       "darkness",
-      160,
+      40,
       0
     ],
     [
@@ -20,14 +20,14 @@ const HIT_EFFECTS = {
   "eu_sc:soul_blade_zombie": [
     [
       "darkness",
-      160,
+      40,
       0
     ]
   ],
   "eu_sc:soul_corrupted_zombie": [
     [
       "darkness",
-      160,
+      40,
       0
     ],
     [
@@ -39,7 +39,7 @@ const HIT_EFFECTS = {
   "eu_sc:soul_corrupted_creeper": [
     [
       "darkness",
-      160,
+      40,
       0
     ],
     [
@@ -51,7 +51,7 @@ const HIT_EFFECTS = {
   "eu_sc:soul_corrupted_skeleton": [
     [
       "darkness",
-      160,
+      40,
       0
     ],
     [
@@ -63,7 +63,7 @@ const HIT_EFFECTS = {
   "eu_sc:soul_corrupted_phantom": [
     [
       "darkness",
-      160,
+      40,
       0
     ],
     [
@@ -75,7 +75,31 @@ const HIT_EFFECTS = {
   "eu_sc:soul_corrupted_wither_skeleton": [
     [
       "darkness",
-      160,
+      40,
+      0
+    ],
+    [
+      "slowness",
+      60,
+      0
+    ]
+  ],
+  "eu_sc:soul_corrupted_spider": [
+    [
+      "darkness",
+      40,
+      0
+    ],
+    [
+      "slowness",
+      60,
+      0
+    ]
+  ],
+  "eu_sc:soul_corrupted_summoner": [
+    [
+      "darkness",
+      40,
       0
     ],
     [
@@ -87,42 +111,56 @@ const HIT_EFFECTS = {
   "eu_sc:soul_corrupted_zombie_red": [
     [
       "darkness",
-      160,
+      40,
       0
     ]
   ],
   "eu_sc:soul_corrupted_creeper_red": [
     [
       "darkness",
-      160,
+      40,
       0
     ]
   ],
   "eu_sc:soul_corrupted_skeleton_red": [
     [
       "darkness",
-      160,
+      40,
       0
     ]
   ],
   "eu_sc:soul_corrupted_phantom_red": [
     [
       "darkness",
-      160,
+      40,
       0
     ]
   ],
   "eu_sc:soul_corrupted_wither_skeleton_red": [
     [
       "darkness",
-      160,
+      40,
+      0
+    ]
+  ],
+  "eu_sc:soul_corrupted_spider_red": [
+    [
+      "darkness",
+      40,
+      0
+    ]
+  ],
+  "eu_sc:soul_corrupted_summoner_red": [
+    [
+      "darkness",
+      40,
       0
     ]
   ],
   "eu_sc:soul_corrupted_zombie_green": [
     [
       "darkness",
-      160,
+      40,
       0
     ],
     [
@@ -134,7 +172,7 @@ const HIT_EFFECTS = {
   "eu_sc:soul_corrupted_creeper_green": [
     [
       "darkness",
-      160,
+      40,
       0
     ],
     [
@@ -146,7 +184,7 @@ const HIT_EFFECTS = {
   "eu_sc:soul_corrupted_skeleton_green": [
     [
       "darkness",
-      160,
+      40,
       0
     ],
     [
@@ -158,7 +196,7 @@ const HIT_EFFECTS = {
   "eu_sc:soul_corrupted_phantom_green": [
     [
       "darkness",
-      160,
+      40,
       0
     ],
     [
@@ -170,12 +208,48 @@ const HIT_EFFECTS = {
   "eu_sc:soul_corrupted_wither_skeleton_green": [
     [
       "darkness",
-      160,
+      40,
       0
     ],
     [
       "poison",
       80,
+      0
+    ]
+  ],
+  "eu_sc:soul_corrupted_spider_green": [
+    [
+      "darkness",
+      40,
+      0
+    ],
+    [
+      "poison",
+      80,
+      0
+    ]
+  ],
+  "eu_sc:soul_corrupted_summoner_green": [
+    [
+      "darkness",
+      40,
+      0
+    ],
+    [
+      "poison",
+      80,
+      0
+    ]
+  ],
+  "eu_sc:soul_corrupted_creeper_titan": [
+    [
+      "darkness",
+      40,
+      0
+    ],
+    [
+      "slowness",
+      60,
       0
     ]
   ]
@@ -188,7 +262,9 @@ const IGNITE = {
   "eu_sc:soul_corrupted_creeper_red": 4,
   "eu_sc:soul_corrupted_skeleton_red": 4,
   "eu_sc:soul_corrupted_phantom_red": 4,
-  "eu_sc:soul_corrupted_wither_skeleton_red": 4
+  "eu_sc:soul_corrupted_wither_skeleton_red": 4,
+  "eu_sc:soul_corrupted_spider_red": 4,
+  "eu_sc:soul_corrupted_summoner_red": 4
 };
 
 // Soul corrupted wither skeletons: their slash leaves a burst of soul sparks.
@@ -356,6 +432,7 @@ system.runInterval(() => {
       info.dimension = dimension;
       info.location = creeper.location;
       info.color = COLOR_OF[creeper.typeId] ?? "blue";
+      info.titan = creeper.typeId === "eu_sc:soul_corrupted_creeper_titan";
       litCreepers.set(creeper.id, info);
     }
   }
@@ -364,6 +441,13 @@ system.runInterval(() => {
     if (info.ticks >= 20) {
       const { x, y, z } = info.location;
       particle(info.dimension, `eu_sc:explosion_${info.color}`, { x, y: y + 0.8, z });
+      if (info.titan) {
+        try {
+          info.dimension.spawnEntity("eu_sc:soul_corrupted_creeper", info.location);
+        } catch {
+          // unloaded
+        }
+      }
     }
     litCreepers.delete(key);
   }
@@ -374,7 +458,7 @@ system.runInterval(() => {
 // invulnerable (state 2), the death animation plays, then it is removed here.
 const BOSSES = {
   "eu_sc:soul_mutant_skeleton": {
-    "hp": 200,
+    "hp": 400,
     "deathTicks": 60,
     "color": "blue",
     "loot": [
@@ -401,7 +485,7 @@ const BOSSES = {
     ]
   },
   "eu_sc:soul_blade_zombie": {
-    "hp": 200,
+    "hp": 400,
     "deathTicks": 50,
     "color": "red",
     "loot": [
@@ -628,5 +712,82 @@ world.afterEvents.itemUse.subscribe(({ source: player, itemStack }) => {
     }
   } catch {
     // could not summon here
+  }
+});
+
+// ============================================================ extra mobs
+// Summoner zombies: when they spot a player they call one zombie and one
+// skeleton of their own colour (every 30 s, at most 6 soul mobs around).
+const SUMMONERS = {
+  "eu_sc:soul_corrupted_summoner": [
+    "eu_sc:soul_corrupted_zombie",
+    "eu_sc:soul_corrupted_skeleton"
+  ],
+  "eu_sc:soul_corrupted_summoner_red": [
+    "eu_sc:soul_corrupted_zombie_red",
+    "eu_sc:soul_corrupted_skeleton_red"
+  ],
+  "eu_sc:soul_corrupted_summoner_green": [
+    "eu_sc:soul_corrupted_zombie_green",
+    "eu_sc:soul_corrupted_skeleton_green"
+  ]
+};
+const summonerNext = new Map();
+system.runInterval(() => {
+  const now = system.currentTick;
+  for (const id of DIMENSIONS) {
+    let dimension;
+    try {
+      dimension = world.getDimension(id);
+    } catch {
+      continue;
+    }
+    for (const summoner of dimension.getEntities({ families: ["soul_summoner"] })) {
+      const calls = SUMMONERS[summoner.typeId];
+      if (!calls || prop(summoner, "eu_sc:emerging") === true) continue;
+      if ((summonerNext.get(summoner.id) ?? 0) > now) continue;
+      const target = dimension.getPlayers({
+        location: summoner.location, maxDistance: 14, closest: 1, excludeGameModes: NOT_PLAYING,
+      })[0];
+      if (!target) continue;
+      const crowd = dimension.getEntities({ families: ["soul_corrupted"], location: summoner.location, maxDistance: 16 });
+      if (crowd.length > 8) continue;
+      summonerNext.set(summoner.id, now + 600);
+      setAction(summoner, ACTION.summon, 24);
+      system.runTimeout(() => {
+        try {
+          for (const minion of calls) dimension.spawnEntity(minion, around(summoner.location, 2));
+        } catch {
+          // gone
+        }
+      }, 10);
+    }
+  }
+}, 10);
+
+// Titan Creeper: small blast (no block damage) when it appears; when it
+// explodes it leaves a regular light blue soul creeper behind.
+const TITAN = "eu_sc:soul_corrupted_creeper_titan";
+world.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
+  try {
+    if (entity.typeId === TITAN && cause !== "Loaded") {
+      system.runTimeout(() => {
+        try {
+          const { dimension, location } = entity;
+          dimension.createExplosion(location, 2, { breaksBlocks: false, causesFire: false, source: entity });
+          particle(dimension, "eu_sc:explosion_blue", { x: location.x, y: location.y + 1, z: location.z });
+        } catch {
+          // gone
+        }
+      }, 15);
+    }
+    // 35% of the vanilla phantoms (Overworld, insomnia) become green soul phantoms
+    if (entity.typeId === "minecraft:phantom" && cause === "Spawned" && Math.random() < 0.35) {
+      const { dimension, location } = entity;
+      entity.remove();
+      dimension.spawnEntity("eu_sc:soul_corrupted_phantom_green", location);
+    }
+  } catch {
+    // gone
   }
 });

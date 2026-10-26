@@ -759,6 +759,225 @@
         ]
       }
     },
+    "animation.eu_sc.spider_spawn": {
+      "loop": "hold_on_last_frame",
+      "animation_length": 0.9,
+      "bones": {
+        "root": {
+          "scale": {
+            "0.0": {
+              "post": [
+                0.05,
+                0.05,
+                0.05
+              ],
+              "lerp_mode": "catmullrom"
+            },
+            "0.4": {
+              "post": [
+                0.8,
+                0.6,
+                0.8
+              ],
+              "lerp_mode": "catmullrom"
+            },
+            "0.65": {
+              "post": [
+                1.12,
+                1.15,
+                1.12
+              ],
+              "lerp_mode": "catmullrom"
+            },
+            "0.9": {
+              "post": [
+                1,
+                1,
+                1
+              ],
+              "lerp_mode": "catmullrom"
+            }
+          },
+          "position": {
+            "0.0": {
+              "post": [
+                0,
+                -6,
+                0
+              ],
+              "lerp_mode": "catmullrom"
+            },
+            "0.5": {
+              "post": [
+                0,
+                -1,
+                0
+              ],
+              "lerp_mode": "catmullrom"
+            },
+            "0.9": {
+              "post": [
+                0,
+                0,
+                0
+              ],
+              "lerp_mode": "catmullrom"
+            }
+          }
+        }
+      }
+    },
+    "animation.eu_sc.spider_life": {
+      "loop": true,
+      "bones": {
+        "body1": {
+          "rotation": [
+            "math.sin(query.life_time * 90.0) * 3.0",
+            "math.sin(query.life_time * 60.0) * 4.0",
+            0.0
+          ]
+        },
+        "head": {
+          "rotation": [
+            "variable.s_speed * 8.0",
+            0.0,
+            "math.sin(query.life_time * 40.0) * 3.0"
+          ]
+        }
+      }
+    },
+    "animation.eu_sc.cape_sway": {
+      "loop": true,
+      "bones": {
+        "cape": {
+          "rotation": [
+            "6.0 + query.modified_move_speed * 40.0 + math.sin(query.life_time * 90.0) * 3.0",
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    "animation.eu_sc.summoner_cast": {
+      "animation_length": 1.2,
+      "particle_effects": {
+        "0.4": [
+          {
+            "effect": "burst"
+          }
+        ]
+      },
+      "bones": {
+        "rightArm": {
+          "rotation": {
+            "0.0": {
+              "post": [
+                0,
+                0,
+                0
+              ],
+              "lerp_mode": "catmullrom"
+            },
+            "0.3": {
+              "post": [
+                -80,
+                0,
+                20
+              ],
+              "lerp_mode": "catmullrom"
+            },
+            "0.9": {
+              "post": [
+                -80,
+                0,
+                20
+              ],
+              "lerp_mode": "catmullrom"
+            },
+            "1.2": {
+              "post": [
+                0,
+                0,
+                0
+              ],
+              "lerp_mode": "catmullrom"
+            }
+          }
+        },
+        "leftArm": {
+          "rotation": {
+            "0.0": {
+              "post": [
+                0,
+                0,
+                0
+              ],
+              "lerp_mode": "catmullrom"
+            },
+            "0.3": {
+              "post": [
+                -80,
+                0,
+                -20
+              ],
+              "lerp_mode": "catmullrom"
+            },
+            "0.9": {
+              "post": [
+                -80,
+                0,
+                -20
+              ],
+              "lerp_mode": "catmullrom"
+            },
+            "1.2": {
+              "post": [
+                0,
+                0,
+                0
+              ],
+              "lerp_mode": "catmullrom"
+            }
+          }
+        },
+        "head": {
+          "rotation": {
+            "0.0": {
+              "post": [
+                0,
+                0,
+                0
+              ],
+              "lerp_mode": "catmullrom"
+            },
+            "0.3": {
+              "post": [
+                -30,
+                0,
+                0
+              ],
+              "lerp_mode": "catmullrom"
+            },
+            "0.9": {
+              "post": [
+                -30,
+                0,
+                0
+              ],
+              "lerp_mode": "catmullrom"
+            },
+            "1.2": {
+              "post": [
+                0,
+                0,
+                0
+              ],
+              "lerp_mode": "catmullrom"
+            }
+          }
+        }
+      }
+    },
     "animation.eu_sc.mskel_fall": {
       "loop": true,
       "bones": {

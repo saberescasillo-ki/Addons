@@ -116,8 +116,8 @@
         ]
       },
       "minecraft:health": {
-        "value": 700,
-        "max": 700
+        "value": 900,
+        "max": 900
       },
       "minecraft:collision_box": {
         "width": 0.6,
@@ -145,7 +145,7 @@
       "minecraft:attack": {
         "damage": 8,
         "effect_name": "darkness",
-        "effect_duration": 8
+        "effect_duration": 2
       },
       "minecraft:fire_immune": {},
       "minecraft:breathable": {

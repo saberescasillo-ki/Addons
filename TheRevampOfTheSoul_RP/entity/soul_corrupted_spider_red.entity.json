@@ -1,0 +1,59 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "eu_sc:soul_corrupted_spider_red",
+      "materials": {
+        "default": "outline_base",
+        "outline_main": "outline_main"
+      },
+      "textures": {
+        "default": "textures/entity/soul_corrupted/soul_corrupted_spider_red",
+        "outline_main": "textures/entity/soul_corrupted/white_outline"
+      },
+      "geometry": {
+        "default": "geometry.eu.sc.soul_corrupted_spider",
+        "outline_main": "geometry.eu.sc.soul_corrupted_spider.outline"
+      },
+      "spawn_egg": {
+        "base_color": "#E5646F",
+        "overlay_color": "#FFFFFF"
+      },
+      "scripts": {
+        "initialize": [
+          "variable.s_speed = 0.0;"
+        ],
+        "pre_animation": [
+          "variable.s_speed = math.lerp(variable.s_speed, query.modified_move_speed, 0.1);"
+        ],
+        "animate": [
+          "move",
+          "soul",
+          "particles",
+          "emitter_particle_controller"
+        ]
+      },
+      "animations": {
+        "default_leg_pose": "animation.spider.default_leg_pose",
+        "look_at_target": "animation.spider.look_at_target",
+        "walk": "animation.spider.walk",
+        "move": "controller.animation.spider.move",
+        "spider_spawn": "animation.eu_sc.spider_spawn",
+        "spider_life": "animation.eu_sc.spider_life",
+        "soul": "controller.animation.eu_sc.spider",
+        "particles": "animation.eu_sc.particles",
+        "emitter_particle_controller": "controller.animation.eu.emitter_particle"
+      },
+      "particle_effects": {
+        "emitter": "eu_sc:soul_ascending_particle_red",
+        "wisps": "eu_sc:wisp_red",
+        "drips": "eu_sc:drip_red",
+        "burst": "eu_sc:burst_red"
+      },
+      "render_controllers": [
+        "controller.render.eu_sc.outline_base.glow",
+        "controller.render.eu_sc.outline_main.glow"
+      ]
+    }
+  }
+}

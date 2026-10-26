@@ -2,12 +2,13 @@
   "format_version": "1.8.0",
   "minecraft:spawn_rules": {
     "description": {
-      "identifier": "eu_sc:soul_corrupted_phantom_green",
+      "identifier": "eu_sc:soul_corrupted_summoner_green",
       "population_control": "monster"
     },
     "conditions": [
       {
         "minecraft:spawns_on_surface": {},
+        "minecraft:spawns_underground": {},
         "minecraft:difficulty_filter": {
           "min": "easy",
           "max": "hard"
@@ -22,7 +23,7 @@
           "adjust_for_weather": true
         },
         "minecraft:weight": {
-          "default": 3
+          "default": 14
         },
         "minecraft:biome_filter": {
           "all_of": [

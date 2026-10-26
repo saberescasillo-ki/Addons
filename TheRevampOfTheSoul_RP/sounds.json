@@ -285,6 +285,138 @@
         ],
         "volume": 2.0
       },
+      "eu_sc:soul_corrupted_spider": {
+        "events": {
+          "ambient": "mob.spider.say",
+          "hurt": "mob.spider.say",
+          "death": "mob.spider.death",
+          "step": {
+            "sound": "mob.spider.step",
+            "volume": 0.35
+          }
+        },
+        "pitch": [
+          0.7,
+          0.85
+        ],
+        "volume": 1.0
+      },
+      "eu_sc:soul_corrupted_summoner": {
+        "events": {
+          "ambient": "mob.zombie.say",
+          "hurt": "mob.zombie.hurt",
+          "death": "mob.zombie.death",
+          "step": {
+            "sound": "mob.zombie.step",
+            "volume": 0.15
+          }
+        },
+        "pitch": [
+          0.8,
+          1.2
+        ],
+        "volume": 1.0
+      },
+      "eu_sc:soul_corrupted_spider_red": {
+        "events": {
+          "ambient": "mob.spider.say",
+          "hurt": "mob.spider.say",
+          "death": "mob.spider.death",
+          "step": {
+            "sound": "mob.spider.step",
+            "volume": 0.35
+          }
+        },
+        "pitch": [
+          0.7,
+          0.85
+        ],
+        "volume": 1.0
+      },
+      "eu_sc:soul_corrupted_summoner_red": {
+        "events": {
+          "ambient": "mob.zombie.say",
+          "hurt": "mob.zombie.hurt",
+          "death": "mob.zombie.death",
+          "step": {
+            "sound": "mob.zombie.step",
+            "volume": 0.15
+          }
+        },
+        "pitch": [
+          0.8,
+          1.2
+        ],
+        "volume": 1.0
+      },
+      "eu_sc:soul_corrupted_spider_green": {
+        "events": {
+          "ambient": "mob.spider.say",
+          "hurt": "mob.spider.say",
+          "death": "mob.spider.death",
+          "step": {
+            "sound": "mob.spider.step",
+            "volume": 0.35
+          }
+        },
+        "pitch": [
+          0.7,
+          0.85
+        ],
+        "volume": 1.0
+      },
+      "eu_sc:soul_corrupted_summoner_green": {
+        "events": {
+          "ambient": "mob.zombie.say",
+          "hurt": "mob.zombie.hurt",
+          "death": "mob.zombie.death",
+          "step": {
+            "sound": "mob.zombie.step",
+            "volume": 0.15
+          }
+        },
+        "pitch": [
+          0.8,
+          1.2
+        ],
+        "volume": 1.0
+      },
+      "eu_sc:soul_corrupted_creeper_titan": {
+        "events": {
+          "death": "mob.creeper.death",
+          "fuse": {
+            "pitch": 0.5,
+            "sound": "random.fuse",
+            "volume": 1.0
+          },
+          "hurt": "mob.creeper.say"
+        },
+        "pitch": [
+          0.8,
+          1.2
+        ],
+        "volume": 1.0
+      },
+      "eu_sc:caped_skeleton": {
+        "events": {
+          "ambient": "mob.skeleton.say",
+          "hurt": "mob.skeleton.hurt",
+          "death": "mob.skeleton.death",
+          "step": {
+            "sound": "mob.skeleton.step",
+            "volume": 1.0
+          },
+          "shoot": {
+            "sound": "random.bow",
+            "volume": 1.0
+          }
+        },
+        "pitch": [
+          0.8,
+          1.2
+        ],
+        "volume": 1.0
+      },
       "eu_sc:soul_mutant_skeleton": {
         "events": {
           "ambient": "mob.skeleton.say",

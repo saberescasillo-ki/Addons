@@ -29,7 +29,7 @@
       "minecraft:attack": {
         "damage": 6,
         "effect_name": "darkness",
-        "effect_duration": 8
+        "effect_duration": 2
       },
       "minecraft:behavior.avoid_mob_type": {
         "ignore_visibility": true,

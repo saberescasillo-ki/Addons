@@ -35,7 +35,7 @@ RP = os.path.join(ROOT, "TheRevampOfTheSoul_RP")
 DIST = os.path.join(ROOT, "dist")
 
 NS = "eu_sc"
-VERSION = [1, 3, 0]
+VERSION = [1, 4, 0]
 SCRIPT_API = "2.0.0"  # stable: no "Beta APIs" experiment needed
 TEX = "textures/entity/soul_corrupted"
 OUTLINE_TEX = f"{TEX}/white_outline"
@@ -51,7 +51,7 @@ COLORS = {
     "green": dict(suffix="_green", hue=0.35, es="Verde", en="Green", rgb=(0.25, 0.92, 0.32),
                   extra=[["poison", 80, 0]], ignite=0, nether="warped_forest"),
 }
-DARKNESS = ["darkness", 160, 0]
+DARKNESS = ["darkness", 40, 0]  # 2 seconds
 IMMUNE_TO = ["fire", "fire_tick", "lava", "magma", "freezing", "drowning", "wither"]
 
 BASE_MOBS = {  # original mobs (blue) -> name and spawn tuning
@@ -149,6 +149,23 @@ def mix_hex(a, b, t):
     return "#%02x%02x%02x" % tuple(round(ca[i] * (1 - t) + cb[i] * t) for i in range(3))
 
 
+def recolor_hue(img, hue, vmul):
+    """Recolour to an arbitrary hue/brightness (whites stay white)."""
+    out = img.convert("RGBA").copy()
+    px = out.load()
+    for y in range(out.height):
+        for x in range(out.width):
+            r, g, b, a = px[x, y]
+            if not a:
+                continue
+            h, s, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
+            if s < 0.06:
+                continue
+            r2, g2, b2 = colorsys.hsv_to_rgb(hue, min(1.0, s * 1.1), v * vmul)
+            px[x, y] = (round(r2 * 255), round(g2 * 255), round(b2 * 255), a)
+    return out
+
+
 def hexcol(rgb):
     return "#%02X%02X%02X" % tuple(rgb[:3])
 
@@ -210,7 +227,7 @@ class Pal16:
             for y in range(fh):
                 for x in range(fw):
                     img.putpixel((x0 + x, y0 + y), face[y][x])
-            ctx = Ctx(img, x0, y0, fw, fh, self, name)
+            ctx = Ctx(img, x0, y0, fw, fh, self, name, rng)
             for k in [name, "all"] + (["sides"] if name in SIDES else []):
                 for fn in self.deco.get(k, []):
                     fn(ctx)
@@ -245,8 +262,9 @@ class Pal16:
 
 
 class Ctx:
-    def __init__(self, img, x0, y0, w, h, mat, name):
+    def __init__(self, img, x0, y0, w, h, mat, name, rng=None):
         self.img, self.x0, self.y0, self.w, self.h, self.mat, self.name = img, x0, y0, w, h, mat, name
+        self.rng = rng
 
     def put(self, x, y, c):
         if 0 <= x < self.w and 0 <= y < self.h:
@@ -419,7 +437,7 @@ def patch_mob(src, kind, color):
 
     def fix(k, v, parent):
         if k == "minecraft:attack":
-            v.update({"effect_name": "darkness", "effect_duration": 8})
+            v.update({"effect_name": "darkness", "effect_duration": 2})
         elif k == "minecraft:movement" and isinstance(v, dict) and "value" in v:
             v["value"] = round(v["value"] * MOB_SPEED_BOOST, 4)
         elif k == "minecraft:loot":
@@ -484,7 +502,7 @@ def phantom_behavior(color):
         "component_groups": {f"{NS}:emerging": {"minecraft:timer": {
             "looping": False, "time": PHANTOM["emerge"], "time_down_event": {"event": f"{NS}:emerged"}}}},
         "components": {
-            "minecraft:attack": {"damage": 6, "effect_name": "darkness", "effect_duration": 8},
+            "minecraft:attack": {"damage": 6, "effect_name": "darkness", "effect_duration": 2},
             "minecraft:behavior.avoid_mob_type": {"ignore_visibility": True, "max_dist": 16,
                                                   "entity_types": [{"filters": fam("ocelot", "cat")}]},
             "minecraft:behavior.circle_around_anchor": {
@@ -644,9 +662,17 @@ def altar_recipe():
 
 
 # Blue and red only spawn in the Nether (their biomes); green only in the
-# Overworld, in any biome except savannas and cold/frozen ones.
+# Overworld, in any biome except savannas and cold/frozen ones. Spawn rules
+# take weights, not chances, so the weights are sized from the vanilla
+# monsters of each biome for soul mobs to be about 35% of the spawns there:
+# W = V * 0.35 / 0.65, shared among the soul mob kinds below.
+SOUL_SHARE = 0.35
+VANILLA_WEIGHT = {"overworld": 515, "nether_wastes": 170, "crimson_forest": 15, "soul_sand_valley": 53,
+                  "warped_forest": 3, "basalt_deltas": 140}
 NETHER_BIOMES = {"blue": ["soul_sand_valley", "warped_forest", "basalt_deltas"],
                  "red": ["crimson_forest", "nether_wastes"]}
+KIND_SHARE = {"zombie": 0.25, "skeleton": 0.2, "creeper": 0.2, "spider": 0.2, "wither_skeleton": 0.05,
+              "summoner": 0.05, "phantom": 0.05}
 GREEN_OVERWORLD = {"all_of": [
     {"test": "has_biome_tag", "value": "overworld"},
     {"test": "has_biome_tag", "value": "monster"},
@@ -655,25 +681,48 @@ GREEN_OVERWORLD = {"all_of": [
     {"test": "has_biome_tag", "operator": "!=", "value": "frozen"}]}
 
 
-def spawn_rules(identifier, weight, color, flying=False):
-    herd = {"min_size": 1, "max_size": 1 if flying else 2}
-    cond = {"minecraft:spawns_on_surface": {},
-            "minecraft:difficulty_filter": {"min": "easy", "max": "hard"},
-            "minecraft:herd": herd}
+def soul_weight(biome, kind):
+    total = VANILLA_WEIGHT[biome] * SOUL_SHARE / (1 - SOUL_SHARE)
+    return max(1, round(total * KIND_SHARE[kind]))
+
+
+def spawn_rules(identifier, kind, color):
+    herd = {"min_size": 1, "max_size": 1 if kind in ("phantom", "wither_skeleton", "summoner") else 2}
+    base = {"minecraft:spawns_on_surface": {}, "minecraft:spawns_underground": {},
+            "minecraft:difficulty_filter": {"min": "easy", "max": "hard"}, "minecraft:herd": herd}
     if color == "green":
-        if not flying:
-            cond["minecraft:spawns_underground"] = {}
-        cond.update({"minecraft:brightness_filter": {"min": 0, "max": 7, "adjust_for_weather": True},
-                     "minecraft:weight": {"default": weight},
-                     "minecraft:biome_filter": GREEN_OVERWORLD})
+        conds = [dict(base, **{"minecraft:brightness_filter": {"min": 0, "max": 7, "adjust_for_weather": True},
+                               "minecraft:weight": {"default": soul_weight("overworld", kind)},
+                               "minecraft:biome_filter": GREEN_OVERWORLD})]
     else:
-        cond.update({"minecraft:spawns_underground": {},
-                     "minecraft:weight": {"default": weight * (1 if flying else 2)},
-                     "minecraft:biome_filter": {"any_of": [{"test": "has_biome_tag", "value": b}
-                                                           for b in NETHER_BIOMES[color]]}})
+        conds = [dict(base, **{"minecraft:weight": {"default": soul_weight(b, kind)},
+                               "minecraft:biome_filter": {"test": "has_biome_tag", "value": b}})
+                 for b in NETHER_BIOMES[color]]
     return {"format_version": "1.8.0", "minecraft:spawn_rules": {
         "description": {"identifier": f"{NS}:{identifier}", "population_control": "monster"},
-        "conditions": [cond]}}
+        "conditions": conds}}
+
+
+def rare_spawn_rules(identifier, weight):
+    """Rare spawn anywhere hostile mobs spawn, Overworld and Nether."""
+    return {"format_version": "1.8.0", "minecraft:spawn_rules": {
+        "description": {"identifier": f"{NS}:{identifier}", "population_control": "monster"},
+        "conditions": [{"minecraft:spawns_on_surface": {}, "minecraft:spawns_underground": {},
+                        "minecraft:brightness_filter": {"min": 0, "max": 7, "adjust_for_weather": True},
+                        "minecraft:difficulty_filter": {"min": "easy", "max": "hard"},
+                        "minecraft:weight": {"default": weight}, "minecraft:herd": {"min_size": 1, "max_size": 1},
+                        "minecraft:biome_filter": {"any_of": [{"test": "has_biome_tag", "value": "monster"},
+                                                              {"test": "has_biome_tag", "value": "nether"}]}}]}}
+
+
+def vanilla_spawn_rules(identifier, weight):
+    return {"format_version": "1.8.0", "minecraft:spawn_rules": {
+        "description": {"identifier": f"{NS}:{identifier}", "population_control": "monster"},
+        "conditions": [{"minecraft:spawns_on_surface": {}, "minecraft:spawns_underground": {},
+                        "minecraft:brightness_filter": {"min": 0, "max": 7, "adjust_for_weather": True},
+                        "minecraft:difficulty_filter": {"min": "easy", "max": "hard"},
+                        "minecraft:weight": {"default": weight}, "minecraft:herd": {"min_size": 1, "max_size": 2},
+                        "minecraft:biome_filter": {"test": "has_biome_tag", "value": "monster"}}]}}
 
 
 DROP_RATE = 0.25  # mobs drop items 75% less often
@@ -767,11 +816,12 @@ def script(bosses):
         if COLORS[B["color"]]["ignite"]:
             ignite[f"{NS}:{name}"] = COLORS[B["color"]]["ignite"]
     for color, C in COLORS.items():
-        for kind in list(BASE_MOBS) + ["phantom", "wither_skeleton"]:
+        for kind in list(BASE_MOBS) + ["phantom", "wither_skeleton", "spider", "summoner"]:
             mob = f"{NS}:{ident(kind, color)}"
             effects[mob] = [DARKNESS] + C["extra"]
             if C["ignite"]:
                 ignite[mob] = C["ignite"]
+    effects[f"{NS}:soul_corrupted_creeper_titan"] = [DARKNESS] + COLORS["blue"]["extra"]
     skeletons = [f"{NS}:{ident('skeleton', c)}" for c in COLORS]
     return f"""// Soul Corrupted Mobs: effects on hit, lightning arrows, sword, healing altar,
 // coloured creeper explosions. Generated by tools/soul_mobs.py.
@@ -949,6 +999,7 @@ system.runInterval(() => {{
       info.dimension = dimension;
       info.location = creeper.location;
       info.color = COLOR_OF[creeper.typeId] ?? "blue";
+      info.titan = creeper.typeId === "{NS}:soul_corrupted_creeper_titan";
       litCreepers.set(creeper.id, info);
     }}
   }}
@@ -957,11 +1008,88 @@ system.runInterval(() => {{
     if (info.ticks >= 20) {{
       const {{ x, y, z }} = info.location;
       particle(info.dimension, `{NS}:explosion_${{info.color}}`, {{ x, y: y + 0.8, z }});
+      if (info.titan) {{
+        try {{
+          info.dimension.spawnEntity("{NS}:soul_corrupted_creeper", info.location);
+        }} catch {{
+          // unloaded
+        }}
+      }}
     }}
     litCreepers.delete(key);
   }}
 }}, 2);
-""" + boss_script(bosses)
+""" + boss_script(bosses) + extra_script()
+
+
+def extra_script():
+    summoners = {f"{NS}:{ident('summoner', c)}": [f"{NS}:{ident('zombie', c)}", f"{NS}:{ident('skeleton', c)}"]
+                 for c in COLORS}
+    return f"""
+// ============================================================ extra mobs
+// Summoner zombies: when they spot a player they call one zombie and one
+// skeleton of their own colour (every 30 s, at most 6 soul mobs around).
+const SUMMONERS = {json.dumps(summoners, indent=2)};
+const summonerNext = new Map();
+system.runInterval(() => {{
+  const now = system.currentTick;
+  for (const id of DIMENSIONS) {{
+    let dimension;
+    try {{
+      dimension = world.getDimension(id);
+    }} catch {{
+      continue;
+    }}
+    for (const summoner of dimension.getEntities({{ families: ["soul_summoner"] }})) {{
+      const calls = SUMMONERS[summoner.typeId];
+      if (!calls || prop(summoner, "{NS}:emerging") === true) continue;
+      if ((summonerNext.get(summoner.id) ?? 0) > now) continue;
+      const target = dimension.getPlayers({{
+        location: summoner.location, maxDistance: 14, closest: 1, excludeGameModes: NOT_PLAYING,
+      }})[0];
+      if (!target) continue;
+      const crowd = dimension.getEntities({{ families: ["soul_corrupted"], location: summoner.location, maxDistance: 16 }});
+      if (crowd.length > 8) continue;
+      summonerNext.set(summoner.id, now + 600);
+      setAction(summoner, ACTION.summon, 24);
+      system.runTimeout(() => {{
+        try {{
+          for (const minion of calls) dimension.spawnEntity(minion, around(summoner.location, 2));
+        }} catch {{
+          // gone
+        }}
+      }}, 10);
+    }}
+  }}
+}}, 10);
+
+// Titan Creeper: small blast (no block damage) when it appears; when it
+// explodes it leaves a regular light blue soul creeper behind.
+const TITAN = "{NS}:soul_corrupted_creeper_titan";
+world.afterEvents.entitySpawn.subscribe(({{ entity, cause }}) => {{
+  try {{
+    if (entity.typeId === TITAN && cause !== "Loaded") {{
+      system.runTimeout(() => {{
+        try {{
+          const {{ dimension, location }} = entity;
+          dimension.createExplosion(location, 2, {{ breaksBlocks: false, causesFire: false, source: entity }});
+          particle(dimension, "{NS}:explosion_blue", {{ x: location.x, y: location.y + 1, z: location.z }});
+        }} catch {{
+          // gone
+        }}
+      }}, 15);
+    }}
+    // 35% of the vanilla phantoms (Overworld, insomnia) become green soul phantoms
+    if (entity.typeId === "minecraft:phantom" && cause === "Spawned" && Math.random() < {SOUL_SHARE}) {{
+      const {{ dimension, location }} = entity;
+      entity.remove();
+      dimension.spawnEntity("{NS}:{ident('phantom', 'green')}", location);
+    }}
+  }} catch {{
+    // gone
+  }}
+}});
+"""
 
 
 def boss_script(bosses):
@@ -1281,28 +1409,33 @@ def controllers():
                          "transitions": [{"alive": f"!{prop}"}], "blend_transition": 0.3},
             "alive": {"animations": life, "blend_transition": 0.3},
         }}
+    # single-state controllers for legacy (1.8.0) client files, which can't list animations directly
+    out[f"controller.animation.{NS}.particles"] = {"initial_state": "default", "states": {
+        "default": {"animations": [f"{NS}_particles"]}}}
+    out[f"controller.animation.{NS}.wither"] = {"initial_state": "default", "states": {
+        "default": {"animations": ["wither_run", "wither_slash"]}}}
     return {"format_version": "1.10.0", "animation_controllers": out}
 
 
 def add_soul_extras(desc, kind, color):
     """Adds the spawn animation, extra life, coloured particles to a client entity."""
     scripts = desc.setdefault("scripts", {})
-    scripts["initialize"] = scripts.get("initialize", []) + SMOOTHING_INIT
     scripts["pre_animation"] = scripts.get("pre_animation", []) + SMOOTHING
     anims = desc.setdefault("animations", {})
-    animate = scripts.setdefault("animate", [])
-    # the original skeleton lists its controllers the legacy way (format 1.8.0):
-    # move them to "animate", which needs format 1.10.0
-    for entry in desc.pop("animation_controllers", []):
-        for name, ctrl in entry.items():
-            anims[name] = ctrl
-            animate.append(name)
-    anims[f"{NS}_controller"] = f"controller.animation.{NS}.{kind}"
     anims[f"{NS}_particles"] = f"{A}.particles"
     anims[f"{kind}_spawn"] = f"{A}.{kind}_spawn"
     for name in LIFE[kind]:
         anims[name] = f"{A}.{name}"
-    animate += [f"{NS}_controller", f"{NS}_particles"]
+    if "animation_controllers" in desc:
+        # Legacy (format 1.8.0) file like the original skeleton: the vanilla
+        # humanoid animations only behave right in that format, so keep it and
+        # add ours as legacy controllers too (no "animate"/"initialize" there).
+        desc["animation_controllers"] += [{f"{NS}_controller": f"controller.animation.{NS}.{kind}"},
+                                          {f"{NS}_particles_controller": f"controller.animation.{NS}.particles"}]
+    else:
+        scripts["initialize"] = scripts.get("initialize", []) + SMOOTHING_INIT
+        anims[f"{NS}_controller"] = f"controller.animation.{NS}.{kind}"
+        scripts.setdefault("animate", []).extend([f"{NS}_controller", f"{NS}_particles"])
     desc.setdefault("particle_effects", {}).update({
         "emitter": f"{NS}:soul_ascending_particle" + COLORS[color]["suffix"],
         "wisps": f"{NS}:wisp_{color}", "drips": f"{NS}:drip_{color}", "burst": f"{NS}:burst_{color}"})
@@ -1584,7 +1717,7 @@ def main():
         for color in COLORS:
             mob = ident(kind, color)
             write(os.path.join(BP, f"entities/{mob}.json"), patch_mob(src_bp, kind, color))
-            write(os.path.join(BP, f"spawn_rules/{mob}.json"), spawn_rules(mob, BASE_MOBS[kind]["weight"], color))
+            write(os.path.join(BP, f"spawn_rules/{mob}.json"), spawn_rules(mob, kind, color))
             client = copy.deepcopy(src_rp)
             desc = client["minecraft:client_entity"]["description"]
             desc["identifier"] = f"{NS}:{mob}"
@@ -1593,8 +1726,6 @@ def main():
             for key in ("base_color", "overlay_color"):
                 egg[key] = hexcol(recolor_rgb(hx(egg[key]), color))
             add_soul_extras(desc, kind, color)
-            if client["format_version"] == "1.8.0":  # "animate" needs 1.10.0 (hotfix: invisible skeletons)
-                client["format_version"] = "1.10.0"
             write(os.path.join(RP, f"entity/{mob}.entity.json"), client)
             tex = soften(recolor(src_tex, color))
             save_png(tex, RP, TEX, f"{mob}.png")
@@ -1616,9 +1747,8 @@ def main():
     for color in COLORS:
         mob = ident("wither_skeleton", color)
         write(os.path.join(BP, f"entities/{mob}.json"), wither_behavior(src_skel_bp, color))
-        write(os.path.join(BP, f"spawn_rules/{mob}.json"), spawn_rules(mob, WITHER["weight"], color))
+        write(os.path.join(BP, f"spawn_rules/{mob}.json"), spawn_rules(mob, "wither_skeleton", color))
         client = copy.deepcopy(src_skel_rp)
-        client["format_version"] = "1.10.0"
         desc = client["minecraft:client_entity"]["description"]
         desc["identifier"] = f"{NS}:{mob}"
         desc["textures"]["default"] = f"{TEX}/{mob}"
@@ -1626,8 +1756,9 @@ def main():
                              "overlay_color": hexcol(recolor_rgb(hx("#CEF8F9"), color))}
         add_soul_extras(desc, "skeleton", color)
         desc["animations"].update({"wither_run": f"{A}.wither_run", "wither_slash": f"{A}.wither_slash"})
-        desc["scripts"]["animate"] += ["wither_run", "wither_slash"]
-        desc["scripts"]["scale"] = str(WITHER["scale"])
+        desc["animation_controllers"].append({"wither": f"controller.animation.{NS}.wither"})
+        # size: only the behaviour's minecraft:scale (1.2 like a vanilla wither skeleton);
+        # scaling here as well made it 1.44x
         write(os.path.join(RP, f"entity/{mob}.entity.json"), client)
         # darker, wither-like version of the soul skeleton (whites, so the eyes, stay white)
         tex = recolor(src_skel_tex, color)
@@ -1654,7 +1785,8 @@ def main():
         tex = soften(recolor(ptex, color))
         save_png(tex, RP, TEX, f"{mob}.png")
         write(os.path.join(BP, f"entities/{mob}.json"), phantom_behavior(color))
-        write(os.path.join(BP, f"spawn_rules/{mob}.json"), spawn_rules(mob, PHANTOM["weight"], color, flying=True))
+        if color != "green":  # green phantoms replace 35% of vanilla phantoms (script)
+            write(os.path.join(BP, f"spawn_rules/{mob}.json"), spawn_rules(mob, "phantom", color))
         egg = {"base_color": hexcol(recolor_rgb(hx("#9DF2FF"), color)),
                "overlay_color": hexcol(recolor_rgb(hx("#1EA6BB"), color))}
         write(os.path.join(RP, f"entity/{mob}.entity.json"), phantom_client(mob, mob, color, egg))
@@ -1691,6 +1823,73 @@ def main():
     if prev:
         preview_geo(am.geometry_json()["minecraft:geometry"][0], atex, os.path.join(prev_dir, f"{ALTAR}.png"))
         previews.append(ALTAR)
+
+    # ---- new soul mobs: spider, summoner zombie, titan creeper; and the vanilla caped skeleton
+    import soul_extra_mobs as extra
+    sm = extra.spider_model()
+    spider_tex = sm.build(seed=1313)
+    write(os.path.join(RP, "models/entity/soul_corrupted_spider.geo.json"), with_outline(sm.geometry_json()))
+    write(os.path.join(BP, f"loot_tables/{NS}/spider.json"), loot([("string", 0, 2), ("spider_eye", 0, 1)]))
+    zombie_geo_file = load(os.path.join(SRC, "RP/models/entity/soul_corrupted_zombie.geo.json"))
+    zombie_tex = Image.open(os.path.join(SRC, f"RP/{TEX}/soul_corrupted_zombie.png"))
+    sum_geo, sum_tex = extra.extend_geometry(zombie_geo_file["geometry.eu.sc.soul_corrupted_zombie"], zombie_tex,
+                                             extra.summoner_extras(), "geometry.eu.sc.soul_corrupted_summoner")
+    write(os.path.join(RP, "models/entity/soul_corrupted_summoner.geo.json"), with_outline(sum_geo))
+    src_zombie_bp = load(os.path.join(SRC, "BP/entities/soul_corrupted_zombie.json"))
+    src_zombie_rp = load(os.path.join(SRC, "RP/entity/soul_corrupted_zombie.entity.json"))
+    for color in COLORS:
+        mob = ident("spider", color)
+        tex = soften(recolor(spider_tex, color))
+        save_png(tex, RP, TEX, f"{mob}.png")
+        write(os.path.join(BP, f"entities/{mob}.json"), extra.spider_behavior(color))
+        write(os.path.join(BP, f"spawn_rules/{mob}.json"), spawn_rules(mob, "spider", color))
+        egg = {"base_color": hexcol(recolor_rgb(hx("#6DEAEC"), color)),
+               "overlay_color": hexcol(recolor_rgb(hx("#FFFFFF"), color))}
+        write(os.path.join(RP, f"entity/{mob}.entity.json"), extra.spider_client(color, egg))
+        ent_sounds[f"{NS}:{mob}"] = extra.SOUNDS["spider"]
+        if prev:
+            preview_geo(sm.geometry_json()["minecraft:geometry"][0], tex, os.path.join(prev_dir, f"{mob}.png"),
+                        view="top", scale=6)
+            previews.append(mob)
+        mob = ident("summoner", color)
+        tex = soften(recolor(sum_tex, color))
+        save_png(tex, RP, TEX, f"{mob}.png")
+        write(os.path.join(BP, f"entities/{mob}.json"), extra.summoner_behavior(src_zombie_bp, color))
+        write(os.path.join(BP, f"spawn_rules/{mob}.json"), spawn_rules(mob, "summoner", color))
+        write(os.path.join(RP, f"entity/{mob}.entity.json"), extra.summoner_client(src_zombie_rp, color))
+        ent_sounds[f"{NS}:{mob}"] = SOUNDS["zombie"]
+        if prev:
+            preview_geo(sum_geo["minecraft:geometry"][0], tex, os.path.join(prev_dir, f"{mob}.png"))
+            previews.append(mob)
+
+    tm = extra.titan_model()
+    titan_tex = recolor_hue(tm.build(seed=2468), extra.TITAN_INFO["hue"], extra.TITAN_INFO["value"])
+    save_png(titan_tex, RP, TEX, f"{extra.TITAN}.png")
+    write(os.path.join(RP, f"models/entity/{extra.TITAN}.geo.json"), with_outline(tm.geometry_json()))
+    src_creeper_bp = load(os.path.join(SRC, "BP/entities/soul_corrupted_creeper.json"))
+    src_creeper_rp = load(os.path.join(SRC, "RP/entity/soul_corrupted_creeper.entity.json"))
+    write(os.path.join(BP, f"entities/{extra.TITAN}.json"), extra.titan_behavior(src_creeper_bp))
+    write(os.path.join(BP, f"spawn_rules/{extra.TITAN}.json"), rare_spawn_rules(extra.TITAN, extra.TITAN_INFO["weight"]))
+    write(os.path.join(RP, f"entity/{extra.TITAN}.entity.json"), extra.titan_client(src_creeper_rp))
+    ent_sounds[f"{NS}:{extra.TITAN}"] = copy.deepcopy(ent_sounds[f"{NS}:soul_corrupted_creeper"])
+    if prev:
+        preview_geo(tm.geometry_json()["minecraft:geometry"][0], titan_tex, os.path.join(prev_dir, f"{extra.TITAN}.png"))
+        previews.append(extra.TITAN)
+
+    cm = extra.cape_model()
+    save_png(cm.build(seed=8642), RP, TEX, f"{extra.CAPED}_cape.png")
+    write(os.path.join(RP, f"models/entity/{extra.CAPED}_cape.geo.json"), cm.geometry_json())
+    src_skel_bp0 = load(os.path.join(SRC, "BP/entities/soul_corrupted_skeleton.json"))
+    write(os.path.join(BP, f"entities/{extra.CAPED}.json"), extra.caped_behavior(src_skel_bp0))
+    write(os.path.join(BP, f"spawn_rules/{extra.CAPED}.json"),
+          vanilla_spawn_rules(extra.CAPED, extra.CAPED_INFO["weight"]))
+    write(os.path.join(RP, f"entity/{extra.CAPED}.entity.json"),
+          extra.caped_client(load(os.path.join(SRC, "RP/entity/soul_corrupted_skeleton.entity.json")),
+                             {"base_color": "#C1C1C1", "overlay_color": "#4A2F2A"}))
+    ent_sounds[f"{NS}:{extra.CAPED}"] = SOUNDS["skeleton"]
+    write(os.path.join(RP, f"render_controllers/{NS}.render_controllers.json"),
+          {"format_version": "1.8.0", "render_controllers": extra.RENDER_CONTROLLERS})
+    ANIMS.update(extra.ANIMS)
 
     # ---- mini bosses
     import soul_bosses as bosses
@@ -1743,13 +1942,14 @@ def main():
         f"{A}.{n}": a for n, a in ANIMS.items()}})
     ctrls = controllers()
     ctrls["animation_controllers"].update(bosses.controllers())
+    ctrls["animation_controllers"].update(extra.controllers())
     write(os.path.join(RP, f"animation_controllers/{NS}.animation_controllers.json"), ctrls)
     write(os.path.join(RP, "sounds.json"), sounds)
     for pack in (BP, RP):
         write(os.path.join(pack, "texts/languages.json"), ["en_US", "es_ES", "es_MX"])
-        write(os.path.join(pack, "texts/en_US.lang"), lang(False) + "\n".join(bosses.lang(False)) + "\n")
-        write(os.path.join(pack, "texts/es_ES.lang"), lang(True) + "\n".join(bosses.lang(True)) + "\n")
-        write(os.path.join(pack, "texts/es_MX.lang"), lang(True) + "\n".join(bosses.lang(True)) + "\n")
+        for code, es in (("en_US", False), ("es_ES", True), ("es_MX", True)):
+            extra_lines = bosses.lang(es) + extra.lang(es, COLORS)
+            write(os.path.join(pack, f"texts/{code}.lang"), lang(es) + "\n".join(extra_lines) + "\n")
 
     # ---- scripts + manifests
     for f in ("main.js", "entities/index.js", "entities/soulCorruptedSkeleton.js"):

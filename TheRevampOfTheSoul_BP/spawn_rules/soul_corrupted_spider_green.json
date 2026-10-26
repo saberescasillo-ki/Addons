@@ -1,0 +1,58 @@
+{
+  "format_version": "1.8.0",
+  "minecraft:spawn_rules": {
+    "description": {
+      "identifier": "eu_sc:soul_corrupted_spider_green",
+      "population_control": "monster"
+    },
+    "conditions": [
+      {
+        "minecraft:spawns_on_surface": {},
+        "minecraft:spawns_underground": {},
+        "minecraft:difficulty_filter": {
+          "min": "easy",
+          "max": "hard"
+        },
+        "minecraft:herd": {
+          "min_size": 1,
+          "max_size": 2
+        },
+        "minecraft:brightness_filter": {
+          "min": 0,
+          "max": 7,
+          "adjust_for_weather": true
+        },
+        "minecraft:weight": {
+          "default": 55
+        },
+        "minecraft:biome_filter": {
+          "all_of": [
+            {
+              "test": "has_biome_tag",
+              "value": "overworld"
+            },
+            {
+              "test": "has_biome_tag",
+              "value": "monster"
+            },
+            {
+              "test": "has_biome_tag",
+              "operator": "!=",
+              "value": "savanna"
+            },
+            {
+              "test": "has_biome_tag",
+              "operator": "!=",
+              "value": "cold"
+            },
+            {
+              "test": "has_biome_tag",
+              "operator": "!=",
+              "value": "frozen"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

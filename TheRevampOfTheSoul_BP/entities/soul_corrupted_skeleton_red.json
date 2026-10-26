@@ -497,7 +497,7 @@
         "minecraft:attack": {
           "damage": 2,
           "effect_name": "darkness",
-          "effect_duration": 8
+          "effect_duration": 2
         },
         "minecraft:behavior.melee_box_attack": {
           "speed_multiplier": 1.25,

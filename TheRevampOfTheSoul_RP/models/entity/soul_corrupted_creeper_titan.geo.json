@@ -1,0 +1,372 @@
+{
+  "format_version": "1.12.0",
+  "minecraft:geometry": [
+    {
+      "description": {
+        "identifier": "geometry.eu.sc.soul_corrupted_creeper_titan",
+        "texture_width": 64,
+        "texture_height": 64,
+        "visible_bounds_width": 2.5,
+        "visible_bounds_height": 3.0,
+        "visible_bounds_offset": [
+          0,
+          1.5,
+          0
+        ]
+      },
+      "bones": [
+        {
+          "name": "body",
+          "pivot": [
+            0,
+            14,
+            0
+          ],
+          "locators": {
+            "particle_locator": [
+              0,
+              0,
+              0
+            ]
+          },
+          "cubes": [
+            {
+              "origin": [
+                -4,
+                14,
+                -2
+              ],
+              "size": [
+                8,
+                14,
+                4
+              ],
+              "uv": [
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "name": "head",
+          "pivot": [
+            0,
+            28,
+            0
+          ],
+          "parent": "body",
+          "cubes": [
+            {
+              "origin": [
+                -4,
+                28,
+                -4
+              ],
+              "size": [
+                8,
+                8,
+                8
+              ],
+              "uv": [
+                32,
+                18
+              ]
+            }
+          ]
+        },
+        {
+          "name": "leg0",
+          "pivot": [
+            -2,
+            14,
+            4
+          ],
+          "parent": "body",
+          "cubes": [
+            {
+              "origin": [
+                -4,
+                0,
+                2
+              ],
+              "size": [
+                4,
+                14,
+                4
+              ],
+              "uv": [
+                24,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "name": "leg1",
+          "pivot": [
+            2,
+            14,
+            4
+          ],
+          "parent": "body",
+          "cubes": [
+            {
+              "origin": [
+                0,
+                0,
+                2
+              ],
+              "size": [
+                4,
+                14,
+                4
+              ],
+              "uv": [
+                40,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "name": "leg2",
+          "pivot": [
+            -2,
+            14,
+            -4
+          ],
+          "parent": "body",
+          "cubes": [
+            {
+              "origin": [
+                -4,
+                0,
+                -6
+              ],
+              "size": [
+                4,
+                14,
+                4
+              ],
+              "uv": [
+                0,
+                18
+              ]
+            }
+          ]
+        },
+        {
+          "name": "leg3",
+          "pivot": [
+            2,
+            14,
+            -4
+          ],
+          "parent": "body",
+          "cubes": [
+            {
+              "origin": [
+                0,
+                0,
+                -6
+              ],
+              "size": [
+                4,
+                14,
+                4
+              ],
+              "uv": [
+                16,
+                18
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": {
+        "identifier": "geometry.eu.sc.soul_corrupted_creeper_titan.outline",
+        "texture_width": 64,
+        "texture_height": 64,
+        "visible_bounds_width": 2.5,
+        "visible_bounds_height": 3.0,
+        "visible_bounds_offset": [
+          0,
+          1.5,
+          0
+        ]
+      },
+      "bones": [
+        {
+          "name": "body",
+          "pivot": [
+            0,
+            14,
+            0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -4,
+                14,
+                -2
+              ],
+              "size": [
+                8,
+                14,
+                4
+              ],
+              "uv": [
+                0,
+                0
+              ],
+              "inflate": 0.5
+            }
+          ]
+        },
+        {
+          "name": "head",
+          "pivot": [
+            0,
+            28,
+            0
+          ],
+          "parent": "body",
+          "cubes": [
+            {
+              "origin": [
+                -4,
+                28,
+                -4
+              ],
+              "size": [
+                8,
+                8,
+                8
+              ],
+              "uv": [
+                32,
+                18
+              ],
+              "inflate": 0.5
+            }
+          ]
+        },
+        {
+          "name": "leg0",
+          "pivot": [
+            -2,
+            14,
+            4
+          ],
+          "parent": "body",
+          "cubes": [
+            {
+              "origin": [
+                -4,
+                0,
+                2
+              ],
+              "size": [
+                4,
+                14,
+                4
+              ],
+              "uv": [
+                24,
+                0
+              ],
+              "inflate": 0.5
+            }
+          ]
+        },
+        {
+          "name": "leg1",
+          "pivot": [
+            2,
+            14,
+            4
+          ],
+          "parent": "body",
+          "cubes": [
+            {
+              "origin": [
+                0,
+                0,
+                2
+              ],
+              "size": [
+                4,
+                14,
+                4
+              ],
+              "uv": [
+                40,
+                0
+              ],
+              "inflate": 0.5
+            }
+          ]
+        },
+        {
+          "name": "leg2",
+          "pivot": [
+            -2,
+            14,
+            -4
+          ],
+          "parent": "body",
+          "cubes": [
+            {
+              "origin": [
+                -4,
+                0,
+                -6
+              ],
+              "size": [
+                4,
+                14,
+                4
+              ],
+              "uv": [
+                0,
+                18
+              ],
+              "inflate": 0.5
+            }
+          ]
+        },
+        {
+          "name": "leg3",
+          "pivot": [
+            2,
+            14,
+            -4
+          ],
+          "parent": "body",
+          "cubes": [
+            {
+              "origin": [
+                0,
+                0,
+                -6
+              ],
+              "size": [
+                4,
+                14,
+                4
+              ],
+              "uv": [
+                16,
+                18
+              ],
+              "inflate": 0.5
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

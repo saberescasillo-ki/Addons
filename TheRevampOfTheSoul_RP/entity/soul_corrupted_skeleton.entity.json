@@ -1,5 +1,5 @@
 {
-  "format_version": "1.10.0",
+  "format_version": "1.8.0",
   "minecraft:client_entity": {
     "description": {
       "identifier": "eu_sc:soul_corrupted_skeleton",
@@ -28,29 +28,6 @@
           "variable.riding_y_offset = variable.riding_y_offset_with_respect_to_player + variable.riding_y_offset_on_vehicle_where_other_entites_can_stand;",
           "variable.s_speed = math.lerp(variable.s_speed, query.modified_move_speed, 0.1);",
           "variable.s_turn = math.lerp(variable.s_turn, math.clamp(query.yaw_speed, -120.0, 120.0), 0.05);"
-        ],
-        "initialize": [
-          "variable.s_speed = 0.0;",
-          "variable.s_turn = 0.0;"
-        ],
-        "animate": [
-          "emitter_particle_controller",
-          "look_at_target",
-          "move",
-          "riding",
-          "holding",
-          "brandish_spear",
-          "charging",
-          "attack",
-          "sneaking",
-          "bob",
-          "damage_nearby_mobs",
-          "bow_and_arrow",
-          "swimming",
-          "use_item_progress",
-          "skeleton_attack",
-          "eu_sc_controller",
-          "eu_sc_particles"
         ]
       },
       "particle_effects": {
@@ -63,30 +40,78 @@
         "look_at_target_default": "animation.humanoid.look_at_target.default",
         "look_at_target_gliding": "animation.humanoid.look_at_target.gliding",
         "look_at_target_swimming": "animation.humanoid.look_at_target.swimming",
-        "move": "controller.animation.humanoid.move",
+        "move": "animation.humanoid.move",
         "riding.arms": "animation.humanoid.riding.arms",
         "riding.legs": "animation.humanoid.riding.legs",
-        "holding": "controller.animation.humanoid.holding",
-        "brandish_spear": "controller.animation.humanoid.brandish_spear",
-        "charging": "controller.animation.humanoid.charging",
+        "holding": "animation.humanoid.holding",
+        "brandish_spear": "animation.humanoid.brandish_spear",
+        "charging": "animation.humanoid.charging",
         "attack.rotations": "animation.humanoid.attack.rotations",
-        "sneaking": "controller.animation.humanoid.sneaking",
-        "bob": "controller.animation.humanoid.bob",
-        "damage_nearby_mobs": "controller.animation.humanoid.damage_nearby_mobs",
-        "bow_and_arrow": "controller.animation.humanoid.bow_and_arrow",
-        "swimming": "controller.animation.zombie.swimming",
-        "use_item_progress": "controller.animation.humanoid.use_item_progress",
-        "skeleton_attack": "controller.animation.skeleton.attack",
+        "sneaking": "animation.humanoid.sneaking",
+        "bob": "animation.humanoid.bob",
+        "damage_nearby_mobs": "animation.humanoid.damage_nearby_mobs",
+        "bow_and_arrow": "animation.humanoid.bow_and_arrow",
+        "swimming": "animation.zombie.swimming",
+        "use_item_progress": "animation.humanoid.use_item_progress",
+        "skeleton_attack": "animation.skeleton.attack",
         "riding.body": "animation.humanoid.riding.body",
-        "emitter_particle_controller": "controller.animation.eu.emitter_particle",
-        "look_at_target": "controller.animation.humanoid.look_at_target",
-        "riding": "controller.animation.humanoid.riding",
-        "attack": "controller.animation.humanoid.attack",
-        "eu_sc_controller": "controller.animation.eu_sc.skeleton",
         "eu_sc_particles": "animation.eu_sc.particles",
         "skeleton_spawn": "animation.eu_sc.skeleton_spawn",
         "skeleton_life": "animation.eu_sc.skeleton_life"
       },
+      "animation_controllers": [
+        {
+          "emitter_particle_controller": "controller.animation.eu.emitter_particle"
+        },
+        {
+          "look_at_target": "controller.animation.humanoid.look_at_target"
+        },
+        {
+          "move": "controller.animation.humanoid.move"
+        },
+        {
+          "riding": "controller.animation.humanoid.riding"
+        },
+        {
+          "holding": "controller.animation.humanoid.holding"
+        },
+        {
+          "brandish_spear": "controller.animation.humanoid.brandish_spear"
+        },
+        {
+          "charging": "controller.animation.humanoid.charging"
+        },
+        {
+          "attack": "controller.animation.humanoid.attack"
+        },
+        {
+          "sneaking": "controller.animation.humanoid.sneaking"
+        },
+        {
+          "bob": "controller.animation.humanoid.bob"
+        },
+        {
+          "damage_nearby_mobs": "controller.animation.humanoid.damage_nearby_mobs"
+        },
+        {
+          "bow_and_arrow": "controller.animation.humanoid.bow_and_arrow"
+        },
+        {
+          "swimming": "controller.animation.zombie.swimming"
+        },
+        {
+          "use_item_progress": "controller.animation.humanoid.use_item_progress"
+        },
+        {
+          "skeleton_attack": "controller.animation.skeleton.attack"
+        },
+        {
+          "eu_sc_controller": "controller.animation.eu_sc.skeleton"
+        },
+        {
+          "eu_sc_particles_controller": "controller.animation.eu_sc.particles"
+        }
+      ],
       "render_controllers": [
         "controller.render.eu_sc.outline_base.glow",
         "controller.render.eu_sc.outline_main.glow"

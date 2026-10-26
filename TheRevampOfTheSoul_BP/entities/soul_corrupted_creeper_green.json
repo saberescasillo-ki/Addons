@@ -78,7 +78,7 @@
       "minecraft:attack": {
         "damage": 3,
         "effect_name": "darkness",
-        "effect_duration": 8
+        "effect_duration": 2
       },
       "minecraft:behavior.avoid_mob_type": {
         "entity_types": [

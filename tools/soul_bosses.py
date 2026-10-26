@@ -30,12 +30,12 @@ CORE = f"{NS}:soul_core"
 
 BOSSES = {
     SKELETON_BOSS: dict(es="Esqueleto Mutante de Alma Corrupta", en="Soul Corrupted Mutant Skeleton",
-                        color="blue", hp=200, dmg=12, speed=0.27, box=(1.4, 3.8), death_ticks=60,
+                        color="blue", hp=400, dmg=12, speed=0.27, box=(1.4, 3.8), death_ticks=60,
                         egg=("#CEF8F9", "#24C7DD"),
                         loot=[("eu_sc:soul_corrupted_sword", 1, 1), (ESSENCE, 4, 8), ("minecraft:bone", 4, 8)],
                         xp=60, minions=["soul_corrupted_creeper", "soul_corrupted_zombie"]),
     ZOMBIE_BOSS: dict(es="Zombi Cuchilla de Alma Corrupta", en="Soul Corrupted Blade Zombie",
-                      color="red", hp=200, dmg=8, speed=0.33, box=(0.6, 1.95), death_ticks=50,
+                      color="red", hp=400, dmg=8, speed=0.33, box=(0.6, 1.95), death_ticks=50,
                       egg=("#F4A3A0", "#C7242A"),
                       loot=[(CORE, 1, 1), (ESSENCE, 3, 6), ("minecraft:rotten_flesh", 2, 5)],
                       xp=40, minions=[]),
@@ -51,6 +51,25 @@ def d_skull():
         f.px([(4, 4), (4, 5)], dark)
         for x in range(1, 8):
             f.put(x, 6, dark if x % 2 else f.tone(0))
+    return fn
+
+
+def d_blade_edges():
+    """Side of a flat blade: white cutting edges top and bottom, dark fuller."""
+    def fn(f):
+        for x in range(f.w):
+            f.put(x, 0, WHITE)
+            f.put(x, f.h - 1, WHITE)
+            if f.h > 4:
+                f.put(x, f.h // 2, f.tone(5))
+    return fn
+
+
+def d_white():
+    def fn(f):
+        for y in range(f.h):
+            for x in range(f.w):
+                f.put(x, y, WHITE)
     return fn
 
 
@@ -114,14 +133,22 @@ def mutant_skeleton_assets():
             if a and (0.3 * r + 0.59 * gg + 0.11 * b) / 255 < 0.42 and 2 <= y <= 5:
                 out[u + 8 + x, v + 8 + y] = WHITE
 
+    # A huge greatsword (about 2.4 blocks): wide blade with white edges, a
+    # fuller down the middle, pronged crossguard and a pommel
     sword = Model("sword", tex_w=64, ns="eu.sc")
     bone = sword.bone("rsword", [-8, 24, 2], "rightarm2")
     dark = Pal16("deep", 0.4)
-    steel = Pal16("skin", 0.3).with_deco(right=d_blade(), left=d_blade())
+    steel = Pal16("skin", 0.25).with_deco(right=d_blade_edges(), left=d_blade_edges(), top=d_white(),
+                                          bottom=d_white())
     sword.cube(bone, [-8.5, 22.5, -1], [1, 2, 6], dark)  # grip through the fist
-    sword.cube(bone, [-10.5, 22, -2], [5, 3, 1], dark)  # crossguard
-    sword.cube(bone, [-8.5, 22, -26], [1, 3, 24], steel)
-    sword.cube(bone, [-8.5, 22.5, -29], [1, 2, 3], steel)
+    sword.cube(bone, [-9.5, 22, 5], [3, 3, 2], Pal16("bone"))  # pommel
+    sword.cube(bone, [-12.5, 21, -3], [9, 4, 2], dark)  # crossguard
+    sword.cube(bone, [-13.5, 22, -5], [2, 2, 3], dark)  # prongs
+    sword.cube(bone, [-4.5, 22, -5], [2, 2, 3], dark)
+    sword.cube(bone, [-9, 20.5, -15], [2, 7, 12], steel)  # wide base of the blade
+    sword.cube(bone, [-9, 21, -31], [2, 6, 16], steel)
+    sword.cube(bone, [-9, 22, -36], [2, 4, 5], steel)
+    sword.cube(bone, [-9, 23, -39], [2, 2, 3], steel)  # point
     sword_img = sword.build(seed=99)
     tex.alpha_composite(sword_img, (64, 64))  # free area of the original texture
     for b in sword.geos["default"]:
@@ -421,7 +448,7 @@ def behavior(name):
         "minecraft:pushable_by_entity": {},
         "minecraft:pushable_by_block": {},
         "minecraft:knockback_resistance": {"value": 0.85 if skeleton else 0.6},
-        "minecraft:attack": {"damage": B["dmg"], "effect_name": "darkness", "effect_duration": 8},
+        "minecraft:attack": {"damage": B["dmg"], "effect_name": "darkness", "effect_duration": 2},
         "minecraft:fire_immune": {},
         "minecraft:breathable": {"total_supply": 15, "suffocate_time": 0, "breathes_air": True, "breathes_water": True},
         # immune to its own blasts and to the fall from the sky

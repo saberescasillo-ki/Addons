@@ -26,21 +26,21 @@
           "eu_sc_particles"
         ],
         "should_update_effects_offscreen": "1.0",
-        "initialize": [
-          "variable.s_speed = 0.0;",
-          "variable.s_turn = 0.0;"
-        ],
         "pre_animation": [
           "variable.s_speed = math.lerp(variable.s_speed, query.modified_move_speed, 0.1);",
           "variable.s_turn = math.lerp(variable.s_turn, math.clamp(query.yaw_speed, -120.0, 120.0), 0.05);"
+        ],
+        "initialize": [
+          "variable.s_speed = 0.0;",
+          "variable.s_turn = 0.0;"
         ]
       },
       "animations": {
         "emitter_particle_controller": "controller.animation.eu.emitter_particle",
-        "eu_sc_controller": "controller.animation.eu_sc.phantom",
         "eu_sc_particles": "animation.eu_sc.particles",
         "phantom_spawn": "animation.eu_sc.phantom_spawn",
-        "phantom_fly": "animation.eu_sc.phantom_fly"
+        "phantom_fly": "animation.eu_sc.phantom_fly",
+        "eu_sc_controller": "controller.animation.eu_sc.phantom"
       },
       "sound_effects": {
         "flap": "mob.phantom.flap"

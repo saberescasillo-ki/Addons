@@ -8,6 +8,7 @@
     "conditions": [
       {
         "minecraft:spawns_on_surface": {},
+        "minecraft:spawns_underground": {},
         "minecraft:difficulty_filter": {
           "min": "easy",
           "max": "hard"
@@ -16,21 +17,31 @@
           "min_size": 1,
           "max_size": 2
         },
+        "minecraft:weight": {
+          "default": 2
+        },
+        "minecraft:biome_filter": {
+          "test": "has_biome_tag",
+          "value": "crimson_forest"
+        }
+      },
+      {
+        "minecraft:spawns_on_surface": {},
         "minecraft:spawns_underground": {},
+        "minecraft:difficulty_filter": {
+          "min": "easy",
+          "max": "hard"
+        },
+        "minecraft:herd": {
+          "min_size": 1,
+          "max_size": 2
+        },
         "minecraft:weight": {
           "default": 18
         },
         "minecraft:biome_filter": {
-          "any_of": [
-            {
-              "test": "has_biome_tag",
-              "value": "crimson_forest"
-            },
-            {
-              "test": "has_biome_tag",
-              "value": "nether_wastes"
-            }
-          ]
+          "test": "has_biome_tag",
+          "value": "nether_wastes"
         }
       }
     ]

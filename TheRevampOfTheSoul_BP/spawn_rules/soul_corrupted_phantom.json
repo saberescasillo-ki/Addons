@@ -8,6 +8,7 @@
     "conditions": [
       {
         "minecraft:spawns_on_surface": {},
+        "minecraft:spawns_underground": {},
         "minecraft:difficulty_filter": {
           "min": "easy",
           "max": "hard"
@@ -16,25 +17,50 @@
           "min_size": 1,
           "max_size": 1
         },
-        "minecraft:spawns_underground": {},
         "minecraft:weight": {
-          "default": 3
+          "default": 1
         },
         "minecraft:biome_filter": {
-          "any_of": [
-            {
-              "test": "has_biome_tag",
-              "value": "soul_sand_valley"
-            },
-            {
-              "test": "has_biome_tag",
-              "value": "warped_forest"
-            },
-            {
-              "test": "has_biome_tag",
-              "value": "basalt_deltas"
-            }
-          ]
+          "test": "has_biome_tag",
+          "value": "soul_sand_valley"
+        }
+      },
+      {
+        "minecraft:spawns_on_surface": {},
+        "minecraft:spawns_underground": {},
+        "minecraft:difficulty_filter": {
+          "min": "easy",
+          "max": "hard"
+        },
+        "minecraft:herd": {
+          "min_size": 1,
+          "max_size": 1
+        },
+        "minecraft:weight": {
+          "default": 1
+        },
+        "minecraft:biome_filter": {
+          "test": "has_biome_tag",
+          "value": "warped_forest"
+        }
+      },
+      {
+        "minecraft:spawns_on_surface": {},
+        "minecraft:spawns_underground": {},
+        "minecraft:difficulty_filter": {
+          "min": "easy",
+          "max": "hard"
+        },
+        "minecraft:herd": {
+          "min_size": 1,
+          "max_size": 1
+        },
+        "minecraft:weight": {
+          "default": 4
+        },
+        "minecraft:biome_filter": {
+          "test": "has_biome_tag",
+          "value": "basalt_deltas"
         }
       }
     ]

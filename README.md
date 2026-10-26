@@ -30,6 +30,10 @@ El generador `tools/soul_mobs.py` (con `tools/soul_bosses.py`) lo copia y le añ
 | Phantom de Alma Corrupta (4 alas puntiagudas, 2,5 veces más grande) | `eu_sc:soul_corrupted_phantom` / `_red` / `_green` |
 | Phantom de Alma Domable (montable) | `eu_sc:soul_corrupted_phantom_mount` |
 | Esqueleto Wither de Alma Corrupta | `eu_sc:soul_corrupted_wither_skeleton` / `_red` / `_green` |
+| Araña de Alma Corrupta (1,3 veces más grande, aspecto monstruoso) | `eu_sc:soul_corrupted_spider` / `_red` / `_green` |
+| Zombi Invocador de Alma Corrupta (sombrero de granjero y capa) | `eu_sc:soul_corrupted_summoner` / `_red` / `_green` |
+| **Sub-jefe**: Creeper Titán de Alma Corrupta (azul marino) | `eu_sc:soul_corrupted_creeper_titan` |
+| Esqueleto Encapotado (variante vanilla, sin alma) | `eu_sc:caped_skeleton` |
 | **Mini jefe**: Esqueleto Mutante de Alma Corrupta | `eu_sc:soul_mutant_skeleton` |
 | **Mini jefe**: Zombi Cuchilla de Alma Corrupta | `eu_sc:soul_blade_zombie` |
 | Altar de Curación | `eu_sc:healing_altar` |
@@ -46,7 +50,8 @@ El generador `tools/soul_mobs.py` (con `tools/soul_bosses.py`) lo copia y le añ
 
 **Esqueleto Mutante (azul):**
 - Usa el modelo de Mutant Creatures: modelo, textura recoloreada y animaciones, guardados en `sources/mutant_skeleton/`.
-- Mide el doble que un jugador.
+- Mide el doble que un jugador y tiene 400 de vida.
+- Su espada mide unos 2,4 bloques: hoja ancha con filos blancos, guarda con puntas y pomo.
 - Ataca con una espada gigante y hace un **slash épico**.
 - De vez en cuando lanza una **explosión** que no rompe bloques: te empuja y te deja **ciego 3 s**.
 - **Entrada**: cae del cielo, aterriza agachado y se levanta.
@@ -54,7 +59,7 @@ El generador `tools/soul_mobs.py` (con `tools/soul_bosses.py`) lo copia y le añ
 
 **Zombi Cuchilla (rojo):**
 - Tamaño de jugador, con cuchillas en vez de brazos.
-- 200 de vida y velocidad 0,33.
+- 400 de vida y velocidad 0,33.
 - Su ataque normal es exagerado: echa las cuchillas atrás y se lanza con ellas hacia delante.
 - **Explosión**: lentitud II 3 s.
 - **Embestida**: si te alcanza, lentitud 255 durante 1 s.
@@ -62,9 +67,29 @@ El generador `tools/soul_mobs.py` (con `tools/soul_bosses.py`) lo copia y le añ
 - **Entrada**: sale del suelo.
 - **Muerte**: algo lo arrastra bajo tierra mientras se resiste.
 
+### Nuevos mobs
+
+**Araña de Alma Corrupta:**
+- Ocho ojos blancos, colmillos, abdomen con púas y patas con garras.
+- Trepa paredes y salta sobre el jugador.
+
+**Zombi Invocador:**
+- Cuando te ve invoca un zombi y un esqueleto de su mismo color: levanta los brazos y salen del suelo.
+- Lo repite cada 30 s, y nunca si ya hay muchos mobs de alma cerca.
+
+**Creeper Titán (sub-jefe):**
+- Solo existe en azul marino, con outline. Más alto que un creeper y con patas largas: unos 2,25 bloques.
+- Al aparecer provoca una mini explosión que no rompe bloques.
+- Al explotar deja un creeper de alma celeste normal.
+- Aparece rara vez, en el Overworld y en el Nether.
+
+**Esqueleto Encapotado:**
+- Un esqueleto vanilla, con su textura normal, que lleva capa y capucha.
+- Dispara 2 flechas seguidas.
+
 ### Esqueleto Wither de Alma Corrupta
 
-- Hay uno en cada color, más oscuro y 1,2 veces más grande.
+- Hay uno en cada color, más oscuro y con el tamaño normal de un wither skeleton (1,2 veces un esqueleto).
 - Corre a 0,4 (el wither skeleton normal va a 0,25), con una carrera exagerada: inclinado y con los brazos hacia atrás.
 - Su **slash** hace 60 de daño: mata de un golpe aunque lleves armadura de hierro completa.
 - **Muere de un golpe** (1 de vida) y no suelta nada.
@@ -81,10 +106,12 @@ El generador `tools/soul_mobs.py` (con `tools/soul_bosses.py`) lo copia y le añ
 - Las flechas de los esqueletos invocan rayos, en los tres colores.
 - **Inmunes** a fuego, lava, magma, congelación, ahogamiento y wither. No se convierten en ahogados ni en *strays*.
 - Caminan un 12 % más rápido que sus versiones vanilla.
-- **Spawn natural**:
+- **Spawn natural**: los mobs de alma son aproximadamente **el 35 %** de los monstruos que aparecen en sus biomas. Las probabilidades de cada bioma se calculan a partir de cuánto aparecen ahí los mobs vanilla.
   - Azules: solo en el Nether (valle de arena de almas, bosque distorsionado y deltas de basalto).
   - Rojos: solo en el Nether (bosque carmesí y desiertos del Nether).
   - Verdes: solo en el Overworld, en cualquier bioma salvo sabanas y biomas fríos.
+  - Phantoms: el 35 % de los phantoms vanilla (los del insomnio) se convierte en phantoms de alma verdes.
+- **Oscuridad**: dura 2 segundos.
 - **Phantoms**:
   - todos vuelan 1,65 veces más rápido;
   - el hostil detecta jugadores a 96 bloques, ataca cada 2-5 s y vuela a 6-12 bloques sobre ti;

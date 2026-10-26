@@ -149,6 +149,27 @@
         }
       }
     },
+    "controller.animation.eu_sc.particles": {
+      "initial_state": "default",
+      "states": {
+        "default": {
+          "animations": [
+            "eu_sc_particles"
+          ]
+        }
+      }
+    },
+    "controller.animation.eu_sc.wither": {
+      "initial_state": "default",
+      "states": {
+        "default": {
+          "animations": [
+            "wither_run",
+            "wither_slash"
+          ]
+        }
+      }
+    },
     "controller.animation.eu_sc.soul_mutant_skeleton": {
       "initial_state": "start",
       "states": {
@@ -371,6 +392,80 @@
             "bzombie_death"
           ],
           "blend_transition": 0.2
+        }
+      }
+    },
+    "controller.animation.eu_sc.summoner": {
+      "initial_state": "idle",
+      "states": {
+        "idle": {
+          "animations": [
+            "cape_sway"
+          ],
+          "transitions": [
+            {
+              "cast": "query.property('eu_sc:action') == 3"
+            }
+          ]
+        },
+        "cast": {
+          "animations": [
+            "cape_sway",
+            "summoner_cast"
+          ],
+          "blend_transition": 0.2,
+          "transitions": [
+            {
+              "idle": "query.property('eu_sc:action') != 3 && query.all_animations_finished"
+            }
+          ]
+        }
+      }
+    },
+    "controller.animation.eu_sc.spider": {
+      "initial_state": "start",
+      "states": {
+        "start": {
+          "transitions": [
+            {
+              "emerging": "query.property('eu_sc:emerging')"
+            },
+            {
+              "alive": "!query.property('eu_sc:emerging')"
+            }
+          ]
+        },
+        "emerging": {
+          "animations": [
+            "spider_spawn"
+          ],
+          "particle_effects": [
+            {
+              "effect": "burst"
+            }
+          ],
+          "transitions": [
+            {
+              "alive": "!query.property('eu_sc:emerging')"
+            }
+          ],
+          "blend_transition": 0.3
+        },
+        "alive": {
+          "animations": [
+            "spider_life"
+          ],
+          "blend_transition": 0.3
+        }
+      }
+    },
+    "controller.animation.eu_sc.cape": {
+      "initial_state": "default",
+      "states": {
+        "default": {
+          "animations": [
+            "cape_sway"
+          ]
         }
       }
     }
