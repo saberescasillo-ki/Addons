@@ -6,13 +6,13 @@
     "uuid": "cebd64fa-ccb8-4f9f-a744-dc03c3d56ea8",
     "version": [
       1,
-      0,
-      0
+      2,
+      1
     ],
     "min_engine_version": [
       1,
       21,
-      90
+      100
     ]
   },
   "modules": [
@@ -21,8 +21,8 @@
       "uuid": "de1aa5e9-fa5f-47a0-8041-dcc2b0df6867",
       "version": [
         1,
-        0,
-        0
+        2,
+        1
       ]
     },
     {
@@ -31,8 +31,8 @@
       "uuid": "ce237dc6-fa54-47fc-b7ae-907460106128",
       "version": [
         1,
-        0,
-        0
+        2,
+        1
       ],
       "entry": "scripts/main.js"
     }
@@ -42,12 +42,16 @@
       "uuid": "3dcf6310-841c-4f10-9844-c8b91af2d428",
       "version": [
         1,
-        0,
-        0
+        2,
+        1
       ]
     },
     {
       "module_name": "@minecraft/server",
+      "version": "2.1.0"
+    },
+    {
+      "module_name": "@minecraft/server-ui",
       "version": "2.0.0"
     }
   ]
