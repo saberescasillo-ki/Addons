@@ -1,0 +1,39 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "The LITIUS Blind",
+    "description": "Texturas de The LITIUS Blind.",
+    "uuid": "2ffd24a0-ffdc-4bb3-b637-925e2d296f94",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      26,
+      20
+    ]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "e4bb1993-5b6e-45b8-b585-4240520d84ed",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "5e2176e5-4c4f-40d1-b07b-b26952caf7c3",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ]
+}

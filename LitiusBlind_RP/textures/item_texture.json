@@ -1,0 +1,9 @@
+{
+  "resource_pack_name": "litius",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "litius_llave_de_raices": {
+      "textures": "textures/items/litius/llave_de_raices"
+    }
+  }
+}

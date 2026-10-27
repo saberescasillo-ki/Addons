@@ -1,0 +1,54 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "The LITIUS Blind",
+    "description": "Una nueva dimensión de islas flotantes.",
+    "uuid": "5e2176e5-4c4f-40d1-b07b-b26952caf7c3",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      26,
+      20
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "5721f967-0fcd-42ab-a3bb-7054819d05df",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "c8c5953b-4aa4-443d-9a78-6c5c40728443",
+      "version": [
+        1,
+        0,
+        0
+      ],
+      "entry": "scripts/main.js"
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "2ffd24a0-ffdc-4bb3-b637-925e2d296f94",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "beta"
+    }
+  ]
+}
