@@ -1,0 +1,8 @@
+item.ayuda:carga_de_relevo.name=Carga de Relevo
+item.ayuda:estallido.name=Estallido
+tile.ayuda:cabeza_esqueleto_energica.name=Cabeza de Esqueleto Enérgica
+tile.ayuda:faro_indeseado.name=Faro Indeseado
+entity.ayuda:esqueleto_de_alma.name=Esqueleto de Alma
+item.spawn_egg.entity.ayuda:esqueleto_de_alma.name=Generar Esqueleto de Alma
+pack.name=Objetos de Ayuda
+pack.description=Objetos especiales que ayudan al jugador.

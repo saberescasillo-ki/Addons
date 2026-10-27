@@ -1,0 +1,39 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Objetos de Ayuda",
+    "description": "Texturas, modelos y animaciones de los objetos de ayuda.",
+    "uuid": "89515645-3bd9-4d7e-b3f3-43a31c4d09bc",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      90
+    ]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "090fe482-73aa-41f3-949d-5383d5a86cd9",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "ee3c9abb-806b-41b3-8eae-6391ecfaa95c",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ]
+}

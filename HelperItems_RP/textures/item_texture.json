@@ -1,0 +1,12 @@
+{
+  "resource_pack_name": "ayuda",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "ayuda_carga_de_relevo": {
+      "textures": "textures/items/ayuda/carga_de_relevo"
+    },
+    "ayuda_estallido": {
+      "textures": "textures/items/ayuda/estallido"
+    }
+  }
+}
