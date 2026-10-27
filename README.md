@@ -5,12 +5,13 @@
 | **The Revamp of the Soul** (antes Soul Corrupted Mobs; base de Euforia) | [`dist/TheRevampOfTheSoul.mcaddon`](dist/TheRevampOfTheSoul.mcaddon) | `tools/soul_mobs.py` |
 | **Medieval Mobs** – mobs medievales | [`dist/MedievalMobs.mcaddon`](dist/MedievalMobs.mcaddon) | `tools/generate.py` |
 | **Ruleta de Colores** – ruleta en el HUD con comandos de administrador | [`dist/Roulette.mcaddon`](dist/Roulette.mcaddon) | `tools/roulette.py` |
+| **Objetos de Ayuda** – 4 objetos especiales que ayudan al jugador | [`dist/HelperItems.mcaddon`](dist/HelperItems.mcaddon) | `tools/helper_items.py` |
 
 Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo. No hace falta activar experimentos.
 
 - The Revamp of the Soul requiere Minecraft Bedrock **1.26.0** o superior.
 - Medieval Mobs requiere **1.21.0** o superior.
-- Ruleta de Colores requiere **1.21.90** o superior.
+- Ruleta de Colores y Objetos de Ayuda requieren **1.21.90** o superior.
 
 ---
 
@@ -41,6 +42,37 @@ Tiene 6 colores: **rojo, verde, azul, blanco, celeste y amarillo**.
 - Si un jugador sale y vuelve a entrar con la ruleta abierta, la vuelve a ver.
 - La ruleta se dibuja con JSON UI usando títulos ocultos que empiezan por `_roul:`; el resto de títulos se ve normal.
   El tamaño, la esquina y la duración del giro se cambian en `tools/roulette.py` (`UI_SIZE`, `ANCHOR`, `SPIN_TICKS`).
+
+---
+
+# Objetos de Ayuda
+
+![Los cuatro objetos y el Esqueleto de Alma](docs/helper_items_preview.png)
+
+Cuatro objetos especiales. Están en el inventario creativo o con `/give @s <id>`.
+
+| Objeto | ID | Qué hace |
+|---|---|---|
+| Carga de Relevo | `ayuda:carga_de_relevo` | Te impulsa unos **15 bloques hacia arriba** y te da **Caída lenta 15 s** (empieza al llegar arriba). **70 usos** (se gasta uno por uso), **cooldown 30 s**, no se apila. Icono 2D: una bola de viento esférica. |
+| Estallido | `ayuda:estallido` | Te cuesta **3 corazones** (primero se gastan los dorados si tienes Absorción) y provoca una explosión que **no rompe bloques ni te daña**. Cada mob a **3 bloques** o menos recibe 3 corazones de daño, sale empujado unos **4 bloques** y recibe **Lentitud II 5 s**. **Cooldown 45 s**, no se apila. 2D en el inventario y **3D en la mano** (rombo celeste que gira). Sin Absorción y con 3 corazones o menos no se puede usar, para no matarte. |
+| Cabeza de Esqueleto Enérgica | `ayuda:cabeza_esqueleto_energica` | Cabeza de esqueleto con **ojos celestes**, 3D en el inventario y en la mano. Al usarla aparece un **Esqueleto de Alma** aliado. **Cooldown 45 s**; no se gasta. |
+| Faro Indeseado | `ayuda:faro_indeseado` | Bloque brillante tipo ranaluz (nacarado), 3D en el inventario y en la mano. Al usarlo te da un **efecto positivo aleatorio, nivel II, durante 24 s**. Nunca da efectos instantáneos (salud instantánea, saturación). Se gasta al usarlo. |
+
+- La cabeza y el faro son bloques (por eso se ven en 3D): **úsalos apuntando a un bloque** como si los colocaras, o al aire.
+  No se quedan colocados; colocarlos cuenta como usarlos.
+- Los cooldowns se reinician si sales y vuelves a entrar al mundo.
+
+### Esqueleto de Alma (`ayuda:esqueleto_de_alma`)
+
+- Textura de esqueleto vanilla (64x32, píxeles de 16x16) en **celeste fuego de almas**, con una espada.
+- **80 de vida** (4 esqueletos), velocidad **0,253** (un 10 % más que el zombi) y **6 de daño** (3 corazones sin armadura).
+- Es tuyo: te sigue, ataca a los monstruos cercanos (menos creepers), a quien te ataca y a quien atacas. No le hace daño la caída ni el fuego.
+- Animaciones:
+  - **Aparecer**: sale del suelo arrastrándose (0,5 s).
+  - **Caminar**: lleva la espada con las dos manos y se inclina hacia delante.
+  - **Atacar**: echa la espada atrás y da una estocada hacia delante.
+  - **Morir**: se encoge hasta desaparecer.
+- Los valores (vida, daño, radio, empuje, duraciones...) están en `CONFIG` y `SKELETON_STATS` al principio de `tools/helper_items.py`.
 
 ---
 
@@ -204,6 +236,7 @@ sources/mutant_skeleton/                      modelo de Mutant Creatures (con pe
 sources/soul_corrupted_mobs_v1.0.0/           addon original (base)
 MedievalMobs_BP/   MedievalMobs_RP/    addon medieval
 Roulette_BP/       Roulette_RP/        ruleta de colores (generado)
+HelperItems_BP/    HelperItems_RP/     objetos de ayuda (generado)
 tools/             generadores en Python (modelos + texturas + JSON)
 dist/              los .mcaddon listos para instalar
 ```
@@ -219,6 +252,7 @@ Los packs se generan con Python 3 y Pillow. Para cambiar vida, daño, efectos, c
 python3 tools/soul_mobs.py --preview
 python3 tools/generate.py --preview
 python3 tools/roulette.py --preview
+python3 tools/helper_items.py --preview
 ```
 
 Cada uno vuelve a generar sus packs y su `.mcaddon`. `--preview` además actualiza las imágenes de `docs/`.

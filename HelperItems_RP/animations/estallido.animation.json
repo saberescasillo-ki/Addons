@@ -1,0 +1,53 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.ayuda.estallido.first_person": {
+      "loop": true,
+      "bones": {
+        "estallido": {
+          "rotation": [
+            -10,
+            40,
+            0
+          ],
+          "position": [
+            0,
+            3,
+            -2
+          ],
+          "scale": 0.6
+        }
+      }
+    },
+    "animation.ayuda.estallido.third_person": {
+      "loop": true,
+      "bones": {
+        "estallido": {
+          "position": [
+            0,
+            0,
+            -2
+          ],
+          "scale": 0.7
+        }
+      }
+    },
+    "animation.ayuda.estallido.spin": {
+      "loop": true,
+      "bones": {
+        "gem": {
+          "rotation": [
+            0,
+            "q.life_time * 60",
+            0
+          ],
+          "position": [
+            0,
+            "math.sin(q.life_time * 120) * 0.4",
+            0
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "format_version": "1.10.0",
+  "animation_controllers": {
+    "controller.animation.ayuda.esqueleto_de_alma.pose": {
+      "initial_state": "idle",
+      "states": {
+        "idle": {
+          "animations": [
+            "idle"
+          ],
+          "blend_transition": 0.2,
+          "transitions": [
+            {
+              "attack": "v.attack_time > 0"
+            },
+            {
+              "walk": "q.modified_move_speed > 0.1"
+            }
+          ]
+        },
+        "walk": {
+          "animations": [
+            "walk"
+          ],
+          "blend_transition": 0.2,
+          "transitions": [
+            {
+              "attack": "v.attack_time > 0"
+            },
+            {
+              "idle": "q.modified_move_speed <= 0.1"
+            }
+          ]
+        },
+        "attack": {
+          "animations": [
+            "attack"
+          ],
+          "blend_transition": 0.1,
+          "transitions": [
+            {
+              "idle": "q.all_animations_finished"
+            }
+          ]
+        }
+      }
+    },
+    "controller.animation.ayuda.esqueleto_de_alma.emerge": {
+      "initial_state": "check",
+      "states": {
+        "check": {
+          "transitions": [
+            {
+              "emerge": "!q.property('ayuda:emerged')"
+            },
+            {
+              "done": "q.property('ayuda:emerged')"
+            }
+          ]
+        },
+        "emerge": {
+          "animations": [
+            "emerge"
+          ],
+          "transitions": [
+            {
+              "done": "q.all_animations_finished"
+            }
+          ]
+        },
+        "done": {}
+      }
+    },
+    "controller.animation.ayuda.esqueleto_de_alma.death": {
+      "initial_state": "alive",
+      "states": {
+        "alive": {
+          "transitions": [
+            {
+              "dead": "!q.is_alive"
+            }
+          ]
+        },
+        "dead": {
+          "animations": [
+            "death"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:block": {
+    "description": {
+      "identifier": "ayuda:faro_indeseado",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "ayuda_faro_lado",
+          "render_method": "opaque"
+        },
+        "up": {
+          "texture": "ayuda_faro_arriba",
+          "render_method": "opaque"
+        },
+        "down": {
+          "texture": "ayuda_faro_arriba",
+          "render_method": "opaque"
+        }
+      },
+      "minecraft:light_emission": 15,
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.3
+      },
+      "minecraft:map_color": "#e6c8f5"
+    }
+  }
+}

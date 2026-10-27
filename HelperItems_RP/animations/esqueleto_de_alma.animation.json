@@ -1,0 +1,438 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.ayuda.esqueleto_de_alma.look": {
+      "loop": true,
+      "bones": {
+        "head": {
+          "rotation": [
+            "q.target_x_rotation",
+            "q.target_y_rotation",
+            0
+          ]
+        }
+      }
+    },
+    "animation.ayuda.esqueleto_de_alma.legs": {
+      "loop": true,
+      "bones": {
+        "rightLeg": {
+          "rotation": [
+            "math.cos(q.modified_distance_moved * 38.17) * 50 * q.modified_move_speed",
+            0,
+            0
+          ]
+        },
+        "leftLeg": {
+          "rotation": [
+            "-math.cos(q.modified_distance_moved * 38.17) * 50 * q.modified_move_speed",
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "animation.ayuda.esqueleto_de_alma.idle": {
+      "loop": true,
+      "bones": {
+        "body": {
+          "rotation": [
+            "math.sin(q.life_time * 90) * 1.5",
+            0,
+            0
+          ]
+        },
+        "rightArm": {
+          "rotation": [
+            -35,
+            0,
+            -25
+          ]
+        },
+        "leftArm": {
+          "rotation": [
+            -35,
+            0,
+            25
+          ]
+        },
+        "sword": {
+          "rotation": [
+            35,
+            0,
+            25
+          ]
+        }
+      }
+    },
+    "animation.ayuda.esqueleto_de_alma.walk": {
+      "loop": true,
+      "bones": {
+        "body": {
+          "rotation": [
+            "12 + math.sin(q.modified_distance_moved * 38.17 * 2) * 2",
+            0,
+            0
+          ]
+        },
+        "head": {
+          "rotation": [
+            -12,
+            0,
+            0
+          ]
+        },
+        "rightArm": {
+          "rotation": [
+            "-50 + math.sin(q.modified_distance_moved * 38.17) * 4",
+            0,
+            25
+          ]
+        },
+        "leftArm": {
+          "rotation": [
+            "-50 + math.sin(q.modified_distance_moved * 38.17) * 4",
+            0,
+            -25
+          ]
+        },
+        "sword": {
+          "rotation": [
+            -40,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "animation.ayuda.esqueleto_de_alma.attack": {
+      "animation_length": 0.65,
+      "bones": {
+        "root": {
+          "position": {
+            "0.0": [
+              0,
+              0,
+              0
+            ],
+            "0.2": [
+              0,
+              0,
+              1
+            ],
+            "0.35": [
+              0,
+              0,
+              -4
+            ],
+            "0.5": [
+              0,
+              0,
+              -4
+            ],
+            "0.65": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "body": {
+          "rotation": {
+            "0.0": [
+              12,
+              0,
+              0
+            ],
+            "0.2": [
+              -6,
+              25,
+              0
+            ],
+            "0.35": [
+              22,
+              -15,
+              0
+            ],
+            "0.5": [
+              20,
+              -12,
+              0
+            ],
+            "0.65": [
+              12,
+              0,
+              0
+            ]
+          }
+        },
+        "rightArm": {
+          "rotation": {
+            "0.0": [
+              -50,
+              0,
+              25
+            ],
+            "0.2": [
+              -20,
+              0,
+              10
+            ],
+            "0.35": [
+              -95,
+              0,
+              10
+            ],
+            "0.5": [
+              -92,
+              0,
+              10
+            ],
+            "0.65": [
+              -50,
+              0,
+              25
+            ]
+          }
+        },
+        "leftArm": {
+          "rotation": {
+            "0.0": [
+              -50,
+              0,
+              -25
+            ],
+            "0.2": [
+              -25,
+              0,
+              -20
+            ],
+            "0.35": [
+              -95,
+              0,
+              -20
+            ],
+            "0.5": [
+              -92,
+              0,
+              -20
+            ],
+            "0.65": [
+              -50,
+              0,
+              -25
+            ]
+          }
+        },
+        "sword": {
+          "rotation": {
+            "0.0": [
+              -40,
+              0,
+              0
+            ],
+            "0.2": [
+              -70,
+              0,
+              0
+            ],
+            "0.35": [
+              5,
+              0,
+              0
+            ],
+            "0.5": [
+              5,
+              0,
+              0
+            ],
+            "0.65": [
+              -40,
+              0,
+              0
+            ]
+          }
+        },
+        "rightLeg": {
+          "rotation": {
+            "0.0": [
+              0,
+              0,
+              0
+            ],
+            "0.35": [
+              -30,
+              0,
+              0
+            ],
+            "0.5": [
+              -30,
+              0,
+              0
+            ],
+            "0.65": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "leftLeg": {
+          "rotation": {
+            "0.0": [
+              0,
+              0,
+              0
+            ],
+            "0.35": [
+              25,
+              0,
+              0
+            ],
+            "0.5": [
+              25,
+              0,
+              0
+            ],
+            "0.65": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      }
+    },
+    "animation.ayuda.esqueleto_de_alma.emerge": {
+      "animation_length": 0.5,
+      "particle_effects": {
+        "0.0": {
+          "effect": "soul"
+        },
+        "0.25": {
+          "effect": "soul"
+        }
+      },
+      "bones": {
+        "root": {
+          "position": {
+            "0.0": [
+              0,
+              -26,
+              0
+            ],
+            "0.25": [
+              0,
+              -11,
+              0
+            ],
+            "0.5": [
+              0,
+              0,
+              0
+            ]
+          },
+          "rotation": {
+            "0.0": [
+              35,
+              0,
+              0
+            ],
+            "0.25": [
+              25,
+              0,
+              0
+            ],
+            "0.5": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "rightArm": {
+          "rotation": {
+            "0.0": [
+              -135,
+              0,
+              0
+            ],
+            "0.15": [
+              -60,
+              0,
+              0
+            ],
+            "0.3": [
+              -120,
+              0,
+              0
+            ],
+            "0.5": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "leftArm": {
+          "rotation": {
+            "0.0": [
+              -60,
+              0,
+              0
+            ],
+            "0.15": [
+              -130,
+              0,
+              0
+            ],
+            "0.3": [
+              -60,
+              0,
+              0
+            ],
+            "0.5": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      }
+    },
+    "animation.ayuda.esqueleto_de_alma.death": {
+      "animation_length": 0.9,
+      "loop": "hold_on_last_frame",
+      "particle_effects": {
+        "0.0": {
+          "effect": "soul"
+        },
+        "0.4": {
+          "effect": "soul"
+        }
+      },
+      "bones": {
+        "root": {
+          "scale": {
+            "0.0": 1,
+            "0.15": 1.1,
+            "0.8": 0.01,
+            "0.9": 0.0
+          },
+          "rotation": {
+            "0.0": [
+              0,
+              0,
+              0
+            ],
+            "0.8": [
+              0,
+              270,
+              0
+            ]
+          }
+        }
+      }
+    }
+  }
+}

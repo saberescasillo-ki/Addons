@@ -1,0 +1,48 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "ayuda:esqueleto_de_alma",
+      "materials": {
+        "default": "skeleton"
+      },
+      "textures": {
+        "default": "textures/entity/ayuda/esqueleto_de_alma"
+      },
+      "geometry": {
+        "default": "geometry.ayuda.esqueleto_de_alma"
+      },
+      "render_controllers": [
+        "controller.render.ayuda.esqueleto_de_alma"
+      ],
+      "particle_effects": {
+        "soul": "minecraft:soul_particle"
+      },
+      "animations": {
+        "look": "animation.ayuda.esqueleto_de_alma.look",
+        "legs": "animation.ayuda.esqueleto_de_alma.legs",
+        "idle": "animation.ayuda.esqueleto_de_alma.idle",
+        "walk": "animation.ayuda.esqueleto_de_alma.walk",
+        "attack": "animation.ayuda.esqueleto_de_alma.attack",
+        "emerge": "animation.ayuda.esqueleto_de_alma.emerge",
+        "death": "animation.ayuda.esqueleto_de_alma.death",
+        "pose": "controller.animation.ayuda.esqueleto_de_alma.pose",
+        "emerge_ctrl": "controller.animation.ayuda.esqueleto_de_alma.emerge",
+        "death_ctrl": "controller.animation.ayuda.esqueleto_de_alma.death"
+      },
+      "scripts": {
+        "animate": [
+          "look",
+          "legs",
+          "pose",
+          "emerge_ctrl",
+          "death_ctrl"
+        ]
+      },
+      "spawn_egg": {
+        "base_color": "#8eeef7",
+        "overlay_color": "#0c4552"
+      }
+    }
+  }
+}

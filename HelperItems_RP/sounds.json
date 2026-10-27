@@ -1,0 +1,22 @@
+{
+  "entity_sounds": {
+    "entities": {
+      "ayuda:esqueleto_de_alma": {
+        "volume": 1.0,
+        "pitch": [
+          0.9,
+          1.1
+        ],
+        "events": {
+          "ambient": "mob.skeleton.say",
+          "hurt": "mob.skeleton.hurt",
+          "death": "mob.skeleton.death",
+          "step": {
+            "sound": "mob.skeleton.step",
+            "volume": 0.6
+          }
+        }
+      }
+    }
+  }
+}

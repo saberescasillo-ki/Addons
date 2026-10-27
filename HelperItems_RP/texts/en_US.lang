@@ -1,0 +1,8 @@
+item.ayuda:carga_de_relevo.name=Relay Charge
+item.ayuda:estallido.name=Burst
+tile.ayuda:cabeza_esqueleto_energica.name=Energetic Skeleton Skull
+tile.ayuda:faro_indeseado.name=Unwanted Beacon
+entity.ayuda:esqueleto_de_alma.name=Soul Skeleton
+item.spawn_egg.entity.ayuda:esqueleto_de_alma.name=Spawn Soul Skeleton
+pack.name=Helper Items
+pack.description=Special items that help the player.

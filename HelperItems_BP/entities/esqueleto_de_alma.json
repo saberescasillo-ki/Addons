@@ -1,0 +1,210 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "ayuda:esqueleto_de_alma",
+      "is_spawnable": true,
+      "is_summonable": true,
+      "properties": {
+        "ayuda:emerged": {
+          "type": "bool",
+          "default": false,
+          "client_sync": true
+        }
+      }
+    },
+    "component_groups": {
+      "ayuda:emerging": {
+        "minecraft:movement": {
+          "value": 0
+        },
+        "minecraft:timer": {
+          "time": 0.5,
+          "looping": false,
+          "time_down_event": {
+            "event": "ayuda:emerged",
+            "target": "self"
+          }
+        }
+      },
+      "ayuda:active": {
+        "minecraft:movement": {
+          "value": 0.253
+        }
+      },
+      "ayuda:tamed": {
+        "minecraft:is_tamed": {},
+        "minecraft:behavior.follow_owner": {
+          "priority": 5,
+          "speed_multiplier": 1.0,
+          "start_distance": 10,
+          "stop_distance": 3
+        },
+        "minecraft:behavior.owner_hurt_by_target": {
+          "priority": 1
+        },
+        "minecraft:behavior.owner_hurt_target": {
+          "priority": 2
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "ayuda_soul_skeleton",
+          "undead",
+          "mob"
+        ]
+      },
+      "minecraft:health": {
+        "value": 80,
+        "max": 80
+      },
+      "minecraft:attack": {
+        "damage": 6
+      },
+      "minecraft:collision_box": {
+        "width": 0.6,
+        "height": 1.99
+      },
+      "minecraft:movement.basic": {},
+      "minecraft:navigation.walk": {
+        "can_path_over_water": true,
+        "avoid_damage_blocks": true,
+        "can_open_doors": true
+      },
+      "minecraft:jump.static": {},
+      "minecraft:can_climb": {},
+      "minecraft:physics": {},
+      "minecraft:pushable": {
+        "is_pushable": true,
+        "is_pushable_by_piston": true
+      },
+      "minecraft:nameable": {},
+      "minecraft:persistent": {},
+      "minecraft:fire_immune": true,
+      "minecraft:knockback_resistance": {
+        "value": 0.3
+      },
+      "minecraft:breathable": {
+        "total_supply": 15,
+        "suffocate_time": 0,
+        "breathes_water": true
+      },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "cause": "fall",
+            "deals_damage": "no"
+          },
+          {
+            "on_damage": {
+              "filters": {
+                "test": "is_family",
+                "subject": "other",
+                "value": "ayuda_soul_skeleton"
+              }
+            },
+            "deals_damage": "no"
+          }
+        ]
+      },
+      "minecraft:tameable": {
+        "probability": 0.0,
+        "tame_items": "bone",
+        "tame_event": {
+          "event": "ayuda:tame",
+          "target": "self"
+        }
+      },
+      "minecraft:behavior.float": {
+        "priority": 0
+      },
+      "minecraft:behavior.melee_attack": {
+        "priority": 3,
+        "speed_multiplier": 1.2,
+        "track_target": true
+      },
+      "minecraft:behavior.hurt_by_target": {
+        "priority": 1,
+        "entity_types": {
+          "filters": {
+            "test": "is_family",
+            "subject": "other",
+            "operator": "!=",
+            "value": "player"
+          }
+        }
+      },
+      "minecraft:behavior.nearest_attackable_target": {
+        "priority": 3,
+        "must_see": true,
+        "reselect_targets": true,
+        "within_radius": 16,
+        "entity_types": [
+          {
+            "filters": {
+              "all_of": [
+                {
+                  "test": "is_family",
+                  "subject": "other",
+                  "value": "monster"
+                },
+                {
+                  "test": "is_family",
+                  "subject": "other",
+                  "operator": "!=",
+                  "value": "creeper"
+                }
+              ]
+            },
+            "max_dist": 16
+          }
+        ]
+      },
+      "minecraft:behavior.random_stroll": {
+        "priority": 7,
+        "speed_multiplier": 0.8
+      },
+      "minecraft:behavior.look_at_player": {
+        "priority": 8,
+        "look_distance": 8
+      },
+      "minecraft:behavior.random_look_around": {
+        "priority": 9
+      },
+      "minecraft:conditional_bandwidth_optimization": {}
+    },
+    "events": {
+      "minecraft:entity_spawned": {
+        "add": {
+          "component_groups": [
+            "ayuda:emerging"
+          ]
+        }
+      },
+      "ayuda:emerged": {
+        "remove": {
+          "component_groups": [
+            "ayuda:emerging"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "ayuda:active"
+          ]
+        },
+        "set_property": {
+          "ayuda:emerged": true
+        }
+      },
+      "ayuda:tame": {
+        "add": {
+          "component_groups": [
+            "ayuda:tamed"
+          ]
+        }
+      }
+    }
+  }
+}

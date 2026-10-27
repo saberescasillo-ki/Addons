@@ -1,0 +1,17 @@
+{
+  "resource_pack_name": "ayuda",
+  "texture_name": "atlas.terrain",
+  "padding": 8,
+  "num_mip_levels": 4,
+  "texture_data": {
+    "ayuda_cabeza_energica": {
+      "textures": "textures/blocks/ayuda/cabeza_energica"
+    },
+    "ayuda_faro_lado": {
+      "textures": "textures/blocks/ayuda/faro_lado"
+    },
+    "ayuda_faro_arriba": {
+      "textures": "textures/blocks/ayuda/faro_arriba"
+    }
+  }
+}

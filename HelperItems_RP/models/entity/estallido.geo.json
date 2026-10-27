@@ -1,0 +1,153 @@
+{
+  "format_version": "1.12.0",
+  "minecraft:geometry": [
+    {
+      "description": {
+        "identifier": "geometry.ayuda.estallido",
+        "texture_width": 32,
+        "texture_height": 32,
+        "visible_bounds_width": 2,
+        "visible_bounds_height": 2,
+        "visible_bounds_offset": [
+          0,
+          0.5,
+          0
+        ]
+      },
+      "bones": [
+        {
+          "name": "estallido",
+          "pivot": [
+            0,
+            0,
+            0
+          ],
+          "binding": "q.item_slot_to_bone_name(c.item_slot)"
+        },
+        {
+          "name": "gem",
+          "parent": "estallido",
+          "pivot": [
+            0,
+            0,
+            0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -1.0,
+                -5.25,
+                -1.0
+              ],
+              "size": [
+                2,
+                1.5,
+                2
+              ],
+              "uv": [
+                0,
+                0
+              ]
+            },
+            {
+              "origin": [
+                -2.0,
+                -3.75,
+                -2.0
+              ],
+              "size": [
+                4,
+                1.5,
+                4
+              ],
+              "uv": [
+                0,
+                0
+              ]
+            },
+            {
+              "origin": [
+                -3.0,
+                -2.25,
+                -3.0
+              ],
+              "size": [
+                6,
+                1.5,
+                6
+              ],
+              "uv": [
+                0,
+                0
+              ]
+            },
+            {
+              "origin": [
+                -4.0,
+                -0.75,
+                -4.0
+              ],
+              "size": [
+                8,
+                1.5,
+                8
+              ],
+              "uv": [
+                0,
+                0
+              ]
+            },
+            {
+              "origin": [
+                -3.0,
+                0.75,
+                -3.0
+              ],
+              "size": [
+                6,
+                1.5,
+                6
+              ],
+              "uv": [
+                0,
+                0
+              ]
+            },
+            {
+              "origin": [
+                -2.0,
+                2.25,
+                -2.0
+              ],
+              "size": [
+                4,
+                1.5,
+                4
+              ],
+              "uv": [
+                0,
+                0
+              ]
+            },
+            {
+              "origin": [
+                -1.0,
+                3.75,
+                -1.0
+              ],
+              "size": [
+                2,
+                1.5,
+                2
+              ],
+              "uv": [
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
