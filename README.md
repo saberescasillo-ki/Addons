@@ -6,12 +6,62 @@
 | **Medieval Mobs** – mobs medievales | [`dist/MedievalMobs.mcaddon`](dist/MedievalMobs.mcaddon) | `tools/generate.py` |
 | **Ruleta de Colores** – ruleta en el HUD con comandos de administrador | [`dist/Roulette.mcaddon`](dist/Roulette.mcaddon) | `tools/roulette.py` |
 | **Objetos de Ayuda** – 4 objetos especiales que ayudan al jugador | [`dist/HelperItems.mcaddon`](dist/HelperItems.mcaddon) | `tools/helper_items.py` |
+| **The LITIUS Blind** – nueva dimensión de islas flotantes | [`dist/LitiusBlind.mcaddon`](dist/LitiusBlind.mcaddon) | `tools/litius_blind.py` |
 
-Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo. No hace falta activar experimentos.
+Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo. No hace falta activar experimentos
+(salvo en The LITIUS Blind, ver abajo).
 
 - The Revamp of the Soul requiere Minecraft Bedrock **1.26.0** o superior.
 - Medieval Mobs requiere **1.21.0** o superior.
 - Ruleta de Colores y Objetos de Ayuda requieren **1.21.90** o superior.
+- The LITIUS Blind requiere **26.20** o superior y el experimento **Beta APIs**.
+
+---
+
+# The LITIUS Blind
+
+![Simulación de cuatro celdas de 4x4 chunks](docs/litius_blind_preview.png)
+
+Una nueva dimensión de **islas flotantes sobre el vacío**, en dos capas.
+
+**Cómo activarlo:** en los ajustes del mundo, *Experimentos → Beta APIs* activado, y el pack *Behavior* activo.
+Las dimensiones nuevas en Bedrock solo se pueden crear con la *Custom Dimension API*, que de momento es beta
+(Minecraft **26.20** o superior). Sin ese experimento el addon no carga.
+
+**Cómo entrar:** con la **Llave de Raíces** (`litius:llave_de_raices`). Por ahora **no se puede craftear ni
+conseguir** de ninguna forma: no está en el inventario creativo ni en ningún cofre. Solo con
+`/give @s litius:llave_de_raices`. Al usarla te lleva a la isla principal; usada dentro de la dimensión te devuelve
+al sitio desde el que entraste. Cooldown 3 s.
+
+| | Islas superiores | Islas inferiores |
+|---|---|---|
+| Altura | capa **80 hacia arriba** | capas **20 a 50** |
+| Bloques | césped o musgo arriba, tierra, y piedra/andesita debajo; **rara vez minerales** | solo bloques de deepslate: deepslate, pizarra empedrada, pulida, baldosas, ladrillos, cincelada y menas de deepslate (raras) |
+| Agua / lava | oasis, ríos y lagunas | solo **lagos de lava** |
+| Árboles | robles majestuosos (tronco 2x2, raíces y ramas), robles elaborados, abedules majestuosos y abedules gigantes | – |
+| Mazmorras | 12 % de las islas, entrada por una **escalera que baja** desde la superficie | 55 % de las islas (más frecuentes), entrada por un **túnel lateral** o una escalera |
+
+- **Tamaño:** las islas miden entre ~20 y ~45 bloques de ancho, un 35 % más pequeñas que las islas del End,
+  con huecos de aproximadamente 10–40 bloques entre ellas (ni muy juntas ni muy lejos). Debajo tienen forma de gota,
+  con colgajos de piedra.
+- **Variedad:** islas superiores de pradera, bosque, musgo (con azaleas), oasis, río, lagunas, colinas
+  (rocas al aire), archipiélago, anillo (con agujero en medio) y terrazas (una isla flotando sobre otra), más
+  islotes alrededor. Islas inferiores de meseta, agujas, cráter (gran lago de lava), fracturada (partida por una
+  grieta), escalones y archipiélago.
+- **Isla principal:** más grande (60 bloques), con una plaza de ladrillos de piedra y musgo, farolas, cuatro
+  estanques y el **Árbol de las Raíces**, un roble gigante con tronco 3x3 cuyas **raíces caen por el vacío** hasta
+  la isla inferior principal (la *Cripta de las Raíces*, con su mazmorra). Debajo de la isla cuelgan raíces.
+- **Mazmorras sin mobs:** sala de piedra musgosa (arriba) o de ladrillos de deepslate (abajo), con 1–2 cofres de
+  botín, telarañas, farolillos y un altar vacío donde estaría el generador. No hay generadores de mobs.
+- **Sin mobs:** por ahora no puede aparecer ningún mob en la dimensión (tampoco con huevos); se eliminan al aparecer.
+- **Simulación por celdas de 4x4 chunks:** la dimensión se genera en celdas de 4x4 chunks (64x64 bloques); cada
+  celda tiene un grupo de islas superiores y casi siempre uno inferior. Se generan las 5x5 celdas alrededor de cada
+  jugador, la más cercana primero, cargándolas con una zona de carga temporal. La imagen de arriba es la simulación
+  de cuatro celdas hecha con el mismo generador (`python3 tools/litius_blind.py --preview`, necesita `node`).
+- La forma de las islas depende de una semilla propia que se guarda en el mundo la primera vez.
+- Debajo de las islas solo hay vacío: cuidado al saltar entre ellas.
+- El generador está en `tools/litius_blind/gen.js` y se copia tal cual al pack; `CONFIG` en `tools/litius_blind.py`
+  cambia el radio de generación.
 
 ---
 
