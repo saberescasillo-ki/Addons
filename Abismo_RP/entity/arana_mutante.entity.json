@@ -1,0 +1,41 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "abismo:arana_mutante",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/abismo/arana_mutante"
+      },
+      "geometry": {
+        "default": "geometry.abismo.arana_mutante"
+      },
+      "render_controllers": [
+        "controller.render.abismo.default"
+      ],
+      "spawn_egg": {
+        "base_color": "#1e1e23",
+        "overlay_color": "#c41d1d"
+      },
+      "scripts": {
+        "animate": [
+          "controller"
+        ]
+      },
+      "animations": {
+        "move": "animation.abismo.arana.move",
+        "idle": "animation.abismo.arana.idle",
+        "look": "animation.abismo.arana.look",
+        "attack": "animation.abismo.arana.attack",
+        "leap": "animation.abismo.arana.leap",
+        "controller": "controller.animation.abismo.arana_mutante"
+      },
+      "sound_effects": {
+        "slam": "random.explode",
+        "roar": "mob.warden.roar"
+      }
+    }
+  }
+}

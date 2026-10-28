@@ -1,0 +1,54 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Mazmorras del Abismo",
+    "description": "Una dimensión entera de mazmorras de pizarra profunda.",
+    "uuid": "e631790d-ce12-4f8d-884c-5659b824a27b",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      26,
+      20
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "a2dd7a09-049a-4620-9852-1766d5d0da82",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "b898bb0c-3f9d-48dd-b010-5ded523db297",
+      "version": [
+        1,
+        0,
+        0
+      ],
+      "entry": "scripts/main.js"
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "540a043f-5059-4f63-b2bf-52cf2c64fc86",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "beta"
+    }
+  ]
+}

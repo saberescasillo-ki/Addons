@@ -1,0 +1,13 @@
+item.abismo:llave_del_abismo.name=Abyss Key
+pack.name=Abyss Dungeons
+pack.description=A whole dimension of deepslate dungeons.
+entity.abismo:zombi_mutante.name=Mutant Zombie
+item.spawn_egg.entity.abismo:zombi_mutante.name=Spawn Mutant Zombie
+entity.abismo:arana_mutante.name=Mutant Spider
+item.spawn_egg.entity.abismo:arana_mutante.name=Spawn Mutant Spider
+entity.abismo:creeper_mutante.name=Mutant Creeper
+item.spawn_egg.entity.abismo:creeper_mutante.name=Spawn Mutant Creeper
+entity.abismo:esqueleto_mutante_abisal.name=Abyssal Mutant Skeleton
+item.spawn_egg.entity.abismo:esqueleto_mutante_abisal.name=Spawn Abyssal Mutant Skeleton
+entity.abismo:coloso_abisal.name=Abyssal Colossus
+item.spawn_egg.entity.abismo:coloso_abisal.name=Spawn Abyssal Colossus

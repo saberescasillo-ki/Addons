@@ -7,14 +7,17 @@
 | **Ruleta de Colores** – ruleta en el HUD con comandos de administrador | [`dist/Roulette.mcaddon`](dist/Roulette.mcaddon) | `tools/roulette.py` |
 | **Objetos de Ayuda** – 4 objetos especiales que ayudan al jugador | [`dist/HelperItems.mcaddon`](dist/HelperItems.mcaddon) | `tools/helper_items.py` |
 | **The LITIUS Blind** – nueva dimensión de islas flotantes | [`dist/LitiusBlind.mcaddon`](dist/LitiusBlind.mcaddon) | `tools/litius_blind.py` |
+| **Mazmorras del Abismo** – dimensión entera de mazmorras con mutantes | [`dist/Abismo.mcaddon`](dist/Abismo.mcaddon) | `tools/abismo.py` |
 
 Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo. No hace falta activar experimentos
-(salvo en The LITIUS Blind, ver abajo).
+(salvo en The LITIUS Blind y Mazmorras del Abismo, ver abajo).
 
 - The Revamp of the Soul requiere Minecraft Bedrock **1.26.0** o superior.
 - Medieval Mobs requiere **1.21.0** o superior.
 - Ruleta de Colores y Objetos de Ayuda requieren **1.21.90** o superior.
-- The LITIUS Blind requiere **26.20** o superior y el experimento **Beta APIs**.
+- The LITIUS Blind y Mazmorras del Abismo requieren **26.20** o superior y el experimento **Beta APIs**.
+
+Los mobs nuevos siguen la guía de estilo [`docs/estilo_texturas.md`](docs/estilo_texturas.md).
 
 ---
 
@@ -62,6 +65,94 @@ al sitio desde el que entraste. Cooldown 3 s.
 - Debajo de las islas solo hay vacío: cuidado al saltar entre ellas.
 - El generador está en `tools/litius_blind/gen.js` y se copia tal cual al pack; `CONFIG` en `tools/litius_blind.py`
   cambia el radio de generación.
+
+---
+
+# Mazmorras del Abismo
+
+![Mutantes, mapas de los tres pisos y el vestíbulo](docs/abismo_preview.png)
+
+Una dimensión que es **una sola mazmorra sin fin**, de **3 pisos** de **salas de 10x10**, hecha casi entera de
+bloques de pizarra profunda (ladrillos, baldosas, pulida, cincelada, empedrada y reforzada en techo y suelo).
+
+**Cómo activarlo:** en los ajustes del mundo, *Experimentos → Beta APIs* activado, y el pack *Behavior* activo
+(Minecraft **26.20** o superior). Usa la misma *Custom Dimension API* que The LITIUS Blind.
+
+**Cómo entrar:** con la **Llave del Abismo** (`abismo:llave_del_abismo`), que se craftea así:
+
+| | | |
+|---|---|---|
+| Ladrillos de pizarra profunda | Hueso | Ladrillos de pizarra profunda |
+| Hueso | Ojo de ender | Hueso |
+| Ladrillos de pizarra profunda | Hueso | Ladrillos de pizarra profunda |
+
+Al usarla apareces en el **vestíbulo** del piso 1 (sin monstruos); usada dentro te devuelve al sitio desde el que
+entraste. Cooldown 3 s.
+
+- **Pisos:** Piso 1 · Salas Altas (y 72), Piso 2 · Criptas (y 64) y Piso 3 · El Abismo (y 56). Se baja por
+  **escaleras** (≈ 7 % de las salas) y al cambiar de piso sale su nombre en la barra de acción.
+- **Salas:** salón, pilares, celdas con barrotes, cripta con sarcófagos y velas, biblioteca, almacén con barriles,
+  derrumbe, foso de lava, santuario (siempre con cofre) y salas de sculk (más abundantes abajo). Las puertas son de
+  4x4 con marco de pizarra pulida; desde la entrada se llega a casi todas las salas (97 % en las pruebas).
+- **Cofres:** en santuarios, celdas, criptas y almacenes. Cuanto más abajo, mejor botín (diamantes, fragmentos de
+  eco, chatarra de netherita, manzana dorada encantada…).
+- **Monstruos:** puede salir **cualquier mob hostil**, pero **cuanto más fuerte, más raro**:
+  peso = 100 · fuerza^(−1,4 + 0,3 · piso). Cada piso de bajada hace los fuertes un poco más frecuentes. Los mobs
+  aparecen en salas a 1–3 salas del jugador (nunca en la suya, ni en el vestíbulo ni en las arenas), hasta 6/8/10
+  cerca de ti según el piso. Cualquier otro mob que aparezca solo en la dimensión se elimina (los huevos sí
+  funcionan).
+- **Jefes:** no siguen la regla de rareza. En el piso 3 hay **arenas** (2x2 salas, una cada ~88 salas) donde
+  siempre espera el **Coloso Abisal**; al vencerlo deja un cofre con el tesoro junto al pilar central y esa arena
+  queda libre. El Wither, el dragón y el guardián anciano no aparecen.
+
+| Mutante | Vida | Ataque | Habilidad |
+|---|---|---|---|
+| Zombi Mutante | 110 | 11 | Golpe al suelo: 9 de daño y empujón a 5 bloques |
+| Araña Mutante | 70 | 7 + veneno 5 s | Salta hacia ti desde 4–12 bloques; trepa |
+| Creeper Mutante | 80 | 6 | Se hincha y explota (potencia 3,5) **sin morir** ni romper bloques |
+| Esqueleto Mutante Abisal | 90 | ráfagas de 3 flechas | Dispara a 18 bloques |
+| **Coloso Abisal** (jefe) | 600 | 16 | Golpe al suelo (14), rugido (oscuridad + lentitud II) e invoca esbirros; barra de jefe |
+
+El Esqueleto Mutante Abisal usa el modelo y las animaciones del esqueleto mutante que pasaste, con una textura nueva
+de hueso de pizarra y sculk; los otros cuatro son modelos nuevos. Todos están pintados con la guía de estilo
+[`docs/estilo_texturas.md`](docs/estilo_texturas.md).
+
+Probabilidad de cada mob cuando aparece uno:
+
+| Mob | Fuerza | Piso 1 | Piso 2 | Piso 3 |
+|---|---|---|---|---|
+| silverfish | 0.8 | 13.9 % | 11.3 % | 8.9 % |
+| zombie | 1 | 10.2 % | 8.8 % | 7.4 % |
+| zombie_villager_v2 | 1.1 | 8.9 % | 8.0 % | 6.9 % |
+| husk | 1.2 | 7.9 % | 7.2 % | 6.4 % |
+| spider | 1.2 | 7.9 % | 7.2 % | 6.4 % |
+| skeleton | 1.3 | 7.1 % | 6.6 % | 6.0 % |
+| drowned | 1.5 | 5.8 % | 5.7 % | 5.4 % |
+| cave_spider | 1.5 | 5.8 % | 5.7 % | 5.4 % |
+| stray | 1.6 | 5.3 % | 5.3 % | 5.1 % |
+| slime | 1.8 | 4.5 % | 4.6 % | 4.6 % |
+| creeper | 2.2 | 3.4 % | 3.7 % | 3.9 % |
+| bogged | 2.2 | 3.4 % | 3.7 % | 3.9 % |
+| pillager | 2.8 | 2.4 % | 2.9 % | 3.3 % |
+| witch | 3 | 2.2 % | 2.6 % | 3.1 % |
+| magma_cube | 3 | 2.2 % | 2.6 % | 3.1 % |
+| vindicator | 4 | 1.5 % | 1.9 % | 2.4 % |
+| blaze | 4 | 1.5 % | 1.9 % | 2.4 % |
+| wither_skeleton | 5 | 1.1 % | 1.5 % | 2.0 % |
+| breeze | 5.5 | 0.9 % | 1.4 % | 1.9 % |
+| zoglin | 6 | 0.8 % | 1.2 % | 1.8 % |
+| piglin_brute | 6.5 | 0.7 % | 1.1 % | 1.7 % |
+| evoker | 7.5 | 0.6 % | 1.0 % | 1.5 % |
+| Araña Mutante | 8 | 0.6 % | 0.9 % | 1.4 % |
+| ravager | 9 | 0.5 % | 0.8 % | 1.3 % |
+| Zombi Mutante | 10 | 0.4 % | 0.7 % | 1.2 % |
+| Esqueleto Mutante Abisal | 11 | 0.4 % | 0.6 % | 1.1 % |
+| Creeper Mutante | 12 | 0.3 % | 0.6 % | 1.0 % |
+| warden | 22 | 0.1 % | 0.3 % | 0.6 % |
+
+- La dimensión se genera por regiones de 8x8 salas (los tres pisos) alrededor de cada jugador.
+- La rareza (`RARITY`, `DEPTH`), la lista de mobs (`MOBS`) y los números de los mutantes (`MUTANTS`) se cambian en
+  `tools/abismo.py`; las salas, en `tools/abismo/gen.js`.
 
 ---
 

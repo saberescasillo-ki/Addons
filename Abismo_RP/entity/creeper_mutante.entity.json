@@ -1,0 +1,40 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "abismo:creeper_mutante",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/abismo/creeper_mutante"
+      },
+      "geometry": {
+        "default": "geometry.abismo.creeper_mutante"
+      },
+      "render_controllers": [
+        "controller.render.abismo.default"
+      ],
+      "spawn_egg": {
+        "base_color": "#356044",
+        "overlay_color": "#3fd3db"
+      },
+      "scripts": {
+        "animate": [
+          "controller"
+        ]
+      },
+      "animations": {
+        "move": "animation.abismo.creeper.move",
+        "idle": "animation.abismo.creeper.idle",
+        "look": "animation.abismo.creeper.look",
+        "swell": "animation.abismo.creeper.swell",
+        "controller": "controller.animation.abismo.creeper_mutante"
+      },
+      "sound_effects": {
+        "slam": "random.explode",
+        "roar": "mob.warden.roar"
+      }
+    }
+  }
+}

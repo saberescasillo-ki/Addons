@@ -1,0 +1,229 @@
+{
+  "format_version": "1.10.0",
+  "animation_controllers": {
+    "controller.animation.abismo.zombi_mutante": {
+      "initial_state": "default",
+      "states": {
+        "default": {
+          "animations": [
+            "move",
+            "idle",
+            "look"
+          ],
+          "blend_transition": 0.2,
+          "transitions": [
+            {
+              "special": "query.property('abismo:accion') == 1"
+            },
+            {
+              "attack": "variable.attack_time > 0.0"
+            }
+          ]
+        },
+        "special": {
+          "animations": [
+            "slam"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "default": "query.property('abismo:accion') == 0 && query.all_animations_finished"
+            }
+          ]
+        },
+        "attack": {
+          "animations": [
+            "move",
+            "look",
+            "attack"
+          ],
+          "blend_transition": 0.1,
+          "transitions": [
+            {
+              "special": "query.property('abismo:accion') == 1"
+            },
+            {
+              "default": "variable.attack_time <= 0.0"
+            }
+          ]
+        }
+      }
+    },
+    "controller.animation.abismo.arana_mutante": {
+      "initial_state": "default",
+      "states": {
+        "default": {
+          "animations": [
+            "move",
+            "idle",
+            "look"
+          ],
+          "blend_transition": 0.2,
+          "transitions": [
+            {
+              "special": "query.property('abismo:accion') == 1"
+            },
+            {
+              "attack": "variable.attack_time > 0.0"
+            }
+          ]
+        },
+        "special": {
+          "animations": [
+            "leap"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "default": "query.property('abismo:accion') == 0 && query.all_animations_finished"
+            }
+          ]
+        },
+        "attack": {
+          "animations": [
+            "move",
+            "look",
+            "attack"
+          ],
+          "blend_transition": 0.1,
+          "transitions": [
+            {
+              "special": "query.property('abismo:accion') == 1"
+            },
+            {
+              "default": "variable.attack_time <= 0.0"
+            }
+          ]
+        }
+      }
+    },
+    "controller.animation.abismo.creeper_mutante": {
+      "initial_state": "default",
+      "states": {
+        "default": {
+          "animations": [
+            "move",
+            "idle",
+            "look"
+          ],
+          "blend_transition": 0.2,
+          "transitions": [
+            {
+              "special": "query.property('abismo:accion') == 1"
+            }
+          ]
+        },
+        "special": {
+          "animations": [
+            "swell"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "default": "query.property('abismo:accion') == 0 && query.all_animations_finished"
+            }
+          ]
+        }
+      }
+    },
+    "controller.animation.abismo.coloso_abisal": {
+      "initial_state": "default",
+      "states": {
+        "default": {
+          "animations": [
+            "move",
+            "idle",
+            "look"
+          ],
+          "blend_transition": 0.2,
+          "transitions": [
+            {
+              "special": "query.property('abismo:accion') == 1"
+            },
+            {
+              "roar": "query.property('abismo:accion') == 2"
+            },
+            {
+              "attack": "variable.attack_time > 0.0"
+            }
+          ]
+        },
+        "special": {
+          "animations": [
+            "slam"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "default": "query.property('abismo:accion') == 0 && query.all_animations_finished"
+            }
+          ]
+        },
+        "attack": {
+          "animations": [
+            "move",
+            "look",
+            "attack"
+          ],
+          "blend_transition": 0.1,
+          "transitions": [
+            {
+              "special": "query.property('abismo:accion') == 1"
+            },
+            {
+              "roar": "query.property('abismo:accion') == 2"
+            },
+            {
+              "default": "variable.attack_time <= 0.0"
+            }
+          ]
+        },
+        "roar": {
+          "animations": [
+            "roar"
+          ],
+          "blend_transition": 0.2,
+          "transitions": [
+            {
+              "default": "query.property('abismo:accion') == 0 && query.all_animations_finished"
+            }
+          ]
+        }
+      }
+    },
+    "controller.animation.abismo.esqueleto_mutante_abisal": {
+      "initial_state": "default",
+      "states": {
+        "default": {
+          "animations": [
+            "move",
+            "move_arms",
+            "idle",
+            "look",
+            "no_arrow"
+          ],
+          "blend_transition": 0.2,
+          "transitions": [
+            {
+              "aim": "query.has_target"
+            }
+          ]
+        },
+        "aim": {
+          "animations": [
+            "move",
+            "idle",
+            "look",
+            "charge"
+          ],
+          "blend_transition": 0.2,
+          "transitions": [
+            {
+              "default": "!query.has_target"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

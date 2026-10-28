@@ -1,0 +1,43 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "abismo:esqueleto_mutante_abisal",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/abismo/esqueleto_mutante_abisal"
+      },
+      "geometry": {
+        "default": "geometry.abismo.esqueleto_mutante_abisal"
+      },
+      "render_controllers": [
+        "controller.render.abismo.default"
+      ],
+      "spawn_egg": {
+        "base_color": "#636b71",
+        "overlay_color": "#3fd3db"
+      },
+      "scripts": {
+        "animate": [
+          "controller"
+        ]
+      },
+      "animations": {
+        "move": "animation.abismo.esqueleto.move",
+        "move_arms": "animation.abismo.esqueleto.move_arms",
+        "idle": "animation.abismo.esqueleto.idle",
+        "look": "animation.abismo.esqueleto.look",
+        "charge": "animation.abismo.esqueleto.charge",
+        "shoot": "animation.abismo.esqueleto.shoot",
+        "no_arrow": "animation.abismo.esqueleto.no_arrow",
+        "controller": "controller.animation.abismo.esqueleto_mutante_abisal"
+      },
+      "sound_effects": {
+        "slam": "random.explode",
+        "roar": "mob.warden.roar"
+      }
+    }
+  }
+}

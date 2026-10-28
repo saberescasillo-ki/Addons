@@ -1,0 +1,39 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Mazmorras del Abismo",
+    "description": "Modelos y texturas de los mutantes del Abismo.",
+    "uuid": "540a043f-5059-4f63-b2bf-52cf2c64fc86",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      26,
+      20
+    ]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "53de3d2f-e275-41ab-9f1d-841e37c0e9b2",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "e631790d-ce12-4f8d-884c-5659b824a27b",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ]
+}

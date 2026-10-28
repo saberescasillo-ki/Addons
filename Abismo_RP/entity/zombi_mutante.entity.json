@@ -1,0 +1,41 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "abismo:zombi_mutante",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/abismo/zombi_mutante"
+      },
+      "geometry": {
+        "default": "geometry.abismo.zombi_mutante"
+      },
+      "render_controllers": [
+        "controller.render.abismo.default"
+      ],
+      "spawn_egg": {
+        "base_color": "#3b4d43",
+        "overlay_color": "#5ff2f2"
+      },
+      "scripts": {
+        "animate": [
+          "controller"
+        ]
+      },
+      "animations": {
+        "move": "animation.abismo.zombi.move",
+        "idle": "animation.abismo.zombi.idle",
+        "look": "animation.abismo.zombi.look",
+        "attack": "animation.abismo.zombi.attack",
+        "slam": "animation.abismo.zombi.slam",
+        "controller": "controller.animation.abismo.zombi_mutante"
+      },
+      "sound_effects": {
+        "slam": "random.explode",
+        "roar": "mob.warden.roar"
+      }
+    }
+  }
+}

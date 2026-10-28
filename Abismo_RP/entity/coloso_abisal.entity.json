@@ -1,0 +1,42 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "abismo:coloso_abisal",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/abismo/coloso_abisal"
+      },
+      "geometry": {
+        "default": "geometry.abismo.coloso_abisal"
+      },
+      "render_controllers": [
+        "controller.render.abismo.default"
+      ],
+      "spawn_egg": {
+        "base_color": "#25252a",
+        "overlay_color": "#7aeef2"
+      },
+      "scripts": {
+        "animate": [
+          "controller"
+        ]
+      },
+      "animations": {
+        "move": "animation.abismo.coloso.move",
+        "idle": "animation.abismo.coloso.idle",
+        "look": "animation.abismo.coloso.look",
+        "attack": "animation.abismo.coloso.attack",
+        "slam": "animation.abismo.coloso.slam",
+        "roar": "animation.abismo.coloso.roar",
+        "controller": "controller.animation.abismo.coloso_abisal"
+      },
+      "sound_effects": {
+        "slam": "random.explode",
+        "roar": "mob.warden.roar"
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+item.abismo:llave_del_abismo.name=Llave del Abismo
+pack.name=Mazmorras del Abismo
+pack.description=Una dimensión entera de mazmorras de pizarra profunda.
+entity.abismo:zombi_mutante.name=Zombi Mutante
+item.spawn_egg.entity.abismo:zombi_mutante.name=Generar Zombi Mutante
+entity.abismo:arana_mutante.name=Araña Mutante
+item.spawn_egg.entity.abismo:arana_mutante.name=Generar Araña Mutante
+entity.abismo:creeper_mutante.name=Creeper Mutante
+item.spawn_egg.entity.abismo:creeper_mutante.name=Generar Creeper Mutante
+entity.abismo:esqueleto_mutante_abisal.name=Esqueleto Mutante Abisal
+item.spawn_egg.entity.abismo:esqueleto_mutante_abisal.name=Generar Esqueleto Mutante Abisal
+entity.abismo:coloso_abisal.name=Coloso Abisal
+item.spawn_egg.entity.abismo:coloso_abisal.name=Generar Coloso Abisal

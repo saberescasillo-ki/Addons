@@ -1,0 +1,35 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "abismo:llave_del_abismo"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      "DBD",
+      "BEB",
+      "DBD"
+    ],
+    "key": {
+      "D": {
+        "item": "minecraft:deepslate_bricks"
+      },
+      "B": {
+        "item": "minecraft:bone"
+      },
+      "E": {
+        "item": "minecraft:ender_eye"
+      }
+    },
+    "unlock": [
+      {
+        "item": "minecraft:ender_eye"
+      }
+    ],
+    "result": {
+      "item": "abismo:llave_del_abismo"
+    }
+  }
+}

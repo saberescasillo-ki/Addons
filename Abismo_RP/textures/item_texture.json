@@ -1,0 +1,9 @@
+{
+  "resource_pack_name": "abismo",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "abismo_llave_del_abismo": {
+      "textures": "textures/items/abismo/llave_del_abismo"
+    }
+  }
+}
