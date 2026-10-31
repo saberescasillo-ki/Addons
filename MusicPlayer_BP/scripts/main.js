@@ -7,6 +7,7 @@ import { AJUSTES, CANCIONES } from "./canciones.js";
 const ITEM = "musica:reproductor";
 const MODE_PROP = "musica:modo";
 const AUDIENCE_PROP = "musica:oyentes";
+const VOLUME_PROP = "musica:volumen";
 const MODES = [
   { id: "una", label: "Una vez" },
   { id: "repetir", label: "Repetir canción" },
@@ -15,7 +16,8 @@ const MODES = [
 ];
 const AUDIENCES = { yo: "Solo yo", todos: "Todos", sel: "Jugadores seleccionados" };
 
-// Who started the music (player id) -> { index, endsAt, ears: [ids of the players that hear it] }
+// Who started the music (player id) ->
+//   { index, sound, endsAt, finishing, ears: [ids of the players that hear it] }
 const playing = new Map();
 const lastOpen = new Map();
 
@@ -33,6 +35,12 @@ function run(p, cmd) {
 function getMode(owner) {
   const v = owner.getDynamicProperty(MODE_PROP);
   return MODES.find((m) => m.id === v) ?? MODES[0];
+}
+
+function getVolume(owner) {
+  const v = owner.getDynamicProperty(VOLUME_PROP);
+  const def = Math.round((AJUSTES.volumen ?? 1) * 100);
+  return Math.max(0, Math.min(100, typeof v === "number" ? v : def));
 }
 
 function getAudience(owner) {
@@ -66,11 +74,16 @@ function stopFor(ownerId) {
   const cur = playing.get(ownerId);
   playing.delete(ownerId);
   if (!cur) return;
-  const song = CANCIONES[cur.index];
   for (const id of cur.ears) {
     const p = online(id);
-    if (p && song) run(p, `stopsound @s ${song.sonido}`);
+    if (p) run(p, `stopsound @s ${cur.sound}`);
   }
+}
+
+function soundTo(p, sound, volume) {
+  try {
+    p.playSound(sound, { volume });
+  } catch {}
 }
 
 function play(owner, index) {
@@ -82,11 +95,10 @@ function play(owner, index) {
     owner.onScreenDisplay.setActionBar("§cNo has elegido a nadie para escuchar");
     return;
   }
+  const volume = getVolume(owner) / 100;
   for (const p of ears) {
     if (AJUSTES.callar_musica_vanilla) run(p, "music stop 0");
-    try {
-      p.playSound(song.sonido, { volume: AJUSTES.volumen });
-    } catch {}
+    soundTo(p, song.sonido, volume);
     if (AJUSTES.mostrar_titulo) {
       const who = p.id === owner.id ? "§dReproduciendo: " : `§d${owner.name} te pone: `;
       p.onScreenDisplay.setActionBar(`${who}§f${song.nombre}`);
@@ -95,8 +107,33 @@ function play(owner, index) {
   const ticks = Math.ceil((song.segundos || 0) * 20);
   playing.set(owner.id, {
     index,
+    sound: song.sonido,
+    finishing: false,
     ears: ears.map((p) => p.id),
     endsAt: ticks > 0 ? system.currentTick + ticks + 10 : Infinity,
+  });
+}
+
+// "Finalizar": cut the song and play its last seconds (a separate clip), then stop.
+function finish(owner) {
+  const cur = playing.get(owner.id);
+  if (!cur || cur.finishing) return;
+  const song = CANCIONES[cur.index];
+  if (!song?.final) return stopFor(owner.id);
+  const volume = getVolume(owner) / 100;
+  const ears = cur.ears.map(online).filter((p) => p);
+  for (const p of ears) {
+    run(p, `stopsound @s ${cur.sound}`);
+    soundTo(p, song.final, volume);
+    if (AJUSTES.mostrar_titulo) p.onScreenDisplay.setActionBar(`§6Finalizando: §f${song.nombre}`);
+  }
+  const ticks = Math.ceil((song.segundos_final || 8) * 20);
+  playing.set(owner.id, {
+    ...cur,
+    sound: song.final,
+    finishing: true,
+    ears: ears.map((p) => p.id),
+    endsAt: system.currentTick + ticks + 10,
   });
 }
 
@@ -122,6 +159,10 @@ system.runInterval(() => {
       continue;
     }
     if (now < cur.endsAt) continue;
+    if (cur.finishing) {
+      playing.delete(ownerId);
+      continue;
+    }
     const next = nextIndex(getMode(owner).id, cur.index);
     if (next < 0) playing.delete(ownerId);
     else play(owner, next);
@@ -182,24 +223,54 @@ function openAudienceMenu(owner) {
   });
 }
 
+function openVolumeMenu(owner) {
+  const cur = playing.get(owner.id);
+  const canRestart = cur && !cur.finishing;
+  const form = new ModalFormData().title("§5Volumen");
+  form.slider("Volumen (%)", 0, 100, { defaultValue: getVolume(owner), valueStep: 5 });
+  if (canRestart) {
+    form.toggle("Aplicar ya a la canción que suena §7(vuelve a empezar; si no, se aplica a la siguiente)", {
+      defaultValue: false,
+    });
+  }
+  form.submitButton("Guardar");
+  form.show(owner).then((res) => {
+    if (!res.canceled && res.formValues) {
+      const v = Number(res.formValues[0]);
+      if (Number.isFinite(v)) owner.setDynamicProperty(VOLUME_PROP, Math.max(0, Math.min(100, Math.round(v))));
+      const again = playing.get(owner.id);
+      if (canRestart && res.formValues[1] === true && again && !again.finishing) play(owner, again.index);
+    }
+    system.run(() => openMenu(owner));
+  });
+}
+
 function openMenu(owner) {
   const cur = playing.get(owner.id);
   const mode = getMode(owner);
   const audience = getAudience(owner);
   const song = cur && CANCIONES[cur.index];
   const form = new ActionFormData().title("§5Reproductor de Música");
+  const status = !song ? "§7No suena nada" : cur.finishing ? `§6Finalizando: §f${song.nombre}` : `§aSonando: §f${song.nombre}`;
   form.body(
-    (song ? `§aSonando: §f${song.nombre}` : "§7No suena nada") +
+    status +
       `\n§7Escuchan: §f${audienceText(owner, audience)}` +
-      `\n§7Modo: §f${mode.label}`
+      `\n§7Modo: §f${mode.label}` +
+      `\n§7Volumen: §f${getVolume(owner)}%`
   );
   const actions = [];
   if (song) {
-    form.button("§c■ Detener");
+    form.button("§cDetener\n§8Para de golpe");
     actions.push(() => stopFor(owner.id));
+    if (!cur.finishing) {
+      form.button("§6Finalizar\n§8Pone los últimos segundos y termina");
+      actions.push(() => finish(owner));
+    }
   }
   form.button(`§9¿Quién escucha?\n§8${audienceText(owner, audience)}`);
   actions.push(() => system.run(() => openAudienceMenu(owner)));
+  form.button(`§9Volumen: ${getVolume(owner)}%`);
+  actions.push(() => system.run(() => openVolumeMenu(owner)));
   form.button(`§9Modo: ${mode.label}`);
   actions.push(() => {
     const i = MODES.indexOf(mode);

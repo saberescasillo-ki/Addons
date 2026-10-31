@@ -78,7 +78,16 @@ ningún aldeano. Solo está en el inventario creativo (pestaña *Objetos*) o con
 - **Las canciones no son 3D:** se oyen al **mismo volumen estés donde estés**, como la música de fondo de
   Minecraft. Aunque te alejes del sitio donde la pusiste, no baja.
 - **Usar** el objeto abre un menú con la lista de canciones. Pulsa una para reproducirla (la que suena sale en verde).
-- **Agacharse + usar** para la música sin abrir el menú. En el menú también hay un botón **Detener**.
+- **Agacharse + usar** para la música sin abrir el menú.
+- Mientras suena una canción, el menú tiene dos botones para pararla:
+  - **Detener**: la para de golpe.
+  - **Finalizar**: corta la canción y pone sus **últimos 8 segundos**, para que termine como acaba de verdad.
+    El generador corta esos 8 s en un archivo aparte (`<canción>_final.ogg`), porque Minecraft no puede saltar a
+    un punto de un sonido. `FINALE_SECONDS` en `tools/music_player.py` cambia la duración.
+- **Volumen** (botón en el menú, se guarda en cada jugador): una barra del 0 al 100 %. Minecraft no puede cambiar
+  el volumen de un sonido que ya suena, así que se aplica a la **siguiente** canción; si marcas *Aplicar ya*, la que
+  suena vuelve a empezar con el nuevo volumen. El volumen máximo sigue limitado por el deslizador *Música* de los
+  ajustes de cada jugador.
 - **Modo** (botón en el menú, se guarda): *Una vez*, *Repetir canción*, *Todas en orden* o *Aleatorio*.
 - **¿Quién escucha?** (botón en el menú, se guarda en cada jugador):
   - **Solo yo**: solo la oye quien usa el reproductor (por defecto).
@@ -123,6 +132,9 @@ de `tools/music_player.py`, y `CATEGORY` elige qué deslizador de volumen la con
    ```js
    {"sonido": "musica.mi_cancion", "nombre": "Mi Canción", "segundos": 185},
    ```
+   Sin `final`, el botón **Finalizar** la para de golpe. Para que tenga final, recorta tú los últimos segundos en
+   `mi_cancion_final.ogg`, defínelo igual en `sound_definitions.json` como `musica.mi_cancion.final` y añade
+   `"final": "musica.mi_cancion.final", "segundos_final": 8` a la línea.
    En ese mismo archivo están los `AJUSTES` (volumen, oyentes por defecto...), que también se pueden cambiar a mano.
 
 ---

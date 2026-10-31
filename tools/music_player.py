@@ -30,7 +30,7 @@ DIST = os.path.join(ROOT, "dist")
 SONGS_DIR = os.path.join(ROOT, "sources", "music_player", "canciones")
 SONGS_JSON = os.path.join(ROOT, "sources", "music_player", "canciones.json")
 
-VERSION = [1, 1, 0]
+VERSION = [1, 2, 0]
 SCRIPT_API = "2.0.0"
 SCRIPT_UI_API = "2.0.0"
 MIN_ENGINE = [1, 21, 90]
@@ -44,11 +44,14 @@ AUDIO_EXT = (".ogg", ".mp3", ".wav", ".flac", ".m4a", ".aac", ".opus")
 
 # Copied into scripts/canciones.js (you can also change them there by hand).
 SETTINGS = dict(
-    volumen=1.0,             # 0.0 - 1.0
+    volumen=1.0,             # default volume, 0.0 - 1.0 (each player can change it in the menu)
     oyentes_por_defecto="yo",    # who hears the songs until a player changes it: "yo", "todos" or "sel"
     callar_musica_vanilla=True,  # stop the vanilla music when a song starts
     mostrar_titulo=True,     # show "Reproduciendo: ..." in the action bar
 )
+# "Finalizar" plays the last seconds of the song (cut into a separate clip) instead of stopping it dead.
+FINALE_SECONDS = 8
+FINALE_FADE_IN = 0.4   # short fade-in so the jump to the ending is not a hard cut
 # Volume slider that controls the songs: "music" (Música), "record" (Tocadiscos), "ui" (Interfaz)...
 CATEGORY = "music"
 
@@ -124,6 +127,17 @@ def copy_song(song):
     return round(probe(dst)[1], 2)
 
 
+def make_ending(song):
+    """Cuts the last FINALE_SECONDS of a song into <id>_final.ogg (for the "Finalizar" button)."""
+    src = os.path.join(RP, "sounds", NS, song["id"] + ".ogg")
+    dst = os.path.join(RP, "sounds", NS, song["id"] + "_final.ogg")
+    length = min(FINALE_SECONDS, song["segundos"])
+    start = max(0.0, song["segundos"] - length)
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-ss", f"{start:.3f}", "-i", src, "-vn",
+                    "-af", f"afade=t=in:d={FINALE_FADE_IN}", "-c:a", "libvorbis", "-q:a", "4", dst], check=True)
+    return round(probe(dst)[1], 2)
+
+
 # ---------------------------------------------------------------- textures
 def icon():
     """A small purple music box with a golden double note."""
@@ -170,11 +184,13 @@ def item():
 
 
 def sound_definitions(songs):
-    return {"format_version": "1.20.20", "sound_definitions": {
-        f"{NS}.{s['id']}": {"category": CATEGORY, "sounds": [{
-            "name": f"sounds/{NS}/{s['id']}", "stream": True, "is3D": False,
-            "volume": 1.0, "load_on_low_memory": True}]}
-        for s in songs}}
+    defs = {}
+    for s in songs:
+        for suffix in ("", "_final"):
+            defs[f"{NS}.{s['id']}{suffix.replace('_', '.')}"] = {"category": CATEGORY, "sounds": [{
+                "name": f"sounds/{NS}/{s['id']}{suffix}", "stream": True, "is3D": False,
+                "volume": 1.0, "load_on_low_memory": True}]}
+    return {"format_version": "1.20.20", "sound_definitions": defs}
 
 
 def songs_js(songs):
@@ -184,13 +200,16 @@ def songs_js(songs):
         "//   sonido   -> el nombre del sonido en MusicPlayer_RP/sounds/sound_definitions.json",
         "//   nombre   -> lo que sale en el menú",
         "//   segundos -> lo que dura (para saber cuándo termina; 0 = no se sabe)",
+        "//   final, segundos_final -> (opcional) el sonido con los últimos segundos, para el botón Finalizar.",
+        "//                           Si no lo tiene, Finalizar la para de golpe como Detener.",
         "",
         "export const AJUSTES = " + re.sub(r'"(\w+)":', r"\1:", json.dumps(SETTINGS, indent=2)) + ";",
         "",
         "export const CANCIONES = [",
     ]
     for s in songs:
-        entry = dict(sonido=f"{NS}.{s['id']}", nombre=s["nombre"], segundos=s["segundos"])
+        entry = dict(sonido=f"{NS}.{s['id']}", nombre=s["nombre"], segundos=s["segundos"],
+                     final=f"{NS}.{s['id']}.final", segundos_final=s["segundos_final"])
         if s.get("autor"):
             entry["autor"] = s["autor"]
         lines.append("  " + json.dumps(entry, ensure_ascii=False) + ",")
@@ -207,6 +226,7 @@ import { AJUSTES, CANCIONES } from "./canciones.js";
 const ITEM = "__ITEM__";
 const MODE_PROP = "musica:modo";
 const AUDIENCE_PROP = "musica:oyentes";
+const VOLUME_PROP = "musica:volumen";
 const MODES = [
   { id: "una", label: "Una vez" },
   { id: "repetir", label: "Repetir canción" },
@@ -215,7 +235,8 @@ const MODES = [
 ];
 const AUDIENCES = { yo: "Solo yo", todos: "Todos", sel: "Jugadores seleccionados" };
 
-// Who started the music (player id) -> { index, endsAt, ears: [ids of the players that hear it] }
+// Who started the music (player id) ->
+//   { index, sound, endsAt, finishing, ears: [ids of the players that hear it] }
 const playing = new Map();
 const lastOpen = new Map();
 
@@ -233,6 +254,12 @@ function run(p, cmd) {
 function getMode(owner) {
   const v = owner.getDynamicProperty(MODE_PROP);
   return MODES.find((m) => m.id === v) ?? MODES[0];
+}
+
+function getVolume(owner) {
+  const v = owner.getDynamicProperty(VOLUME_PROP);
+  const def = Math.round((AJUSTES.volumen ?? 1) * 100);
+  return Math.max(0, Math.min(100, typeof v === "number" ? v : def));
 }
 
 function getAudience(owner) {
@@ -266,11 +293,16 @@ function stopFor(ownerId) {
   const cur = playing.get(ownerId);
   playing.delete(ownerId);
   if (!cur) return;
-  const song = CANCIONES[cur.index];
   for (const id of cur.ears) {
     const p = online(id);
-    if (p && song) run(p, `stopsound @s ${song.sonido}`);
+    if (p) run(p, `stopsound @s ${cur.sound}`);
   }
+}
+
+function soundTo(p, sound, volume) {
+  try {
+    p.playSound(sound, { volume });
+  } catch {}
 }
 
 function play(owner, index) {
@@ -282,11 +314,10 @@ function play(owner, index) {
     owner.onScreenDisplay.setActionBar("§cNo has elegido a nadie para escuchar");
     return;
   }
+  const volume = getVolume(owner) / 100;
   for (const p of ears) {
     if (AJUSTES.callar_musica_vanilla) run(p, "music stop 0");
-    try {
-      p.playSound(song.sonido, { volume: AJUSTES.volumen });
-    } catch {}
+    soundTo(p, song.sonido, volume);
     if (AJUSTES.mostrar_titulo) {
       const who = p.id === owner.id ? "§dReproduciendo: " : `§d${owner.name} te pone: `;
       p.onScreenDisplay.setActionBar(`${who}§f${song.nombre}`);
@@ -295,8 +326,33 @@ function play(owner, index) {
   const ticks = Math.ceil((song.segundos || 0) * 20);
   playing.set(owner.id, {
     index,
+    sound: song.sonido,
+    finishing: false,
     ears: ears.map((p) => p.id),
     endsAt: ticks > 0 ? system.currentTick + ticks + 10 : Infinity,
+  });
+}
+
+// "Finalizar": cut the song and play its last seconds (a separate clip), then stop.
+function finish(owner) {
+  const cur = playing.get(owner.id);
+  if (!cur || cur.finishing) return;
+  const song = CANCIONES[cur.index];
+  if (!song?.final) return stopFor(owner.id);
+  const volume = getVolume(owner) / 100;
+  const ears = cur.ears.map(online).filter((p) => p);
+  for (const p of ears) {
+    run(p, `stopsound @s ${cur.sound}`);
+    soundTo(p, song.final, volume);
+    if (AJUSTES.mostrar_titulo) p.onScreenDisplay.setActionBar(`§6Finalizando: §f${song.nombre}`);
+  }
+  const ticks = Math.ceil((song.segundos_final || 8) * 20);
+  playing.set(owner.id, {
+    ...cur,
+    sound: song.final,
+    finishing: true,
+    ears: ears.map((p) => p.id),
+    endsAt: system.currentTick + ticks + 10,
   });
 }
 
@@ -322,6 +378,10 @@ system.runInterval(() => {
       continue;
     }
     if (now < cur.endsAt) continue;
+    if (cur.finishing) {
+      playing.delete(ownerId);
+      continue;
+    }
     const next = nextIndex(getMode(owner).id, cur.index);
     if (next < 0) playing.delete(ownerId);
     else play(owner, next);
@@ -382,24 +442,54 @@ function openAudienceMenu(owner) {
   });
 }
 
+function openVolumeMenu(owner) {
+  const cur = playing.get(owner.id);
+  const canRestart = cur && !cur.finishing;
+  const form = new ModalFormData().title("§5Volumen");
+  form.slider("Volumen (%)", 0, 100, { defaultValue: getVolume(owner), valueStep: 5 });
+  if (canRestart) {
+    form.toggle("Aplicar ya a la canción que suena §7(vuelve a empezar; si no, se aplica a la siguiente)", {
+      defaultValue: false,
+    });
+  }
+  form.submitButton("Guardar");
+  form.show(owner).then((res) => {
+    if (!res.canceled && res.formValues) {
+      const v = Number(res.formValues[0]);
+      if (Number.isFinite(v)) owner.setDynamicProperty(VOLUME_PROP, Math.max(0, Math.min(100, Math.round(v))));
+      const again = playing.get(owner.id);
+      if (canRestart && res.formValues[1] === true && again && !again.finishing) play(owner, again.index);
+    }
+    system.run(() => openMenu(owner));
+  });
+}
+
 function openMenu(owner) {
   const cur = playing.get(owner.id);
   const mode = getMode(owner);
   const audience = getAudience(owner);
   const song = cur && CANCIONES[cur.index];
   const form = new ActionFormData().title("§5Reproductor de Música");
+  const status = !song ? "§7No suena nada" : cur.finishing ? `§6Finalizando: §f${song.nombre}` : `§aSonando: §f${song.nombre}`;
   form.body(
-    (song ? `§aSonando: §f${song.nombre}` : "§7No suena nada") +
+    status +
       `\n§7Escuchan: §f${audienceText(owner, audience)}` +
-      `\n§7Modo: §f${mode.label}`
+      `\n§7Modo: §f${mode.label}` +
+      `\n§7Volumen: §f${getVolume(owner)}%`
   );
   const actions = [];
   if (song) {
-    form.button("§c■ Detener");
+    form.button("§cDetener\n§8Para de golpe");
     actions.push(() => stopFor(owner.id));
+    if (!cur.finishing) {
+      form.button("§6Finalizar\n§8Pone los últimos segundos y termina");
+      actions.push(() => finish(owner));
+    }
   }
   form.button(`§9¿Quién escucha?\n§8${audienceText(owner, audience)}`);
   actions.push(() => system.run(() => openAudienceMenu(owner)));
+  form.button(`§9Volumen: ${getVolume(owner)}%`);
+  actions.push(() => system.run(() => openVolumeMenu(owner)));
   form.button(`§9Modo: ${mode.label}`);
   actions.push(() => {
     const i = MODES.indexOf(mode);
@@ -471,6 +561,7 @@ def main():
     songs = load_songs()
     for s in songs:
         s["segundos"] = copy_song(s)
+        s["segundos_final"] = make_ending(s)
         print(f"  {s['nombre']}  ({s['segundos']:.0f} s)")
 
     tex = icon()
