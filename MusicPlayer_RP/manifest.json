@@ -1,0 +1,39 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Reproductor de Música",
+    "description": "Canciones y textura del reproductor de música.",
+    "uuid": "37f79877-e758-4e1f-857f-a5a93e93dab1",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      90
+    ]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "c68e741e-b614-48ec-a479-4956ebd08506",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "6de1590f-b6b2-422c-8ffb-aaa714a1c165",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ]
+}

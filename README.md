@@ -7,13 +7,14 @@
 | **Ruleta de Colores** – ruleta en el HUD con comandos de administrador | [`dist/Roulette.mcaddon`](dist/Roulette.mcaddon) | `tools/roulette.py` |
 | **Objetos de Ayuda** – 4 objetos especiales que ayudan al jugador | [`dist/HelperItems.mcaddon`](dist/HelperItems.mcaddon) | `tools/helper_items.py` |
 | **The LITIUS Blind** – nueva dimensión de islas flotantes | [`dist/LitiusBlind.mcaddon`](dist/LitiusBlind.mcaddon) | `tools/litius_blind.py` |
+| **Reproductor de Música** – objeto para escuchar tus canciones (no 3D) | [`dist/MusicPlayer.mcaddon`](dist/MusicPlayer.mcaddon) | `tools/music_player.py` |
 
 Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo. No hace falta activar experimentos
 (salvo en The LITIUS Blind, ver abajo).
 
 - The Revamp of the Soul requiere Minecraft Bedrock **1.26.0** o superior.
 - Medieval Mobs requiere **1.21.0** o superior.
-- Ruleta de Colores y Objetos de Ayuda requieren **1.21.90** o superior.
+- Ruleta de Colores, Objetos de Ayuda y Reproductor de Música requieren **1.21.90** o superior.
 - The LITIUS Blind requiere **26.20** o superior y el experimento **Beta APIs**.
 
 ---
@@ -62,6 +63,57 @@ al sitio desde el que entraste. Cooldown 3 s.
 - Debajo de las islas solo hay vacío: cuidado al saltar entre ellas.
 - El generador está en `tools/litius_blind/gen.js` y se copia tal cual al pack; `CONFIG` en `tools/litius_blind.py`
   cambia el radio de generación.
+
+---
+
+# Reproductor de Música
+
+![Icono del Reproductor de Música](docs/music_player_preview.png)
+
+Un objeto, el **Reproductor de Música** (`musica:reproductor`), para escuchar canciones. Está en el inventario
+creativo (pestaña *Objetos*) o con `/give @s musica:reproductor`.
+
+- **Las canciones no son 3D:** se oyen al **mismo volumen estés donde estés**, como la música de fondo de
+  Minecraft. Aunque te alejes del sitio donde la pusiste, no baja.
+- **Usar** el objeto abre un menú con la lista de canciones. Pulsa una para reproducirla (la que suena sale en verde).
+- **Agacharse + usar** para la música sin abrir el menú. En el menú también hay un botón **Detener**.
+- **Modo** (botón en el menú, se guarda): *Una vez*, *Repetir canción*, *Todas en orden* o *Aleatorio*.
+- Por defecto solo la oyes **tú**. Con `para_todos: true` (ver abajo) la oye todo el mundo.
+- El volumen se controla con el deslizador **Música** de los ajustes de sonido. Si lo tienes a 0 no oirás nada.
+- Al empezar una canción se corta la música normal de Minecraft para que no se mezclen.
+- Trae dos canciones de prueba (*Pradera Tranquila* y *Noche Estrellada*), hechas por `tools/music_demo.py`.
+
+### Añadir o quitar canciones (con el generador)
+
+1. Mete tus archivos de audio en `sources/music_player/canciones/`. Vale `.ogg`, `.mp3`, `.wav`, `.flac` o `.m4a`
+   (lo que no sea `.ogg` se convierte solo). Borra los que no quieras, incluidas las dos de prueba.
+2. Opcional: en `sources/music_player/canciones.json` pon el **nombre** que sale en el menú, el **autor** y el
+   **orden**. Las canciones que no estén ahí se añaden al final con el nombre del archivo
+   (`mi_cancion_favorita.mp3` → *Mi Cancion Favorita*).
+3. Ejecuta `python3 tools/music_player.py` (necesita Python 3, Pillow y **ffmpeg**). Mide lo que dura cada
+   canción y vuelve a crear los packs y `dist/MusicPlayer.mcaddon`.
+
+Los ajustes (`volumen`, `para_todos`, `callar_musica_vanilla`, `mostrar_titulo`) están en `SETTINGS` al principio
+de `tools/music_player.py`, y `CATEGORY` elige qué deslizador de volumen la controla (`music`, `record`, `ui`...).
+
+### Añadir una canción a mano (sin el generador)
+
+1. Copia el archivo **`.ogg`** (Vorbis) en `MusicPlayer_RP/sounds/musica/`, por ejemplo `mi_cancion.ogg`.
+2. Añade su sonido en `MusicPlayer_RP/sounds/sound_definitions.json` (deja `"is3D": false`, que es lo que hace que
+   no sea 3D):
+
+   ```json
+   "musica.mi_cancion": {
+     "category": "music",
+     "sounds": [{ "name": "sounds/musica/mi_cancion", "stream": true, "is3D": false, "volume": 1.0 }]
+   }
+   ```
+3. Añade una línea en `MusicPlayer_BP/scripts/canciones.js`, con lo que dura en segundos:
+
+   ```js
+   {"sonido": "musica.mi_cancion", "nombre": "Mi Canción", "segundos": 185},
+   ```
+   En ese mismo archivo están los `AJUSTES` (volumen, para todos...), que también se pueden cambiar a mano.
 
 ---
 
@@ -287,6 +339,8 @@ sources/soul_corrupted_mobs_v1.0.0/           addon original (base)
 MedievalMobs_BP/   MedievalMobs_RP/    addon medieval
 Roulette_BP/       Roulette_RP/        ruleta de colores (generado)
 HelperItems_BP/    HelperItems_RP/     objetos de ayuda (generado)
+MusicPlayer_BP/    MusicPlayer_RP/     reproductor de música (generado)
+sources/music_player/                  canciones del reproductor de música
 tools/             generadores en Python (modelos + texturas + JSON)
 dist/              los .mcaddon listos para instalar
 ```
@@ -303,6 +357,7 @@ python3 tools/soul_mobs.py --preview
 python3 tools/generate.py --preview
 python3 tools/roulette.py --preview
 python3 tools/helper_items.py --preview
+python3 tools/music_player.py
 ```
 
 Cada uno vuelve a generar sus packs y su `.mcaddon`. `--preview` además actualiza las imágenes de `docs/`.
