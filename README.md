@@ -70,18 +70,28 @@ al sitio desde el que entraste. Cooldown 3 s.
 
 ![Icono del Reproductor de Música](docs/music_player_preview.png)
 
-Un objeto, el **Reproductor de Música** (`musica:reproductor`), para escuchar canciones. Está en el inventario
-creativo (pestaña *Objetos*) o con `/give @s musica:reproductor`.
+Un objeto, el **Reproductor de Música** (`musica:reproductor`), para escuchar canciones.
+**No se puede conseguir en supervivencia:** no tiene receta, no sale en cofres, ni lo suelta ningún mob ni lo vende
+ningún aldeano. Solo está en el inventario creativo (pestaña *Objetos*) o con `/give @s musica:reproductor`
+(necesita trucos u operador).
 
 - **Las canciones no son 3D:** se oyen al **mismo volumen estés donde estés**, como la música de fondo de
   Minecraft. Aunque te alejes del sitio donde la pusiste, no baja.
 - **Usar** el objeto abre un menú con la lista de canciones. Pulsa una para reproducirla (la que suena sale en verde).
 - **Agacharse + usar** para la música sin abrir el menú. En el menú también hay un botón **Detener**.
 - **Modo** (botón en el menú, se guarda): *Una vez*, *Repetir canción*, *Todas en orden* o *Aleatorio*.
-- Por defecto solo la oyes **tú**. Con `para_todos: true` (ver abajo) la oye todo el mundo.
+- **¿Quién escucha?** (botón en el menú, se guarda en cada jugador):
+  - **Solo yo**: solo la oye quien usa el reproductor (por defecto).
+  - **Todos**: la oyen todos los jugadores del mundo.
+  - **Jugadores seleccionados**: una lista con casillas de los jugadores conectados para marcar quién la oye
+    (tú incluido o no).
+
+  Si cambias los oyentes mientras suena una canción, empieza de nuevo para los nuevos oyentes. Los demás ven en la
+  barra de acción *«Fulano te pone: canción»*. Si quien puso la música sale del mundo, se para para todos.
 - El volumen se controla con el deslizador **Música** de los ajustes de sonido. Si lo tienes a 0 no oirás nada.
 - Al empezar una canción se corta la música normal de Minecraft para que no se mezclen.
-- Trae dos canciones de prueba (*Pradera Tranquila* y *Noche Estrellada*), hechas por `tools/music_demo.py`.
+- Canciones incluidas: *Arctic*, *Feel Nothing V2*, *Parfum d'étoiles*, *Dreaming of You (Cathedral)*,
+  *Feel The Fury* y las dos de prueba (*Pradera Tranquila* y *Noche Estrellada*, hechas por `tools/music_demo.py`).
 
 ### Añadir o quitar canciones (con el generador)
 
@@ -93,7 +103,7 @@ creativo (pestaña *Objetos*) o con `/give @s musica:reproductor`.
 3. Ejecuta `python3 tools/music_player.py` (necesita Python 3, Pillow y **ffmpeg**). Mide lo que dura cada
    canción y vuelve a crear los packs y `dist/MusicPlayer.mcaddon`.
 
-Los ajustes (`volumen`, `para_todos`, `callar_musica_vanilla`, `mostrar_titulo`) están en `SETTINGS` al principio
+Los ajustes (`volumen`, `oyentes_por_defecto`, `callar_musica_vanilla`, `mostrar_titulo`) están en `SETTINGS` al principio
 de `tools/music_player.py`, y `CATEGORY` elige qué deslizador de volumen la controla (`music`, `record`, `ui`...).
 
 ### Añadir una canción a mano (sin el generador)
@@ -113,7 +123,7 @@ de `tools/music_player.py`, y `CATEGORY` elige qué deslizador de volumen la con
    ```js
    {"sonido": "musica.mi_cancion", "nombre": "Mi Canción", "segundos": 185},
    ```
-   En ese mismo archivo están los `AJUSTES` (volumen, para todos...), que también se pueden cambiar a mano.
+   En ese mismo archivo están los `AJUSTES` (volumen, oyentes por defecto...), que también se pueden cambiar a mano.
 
 ---
 

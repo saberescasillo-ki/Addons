@@ -1,6 +1,66 @@
 {
   "format_version": "1.20.20",
   "sound_definitions": {
+    "musica.arctic": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/musica/arctic",
+          "stream": true,
+          "is3D": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "musica.feel_nothing_v2": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/musica/feel_nothing_v2",
+          "stream": true,
+          "is3D": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "musica.parfum_d_etoiles": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/musica/parfum_d_etoiles",
+          "stream": true,
+          "is3D": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "musica.dreaming_of_you_cathedral": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/musica/dreaming_of_you_cathedral",
+          "stream": true,
+          "is3D": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "musica.feel_the_fury": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/musica/feel_the_fury",
+          "stream": true,
+          "is3D": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
     "musica.pradera_tranquila": {
       "category": "music",
       "sounds": [

@@ -1,4 +1,9 @@
 [
+  { "archivo": "arctic.ogg", "nombre": "Arctic" },
+  { "archivo": "feel_nothing_v2.ogg", "nombre": "Feel Nothing V2", "autor": "Eternity OST" },
+  { "archivo": "parfum_d_etoiles.ogg", "nombre": "Parfum d'étoiles" },
+  { "archivo": "dreaming_of_you_cathedral.ogg", "nombre": "Dreaming of You (Cathedral)", "autor": "Selena (432 Hz)" },
+  { "archivo": "feel_the_fury.ogg", "nombre": "Feel The Fury", "autor": "Sonic.exe: Outcome Memories OST" },
   { "archivo": "pradera_tranquila.ogg", "nombre": "Pradera Tranquila", "autor": "Demo" },
   { "archivo": "noche_estrellada.ogg", "nombre": "Noche Estrellada", "autor": "Demo" }
 ]
