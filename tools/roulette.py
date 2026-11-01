@@ -3,11 +3,19 @@ that show and spin a 6-colour wheel (wood, vines and leaves) in each player's
 HUD.
 
 How the HUD wheel works: the script sends titles that start with PREFIX,
-"_roul:~<scale>~~p<position>~<texture>" ("_roul:~10~~photbar~f07", "_roul:hide").
+"_roul:~<scale>~~p<position>~<texture>" ("_roul:~10~~photbar~f007", "_roul:hide").
 ui/hud_screen.json hides those titles, remembers the last one and uses it to
 pick where the wheel goes (POSITIONS), its size (1..MAX_SCALE, for the
 grow/shrink/pop animations) and the texture to draw, so each title shows one
-pre-rendered frame.
+pre-rendered frame. Scripts run at 20 ticks per second, so that is also the
+most frames per second the wheel can show.
+
+Textures (textures/ui/roulette):
+  f000..f107   the wheel turned 0..107 steps of 360/FRAMES degrees
+  b00..b17     the hidden-result wheel (all white, smiley), one segment of turns
+  brk_00..15   the wheel cracking and splitting in two ("girar sin control")
+  bbrk_00..15  the same with the hidden-result wheel
+  ring, pointer
 
     python3 tools/roulette.py            # regenerate the packs and the .mcaddon
     python3 tools/roulette.py --preview  # also refresh docs/roulette_preview.png
@@ -28,7 +36,7 @@ BP = os.path.join(ROOT, "Roulette_BP")
 RP = os.path.join(ROOT, "Roulette_RP")
 DIST = os.path.join(ROOT, "dist")
 
-VERSION = [1, 2, 1]
+VERSION = [1, 3, 0]
 SCRIPT_API = "2.1.0"  # first stable version with custom commands (2.0.0 has none)
 SCRIPT_UI_API = "2.0.0"
 MIN_ENGINE = [1, 21, 100]
@@ -47,31 +55,45 @@ COLORS = [
     dict(id="celeste", es="Celeste", fmt="§b", hex="#5cc4ec", aliases=["light_blue", "cyan"]),
     dict(id="amarillo", es="Amarillo", fmt="§e", hex="#f4cf2c", aliases=["yellow"]),
 ]
-BLANK = "#f2efe4"    # "ocultar resultado": every segment this colour
+BLANK = "#f2efe4"    # hidden result: every segment this colour
 RANDOM = ["aleatorio", "random"]
+# Settings in the "Opciones" menu, for the whole world.
+OPTIONS = {
+    "hecha": "Ruleta hecha y derecha",
+    "sospechosa": "Ruleta sospechosa",
+    "segura": "Ruleta segura",
+    "precavida": "Ruleta precavida",
+}
 
 PREFIX = "_roul:"
-FRAMES = 72          # one frame every 5 degrees
+FRAMES = 108         # one frame every 3.33 degrees (was 72: 50% more steps)
 SCALES = 10          # sizes of the grow/shrink animation (one per tick), 10 = normal size
 MAX_SCALE = 15       # 1.5x for a second when it lands
-TEX_SIZE = 128
-SS = 4               # supersampling when drawing
+TEX_SIZE = 256       # on screen the wheel is 64 UI units, up to ~4 pixels per unit on phones
+SS = 3               # supersampling when drawing
+PX = TEX_SIZE * SS / 128  # canvas pixels per pixel of the original 128 px design
 UI_SIZE = 64         # normal wheel size on screen, in UI units
+BREAK_SCALE = 1.4    # the breaking wheel gets a bigger picture, so the halves aren't cut off
+CRACK_FRAMES = 4     # the crack spreads...
+BREAK_FRAMES = 16    # ...then the halves open (one frame per tick)
 # Where the admin can put the wheel. grow_from: the point that stays still while it grows.
 POSITIONS = {
     "hotbar": dict(es="Encima de la barra de objetos", anchor="bottom_middle", offset=[0, -28],
                    grow_from="bottom_middle"),
-    "hambre": dict(es="Debajo de la barra de hambre", anchor="top_right", offset=[-4, 30], grow_from="top_right"),
+    "arriba": dict(es="Debajo de las opciones de arriba", anchor="top_middle", offset=[0, 28],
+                   grow_from="top_middle"),
     "centro": dict(es="En el centro", anchor="center", offset=[0, 0], grow_from="center"),
 }
 DEFAULT_POSITION = "hotbar"
 SPIN_TICKS = 300     # 15 s
 MIN_TURNS = 8        # full turns before it slows down on the colour
-JITTER = 4           # frames (x5 degrees) the landing point moves inside the segment
+JITTER = 6           # frames (x3.33 degrees) the landing point moves inside the segment
 WARN_TICKS = 20      # warning bells before it starts
+AUTO_WARN_TICKS = 60  # "hecha y derecha": 3 s of warning
+AUTO_HIDE_TICKS = 100  # "hecha y derecha": hides 5 s after the result
 POP_TICKS = 25       # 5 ticks growing to 1.5x + 1 s at that size
 WILD_TICKS = 200     # "girar sin control": 10 s speeding up...
-VANISH_TICKS = 10    # ...then gone for half a second, and back broken
+VANISH_TICKS = 10    # ...then gone for half a second, and back breaking
 
 BARK, BARK_DARK, BARK_LIGHT = (104, 70, 40, 255), (62, 40, 22, 255), (140, 98, 58, 255)
 LEAF, LEAF_DARK, LEAF_LIGHT = (70, 140, 50, 255), (34, 84, 30, 255), (128, 186, 74, 255)
@@ -95,6 +117,11 @@ def write(path, data):
             json.dump(data, f, indent=2, ensure_ascii=False)
 
 
+def w(k):
+    """Line width: k pixels of the original 128 px design."""
+    return max(1, round(k * PX))
+
+
 # ---------------------------------------------------------------- drawing
 def leaf(d, x, y, angle, length, width, fill, vein=True):
     """A leaf from its stem (x, y) pointing at `angle` (radians)."""
@@ -102,8 +129,8 @@ def leaf(d, x, y, angle, length, width, fill, vein=True):
     left, right = [], []
     for k in range(13):
         t = k / 12
-        w = width / 2 * math.sin(math.pi * t) ** 0.8
-        px, py = t * length, w
+        hw = width / 2 * math.sin(math.pi * t) ** 0.8
+        px, py = t * length, hw
         left.append((x + px * ca - py * sa, y + px * sa + py * ca))
         right.append((x + px * ca + py * sa, y + px * sa - py * ca))
     d.polygon(left + right[::-1], fill=fill, outline=shade(fill, 0.6))
@@ -133,11 +160,11 @@ def disk(colors):
         # PIL angles: 0 = east, clockwise. Segment i is centred at i*seg from the top.
         start = -90 + i * seg - seg / 2
         d.pieslice(box, start, start + seg, fill=hx(col))
-        # a faint leaf drawn in each segment, and darker toward the rim
+        # a faint leaf drawn in each segment
         mid = math.radians(start + seg / 2)
         leaf(d, c + r * 0.3 * math.cos(mid), c + r * 0.3 * math.sin(mid), mid, r * 0.6, r * 0.32,
              shade(hx(col), 0.9), vein=True)
-    rim_shade = Image.new("RGBA", (n, n), (0, 0, 0, 0))
+    rim_shade = Image.new("RGBA", (n, n), (0, 0, 0, 0))  # darker toward the rim
     sd = ImageDraw.Draw(rim_shade)
     for k in range(12):
         rr = r * (1 - k * 0.025)
@@ -148,8 +175,8 @@ def disk(colors):
     for i in range(len(colors)):
         a = math.radians(-90 + i * seg - seg / 2)
         ca, sa = math.cos(a), math.sin(a)
-        d.line([c, c, c + r * ca, c + r * sa], fill=BARK_DARK, width=SS * 4)
-        d.line([c, c, c + r * ca, c + r * sa], fill=BARK, width=SS * 2)
+        d.line([c, c, c + r * ca, c + r * sa], fill=BARK_DARK, width=w(4))
+        d.line([c, c, c + r * ca, c + r * sa], fill=BARK, width=w(2))
         for t in (0.45, 0.72):  # buds along the twig
             side = 1 if rng.random() < 0.5 else -1
             leaf(d, c + r * t * ca, c + r * t * sa, a + side * 0.7, r * 0.12, r * 0.06, LEAF, vein=False)
@@ -157,7 +184,7 @@ def disk(colors):
     d.ellipse([c - h, c - h, c + h, c + h], fill=BARK_DARK)
     d.ellipse([c - h * 0.86, c - h * 0.86, c + h * 0.86, c + h * 0.86], fill=(214, 172, 116, 255))
     for k in (0.68, 0.48, 0.28):
-        d.ellipse([c - h * k, c - h * k, c + h * k, c + h * k], outline=(160, 116, 70, 255), width=SS)
+        d.ellipse([c - h * k, c - h * k, c + h * k, c + h * k], outline=(160, 116, 70, 255), width=w(1))
     d.ellipse([c - h * 0.1, c - h * 0.1, c + h * 0.1, c + h * 0.1], fill=(150, 104, 60, 255))
     return im
 
@@ -170,24 +197,24 @@ def ring():
     im = Image.new("RGBA", (n, n), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
     d.ellipse([c - ro, c - ro, c + ro, c + ro], fill=BARK_DARK)
-    d.ellipse([c - ro + SS * 2, c - ro + SS * 2, c + ro - SS * 2, c + ro - SS * 2], fill=BARK)
+    d.ellipse([c - ro + w(2), c - ro + w(2), c + ro - w(2), c + ro - w(2)], fill=BARK)
     rng = random.Random(3)
-    for _ in range(70):  # bark grain
-        rr = rng.uniform(ri + SS * 3, ro - SS * 4)
+    for _ in range(90):  # bark grain
+        rr = rng.uniform(ri + w(3), ro - w(4))
         a0 = rng.uniform(0, 360)
         d.arc([c - rr, c - rr, c + rr, c + rr], a0, a0 + rng.uniform(8, 30),
-              fill=rng.choice([BARK_DARK, BARK_LIGHT]), width=SS)
+              fill=rng.choice([BARK_DARK, BARK_LIGHT]), width=w(1))
     d.ellipse([c - ri, c - ri, c + ri, c + ri], fill=(0, 0, 0, 0))
-    d.ellipse([c - ri, c - ri, c + ri, c + ri], outline=BARK_DARK, width=SS * 2)
+    d.ellipse([c - ri, c - ri, c + ri, c + ri], outline=BARK_DARK, width=w(2))
     # the vine winds in and out around the rim
     rm, amp = (ro + ri) / 2, (ro - ri) * 0.42
     pts = []
-    for k in range(361):
-        a = math.radians(k)
+    for k in range(721):
+        a = math.radians(k / 2)
         rr = rm + amp * math.sin(a * 9)
         pts.append((c + rr * math.cos(a), c + rr * math.sin(a)))
-    d.line(pts, fill=LEAF_DARK, width=SS * 3, joint="curve")
-    d.line(pts, fill=(96, 150, 56, 255), width=SS, joint="curve")
+    d.line(pts, fill=LEAF_DARK, width=w(3), joint="curve")
+    d.line(pts, fill=(96, 150, 56, 255), width=w(1), joint="curve")
     for k in range(0, 360, 17):
         a = math.radians(k + 6)
         rr = rm + amp * math.sin(a * 9)
@@ -202,62 +229,126 @@ def ring():
 
 
 def pointer():
-    """A leaf hanging from a twig, tip down."""
-    n = 32 * SS
+    """A leaf hanging from a twig, tip down, at SS x (TEX_SIZE / 4)."""
+    n = TEX_SIZE // 4 * SS
     im = Image.new("RGBA", (n, n), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    d.line([(n * 0.15, n * 0.12), (n * 0.85, n * 0.12)], fill=BARK_DARK, width=SS * 4)
-    d.line([(n * 0.15, n * 0.12), (n * 0.85, n * 0.12)], fill=BARK, width=SS * 2)
+    d.line([(n * 0.15, n * 0.12), (n * 0.85, n * 0.12)], fill=BARK_DARK, width=w(4))
+    d.line([(n * 0.15, n * 0.12), (n * 0.85, n * 0.12)], fill=BARK, width=w(2))
     leaf(d, n * 0.5, n * 0.1, math.pi / 2, n * 0.86, n * 0.52, LEAF)
     leaf(d, n * 0.3, n * 0.12, math.pi * 0.8, n * 0.22, n * 0.12, LEAF_LIGHT, vein=False)
-    return im.resize((32, 32), Image.LANCZOS)
+    return im
 
 
 def smiley(im):
-    """Black and white smiley in the middle of the blank wheel."""
+    """Black and white smiley in the middle of the wheel (drawn on top, it never turns)."""
     n = im.width
     c, r = n / 2, n * 0.2
     d = ImageDraw.Draw(im)
-    d.ellipse([c - r, c - r, c + r, c + r], fill=(250, 250, 250, 255), outline=(20, 20, 20, 255), width=SS * 4)
+    d.ellipse([c - r, c - r, c + r, c + r], fill=(250, 250, 250, 255), outline=(20, 20, 20, 255), width=w(4))
     e = r * 0.14
     for side in (-1, 1):
         ex, ey = c + side * r * 0.38, c - r * 0.25
         d.ellipse([ex - e, ey - e * 1.4, ex + e, ey + e * 1.4], fill=(20, 20, 20, 255))
-    d.arc([c - r * 0.6, c - r * 0.55, c + r * 0.6, c + r * 0.62], 20, 160, fill=(20, 20, 20, 255), width=SS * 4)
+    d.arc([c - r * 0.6, c - r * 0.55, c + r * 0.6, c + r * 0.62], 20, 160, fill=(20, 20, 20, 255), width=w(4))
     return im
 
 
-def broken(disk_img, ring_img):
-    """The wheel (with its rim) split in two along a jagged crack."""
-    n = TEX_SIZE * SS
-    whole = Image.new("RGBA", (n, n), (0, 0, 0, 0))
-    whole.alpha_composite(disk_img)
-    whole.alpha_composite(ring_img)
-    whole = whole.resize((int(n * 0.8), int(n * 0.8)), Image.LANCZOS)
-    m = whole.width
+def turned(im, k):
+    """The wheel turned k frames clockwise (PIL rotates counter-clockwise)."""
+    return im.rotate(-k * 360 / FRAMES, resample=Image.BICUBIC)
+
+
+def ease_out_back(u, c1=1.6):
+    return 1 + (c1 + 1) * (u - 1) ** 3 + c1 * (u - 1) ** 2
+
+
+def breaking(disk_img, ring_img, pointer_img):
+    """BREAK_FRAMES pictures, BREAK_SCALE times the wheel's size with the wheel at
+    its normal size in the middle: a crack spreads down from the pointer while the
+    wheel shakes, then the two halves open like a V with an overshoot, splinters
+    and leaves fall and the pointer leaf drops off."""
+    n = disk_img.width
+    bn = round(n * BREAK_SCALE)
+    o = (bn - n) // 2
+    whole = Image.new("RGBA", (bn, bn), (0, 0, 0, 0))
+    whole.alpha_composite(disk_img, (o, o))
+    whole.alpha_composite(ring_img, (o, o))
     rng = random.Random(11)
-    crack = [(m / 2 + rng.uniform(-m * 0.06, m * 0.06), m * k / 10) for k in range(11)]
-    crack[0], crack[-1] = (m / 2, -1), (m / 2, m + 1)
-    out = Image.new("RGBA", (n, n), (0, 0, 0, 0))
-    # each half pivots on the bottom of the crack, so they open like a V
-    for side, poly in ((-1, [(-1, -1)] + crack + [(-1, m + 1)]), (1, [(m + 1, -1)] + crack + [(m + 1, m + 1)])):
-        mask = Image.new("L", (m, m), 0)
-        ImageDraw.Draw(mask).polygon(poly, fill=255)
-        half = Image.new("RGBA", (m, m), (0, 0, 0, 0))
-        half.paste(whole, (0, 0), mask)
-        half = half.rotate(-side * 11, resample=Image.BICUBIC, center=(m / 2, m * 0.95))
-        out.alpha_composite(half, (int((n - m) / 2 + side * n * 0.04), int((n - m) / 2 + n * 0.06)))
-    d = ImageDraw.Draw(out)
-    for _ in range(6):  # splinters falling from the crack
-        x, y = n / 2 + rng.uniform(-n * 0.04, n * 0.04), n * rng.uniform(0.15, 0.6)
-        sz = SS * rng.uniform(2, 3.5)
-        d.polygon([(x, y - sz), (x + sz * 0.6, y + sz), (x - sz * 0.6, y + sz * 0.6)], fill=BARK_LIGHT,
-                  outline=BARK_DARK)
-    return out
+    crack = [(bn / 2 + (rng.uniform(-n * 0.05, n * 0.05) if 0 < k < 12 else 0), o + n * k / 12) for k in range(13)]
+    full = [(bn / 2, -1)] + crack + [(bn / 2, bn + 1)]
+    pivot = (bn / 2, o + n * 0.97)
+    pw = pointer_img.width
+    pointer_at = (round(bn / 2 - pw / 2), round(o - pw / 2))  # as the HUD draws it, over the top of the wheel
+    parts = []  # splinters and leaves: start, velocity, size, colour, leaf?
+    for k in range(16):
+        y = o + n * rng.uniform(0.1, 0.85)
+        parts.append(dict(p=(bn / 2 + rng.uniform(-n * 0.03, n * 0.03), y),
+                          v=(rng.uniform(-0.22, 0.22) * n, rng.uniform(-0.15, 0.02) * n),
+                          size=PX * rng.uniform(2.5, 4.5), leaf=k % 3 == 0, spin=rng.uniform(-3, 3)))
+    frames = []
+    for k in range(BREAK_FRAMES):
+        im = Image.new("RGBA", (bn, bn), (0, 0, 0, 0))
+        if k < CRACK_FRAMES:
+            # the crack runs down from the pointer and the wheel shakes
+            f = (k + 1) / CRACK_FRAMES
+            shake = round(PX * 1.6) * (1 if k % 2 else -1)
+            pic = whole.copy()
+            d = ImageDraw.Draw(pic)
+            upto = crack[: max(2, round(len(crack) * f))]
+            d.line(upto, fill=(30, 18, 8, 255), width=w(2.5), joint="curve")
+            d.line(upto, fill=(200, 160, 110, 255), width=w(0.8), joint="curve")
+            im.alpha_composite(pic, (shake, 0))
+            im.alpha_composite(pointer_img, (pointer_at[0] + shake, pointer_at[1]))
+            frames.append(im)
+            continue
+        u = (k - CRACK_FRAMES + 1) / (BREAK_FRAMES - CRACK_FRAMES)
+        e = ease_out_back(u)
+        cracked = whole.copy()
+        ImageDraw.Draw(cracked).line(crack, fill=(30, 18, 8, 255), width=w(2.5), joint="curve")
+        for side, poly in ((-1, [(-1, -1)] + full + [(-1, bn + 1)]), (1, [(bn + 1, -1)] + full + [(bn + 1, bn + 1)])):
+            mask = Image.new("L", (bn, bn), 0)
+            ImageDraw.Draw(mask).polygon(poly, fill=255)
+            half = Image.new("RGBA", (bn, bn), (0, 0, 0, 0))
+            half.paste(cracked, (0, 0), mask)
+            half = half.rotate(-side * 12 * e, resample=Image.BICUBIC, center=pivot,
+                               translate=(side * n * 0.05 * e, n * 0.03 * e))
+            im.alpha_composite(half)
+        d = ImageDraw.Draw(im)
+        fade = max(0.0, 1 - u * 1.3)
+        for pt in parts:
+            x = pt["p"][0] + pt["v"][0] * u
+            y = pt["p"][1] + pt["v"][1] * u + n * 0.4 * u * u
+            if fade <= 0:
+                break
+            a = pt["spin"] * u
+            if pt["leaf"]:
+                leaf(d, x, y, a, pt["size"] * 3, pt["size"] * 1.6, LEAF_LIGHT[:3] + (int(255 * fade),), vein=False)
+            else:
+                sz = pt["size"]
+                tri = [(x + sz * math.cos(a + t), y + sz * math.sin(a + t)) for t in (0, 2.3, 4.1)]
+                d.polygon(tri, fill=BARK_LIGHT[:3] + (int(255 * fade),), outline=BARK_DARK[:3] + (int(255 * fade),))
+        # the pointer leaf drops off, turning and fading
+        drop = pointer_img.rotate(70 * u, resample=Image.BICUBIC, expand=True)
+        alpha = drop.getchannel("A").point(lambda v: int(v * max(0.0, 1 - u * 1.3)))
+        drop.putalpha(alpha)
+        im.alpha_composite(drop, (round(bn / 2 - drop.width / 2 + n * 0.06 * u),
+                                  round(pointer_at[1] + pw / 2 - drop.height / 2 + n * 0.45 * u * u)))
+        frames.append(im)
+    # nothing may touch the border, or the HUD would show it cut off
+    for im in frames:
+        bbox = im.getchannel("A").point(lambda v: 255 if v > 8 else 0).getbbox()
+        assert bbox and bbox[0] > 0 and bbox[1] > 0 and bbox[2] < bn and bbox[3] < bn, bbox
+    return frames
 
 
-def small(im):
-    return im.resize((TEX_SIZE, TEX_SIZE), Image.LANCZOS)
+def save_png(im, path):
+    """256-colour PNG: looks the same for this flat art and is ~5 times smaller."""
+    im.quantize(256, method=Image.Quantize.FASTOCTREE, dither=Image.Dither.NONE).save(path, optimize=True)
+
+
+def small(im, size=TEX_SIZE):
+    return im.resize((size, size), Image.LANCZOS)
 
 
 def composite(disk_img, ring_img, pointer_img, size):
@@ -265,15 +356,14 @@ def composite(disk_img, ring_img, pointer_img, size):
     top = size // 8
     out = Image.new("RGBA", (size, size + top), (0, 0, 0, 0))
     out.alpha_composite(disk_img.resize((size, size), Image.LANCZOS), (0, top))
-    if ring_img is not None:
-        out.alpha_composite(ring_img.resize((size, size), Image.LANCZOS), (0, top))
-        p = pointer_img.resize((size // 4, size // 4), Image.LANCZOS)
-        out.alpha_composite(p, ((size - p.width) // 2, 0))
+    out.alpha_composite(ring_img.resize((size, size), Image.LANCZOS), (0, top))
+    p = pointer_img.resize((size // 4, size // 4), Image.LANCZOS)
+    out.alpha_composite(p, ((size - p.width) // 2, 0))
     return out
 
 
 # ---------------------------------------------------------------- UI
-def hud():
+def hud(preload):
     tex = "textures/ui/roulette"
     src = "roul_data_control"
     p = "#preserved_text"
@@ -282,33 +372,41 @@ def hud():
     for tag in [f"~{k}~" for k in range(1, MAX_SCALE + 1)] + [f"~p{k}~" for k in POSITIONS]:
         name = f"({name} - '{tag}')"
     shown = f"({has(PREFIX)} and not ({p} = '{PREFIX}hide'))"
+    whole = f"(({p} - 'brk') = {p})"  # not breaking
     tip = UI_SIZE // 4
 
     def view(prop, target):
         return {"binding_type": "view", "source_control_name": src, "source_property_name": prop,
                 "target_property_name": target}
 
+    def image(texture, size, anchor, layer, bindings=(), offset=(0, 0)):
+        # bilinear: smooth scaling (the default is nearest pixel, which looks pixelated)
+        return {"type": "image", "texture": texture, "size": size, "layer": layer, "bilinear": True,
+                "anchor_from": anchor, "anchor_to": anchor, "offset": list(offset), "bindings": list(bindings)}
+
     def scales(anchor):
         out = []
         for k in range(1, MAX_SCALE + 1):
             s = max(2, round(UI_SIZE * k / SCALES))
             t = max(1, s // 4)
+            b = round(s * BREAK_SCALE)
             out.append({f"scale_{k}": {
                 "type": "panel", "size": [s, s + t // 2], "anchor_from": anchor, "anchor_to": anchor,
                 "bindings": [view(has(f"~{k}~"), "#visible")],
                 "controls": [
-                    {"disk": {"type": "image", "texture": "#texture", "size": [s, s], "layer": 1,
-                              "anchor_from": "bottom_middle", "anchor_to": "bottom_middle",
-                              "bindings": [view(f"('{tex}/' + {name})", "#texture")]}},
-                    {"rim_and_pointer": {
+                    {"wheel": {
                         "type": "panel", "size": ["100%", "100%"],
-                        # the broken wheel already has its own rim
-                        "bindings": [view(f"(({p} - 'broken') = {p})", "#visible")],
+                        "bindings": [view(whole, "#visible")],
                         "controls": [
-                            {"rim": {"type": "image", "texture": f"{tex}/ring", "size": [s, s], "layer": 2,
-                                     "anchor_from": "bottom_middle", "anchor_to": "bottom_middle"}},
-                            {"pointer": {"type": "image", "texture": f"{tex}/pointer", "size": [t, t],
-                                         "layer": 3, "anchor_from": "top_middle", "anchor_to": "top_middle"}}]}},
+                            {"disk": image("#texture", [s, s], "bottom_middle", 1,
+                                           [view(f"('{tex}/' + {name})", "#texture")])},
+                            {"rim": image(f"{tex}/ring", [s, s], "bottom_middle", 2)},
+                            {"pointer": image(f"{tex}/pointer", [t, t], "top_middle", 3)}]}},
+                    # the breaking wheel: a bigger picture centred on the wheel
+                    {"breaking": dict(image("#texture", [b, b], "bottom_middle", 1,
+                                            [view(f"(not {whole})", "#visible"),
+                                             view(f"('{tex}/' + {name})", "#texture")],
+                                            offset=(0, (b - s) // 2)))},
                 ]}})
         return out
 
@@ -322,7 +420,6 @@ def hud():
             "offset": pos["offset"],
             "bindings": [view(f"({shown} and {has(f'~p{key}~')})", "#visible")],
             "controls": scales(pos["grow_from"])}})
-    preload = [f"f{k:02d}" for k in range(FRAMES)] + ["blank", "broken", "ring", "pointer"]
     return {
         "namespace": "hud",
         "root_panel": {"modifications": [{
@@ -346,7 +443,7 @@ def hud():
                      "source_property_name": f"(not (#hud_title_text_string = {p}) and "
                                              f"not ((#hud_title_text_string - '{PREFIX}') = #hud_title_text_string))",
                      "target_property_name": "#visible"}]}},
-                # Every texture stays loaded, so the first spin doesn't flicker.
+                # Every texture stays loaded, so no frame flickers the first time it's shown.
                 {"roulette_preload": {"type": "panel", "size": [1, 1], "anchor_from": "top_left",
                                       "anchor_to": "top_left", "controls": [
                     {f"pre_{t}": {"type": "image", "texture": f"{tex}/{t}", "size": [1, 1], "alpha": 0.01}}
@@ -361,6 +458,7 @@ SCRIPT = r"""// Ruleta de Colores: admin commands and a control item that show a
 //
 // The wheel is drawn by ui/hud_screen.json (resource pack): every title that
 // starts with PREFIX is hidden and used as "~<size>~~p<position>~<texture>" to draw.
+// Scripts run at 20 ticks per second: the wheel shows at most one new frame per tick.
 import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, ItemStack, system, world } from "@minecraft/server";
 import { ActionFormData, ModalFormData } from "@minecraft/server-ui";
 
@@ -373,10 +471,15 @@ const SPIN_TICKS = __SPIN_TICKS__;
 const MIN_TURNS = __MIN_TURNS__;
 const JITTER = __JITTER__;
 const WARN_TICKS = __WARN_TICKS__; // warning bells before the wheel starts
+const AUTO_WARN_TICKS = __AUTO_WARN_TICKS__;
+const AUTO_HIDE_TICKS = __AUTO_HIDE_TICKS__;
 const POP_TICKS = __POP_TICKS__;
 const WILD_TICKS = __WILD_TICKS__; // the spin that ends up breaking the wheel
 const VANISH_TICKS = __VANISH_TICKS__;
+const CRACK_FRAMES = __CRACK_FRAMES__;
+const BREAK_FRAMES = __BREAK_FRAMES__;
 const POSITIONS = __POSITIONS__;
+const OPTIONS = __OPTIONS__;
 // Clockwise from the pointer at frame 0.
 const COLORS = __COLORS__;
 const RANDOM = __RANDOM__;
@@ -384,16 +487,85 @@ const SEG = FRAMES / COLORS.length;
 const OBJECTIVE = "ruleta"; // score "resultado": 1..6, the colour it landed on
 // The wild spin speeds up from slow to 10 times the average speed of a normal spin.
 const WILD_MAX = (10 * (MIN_TURNS * FRAMES + FRAMES / 2)) / SPIN_TICKS;
-const WILD_MIN = 0.2;
+const WILD_MIN = WILD_MAX / 100;
 
 const mod = (a, n) => ((a % n) + n) % n;
-const frameName = (frame) => "f" + String(mod(Math.floor(frame), FRAMES)).padStart(2, "0");
+const pad = (n, len) => String(n).padStart(len, "0");
+const frameName = (frame) => "f" + pad(mod(Math.floor(frame), FRAMES), 3);
+// the hidden-result wheel looks the same every segment, so it only needs SEG frames
+const blankName = (frame) => "b" + pad(mod(Math.floor(frame), SEG), 2);
 const segment = (pos) => Math.floor((pos + SEG / 2) / SEG);
 
+// ------------------------------------------------------------ world settings
 // Read on first use: the world can't be read while the script loads (early execution).
 let position;
-const currentPosition = () =>
-  (position ??= String(world.getDynamicProperty("roulette:position") ?? "") || __DEFAULT_POSITION__);
+const currentPosition = () => {
+  if (position === undefined) {
+    const saved = String(world.getDynamicProperty("roulette:position") ?? "");
+    position = POSITIONS[saved] ? saved : __DEFAULT_POSITION__;
+  }
+  return position;
+};
+
+function setPosition(key) {
+  position = key;
+  world.setDynamicProperty("roulette:position", key);
+  // the next tick sends every wheel again, with the new position
+}
+
+let options;
+function opts() {
+  if (!options) {
+    options = Object.fromEntries(Object.keys(OPTIONS).map((k) => [k, false]));
+    try {
+      Object.assign(options, JSON.parse(String(world.getDynamicProperty("roulette:options") ?? "{}")));
+    } catch {}
+  }
+  return options;
+}
+
+function setOption(key, on) {
+  opts()[key] = !!on;
+  world.setDynamicProperty("roulette:options", JSON.stringify(options));
+}
+
+// "Ruleta segura": mob spawning is off while a wheel spins, and back as it was after.
+let savedSpawning; // undefined: not read yet, null: nothing saved
+function getSavedSpawning() {
+  if (savedSpawning === undefined) {
+    const s = world.getDynamicProperty("roulette:mob_spawning");
+    savedSpawning = typeof s === "boolean" ? s : null;
+  }
+  return savedSpawning;
+}
+
+function setSavedSpawning(value) {
+  savedSpawning = value;
+  world.setDynamicProperty("roulette:mob_spawning", value ?? undefined);
+}
+
+function safeMode(spinning) {
+  const want = spinning && opts().segura;
+  const saved = getSavedSpawning();
+  if (want && saved === null) {
+    setSavedSpawning(world.gameRules.doMobSpawning);
+    world.gameRules.doMobSpawning = false;
+  } else if (!want && saved !== null) {
+    world.gameRules.doMobSpawning = saved;
+    setSavedSpawning(null);
+  }
+  if (want && system.currentTick % 5 === 0) {
+    // full health, however much health boost they have
+    for (const p of world.getAllPlayers()) p.getComponent("minecraft:health")?.resetToMaxValue();
+  }
+}
+
+// "Ruleta precavida": absorption 20 s and resistance I 15 s when the wheel spins and when it lands
+function protect(player) {
+  if (!opts().precavida) return;
+  player.addEffect("absorption", 400, { amplifier: 0, showParticles: false });
+  player.addEffect("resistance", 300, { amplifier: 0, showParticles: false });
+}
 
 // ------------------------------------------------------------ per-player wheel
 const views = new Map(); // player id -> what that player's wheel is doing
@@ -406,15 +578,17 @@ function view(player) {
       st = JSON.parse(String(player.getDynamicProperty("roulette:state") ?? "{}"));
     } catch {}
     v = {
-      visible: !!st.visible,   // where the grow/shrink animation is heading
+      visible: !!st.visible,      // where the grow/shrink animation is heading
       scale: st.visible ? SCALES : 0,
       frame: mod(Number(st.frame ?? 0), FRAMES),
       blank: !!st.blank,
-      broken: !!st.broken,
+      broken: typeof st.broken === "string" ? st.broken : "", // "brk_" / "bbrk_" when broken
       spin: null,
       wild: null,
       vanish: 0,
+      breaking: null,
       pop: 0,
+      autoHide: 0,
       sent: "",
     };
     views.set(player.id, v);
@@ -428,10 +602,12 @@ function save(player, v) {
 }
 
 function texture(v) {
-  if (v.wild) return frameName(v.wild.pos);
-  if (v.spin) return frameName(v.spin.last);
-  if (v.broken) return "broken";
-  return v.blank ? "blank" : frameName(v.frame);
+  const hidden = opts().sospechosa;
+  if (v.breaking) return v.breaking.kind + pad(v.breaking.tick, 2);
+  if (v.wild) return hidden ? blankName(v.wild.pos) : frameName(v.wild.pos);
+  if (v.spin) return hidden ? blankName(v.spin.last) : frameName(v.spin.last);
+  if (v.broken) return v.broken + pad(BREAK_FRAMES - 1, 2);
+  return v.blank || hidden ? blankName(v.frame) : frameName(v.frame);
 }
 
 function render(player, v) {
@@ -445,14 +621,16 @@ function render(player, v) {
 function stop(v) {
   if (v.spin) v.frame = mod(v.spin.last, FRAMES);
   if (v.wild) v.frame = mod(Math.floor(v.wild.pos), FRAMES);
-  v.spin = v.wild = null;
-  v.vanish = v.pop = 0;
+  if (v.breaking) v.broken = v.breaking.kind;
+  v.spin = v.wild = v.breaking = null;
+  v.vanish = v.pop = v.autoHide = 0;
 }
 
 function show(players) {
   for (const p of players) {
     const v = view(p);
     v.visible = true;
+    v.autoHide = 0;
     save(p, v);
   }
 }
@@ -471,47 +649,65 @@ function blank(players) {
     const v = view(p);
     stop(v);
     v.blank = true;
-    v.broken = false;
+    v.broken = "";
     v.visible = true;
     save(p, v);
   }
 }
 
+const warnTicks = () => (opts().hecha ? AUTO_WARN_TICKS : WARN_TICKS);
+
 function spin(players, index, message) {
   // Same landing point for everybody watching this spin.
   const target = mod(-index * SEG + Math.round((Math.random() * 2 - 1) * JITTER), FRAMES);
+  const warn = warnTicks();
   for (const p of players) {
     const v = view(p);
     stop(v);
-    v.blank = v.broken = false;
+    v.blank = false;
+    v.broken = "";
     v.visible = true;
-    v.spin = { start: v.frame, last: v.frame, tick: -WARN_TICKS, index, message,
+    v.spin = { start: v.frame, last: v.frame, tick: -warn, warn, index, message,
                delta: MIN_TURNS * FRAMES + mod(target - v.frame, FRAMES) };
+    protect(p);
     save(p, v);
   }
 }
 
 function wild(players) {
+  const warn = warnTicks();
   for (const p of players) {
     const v = view(p);
     stop(v);
-    v.blank = v.broken = false;
+    v.blank = false;
+    v.broken = "";
     v.visible = true;
-    v.wild = { pos: v.frame, tick: -WARN_TICKS };
+    v.wild = { pos: v.frame, tick: -warn, warn };
+    protect(p);
     save(p, v);
   }
 }
 
-function setPosition(key) {
-  position = key;
-  world.setDynamicProperty("roulette:position", key);
-  // the next tick sends every wheel again, with the new position
+// Puts every wheel back to a clean, hidden state (for when something went wrong).
+function reset() {
+  for (const p of world.getAllPlayers()) {
+    views.delete(p.id);
+    p.setDynamicProperty("roulette:state", undefined);
+    const v = view(p);
+    render(p, v); // sends the "hide" title
+  }
+  if (getSavedSpawning() !== null) {
+    world.gameRules.doMobSpawning = getSavedSpawning();
+    setSavedSpawning(null);
+  }
+  lastUse.clear();
 }
 
-function warn(player, tick) {
+function warnSound(player, tick, warn) {
   // three rising bells, then the wheel starts
-  const k = tick + WARN_TICKS;
-  if (k === 1 || k === 7 || k === 13) player.playSound("note.bell", { volume: 0.8, pitch: 1 + k / 24 });
+  const k = tick + warn;
+  const at = [1, 1 + Math.round(warn / 3), 1 + Math.round((2 * warn) / 3)].indexOf(k);
+  if (at >= 0) player.playSound("note.bell", { volume: 0.8 + at * 0.1, pitch: 1 + at * 0.25 });
 }
 
 function landed(player, v, s) {
@@ -520,6 +716,14 @@ function landed(player, v, s) {
   if (s.message) player.onScreenDisplay.setActionBar(s.message);
   player.playSound("random.levelup", { volume: 0.8 });
   player.playSound("note.chime", { volume: 0.8 });
+  if (opts().hecha) {
+    // a louder notice, and it goes away by itself
+    player.playSound("firework.large_blast", { volume: 1 });
+    player.playSound("firework.twinkle", { volume: 1 });
+    player.playSound("note.pling", { volume: 1, pitch: 1.5 });
+    v.autoHide = AUTO_HIDE_TICKS;
+  }
+  protect(player);
   const obj = world.scoreboard.getObjective(OBJECTIVE) ?? world.scoreboard.addObjective(OBJECTIVE, "Ruleta");
   obj.setScore("resultado", s.index + 1);
 }
@@ -531,19 +735,37 @@ function step(player, v) {
   if (v.scale < goal) v.scale++;
   else if (v.scale > goal) v.scale--;
 
-  if (v.vanish > 0 && --v.vanish === 0) {
-    // back again, broken in half
-    v.broken = true;
-    v.scale = SCALES;
-    player.playSound("random.break", { volume: 1 });
-    player.playSound("dig.wood", { volume: 1, pitch: 0.7 });
+  if (v.autoHide > 0 && --v.autoHide === 0) {
+    v.visible = false;
     save(player, v);
+  }
+
+  if (v.vanish > 0 && --v.vanish === 0) {
+    // back again, and it breaks
+    v.breaking = { kind: opts().sospechosa ? "bbrk_" : "brk_", tick: 0 };
+    v.scale = SCALES;
+    player.playSound("dig.wood", { volume: 1, pitch: 0.6 });
+  }
+
+  const b = v.breaking;
+  if (b && v.vanish <= 0) {
+    if (b.tick === CRACK_FRAMES) {
+      player.playSound("random.break", { volume: 1 });
+      player.playSound("dig.wood", { volume: 1, pitch: 0.8 });
+    }
+    if (b.tick >= BREAK_FRAMES - 1) {
+      v.broken = b.kind;
+      v.breaking = null;
+      if (opts().hecha) v.autoHide = AUTO_HIDE_TICKS;
+      protect(player);
+      save(player, v);
+    } else if (b.tick > 0 || v.sent.endsWith(b.kind + "00")) b.tick++;
   }
 
   const s = v.spin;
   if (s) {
     s.tick++;
-    if (s.tick <= 0) return warn(player, s.tick);
+    if (s.tick <= 0) return warnSound(player, s.tick, s.warn);
     const t = Math.min(1, s.tick / SPIN_TICKS);
     const pos = s.start + Math.round(s.delta * (1 - (1 - t) ** 3)); // ease-out cubic
     // a click each time a segment border passes under the pointer
@@ -552,6 +774,7 @@ function step(player, v) {
     if (t >= 1) {
       v.frame = mod(pos, FRAMES);
       v.spin = null;
+      if (opts().sospechosa) v.blank = true; // the result stays hidden
       landed(player, v, s);
     }
   }
@@ -559,7 +782,7 @@ function step(player, v) {
   const w = v.wild;
   if (w) {
     w.tick++;
-    if (w.tick <= 0) return warn(player, w.tick);
+    if (w.tick <= 0) return warnSound(player, w.tick, w.warn);
     const t = Math.min(1, w.tick / WILD_TICKS);
     const last = w.pos;
     w.pos += WILD_MIN * (WILD_MAX / WILD_MIN) ** t; // slow, then faster and faster
@@ -575,11 +798,14 @@ function step(player, v) {
 }
 
 system.runInterval(() => {
+  let spinning = false;
   for (const player of world.getAllPlayers()) {
     const v = view(player);
     step(player, v);
     render(player, v); // only sends a title when the picture changed
+    if (v.spin || v.wild) spinning = true;
   }
+  safeMode(spinning);
 });
 
 world.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
@@ -610,31 +836,48 @@ async function menu(player) {
   const res = await new ActionFormData()
     .title("§2§lRuleta")
     .body("Lo que elijas se aplica a todos los jugadores.")
-    .button("Giro aleatorio", "textures/ui/roulette/f00")
-    .button("Girar a un color", "textures/ui/roulette/f12")
+    .button("Giro aleatorio", "textures/ui/roulette/f000")
+    .button("Girar a un color", "textures/ui/roulette/f018")
     .button(visible ? "Ocultar ruleta" : "Mostrar ruleta", "textures/ui/roulette/ring")
-    .button("Ocultar resultado", "textures/ui/roulette/blank")
-    .button("Girar sin control", "textures/ui/roulette/broken")
+    .button("Ocultar resultado", "textures/ui/roulette/b00")
+    .button("Girar sin control", `textures/ui/roulette/brk_${pad(BREAK_FRAMES - 1, 2)}`)
     .button("Cambiar posición", "textures/ui/roulette/pointer")
+    .button("Opciones", "textures/ui/roulette/f054")
+    .button("§4Reset", "textures/ui/roulette/b09")
     .show(player);
   if (res.canceled) return;
   const all = world.getAllPlayers();
   switch (res.selection) {
-    case 0: return spin(all, colorIndex(RANDOM[0]));
+    case 0: return randomMenu(player);
     case 1: return colorMenu(player);
     case 2: return visible ? hide(all) : show(all);
     case 3: return blank(all);
     case 4: return wild(all);
     case 5: return positionMenu(player);
+    case 6: return optionsMenu(player);
+    case 7:
+      reset();
+      return player.sendMessage("§6[Ruleta]§r Ruleta reiniciada.");
   }
 }
 
+const messageField = (form, label) => form.textField(label, "Ej: ¡Los creepers de azalea vienen!");
+
+async function randomMenu(player) {
+  // the colour is chosen now, so the admin can write a message for it
+  const index = Math.floor(Math.random() * COLORS.length);
+  const c = COLORS[index];
+  const res = await messageField(new ModalFormData().title("§2§lGiro aleatorio"),
+    `Saldrá: ${c.fmt}§l${c.es}§r\n\nMensaje al caer (opcional)`).show(player);
+  if (res.canceled || !res.formValues) return;
+  spin(world.getAllPlayers(), index, String(res.formValues[0] ?? "").trim());
+}
+
 async function colorMenu(player) {
-  const res = await new ModalFormData()
+  const form = new ModalFormData()
     .title("§2§lGirar a un color")
-    .dropdown("Color en el que caerá", COLORS.map((c) => `${c.fmt}${c.es}`))
-    .textField("Mensaje al caer (opcional)", "Ej: ¡Los creepers de azalea vienen!")
-    .show(player);
+    .dropdown("Color en el que caerá", COLORS.map((c) => `${c.fmt}${c.es}`));
+  const res = await messageField(form, "Mensaje al caer (opcional)").show(player);
   if (res.canceled || !res.formValues) return;
   const [index, message] = res.formValues;
   spin(world.getAllPlayers(), Number(index), String(message ?? "").trim());
@@ -646,6 +889,15 @@ async function positionMenu(player) {
   for (const k of keys) form.button((k === currentPosition() ? "§2» " : "") + POSITIONS[k]);
   const res = await form.show(player);
   if (!res.canceled) setPosition(keys[res.selection]);
+}
+
+async function optionsMenu(player) {
+  const keys = Object.keys(OPTIONS);
+  const form = new ModalFormData().title("§2§lOpciones de la ruleta");
+  for (const k of keys) form.toggle(OPTIONS[k], { defaultValue: !!opts()[k] });
+  const res = await form.show(player);
+  if (res.canceled || !res.formValues) return;
+  keys.forEach((k, i) => setOption(k, res.formValues[i]));
 }
 
 const lastUse = new Map();
@@ -671,6 +923,7 @@ function result(players, message) {
 system.beforeEvents.startup.subscribe(({ customCommandRegistry: reg }) => {
   const who = { type: CustomCommandParamType.PlayerSelector, name: "jugadores" };
   const admin = { permissionLevel: CommandPermissionLevel.GameDirectors, cheatsRequired: false };
+  const ok = (message) => ({ status: CustomCommandStatus.Success, message });
   const simple = (name, description, action, done) =>
     reg.registerCommand({ ...admin, name, description, optionalParameters: [who] }, (origin, players) => {
       const list = targets(players);
@@ -694,26 +947,40 @@ system.beforeEvents.startup.subscribe(({ customCommandRegistry: reg }) => {
   simple("roulette:hide", "Oculta la ruleta", hide, "Ruleta ocultada");
   simple("roulette:blank", "Oculta el resultado: todo en blanco con una carita", blank, "Resultado oculto");
   simple("roulette:wild", "Gira cada vez más rápido, sin resultado, hasta romperse", wild, "Girando sin control");
+  reg.registerCommand({ ...admin, name: "roulette:reset", description: "Reinicia la ruleta de todos" }, () => {
+    system.run(reset);
+    return ok("Ruleta reiniciada");
+  });
   for (const [key, label] of Object.entries(POSITIONS)) {
     reg.registerCommand(
-      { ...admin, name: `roulette:pos_${key}`, description: `Pone la ruleta ${label.toLowerCase()}` },
+      { ...admin, name: `roulette:pos_${key}`, description: `Pone la ruleta: ${label.toLowerCase()}` },
       () => {
         system.run(() => setPosition(key));
-        return { status: CustomCommandStatus.Success, message: `Ruleta: ${label}` };
+        return ok(`Ruleta: ${label}`);
       });
   }
+  // /roulette:option sospechosa true
+  reg.registerEnum("roulette:option", Object.keys(OPTIONS));
+  reg.registerCommand(
+    { ...admin, name: "roulette:option", description: "Activa o desactiva una opción de la ruleta",
+      mandatoryParameters: [{ type: CustomCommandParamType.Enum, name: "roulette:option" },
+                            { type: CustomCommandParamType.Boolean, name: "activar" }] },
+    (origin, key, on) => {
+      system.run(() => setOption(key, on));
+      return ok(`${OPTIONS[key]}: ${on ? "activada" : "desactivada"}`);
+    });
   reg.registerCommand(
     { ...admin, name: "roulette:item", description: "Te da el control de la ruleta" },
     (origin) => {
       const player = origin.sourceEntity;
       if (player?.typeId !== "minecraft:player") return { status: CustomCommandStatus.Failure, message: "Solo jugadores." };
       system.run(() => player.getComponent("minecraft:inventory").container.addItem(new ItemStack(ITEM)));
-      return { status: CustomCommandStatus.Success, message: "Control de la ruleta entregado" };
+      return ok("Control de la ruleta entregado");
     });
 });
 
 // The same actions with /scriptevent: spin_roulette:rojo [mensaje], roulette:show, roulette:hide,
-// roulette:blank, roulette:wild, roulette:pos_<position>
+// roulette:blank, roulette:wild, roulette:reset, roulette:pos_<position>, roulette:option <opción> <on|off>
 system.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceEntity }) => {
   const [ns, key] = id.split(":");
   const list = world.getAllPlayers();
@@ -728,7 +995,12 @@ system.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceEntity }) 
     return spin(list, index, message.trim());
   }
   if (key.startsWith("pos_") && POSITIONS[key.slice(4)]) return setPosition(key.slice(4));
-  const actions = { show, hide, blank, wild };
+  if (key === "option") {
+    const [name, value] = message.trim().toLowerCase().split(/\s+/);
+    if (name in OPTIONS) setOption(name, ["on", "true", "1", "si", "sí"].includes(value));
+    return;
+  }
+  const actions = { show, hide, blank, wild, reset: () => reset() };
   actions[key]?.(list);
 }, { namespaces: ["spin_roulette", "roulette"] });
 """
@@ -740,8 +1012,10 @@ def script():
     positions = {k: p["es"] for k, p in POSITIONS.items()}
     for key, value in dict(PREFIX=PREFIX, ITEM=ITEM, FRAMES=FRAMES, SCALES=SCALES, MAX_SCALE=MAX_SCALE,
                            SPIN_TICKS=SPIN_TICKS, MIN_TURNS=MIN_TURNS, JITTER=JITTER, WARN_TICKS=WARN_TICKS,
+                           AUTO_WARN_TICKS=AUTO_WARN_TICKS, AUTO_HIDE_TICKS=AUTO_HIDE_TICKS,
                            POP_TICKS=POP_TICKS, WILD_TICKS=WILD_TICKS, VANISH_TICKS=VANISH_TICKS,
-                           POSITIONS=positions, DEFAULT_POSITION=DEFAULT_POSITION, COLORS=js_colors,
+                           CRACK_FRAMES=CRACK_FRAMES, BREAK_FRAMES=BREAK_FRAMES, POSITIONS=positions,
+                           OPTIONS=OPTIONS, DEFAULT_POSITION=DEFAULT_POSITION, COLORS=js_colors,
                            RANDOM=RANDOM).items():
         out = out.replace(f"__{key}__", json.dumps(value, ensure_ascii=False))
     return out
@@ -777,7 +1051,7 @@ def manifests():
     }
     rp = {
         "format_version": 2,
-        "header": {"name": ADDON_NAME, "description": "La ruleta en la esquina de la pantalla.",
+        "header": {"name": ADDON_NAME, "description": "La ruleta en la pantalla.",
                    "uuid": UUIDS["rp"], "version": VERSION, "min_engine_version": MIN_ENGINE},
         "modules": [{"type": "resources", "uuid": UUIDS["rp_res"], "version": VERSION}],
         "dependencies": [{"uuid": UUIDS["bp"], "version": VERSION}],
@@ -792,38 +1066,46 @@ def main():
         os.makedirs(pack)
     tex = os.path.join(RP, "textures", "ui", "roulette")
     os.makedirs(tex)
+    seg = FRAMES // len(COLORS)
 
     base = disk([c["hex"] for c in COLORS])
     frames = []
     for k in range(FRAMES):
-        # frame k = wheel turned k*5 degrees clockwise (PIL rotates counter-clockwise)
-        f = small(base.rotate(-k * 360 / FRAMES, resample=Image.BICUBIC))
-        f.save(os.path.join(tex, f"f{k:02d}.png"))
+        f = small(turned(base, k))
+        save_png(f, os.path.join(tex, f"f{k:03d}.png"))
         frames.append(f)
-    big_ring = ring()
-    extra = {
-        "blank": small(smiley(disk([BLANK] * len(COLORS)))),
-        "ring": small(big_ring),
-        "broken": small(broken(base, big_ring)),
-    }
-    for name, im in extra.items():
-        im.save(os.path.join(tex, f"{name}.png"))
-    tip = pointer()
-    tip.save(os.path.join(tex, "pointer.png"))
+    blank_base = disk([BLANK] * len(COLORS))
+    blanks = []
+    for k in range(seg):
+        f = small(smiley(turned(blank_base, k)))
+        save_png(f, os.path.join(tex, f"b{k:02d}.png"))
+        blanks.append(f)
+    big_ring, big_pointer = ring(), pointer()
+    rim, tip = small(big_ring), small(big_pointer, TEX_SIZE // 4)
+    save_png(rim, os.path.join(tex, "ring.png"))
+    save_png(tip, os.path.join(tex, "pointer.png"))
+    bsize = round(TEX_SIZE * BREAK_SCALE)
+    breaks = {}
+    for kind, wheel in (("brk_", base), ("bbrk_", smiley(blank_base.copy()))):
+        breaks[kind] = [small(im, bsize) for im in breaking(wheel, big_ring, big_pointer)]
+        for k, im in enumerate(breaks[kind]):
+            save_png(im, os.path.join(tex, f"{kind}{k:02d}.png"))
 
-    wheel = composite(frames[0], extra["ring"], tip, 112)
+    icon = composite(frames[0], rim, tip, 112)
     pack_icon = Image.new("RGBA", (128, 128), (40, 52, 36, 255))
-    pack_icon.alpha_composite(wheel, (8, 0))
+    pack_icon.alpha_composite(icon, (8, 0))
     for pack in (BP, RP):
         pack_icon.save(os.path.join(pack, "pack_icon.png"))
     os.makedirs(os.path.join(RP, "textures", "items"))
-    composite(frames[0], extra["ring"], tip, 30).resize((32, 32), Image.LANCZOS).save(
+    composite(frames[0], rim, tip, 30).resize((32, 32), Image.LANCZOS).save(
         os.path.join(RP, "textures", "items", "roulette_controller.png"))
     write(os.path.join(RP, "textures", "item_texture.json"), {
         "resource_pack_name": "roulette", "texture_name": "atlas.items",
         "texture_data": {"roulette_controller": {"textures": "textures/items/roulette_controller"}}})
 
-    write(os.path.join(RP, "ui", "hud_screen.json"), hud())
+    preload = ([f"f{k:03d}" for k in range(FRAMES)] + [f"b{k:02d}" for k in range(seg)] + ["ring", "pointer"]
+               + [f"{kind}{k:02d}" for kind in breaks for k in range(BREAK_FRAMES)])
+    write(os.path.join(RP, "ui", "hud_screen.json"), hud(preload))
     write(os.path.join(BP, "items", "controller.json"), item())
     write(os.path.join(BP, "scripts", "main.js"), script())
     bp, rp = manifests()
@@ -838,25 +1120,31 @@ def main():
                     full = os.path.join(folder, f)
                     z.write(full, os.path.relpath(full, ROOT))
     if prev:
-        preview(frames, extra, tip)
+        preview(frames, blanks, breaks["brk_"], rim, tip)
     print("Built", ADDON_NAME, ".".join(map(str, VERSION)), "->", os.path.relpath(DIST, ROOT))
 
 
-def preview(frames, extra, tip):
-    """The wheel resting on each colour, then the hidden result and the broken wheel."""
-    cell, size = 150, 128
-    cells = [(composite(frames[(-i * FRAMES // len(COLORS)) % FRAMES], extra["ring"], tip, size), c["es"])
+def preview(frames, blanks, breaks, rim, tip):
+    """The wheel resting on each colour, the hidden result, and the wheel breaking."""
+    cell, size = 170, 150
+    cells = [(composite(frames[(-i * FRAMES // len(COLORS)) % FRAMES], rim, tip, size), c["es"])
              for i, c in enumerate(COLORS)]
-    cells += [(composite(extra["blank"], extra["ring"], tip, size), "Resultado oculto"),
-              (composite(extra["broken"], None, None, size), "Girar sin control")]
-    font = ImageFont.load_default(size=15)
-    cols = 4
+    cells.append((composite(blanks[0], rim, tip, size), "Resultado oculto"))
+    for k, label in ((CRACK_FRAMES - 1, "Se agrieta"), (CRACK_FRAMES + 3, "Se parte"), (BREAK_FRAMES - 1, "Rota")):
+        # the breaking pictures are bigger than the wheel: shrink them to fit the cell
+        im = breaks[k].resize((cell, cell), Image.LANCZOS)
+        cells.append((im, label))
+    try:
+        font = ImageFont.truetype("DejaVuSans.ttf", 15)
+    except OSError:
+        font = ImageFont.load_default(size=16)
+    cols = 5
     rows = (len(cells) + cols - 1) // cols
     out = Image.new("RGBA", (cell * cols, (cell + 30) * rows), (36, 44, 34, 255))
     d = ImageDraw.Draw(out)
     for k, (im, label) in enumerate(cells):
         x, y = (k % cols) * cell, (k // cols) * (cell + 30)
-        out.alpha_composite(im, (x + (cell - size) // 2, y + 4))
+        out.alpha_composite(im, (x + (cell - im.width) // 2, y + 4))
         d.text((x + cell // 2, y + cell + 14), label, fill=(235, 235, 220, 255), anchor="mm", font=font)
     out.save(os.path.join(ROOT, "docs", "roulette_preview.png"))
 

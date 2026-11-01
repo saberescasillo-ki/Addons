@@ -16,7 +16,7 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 
 # Ruleta de Colores
 
-![La ruleta en cada color, el resultado oculto y la ruleta rota](docs/roulette_preview.png)
+![La ruleta en cada color, el resultado oculto y la ruleta rompiéndose](docs/roulette_preview.png)
 
 Ruleta de 6 colores (**rojo, verde, azul, blanco, celeste y amarillo**) con aspecto natural: borde de corteza,
 lianas con hojas y flores, ramitas entre los colores y un tronco en el centro. Por defecto aparece
@@ -29,6 +29,60 @@ Al hacer **clic derecho** se abre un menú:
 
 | Opción | Qué hace |
 |---|---|
+| Giro aleatorio | Te dice qué color va a salir y te deja escribir un **mensaje** para cuando caiga. |
+| Girar a un color | Eliges el color y, si quieres, el mensaje que sale al caer (ej. blanco → "¡Los creepers de azalea vienen!"). |
+| Mostrar / Ocultar ruleta | Aparece creciendo desde muy pequeña, o se encoge hasta desaparecer. |
+| Ocultar resultado | Todo en blanco con una **carita feliz** en blanco y negro en el centro. |
+| Girar sin control | Sin resultado: acelera hasta **10 veces** la velocidad normal, desaparece medio segundo, vuelve, **se agrieta y se parte** por la mitad (astillas, hojas y la hoja del puntero caen). |
+| Cambiar posición | Encima de la barra de objetos, debajo de las opciones de arriba o en el centro. |
+| Opciones | Las cuatro opciones de abajo (se pueden combinar). |
+| Reset | Si algo falla: la ruleta de todos vuelve a empezar limpia y oculta, y la regla de spawn de mobs vuelve a como estaba. Mantiene las opciones y la posición. |
+
+### Opciones
+
+| Opción | Qué hace |
+|---|---|
+| Ruleta hecha y derecha | Con cualquier giro: aparece, da **3 s de aviso**, gira, da un **aviso notable** al caer, envía el mensaje y **se oculta sola a los 5 s** (también cuando se rompe). |
+| Ruleta sospechosa | La ruleta siempre está en blanco con la carita, también mientras gira: el resultado nunca se ve. |
+| Ruleta segura | Mientras gira, la regla `domobspawning` se desactiva (luego vuelve a como estaba) y **todos los jugadores se curan del todo** cada 5 ticks, tengan el *health boost* que tengan. |
+| Ruleta precavida | Al empezar el giro y al ver el resultado (o al romperse) da **Absorción 20 s** y **Resistencia I 15 s**. |
+
+### Giro
+
+- Antes de girar suenan **tres campanas de aviso**; luego gira durante **15 segundos**, frena poco a poco y suena un clic en cada color.
+- Al parar suena un aviso y la ruleta se hace **1,5 veces más grande durante 1 segundo**. El mensaje sale en la barra de acción.
+- El resultado se guarda en el marcador `ruleta`, jugador `resultado`
+  (1 rojo, 2 verde, 3 azul, 4 blanco, 5 celeste, 6 amarillo).
+- Calidad: texturas de 256 px con suavizado y **108 posiciones por vuelta** (antes 72). Los scripts de Minecraft van a
+  20 ticks por segundo, así que la ruleta cambia de imagen como mucho 20 veces por segundo.
+
+### Comandos
+
+| Comando | Qué hace |
+|---|---|
+| `/spin_roulette:rojo` | Gira la ruleta y cae en rojo. También `:verde`, `:azul`, `:blanco`, `:celeste`, `:amarillo` y `:aleatorio`. |
+| `/spin_roulette:blanco "Los creepers de azalea vienen"` | Igual, con mensaje al caer. |
+| `/roulette:show` / `/roulette:hide` | Muestra / oculta la ruleta. |
+| `/roulette:blank` | Oculta el resultado (todo en blanco con la carita). |
+| `/roulette:wild` | Gira sin control hasta romperse. |
+| `/roulette:pos_hotbar`, `/roulette:pos_arriba`, `/roulette:pos_centro` | Cambia la posición para todos. |
+| `/roulette:option <hecha\|sospechosa\|segura\|precavida> <true\|false>` | Activa o desactiva una opción. |
+| `/roulette:reset` | Reinicia la ruleta. |
+| `/roulette:item` | Te da el control de la ruleta. |
+
+- Al final se puede añadir un selector de jugadores (`/roulette:show @a[tag=juego]`); sin él se aplica a todos.
+  En `spin_roulette` el selector va después del mensaje.
+- Con `/scriptevent` (bloques de comandos): `spin_roulette:rojo <mensaje>`, `roulette:show`, `roulette:hide`,
+  `roulette:blank`, `roulette:wild`, `roulette:reset`, `roulette:pos_hotbar`, `roulette:option sospechosa on`...
+
+### Notas
+
+- Es ligero: el script solo envía algo a un jugador cuando su ruleta cambia, y la interfaz solo calcula la posición activa.
+- La ruleta se dibuja con JSON UI usando títulos ocultos que empiezan por `_roul:`; el resto de títulos se ve normal.
+- El tamaño, las posiciones y las duraciones se cambian en `tools/roulette.py`
+  (`UI_SIZE`, `POSITIONS`, `SPIN_TICKS`, `WILD_TICKS`...).
+
+---|---|
 | Giro aleatorio | Gira y cae en un color al azar. |
 | Girar a un color | Eliges el color y, si quieres, un **mensaje** que sale en la barra de acción al caer (ej. blanco → "¡Los creepers de azalea vienen!"). |
 | Mostrar / Ocultar ruleta | Aparece creciendo desde muy pequeña, o se encoge hasta desaparecer. |

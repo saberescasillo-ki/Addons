@@ -3,22 +3,28 @@
 //
 // The wheel is drawn by ui/hud_screen.json (resource pack): every title that
 // starts with PREFIX is hidden and used as "~<size>~~p<position>~<texture>" to draw.
+// Scripts run at 20 ticks per second: the wheel shows at most one new frame per tick.
 import { CommandPermissionLevel, CustomCommandParamType, CustomCommandStatus, ItemStack, system, world } from "@minecraft/server";
 import { ActionFormData, ModalFormData } from "@minecraft/server-ui";
 
 const PREFIX = "_roul:";
 const ITEM = "roulette:controller";
-const FRAMES = 72;
+const FRAMES = 108;
 const SCALES = 10;       // normal size
 const MAX_SCALE = 15; // size of the 1.5x pop when it lands
 const SPIN_TICKS = 300;
 const MIN_TURNS = 8;
-const JITTER = 4;
+const JITTER = 6;
 const WARN_TICKS = 20; // warning bells before the wheel starts
+const AUTO_WARN_TICKS = 60;
+const AUTO_HIDE_TICKS = 100;
 const POP_TICKS = 25;
 const WILD_TICKS = 200; // the spin that ends up breaking the wheel
 const VANISH_TICKS = 10;
-const POSITIONS = {"hotbar": "Encima de la barra de objetos", "hambre": "Debajo de la barra de hambre", "centro": "En el centro"};
+const CRACK_FRAMES = 4;
+const BREAK_FRAMES = 16;
+const POSITIONS = {"hotbar": "Encima de la barra de objetos", "arriba": "Debajo de las opciones de arriba", "centro": "En el centro"};
+const OPTIONS = {"hecha": "Ruleta hecha y derecha", "sospechosa": "Ruleta sospechosa", "segura": "Ruleta segura", "precavida": "Ruleta precavida"};
 // Clockwise from the pointer at frame 0.
 const COLORS = [{"id": "rojo", "es": "Rojo", "fmt": "§c", "aliases": ["red"]}, {"id": "verde", "es": "Verde", "fmt": "§a", "aliases": ["green"]}, {"id": "azul", "es": "Azul", "fmt": "§9", "aliases": ["blue"]}, {"id": "blanco", "es": "Blanco", "fmt": "§f", "aliases": ["white"]}, {"id": "celeste", "es": "Celeste", "fmt": "§b", "aliases": ["light_blue", "cyan"]}, {"id": "amarillo", "es": "Amarillo", "fmt": "§e", "aliases": ["yellow"]}];
 const RANDOM = ["aleatorio", "random"];
@@ -26,16 +32,85 @@ const SEG = FRAMES / COLORS.length;
 const OBJECTIVE = "ruleta"; // score "resultado": 1..6, the colour it landed on
 // The wild spin speeds up from slow to 10 times the average speed of a normal spin.
 const WILD_MAX = (10 * (MIN_TURNS * FRAMES + FRAMES / 2)) / SPIN_TICKS;
-const WILD_MIN = 0.2;
+const WILD_MIN = WILD_MAX / 100;
 
 const mod = (a, n) => ((a % n) + n) % n;
-const frameName = (frame) => "f" + String(mod(Math.floor(frame), FRAMES)).padStart(2, "0");
+const pad = (n, len) => String(n).padStart(len, "0");
+const frameName = (frame) => "f" + pad(mod(Math.floor(frame), FRAMES), 3);
+// the hidden-result wheel looks the same every segment, so it only needs SEG frames
+const blankName = (frame) => "b" + pad(mod(Math.floor(frame), SEG), 2);
 const segment = (pos) => Math.floor((pos + SEG / 2) / SEG);
 
+// ------------------------------------------------------------ world settings
 // Read on first use: the world can't be read while the script loads (early execution).
 let position;
-const currentPosition = () =>
-  (position ??= String(world.getDynamicProperty("roulette:position") ?? "") || "hotbar");
+const currentPosition = () => {
+  if (position === undefined) {
+    const saved = String(world.getDynamicProperty("roulette:position") ?? "");
+    position = POSITIONS[saved] ? saved : "hotbar";
+  }
+  return position;
+};
+
+function setPosition(key) {
+  position = key;
+  world.setDynamicProperty("roulette:position", key);
+  // the next tick sends every wheel again, with the new position
+}
+
+let options;
+function opts() {
+  if (!options) {
+    options = Object.fromEntries(Object.keys(OPTIONS).map((k) => [k, false]));
+    try {
+      Object.assign(options, JSON.parse(String(world.getDynamicProperty("roulette:options") ?? "{}")));
+    } catch {}
+  }
+  return options;
+}
+
+function setOption(key, on) {
+  opts()[key] = !!on;
+  world.setDynamicProperty("roulette:options", JSON.stringify(options));
+}
+
+// "Ruleta segura": mob spawning is off while a wheel spins, and back as it was after.
+let savedSpawning; // undefined: not read yet, null: nothing saved
+function getSavedSpawning() {
+  if (savedSpawning === undefined) {
+    const s = world.getDynamicProperty("roulette:mob_spawning");
+    savedSpawning = typeof s === "boolean" ? s : null;
+  }
+  return savedSpawning;
+}
+
+function setSavedSpawning(value) {
+  savedSpawning = value;
+  world.setDynamicProperty("roulette:mob_spawning", value ?? undefined);
+}
+
+function safeMode(spinning) {
+  const want = spinning && opts().segura;
+  const saved = getSavedSpawning();
+  if (want && saved === null) {
+    setSavedSpawning(world.gameRules.doMobSpawning);
+    world.gameRules.doMobSpawning = false;
+  } else if (!want && saved !== null) {
+    world.gameRules.doMobSpawning = saved;
+    setSavedSpawning(null);
+  }
+  if (want && system.currentTick % 5 === 0) {
+    // full health, however much health boost they have
+    for (const p of world.getAllPlayers()) p.getComponent("minecraft:health")?.resetToMaxValue();
+  }
+}
+
+// "Ruleta precavida": absorption 20 s and resistance I 15 s when the wheel spins and when it lands
+function protect(player) {
+  if (!opts().precavida) return;
+  player.addEffect("absorption", 400, { amplifier: 0, showParticles: false });
+  player.addEffect("resistance", 300, { amplifier: 0, showParticles: false });
+}
 
 // ------------------------------------------------------------ per-player wheel
 const views = new Map(); // player id -> what that player's wheel is doing
@@ -48,15 +123,17 @@ function view(player) {
       st = JSON.parse(String(player.getDynamicProperty("roulette:state") ?? "{}"));
     } catch {}
     v = {
-      visible: !!st.visible,   // where the grow/shrink animation is heading
+      visible: !!st.visible,      // where the grow/shrink animation is heading
       scale: st.visible ? SCALES : 0,
       frame: mod(Number(st.frame ?? 0), FRAMES),
       blank: !!st.blank,
-      broken: !!st.broken,
+      broken: typeof st.broken === "string" ? st.broken : "", // "brk_" / "bbrk_" when broken
       spin: null,
       wild: null,
       vanish: 0,
+      breaking: null,
       pop: 0,
+      autoHide: 0,
       sent: "",
     };
     views.set(player.id, v);
@@ -70,10 +147,12 @@ function save(player, v) {
 }
 
 function texture(v) {
-  if (v.wild) return frameName(v.wild.pos);
-  if (v.spin) return frameName(v.spin.last);
-  if (v.broken) return "broken";
-  return v.blank ? "blank" : frameName(v.frame);
+  const hidden = opts().sospechosa;
+  if (v.breaking) return v.breaking.kind + pad(v.breaking.tick, 2);
+  if (v.wild) return hidden ? blankName(v.wild.pos) : frameName(v.wild.pos);
+  if (v.spin) return hidden ? blankName(v.spin.last) : frameName(v.spin.last);
+  if (v.broken) return v.broken + pad(BREAK_FRAMES - 1, 2);
+  return v.blank || hidden ? blankName(v.frame) : frameName(v.frame);
 }
 
 function render(player, v) {
@@ -87,14 +166,16 @@ function render(player, v) {
 function stop(v) {
   if (v.spin) v.frame = mod(v.spin.last, FRAMES);
   if (v.wild) v.frame = mod(Math.floor(v.wild.pos), FRAMES);
-  v.spin = v.wild = null;
-  v.vanish = v.pop = 0;
+  if (v.breaking) v.broken = v.breaking.kind;
+  v.spin = v.wild = v.breaking = null;
+  v.vanish = v.pop = v.autoHide = 0;
 }
 
 function show(players) {
   for (const p of players) {
     const v = view(p);
     v.visible = true;
+    v.autoHide = 0;
     save(p, v);
   }
 }
@@ -113,47 +194,65 @@ function blank(players) {
     const v = view(p);
     stop(v);
     v.blank = true;
-    v.broken = false;
+    v.broken = "";
     v.visible = true;
     save(p, v);
   }
 }
 
+const warnTicks = () => (opts().hecha ? AUTO_WARN_TICKS : WARN_TICKS);
+
 function spin(players, index, message) {
   // Same landing point for everybody watching this spin.
   const target = mod(-index * SEG + Math.round((Math.random() * 2 - 1) * JITTER), FRAMES);
+  const warn = warnTicks();
   for (const p of players) {
     const v = view(p);
     stop(v);
-    v.blank = v.broken = false;
+    v.blank = false;
+    v.broken = "";
     v.visible = true;
-    v.spin = { start: v.frame, last: v.frame, tick: -WARN_TICKS, index, message,
+    v.spin = { start: v.frame, last: v.frame, tick: -warn, warn, index, message,
                delta: MIN_TURNS * FRAMES + mod(target - v.frame, FRAMES) };
+    protect(p);
     save(p, v);
   }
 }
 
 function wild(players) {
+  const warn = warnTicks();
   for (const p of players) {
     const v = view(p);
     stop(v);
-    v.blank = v.broken = false;
+    v.blank = false;
+    v.broken = "";
     v.visible = true;
-    v.wild = { pos: v.frame, tick: -WARN_TICKS };
+    v.wild = { pos: v.frame, tick: -warn, warn };
+    protect(p);
     save(p, v);
   }
 }
 
-function setPosition(key) {
-  position = key;
-  world.setDynamicProperty("roulette:position", key);
-  // the next tick sends every wheel again, with the new position
+// Puts every wheel back to a clean, hidden state (for when something went wrong).
+function reset() {
+  for (const p of world.getAllPlayers()) {
+    views.delete(p.id);
+    p.setDynamicProperty("roulette:state", undefined);
+    const v = view(p);
+    render(p, v); // sends the "hide" title
+  }
+  if (getSavedSpawning() !== null) {
+    world.gameRules.doMobSpawning = getSavedSpawning();
+    setSavedSpawning(null);
+  }
+  lastUse.clear();
 }
 
-function warn(player, tick) {
+function warnSound(player, tick, warn) {
   // three rising bells, then the wheel starts
-  const k = tick + WARN_TICKS;
-  if (k === 1 || k === 7 || k === 13) player.playSound("note.bell", { volume: 0.8, pitch: 1 + k / 24 });
+  const k = tick + warn;
+  const at = [1, 1 + Math.round(warn / 3), 1 + Math.round((2 * warn) / 3)].indexOf(k);
+  if (at >= 0) player.playSound("note.bell", { volume: 0.8 + at * 0.1, pitch: 1 + at * 0.25 });
 }
 
 function landed(player, v, s) {
@@ -162,6 +261,14 @@ function landed(player, v, s) {
   if (s.message) player.onScreenDisplay.setActionBar(s.message);
   player.playSound("random.levelup", { volume: 0.8 });
   player.playSound("note.chime", { volume: 0.8 });
+  if (opts().hecha) {
+    // a louder notice, and it goes away by itself
+    player.playSound("firework.large_blast", { volume: 1 });
+    player.playSound("firework.twinkle", { volume: 1 });
+    player.playSound("note.pling", { volume: 1, pitch: 1.5 });
+    v.autoHide = AUTO_HIDE_TICKS;
+  }
+  protect(player);
   const obj = world.scoreboard.getObjective(OBJECTIVE) ?? world.scoreboard.addObjective(OBJECTIVE, "Ruleta");
   obj.setScore("resultado", s.index + 1);
 }
@@ -173,19 +280,37 @@ function step(player, v) {
   if (v.scale < goal) v.scale++;
   else if (v.scale > goal) v.scale--;
 
-  if (v.vanish > 0 && --v.vanish === 0) {
-    // back again, broken in half
-    v.broken = true;
-    v.scale = SCALES;
-    player.playSound("random.break", { volume: 1 });
-    player.playSound("dig.wood", { volume: 1, pitch: 0.7 });
+  if (v.autoHide > 0 && --v.autoHide === 0) {
+    v.visible = false;
     save(player, v);
+  }
+
+  if (v.vanish > 0 && --v.vanish === 0) {
+    // back again, and it breaks
+    v.breaking = { kind: opts().sospechosa ? "bbrk_" : "brk_", tick: 0 };
+    v.scale = SCALES;
+    player.playSound("dig.wood", { volume: 1, pitch: 0.6 });
+  }
+
+  const b = v.breaking;
+  if (b && v.vanish <= 0) {
+    if (b.tick === CRACK_FRAMES) {
+      player.playSound("random.break", { volume: 1 });
+      player.playSound("dig.wood", { volume: 1, pitch: 0.8 });
+    }
+    if (b.tick >= BREAK_FRAMES - 1) {
+      v.broken = b.kind;
+      v.breaking = null;
+      if (opts().hecha) v.autoHide = AUTO_HIDE_TICKS;
+      protect(player);
+      save(player, v);
+    } else if (b.tick > 0 || v.sent.endsWith(b.kind + "00")) b.tick++;
   }
 
   const s = v.spin;
   if (s) {
     s.tick++;
-    if (s.tick <= 0) return warn(player, s.tick);
+    if (s.tick <= 0) return warnSound(player, s.tick, s.warn);
     const t = Math.min(1, s.tick / SPIN_TICKS);
     const pos = s.start + Math.round(s.delta * (1 - (1 - t) ** 3)); // ease-out cubic
     // a click each time a segment border passes under the pointer
@@ -194,6 +319,7 @@ function step(player, v) {
     if (t >= 1) {
       v.frame = mod(pos, FRAMES);
       v.spin = null;
+      if (opts().sospechosa) v.blank = true; // the result stays hidden
       landed(player, v, s);
     }
   }
@@ -201,7 +327,7 @@ function step(player, v) {
   const w = v.wild;
   if (w) {
     w.tick++;
-    if (w.tick <= 0) return warn(player, w.tick);
+    if (w.tick <= 0) return warnSound(player, w.tick, w.warn);
     const t = Math.min(1, w.tick / WILD_TICKS);
     const last = w.pos;
     w.pos += WILD_MIN * (WILD_MAX / WILD_MIN) ** t; // slow, then faster and faster
@@ -217,11 +343,14 @@ function step(player, v) {
 }
 
 system.runInterval(() => {
+  let spinning = false;
   for (const player of world.getAllPlayers()) {
     const v = view(player);
     step(player, v);
     render(player, v); // only sends a title when the picture changed
+    if (v.spin || v.wild) spinning = true;
   }
+  safeMode(spinning);
 });
 
 world.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
@@ -252,31 +381,48 @@ async function menu(player) {
   const res = await new ActionFormData()
     .title("§2§lRuleta")
     .body("Lo que elijas se aplica a todos los jugadores.")
-    .button("Giro aleatorio", "textures/ui/roulette/f00")
-    .button("Girar a un color", "textures/ui/roulette/f12")
+    .button("Giro aleatorio", "textures/ui/roulette/f000")
+    .button("Girar a un color", "textures/ui/roulette/f018")
     .button(visible ? "Ocultar ruleta" : "Mostrar ruleta", "textures/ui/roulette/ring")
-    .button("Ocultar resultado", "textures/ui/roulette/blank")
-    .button("Girar sin control", "textures/ui/roulette/broken")
+    .button("Ocultar resultado", "textures/ui/roulette/b00")
+    .button("Girar sin control", `textures/ui/roulette/brk_${pad(BREAK_FRAMES - 1, 2)}`)
     .button("Cambiar posición", "textures/ui/roulette/pointer")
+    .button("Opciones", "textures/ui/roulette/f054")
+    .button("§4Reset", "textures/ui/roulette/b09")
     .show(player);
   if (res.canceled) return;
   const all = world.getAllPlayers();
   switch (res.selection) {
-    case 0: return spin(all, colorIndex(RANDOM[0]));
+    case 0: return randomMenu(player);
     case 1: return colorMenu(player);
     case 2: return visible ? hide(all) : show(all);
     case 3: return blank(all);
     case 4: return wild(all);
     case 5: return positionMenu(player);
+    case 6: return optionsMenu(player);
+    case 7:
+      reset();
+      return player.sendMessage("§6[Ruleta]§r Ruleta reiniciada.");
   }
 }
 
+const messageField = (form, label) => form.textField(label, "Ej: ¡Los creepers de azalea vienen!");
+
+async function randomMenu(player) {
+  // the colour is chosen now, so the admin can write a message for it
+  const index = Math.floor(Math.random() * COLORS.length);
+  const c = COLORS[index];
+  const res = await messageField(new ModalFormData().title("§2§lGiro aleatorio"),
+    `Saldrá: ${c.fmt}§l${c.es}§r\n\nMensaje al caer (opcional)`).show(player);
+  if (res.canceled || !res.formValues) return;
+  spin(world.getAllPlayers(), index, String(res.formValues[0] ?? "").trim());
+}
+
 async function colorMenu(player) {
-  const res = await new ModalFormData()
+  const form = new ModalFormData()
     .title("§2§lGirar a un color")
-    .dropdown("Color en el que caerá", COLORS.map((c) => `${c.fmt}${c.es}`))
-    .textField("Mensaje al caer (opcional)", "Ej: ¡Los creepers de azalea vienen!")
-    .show(player);
+    .dropdown("Color en el que caerá", COLORS.map((c) => `${c.fmt}${c.es}`));
+  const res = await messageField(form, "Mensaje al caer (opcional)").show(player);
   if (res.canceled || !res.formValues) return;
   const [index, message] = res.formValues;
   spin(world.getAllPlayers(), Number(index), String(message ?? "").trim());
@@ -288,6 +434,15 @@ async function positionMenu(player) {
   for (const k of keys) form.button((k === currentPosition() ? "§2» " : "") + POSITIONS[k]);
   const res = await form.show(player);
   if (!res.canceled) setPosition(keys[res.selection]);
+}
+
+async function optionsMenu(player) {
+  const keys = Object.keys(OPTIONS);
+  const form = new ModalFormData().title("§2§lOpciones de la ruleta");
+  for (const k of keys) form.toggle(OPTIONS[k], { defaultValue: !!opts()[k] });
+  const res = await form.show(player);
+  if (res.canceled || !res.formValues) return;
+  keys.forEach((k, i) => setOption(k, res.formValues[i]));
 }
 
 const lastUse = new Map();
@@ -313,6 +468,7 @@ function result(players, message) {
 system.beforeEvents.startup.subscribe(({ customCommandRegistry: reg }) => {
   const who = { type: CustomCommandParamType.PlayerSelector, name: "jugadores" };
   const admin = { permissionLevel: CommandPermissionLevel.GameDirectors, cheatsRequired: false };
+  const ok = (message) => ({ status: CustomCommandStatus.Success, message });
   const simple = (name, description, action, done) =>
     reg.registerCommand({ ...admin, name, description, optionalParameters: [who] }, (origin, players) => {
       const list = targets(players);
@@ -336,26 +492,40 @@ system.beforeEvents.startup.subscribe(({ customCommandRegistry: reg }) => {
   simple("roulette:hide", "Oculta la ruleta", hide, "Ruleta ocultada");
   simple("roulette:blank", "Oculta el resultado: todo en blanco con una carita", blank, "Resultado oculto");
   simple("roulette:wild", "Gira cada vez más rápido, sin resultado, hasta romperse", wild, "Girando sin control");
+  reg.registerCommand({ ...admin, name: "roulette:reset", description: "Reinicia la ruleta de todos" }, () => {
+    system.run(reset);
+    return ok("Ruleta reiniciada");
+  });
   for (const [key, label] of Object.entries(POSITIONS)) {
     reg.registerCommand(
-      { ...admin, name: `roulette:pos_${key}`, description: `Pone la ruleta ${label.toLowerCase()}` },
+      { ...admin, name: `roulette:pos_${key}`, description: `Pone la ruleta: ${label.toLowerCase()}` },
       () => {
         system.run(() => setPosition(key));
-        return { status: CustomCommandStatus.Success, message: `Ruleta: ${label}` };
+        return ok(`Ruleta: ${label}`);
       });
   }
+  // /roulette:option sospechosa true
+  reg.registerEnum("roulette:option", Object.keys(OPTIONS));
+  reg.registerCommand(
+    { ...admin, name: "roulette:option", description: "Activa o desactiva una opción de la ruleta",
+      mandatoryParameters: [{ type: CustomCommandParamType.Enum, name: "roulette:option" },
+                            { type: CustomCommandParamType.Boolean, name: "activar" }] },
+    (origin, key, on) => {
+      system.run(() => setOption(key, on));
+      return ok(`${OPTIONS[key]}: ${on ? "activada" : "desactivada"}`);
+    });
   reg.registerCommand(
     { ...admin, name: "roulette:item", description: "Te da el control de la ruleta" },
     (origin) => {
       const player = origin.sourceEntity;
       if (player?.typeId !== "minecraft:player") return { status: CustomCommandStatus.Failure, message: "Solo jugadores." };
       system.run(() => player.getComponent("minecraft:inventory").container.addItem(new ItemStack(ITEM)));
-      return { status: CustomCommandStatus.Success, message: "Control de la ruleta entregado" };
+      return ok("Control de la ruleta entregado");
     });
 });
 
 // The same actions with /scriptevent: spin_roulette:rojo [mensaje], roulette:show, roulette:hide,
-// roulette:blank, roulette:wild, roulette:pos_<position>
+// roulette:blank, roulette:wild, roulette:reset, roulette:pos_<position>, roulette:option <opción> <on|off>
 system.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceEntity }) => {
   const [ns, key] = id.split(":");
   const list = world.getAllPlayers();
@@ -370,6 +540,11 @@ system.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceEntity }) 
     return spin(list, index, message.trim());
   }
   if (key.startsWith("pos_") && POSITIONS[key.slice(4)]) return setPosition(key.slice(4));
-  const actions = { show, hide, blank, wild };
+  if (key === "option") {
+    const [name, value] = message.trim().toLowerCase().split(/\s+/);
+    if (name in OPTIONS) setOption(name, ["on", "true", "1", "si", "sí"].includes(value));
+    return;
+  }
+  const actions = { show, hide, blank, wild, reset: () => reset() };
   actions[key]?.(list);
 }, { namespaces: ["spin_roulette", "roulette"] });
