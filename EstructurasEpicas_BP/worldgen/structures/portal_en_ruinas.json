@@ -1,0 +1,58 @@
+{
+  "format_version": "1.21.20",
+  "minecraft:jigsaw": {
+    "description": {
+      "identifier": "epicas:portal_en_ruinas"
+    },
+    "biome_filters": [
+      {
+        "all_of": [
+          {
+            "test": "has_biome_tag",
+            "operator": "==",
+            "value": "overworld"
+          },
+          {
+            "all_of": [
+              {
+                "test": "has_biome_tag",
+                "operator": "==",
+                "value": "overworld"
+              },
+              {
+                "test": "has_biome_tag",
+                "operator": "!=",
+                "value": "ocean"
+              },
+              {
+                "test": "has_biome_tag",
+                "operator": "!=",
+                "value": "river"
+              },
+              {
+                "test": "has_biome_tag",
+                "operator": "!=",
+                "value": "beach"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "step": "surface_structures",
+    "terrain_adaptation": "beard_thin",
+    "start_pool": "epicas:portal_en_ruinas",
+    "max_depth": 1,
+    "start_height": {
+      "type": "constant",
+      "value": {
+        "absolute": -6
+      }
+    },
+    "heightmap_projection": "world_surface",
+    "max_distance_from_center": {
+      "horizontal": 64
+    },
+    "liquid_settings": "ignore_waterlogging"
+  }
+}

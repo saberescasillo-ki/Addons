@@ -1,0 +1,104 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:block": {
+    "description": {
+      "identifier": "epicas:trial_spawner",
+      "menu_category": {
+        "category": "items"
+      },
+      "states": {
+        "epicas:config": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "epicas:fase": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "components": {
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "epicas_trial_side_inactive",
+          "render_method": "alpha_test"
+        },
+        "up": {
+          "texture": "epicas_trial_top_inactive",
+          "render_method": "alpha_test"
+        },
+        "down": {
+          "texture": "epicas_trial_bottom",
+          "render_method": "alpha_test"
+        }
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 25
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 1200
+      },
+      "minecraft:light_dampening": 0,
+      "minecraft:map_color": "#3c4a55",
+      "minecraft:loot": "loot_tables/empty.json",
+      "minecraft:tick": {
+        "interval_range": [
+          20,
+          20
+        ],
+        "looping": true
+      },
+      "epicas:trial_spawner": {}
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('epicas:fase') == 1",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "epicas_trial_side_active",
+              "render_method": "alpha_test"
+            },
+            "up": {
+              "texture": "epicas_trial_top_active",
+              "render_method": "alpha_test"
+            },
+            "down": {
+              "texture": "epicas_trial_bottom",
+              "render_method": "alpha_test"
+            }
+          },
+          "minecraft:light_emission": 6
+        }
+      },
+      {
+        "condition": "q.block_state('epicas:fase') == 2",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "epicas_trial_side_inactive",
+              "render_method": "alpha_test"
+            },
+            "up": {
+              "texture": "epicas_trial_top_ejecting",
+              "render_method": "alpha_test"
+            },
+            "down": {
+              "texture": "epicas_trial_bottom",
+              "render_method": "alpha_test"
+            }
+          },
+          "minecraft:light_emission": 3
+        }
+      }
+    ]
+  }
+}

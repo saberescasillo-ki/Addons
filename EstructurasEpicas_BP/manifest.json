@@ -1,0 +1,54 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Estructuras Épicas",
+    "description": "Versiones mejoradas de las estructuras vanilla, estilo When Dungeons Arise.\nRequiere el experimento \"Data-Driven Jigsaw Structures\".",
+    "uuid": "a3c6d1e2-5b7f-4c38-9e21-7f0d4b6a8c11",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      90
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "b8e2f4a1-3c5d-4e6f-8a7b-9c0d1e2f3a41",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "c1d2e3f4-a5b6-4c7d-8e9f-0a1b2c3d4e51",
+      "version": [
+        1,
+        0,
+        0
+      ],
+      "entry": "scripts/main.js"
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "d4e5f6a7-b8c9-4dae-bf01-2c3d4e5f6a61",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.0.0"
+    }
+  ]
+}

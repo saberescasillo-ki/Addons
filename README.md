@@ -7,6 +7,7 @@
 | **Ruleta de Colores** – ruleta en el HUD con comandos de administrador | [`dist/Roulette.mcaddon`](dist/Roulette.mcaddon) | `tools/roulette.py` |
 | **Objetos de Ayuda** – 4 objetos especiales que ayudan al jugador | [`dist/HelperItems.mcaddon`](dist/HelperItems.mcaddon) | `tools/helper_items.py` |
 | **The LITIUS Blind** – nueva dimensión de islas flotantes | [`dist/LitiusBlind.mcaddon`](dist/LitiusBlind.mcaddon) | `tools/litius_blind.py` |
+| **Estructuras Épicas** – versiones mejoradas de las estructuras vanilla | [`dist/EstructurasEpicas.mcaddon`](dist/EstructurasEpicas.mcaddon) | `tools/estructuras_epicas.py` |
 
 Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo. No hace falta activar experimentos
 (salvo en The LITIUS Blind, ver abajo).
@@ -15,6 +16,49 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 - Medieval Mobs requiere **1.21.0** o superior.
 - Ruleta de Colores y Objetos de Ayuda requieren **1.21.90** o superior.
 - The LITIUS Blind requiere **26.20** o superior y el experimento **Beta APIs**.
+- Estructuras Épicas requiere **1.21.90** o superior y el experimento **Data-Driven Jigsaw Structures**.
+
+---
+
+# Estructuras Épicas
+
+![Vista previa de las 12 estructuras](docs/estructuras_epicas_preview.png)
+
+Versiones **más grandes y detalladas** de las estructuras de superficie, al estilo *When Dungeons Arise*. Se generan
+solas en sus biomas (junto a las originales: Bedrock no deja quitar ni editar las vanilla) y también con `/place`.
+Cada estructura tiene 2 variantes.
+
+**Cómo activarlo:** pack *Behavior* activo y, al crear el mundo, *Experimentos → Data-Driven Jigsaw Structures*.
+
+| Estructura | Bioma | Qué tiene | `/place structure ...` |
+|---|---|---|---|
+| Gran Pirámide del Desierto | desierto | pirámide escalonada, 4 obeliscos, gran salón, cámara del tesoro subterránea | `epicas:piramide_del_desierto` |
+| Templo Mayor de la Jungla | jungla | zigurat de 3 niveles con escalinata, biblioteca en ruinas, santuario en la cima | `epicas:templo_de_la_jungla` |
+| Mansión de la Bruja | pantano | casa de 2 pisos sobre pilotes, torre del caldero, jardín | `epicas:mansion_de_la_bruja` |
+| Gran Iglú | nevados | domo grande y laboratorio subterráneo con celdas | `epicas:iglu` |
+| Fortaleza Saqueadora | llanura, desierto, sabana, taiga, prado | torre de 5 pisos, muralla con 4 torres, jaulas, campamento | `epicas:fortaleza_saqueadora` |
+| Oasis del Desierto | desierto | pozo con cúpula, palmeras, estanque y cripta bajo el pozo | `epicas:oasis_del_desierto` |
+| Gran Portal en Ruinas | casi todo el overworld | portal gigante roto, templo de piedra negra, nether invadiendo | `epicas:portal_en_ruinas` |
+| Aldea Fortificada | llanura / desierto / sabana / taiga / nevada | muralla, 4 torres, plaza con pozo y campana, 7 edificios (herrería, taberna, biblioteca, capilla con cripta), granjas, aldeanos | `epicas:aldea_llanura` (o `_desierto`, `_sabana`, `_taiga`, `_nevada`) |
+
+**Generador de Desafío** (`epicas:trial_spawner`): reemplaza a los spawners normales. Usa las texturas y sonidos
+del trial spawner y funciona igual que los de las Trial Chambers, pero con mobs según la estructura:
+
+- se activa cuando hay un jugador a 14 bloques o menos;
+- saca **6 mobs** (+2 por cada jugador extra), con un máximo de **2 vivos** a la vez (+1 por jugador extra);
+- al morir todos, **suelta una recompensa por jugador** y se enfría **30 minutos**;
+- si todos se van durante la oleada, a los 2 minutos se reinicia.
+
+| Estructura | Mobs del generador |
+|---|---|
+| Pirámide, Oasis, Aldea del desierto | husk, esqueleto, araña |
+| Templo de la Jungla | araña, araña de cueva, zombi |
+| Mansión de la Bruja | slime, bogged, bruja |
+| Gran Iglú, Aldea nevada | stray, zombi |
+| Fortaleza Saqueadora | pillager, vindicator |
+| Portal en Ruinas | piglin zombi, cubo de magma, blaze |
+| Aldeas de llanura y sabana (cripta) | zombi, aldeano zombi, esqueleto |
+| Aldea de la taiga (cripta) | esqueleto, zombi, araña |
 
 ---
 

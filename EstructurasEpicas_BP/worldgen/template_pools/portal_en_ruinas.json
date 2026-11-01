@@ -1,0 +1,26 @@
+{
+  "format_version": "1.21.20",
+  "minecraft:template_pool": {
+    "description": {
+      "identifier": "epicas:portal_en_ruinas"
+    },
+    "elements": [
+      {
+        "element": {
+          "element_type": "minecraft:single_pool_element",
+          "location": "epicas/portal_en_ruinas_0",
+          "projection": "rigid"
+        },
+        "weight": 1
+      },
+      {
+        "element": {
+          "element_type": "minecraft:single_pool_element",
+          "location": "epicas/portal_en_ruinas_1",
+          "projection": "rigid"
+        },
+        "weight": 1
+      }
+    ]
+  }
+}
