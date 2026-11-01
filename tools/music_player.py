@@ -30,7 +30,7 @@ DIST = os.path.join(ROOT, "dist")
 SONGS_DIR = os.path.join(ROOT, "sources", "music_player", "canciones")
 SONGS_JSON = os.path.join(ROOT, "sources", "music_player", "canciones.json")
 
-VERSION = [1, 2, 0]
+VERSION = [1, 3, 0]
 SCRIPT_API = "2.0.0"
 SCRIPT_UI_API = "2.0.0"
 MIN_ENGINE = [1, 21, 90]
@@ -47,10 +47,9 @@ SETTINGS = dict(
     volumen=1.0,             # default volume, 0.0 - 1.0 (each player can change it in the menu)
     oyentes_por_defecto="yo",    # who hears the songs until a player changes it: "yo", "todos" or "sel"
     callar_musica_vanilla=True,  # stop the vanilla music when a song starts
-    mostrar_titulo=True,     # show "Reproduciendo: ..." in the action bar
 )
 # "Finalizar" plays the last seconds of the song (cut into a separate clip) instead of stopping it dead.
-FINALE_SECONDS = 8
+FINALE_SECONDS = 10
 FINALE_FADE_IN = 0.4   # short fade-in so the jump to the ending is not a hard cut
 # Volume slider that controls the songs: "music" (Música), "record" (Tocadiscos), "ui" (Interfaz)...
 CATEGORY = "music"
@@ -310,18 +309,11 @@ function play(owner, index) {
   if (!song) return;
   stopFor(owner.id);
   const ears = listenersOf(owner, getAudience(owner));
-  if (ears.length === 0) {
-    owner.onScreenDisplay.setActionBar("§cNo has elegido a nadie para escuchar");
-    return;
-  }
+  if (ears.length === 0) return;
   const volume = getVolume(owner) / 100;
   for (const p of ears) {
     if (AJUSTES.callar_musica_vanilla) run(p, "music stop 0");
     soundTo(p, song.sonido, volume);
-    if (AJUSTES.mostrar_titulo) {
-      const who = p.id === owner.id ? "§dReproduciendo: " : `§d${owner.name} te pone: `;
-      p.onScreenDisplay.setActionBar(`${who}§f${song.nombre}`);
-    }
   }
   const ticks = Math.ceil((song.segundos || 0) * 20);
   playing.set(owner.id, {
@@ -344,9 +336,8 @@ function finish(owner) {
   for (const p of ears) {
     run(p, `stopsound @s ${cur.sound}`);
     soundTo(p, song.final, volume);
-    if (AJUSTES.mostrar_titulo) p.onScreenDisplay.setActionBar(`§6Finalizando: §f${song.nombre}`);
   }
-  const ticks = Math.ceil((song.segundos_final || 8) * 20);
+  const ticks = Math.ceil((song.segundos_final || 10) * 20);
   playing.set(owner.id, {
     ...cur,
     sound: song.final,
@@ -515,7 +506,6 @@ world.afterEvents.itemUse.subscribe(({ source: player, itemStack }) => {
   // Sneak + use: stop the music without opening the menu.
   if (player.isSneaking) {
     stopFor(player.id);
-    player.onScreenDisplay.setActionBar("§7Música detenida");
     return;
   }
   openMenu(player);

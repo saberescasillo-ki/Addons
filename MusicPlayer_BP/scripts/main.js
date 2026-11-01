@@ -91,18 +91,11 @@ function play(owner, index) {
   if (!song) return;
   stopFor(owner.id);
   const ears = listenersOf(owner, getAudience(owner));
-  if (ears.length === 0) {
-    owner.onScreenDisplay.setActionBar("§cNo has elegido a nadie para escuchar");
-    return;
-  }
+  if (ears.length === 0) return;
   const volume = getVolume(owner) / 100;
   for (const p of ears) {
     if (AJUSTES.callar_musica_vanilla) run(p, "music stop 0");
     soundTo(p, song.sonido, volume);
-    if (AJUSTES.mostrar_titulo) {
-      const who = p.id === owner.id ? "§dReproduciendo: " : `§d${owner.name} te pone: `;
-      p.onScreenDisplay.setActionBar(`${who}§f${song.nombre}`);
-    }
   }
   const ticks = Math.ceil((song.segundos || 0) * 20);
   playing.set(owner.id, {
@@ -125,9 +118,8 @@ function finish(owner) {
   for (const p of ears) {
     run(p, `stopsound @s ${cur.sound}`);
     soundTo(p, song.final, volume);
-    if (AJUSTES.mostrar_titulo) p.onScreenDisplay.setActionBar(`§6Finalizando: §f${song.nombre}`);
   }
-  const ticks = Math.ceil((song.segundos_final || 8) * 20);
+  const ticks = Math.ceil((song.segundos_final || 10) * 20);
   playing.set(owner.id, {
     ...cur,
     sound: song.final,
@@ -296,7 +288,6 @@ world.afterEvents.itemUse.subscribe(({ source: player, itemStack }) => {
   // Sneak + use: stop the music without opening the menu.
   if (player.isSneaking) {
     stopFor(player.id);
-    player.onScreenDisplay.setActionBar("§7Música detenida");
     return;
   }
   openMenu(player);

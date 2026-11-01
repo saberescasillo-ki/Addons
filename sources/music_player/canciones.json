@@ -1,9 +1,18 @@
 [
-  { "archivo": "arctic.ogg", "nombre": "Arctic" },
-  { "archivo": "feel_nothing_v2.ogg", "nombre": "Feel Nothing V2", "autor": "Eternity OST" },
-  { "archivo": "parfum_d_etoiles.ogg", "nombre": "Parfum d'étoiles" },
-  { "archivo": "dreaming_of_you_cathedral.ogg", "nombre": "Dreaming of You (Cathedral)", "autor": "Selena (432 Hz)" },
-  { "archivo": "feel_the_fury.ogg", "nombre": "Feel The Fury", "autor": "Sonic.exe: Outcome Memories OST" },
-  { "archivo": "pradera_tranquila.ogg", "nombre": "Pradera Tranquila", "autor": "Demo" },
-  { "archivo": "noche_estrellada.ogg", "nombre": "Noche Estrellada", "autor": "Demo" }
+  {"archivo": "arctic.ogg", "nombre": "Arctic"},
+  {"archivo": "feel_nothing_v2.ogg", "nombre": "Feel Nothing V2", "autor": "Eternity OST"},
+  {"archivo": "parfum_d_etoiles.ogg", "nombre": "Parfum d'étoiles"},
+  {"archivo": "dreaming_of_you_cathedral.ogg", "nombre": "Dreaming of You (Cathedral)", "autor": "Selena (432 Hz)"},
+  {"archivo": "feel_the_fury.ogg", "nombre": "Feel The Fury", "autor": "Sonic.exe: Outcome Memories OST"},
+  {"archivo": "even_gods_can_bleed.ogg", "nombre": "Even Gods Can Bleed", "autor": "Sonic.exe: Outcome Memories (Johnny Joymode & 2011x)"},
+  {"archivo": "concrete_coffin.ogg", "nombre": "Concrete Coffin"},
+  {"archivo": "trainride_trouble.ogg", "nombre": "Trainride Trouble", "autor": "Sonic.exe: Outcome Memories (Mirage Saloon, unused)"},
+  {"archivo": "mirage_saloon_final_80.ogg", "nombre": "Mirage Saloon Final 80", "autor": "Sonic.exe: Outcome Memories (_astranovayt)"},
+  {"archivo": "construction.ogg", "nombre": "Construction", "autor": "Darkest Hours OST (TheRagdolls Chase)"},
+  {"archivo": "christmas_kids.ogg", "nombre": "Christmas Kids"},
+  {"archivo": "ff9cae.ogg", "nombre": "FF9CAE (Color and Electricity)", "autor": "Forsaken OST (c00lkidd)"},
+  {"archivo": "respite_waxing_damnation.ogg", "nombre": "Respite, Waxing Damnation", "autor": "NoLongerNull & beatimesfive"},
+  {"archivo": "your_new_forever.ogg", "nombre": "Your New Forever", "autor": "Eternity Lobby Theme"},
+  {"archivo": "pradera_tranquila.ogg", "nombre": "Pradera Tranquila", "autor": "Demo"},
+  {"archivo": "noche_estrellada.ogg", "nombre": "Noche Estrellada", "autor": "Demo"}
 ]

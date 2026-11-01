@@ -121,6 +121,222 @@
         }
       ]
     },
+    "musica.even_gods_can_bleed": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/musica/even_gods_can_bleed",
+          "stream": true,
+          "is3D": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "musica.even_gods_can_bleed.final": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/musica/even_gods_can_bleed_final",
+          "stream": true,
+          "is3D": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "musica.concrete_coffin": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/musica/concrete_coffin",
+          "stream": true,
+          "is3D": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "musica.concrete_coffin.final": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/musica/concrete_coffin_final",
+          "stream": true,
+          "is3D": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "musica.trainride_trouble": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/musica/trainride_trouble",
+          "stream": true,
+          "is3D": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "musica.trainride_trouble.final": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/musica/trainride_trouble_final",
+          "stream": true,
+          "is3D": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "musica.mirage_saloon_final_80": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/musica/mirage_saloon_final_80",
+          "stream": true,
+          "is3D": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "musica.mirage_saloon_final_80.final": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/musica/mirage_saloon_final_80_final",
+          "stream": true,
+          "is3D": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "musica.construction": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/musica/construction",
+          "stream": true,
+          "is3D": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "musica.construction.final": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/musica/construction_final",
+          "stream": true,
+          "is3D": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "musica.christmas_kids": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/musica/christmas_kids",
+          "stream": true,
+          "is3D": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "musica.christmas_kids.final": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/musica/christmas_kids_final",
+          "stream": true,
+          "is3D": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "musica.ff9cae": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/musica/ff9cae",
+          "stream": true,
+          "is3D": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "musica.ff9cae.final": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/musica/ff9cae_final",
+          "stream": true,
+          "is3D": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "musica.respite_waxing_damnation": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/musica/respite_waxing_damnation",
+          "stream": true,
+          "is3D": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "musica.respite_waxing_damnation.final": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/musica/respite_waxing_damnation_final",
+          "stream": true,
+          "is3D": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "musica.your_new_forever": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/musica/your_new_forever",
+          "stream": true,
+          "is3D": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "musica.your_new_forever.final": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/musica/your_new_forever_final",
+          "stream": true,
+          "is3D": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
     "musica.pradera_tranquila": {
       "category": "music",
       "sounds": [

@@ -81,8 +81,8 @@ ningún aldeano. Solo está en el inventario creativo (pestaña *Objetos*) o con
 - **Agacharse + usar** para la música sin abrir el menú.
 - Mientras suena una canción, el menú tiene dos botones para pararla:
   - **Detener**: la para de golpe.
-  - **Finalizar**: corta la canción y pone sus **últimos 8 segundos**, para que termine como acaba de verdad.
-    El generador corta esos 8 s en un archivo aparte (`<canción>_final.ogg`), porque Minecraft no puede saltar a
+  - **Finalizar**: corta la canción y pone sus **últimos 10 segundos**, para que termine como acaba de verdad.
+    El generador corta esos 10 s en un archivo aparte (`<canción>_final.ogg`), porque Minecraft no puede saltar a
     un punto de un sonido. `FINALE_SECONDS` en `tools/music_player.py` cambia la duración.
 - **Volumen** (botón en el menú, se guarda en cada jugador): una barra del 0 al 100 %. Minecraft no puede cambiar
   el volumen de un sonido que ya suena, así que se aplica a la **siguiente** canción; si marcas *Aplicar ya*, la que
@@ -95,12 +95,15 @@ ningún aldeano. Solo está en el inventario creativo (pestaña *Objetos*) o con
   - **Jugadores seleccionados**: una lista con casillas de los jugadores conectados para marcar quién la oye
     (tú incluido o no).
 
-  Si cambias los oyentes mientras suena una canción, empieza de nuevo para los nuevos oyentes. Los demás ven en la
-  barra de acción *«Fulano te pone: canción»*. Si quien puso la música sale del mundo, se para para todos.
+  Si cambias los oyentes mientras suena una canción, empieza de nuevo para los nuevos oyentes. Si quien puso la
+  música sale del mundo, se para para todos.
+- No sale ningún mensaje en la barra de acción: lo que suena se ve en el menú.
 - El volumen se controla con el deslizador **Música** de los ajustes de sonido. Si lo tienes a 0 no oirás nada.
 - Al empezar una canción se corta la música normal de Minecraft para que no se mezclen.
-- Canciones incluidas: *Arctic*, *Feel Nothing V2*, *Parfum d'étoiles*, *Dreaming of You (Cathedral)*,
-  *Feel The Fury* y las dos de prueba (*Pradera Tranquila* y *Noche Estrellada*, hechas por `tools/music_demo.py`).
+- Canciones incluidas (16): *Arctic*, *Feel Nothing V2*, *Parfum d'étoiles*, *Dreaming of You (Cathedral)*,
+  *Feel The Fury*, *Even Gods Can Bleed*, *Concrete Coffin*, *Trainride Trouble*, *Mirage Saloon Final 80*,
+  *Construction*, *Christmas Kids*, *FF9CAE (Color and Electricity)*, *Respite, Waxing Damnation*,
+  *Your New Forever* y las dos de prueba (*Pradera Tranquila* y *Noche Estrellada*, hechas por `tools/music_demo.py`).
 
 ### Añadir o quitar canciones (con el generador)
 
@@ -112,7 +115,7 @@ ningún aldeano. Solo está en el inventario creativo (pestaña *Objetos*) o con
 3. Ejecuta `python3 tools/music_player.py` (necesita Python 3, Pillow y **ffmpeg**). Mide lo que dura cada
    canción y vuelve a crear los packs y `dist/MusicPlayer.mcaddon`.
 
-Los ajustes (`volumen`, `oyentes_por_defecto`, `callar_musica_vanilla`, `mostrar_titulo`) están en `SETTINGS` al principio
+Los ajustes (`volumen`, `oyentes_por_defecto`, `callar_musica_vanilla`) están en `SETTINGS` al principio
 de `tools/music_player.py`, y `CATEGORY` elige qué deslizador de volumen la controla (`music`, `record`, `ui`...).
 
 ### Añadir una canción a mano (sin el generador)
@@ -134,7 +137,7 @@ de `tools/music_player.py`, y `CATEGORY` elige qué deslizador de volumen la con
    ```
    Sin `final`, el botón **Finalizar** la para de golpe. Para que tenga final, recorta tú los últimos segundos en
    `mi_cancion_final.ogg`, defínelo igual en `sound_definitions.json` como `musica.mi_cancion.final` y añade
-   `"final": "musica.mi_cancion.final", "segundos_final": 8` a la línea.
+   `"final": "musica.mi_cancion.final", "segundos_final": 10` a la línea.
    En ese mismo archivo están los `AJUSTES` (volumen, oyentes por defecto...), que también se pueden cambiar a mano.
 
 ---
