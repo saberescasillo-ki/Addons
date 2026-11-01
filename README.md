@@ -22,9 +22,10 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 
 # Estructuras Épicas
 
-![Vista previa de las 12 estructuras](docs/estructuras_epicas_preview.png)
+![Vista previa de las estructuras de superficie](docs/estructuras_epicas_preview.png)
+![Vista previa de la tanda 2](docs/estructuras_epicas_tanda2.png)
 
-Versiones **más grandes y detalladas** de las estructuras de superficie, al estilo *When Dungeons Arise*. Se generan
+Versiones **más grandes y detalladas** de las estructuras vanilla, al estilo *When Dungeons Arise*. Se generan
 solas en sus biomas (junto a las originales: Bedrock no deja quitar ni editar las vanilla) y también con `/place`.
 Cada estructura tiene 2 variantes.
 
@@ -40,6 +41,11 @@ Cada estructura tiene 2 variantes.
 | Oasis del Desierto | desierto | pozo con cúpula, palmeras, estanque y cripta bajo el pozo | `epicas:oasis_del_desierto` |
 | Gran Portal en Ruinas | casi todo el overworld | portal gigante roto, templo de piedra negra, nether invadiendo | `epicas:portal_en_ruinas` |
 | Aldea Fortificada | llanura / desierto / sabana / taiga / nevada | muralla, 4 torres, plaza con pozo y campana, 7 edificios (herrería, taberna, biblioteca, capilla con cripta), granjas, aldeanos | `epicas:aldea_llanura` (o `_desierto`, `_sabana`, `_taiga`, `_nevada`) |
+| Cámaras del Desafío | subterráneo (y −40 a −20) | atrio de 2 niveles con balcón, 4 pasillos con dispensadores, 4 cámaras temáticas, 12 generadores | `epicas:camaras_del_desafio` |
+| Gran Fortaleza del Nether | Nether | torre central de 3 pisos (jardín de verrugas, sala de blazes, tesoro), 4 puentes con corredores y 4 torres | `epicas:fortaleza_del_nether` |
+| Gran Bastión | Nether (no en deltas de basalto) | muralla con 4 torres, establos de hoglins, cámara del tesoro con pirámide de oro y foso de lava | `epicas:bastion` |
+| Ciudad Flotante del End | End | isla propia flotante, 3 torres de purpur con puentes, plataforma con élitros en un marco | `epicas:ciudad_del_end` |
+| Gran Mansión del Bosque | bosque oscuro | 3 pisos con 30 habitaciones (biblioteca, capilla, dormitorios, almacenes…), porche y sala del tesoro en el ático | `epicas:mansion_del_bosque` |
 
 **Generador de Desafío** (`epicas:trial_spawner`): reemplaza a los spawners normales. Usa las texturas y sonidos
 del trial spawner y funciona igual que los de las Trial Chambers, pero con mobs según la estructura:
@@ -59,6 +65,15 @@ del trial spawner y funciona igual que los de las Trial Chambers, pero con mobs 
 | Portal en Ruinas | piglin zombi, cubo de magma, blaze |
 | Aldeas de llanura y sabana (cripta) | zombi, aldeano zombi, esqueleto |
 | Aldea de la taiga (cripta) | esqueleto, zombi, araña |
+| Cámaras del Desafío | según la cámara: zombi/husk/araña · esqueleto/stray/bogged · breeze · slime/araña de cueva/lepisma |
+| Fortaleza del Nether | esqueleto wither, blaze, cubo de magma |
+| Bastión | piglin, piglin bruto, hoglin |
+| Ciudad del End | shulker, enderman, endermita |
+| Mansión del Bosque | vindicator, pillager, evocador |
+
+**Nether y End:** Microsoft avisa que las estructuras jigsaw pueden comportarse raro fuera del Overworld. La
+fortaleza y el bastión se colocan a una altura fija (como en Java, atravesando la roca del Nether) y la ciudad del
+End trae su propia isla y flota entre y 44 y 60, así que puede aparecer sobre el vacío.
 
 ---
 

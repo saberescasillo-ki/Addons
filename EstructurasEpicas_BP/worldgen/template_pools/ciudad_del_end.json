@@ -1,0 +1,26 @@
+{
+  "format_version": "1.21.20",
+  "minecraft:template_pool": {
+    "description": {
+      "identifier": "epicas:ciudad_del_end"
+    },
+    "elements": [
+      {
+        "element": {
+          "element_type": "minecraft:single_pool_element",
+          "location": "epicas/ciudad_del_end_0",
+          "projection": "rigid"
+        },
+        "weight": 1
+      },
+      {
+        "element": {
+          "element_type": "minecraft:single_pool_element",
+          "location": "epicas/ciudad_del_end_1",
+          "projection": "rigid"
+        },
+        "weight": 1
+      }
+    ]
+  }
+}

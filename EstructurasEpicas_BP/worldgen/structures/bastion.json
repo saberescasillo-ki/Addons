@@ -1,0 +1,42 @@
+{
+  "format_version": "1.21.20",
+  "minecraft:jigsaw": {
+    "description": {
+      "identifier": "epicas:bastion"
+    },
+    "biome_filters": [
+      {
+        "all_of": [
+          {
+            "test": "has_biome_tag",
+            "operator": "==",
+            "value": "nether"
+          },
+          {
+            "test": "has_biome_tag",
+            "operator": "!=",
+            "value": "basalt_deltas"
+          }
+        ]
+      }
+    ],
+    "step": "surface_structures",
+    "terrain_adaptation": "none",
+    "start_pool": "epicas:bastion",
+    "max_depth": 1,
+    "start_height": {
+      "type": "uniform",
+      "min": {
+        "absolute": 22
+      },
+      "max": {
+        "absolute": 30
+      }
+    },
+    "heightmap_projection": "none",
+    "max_distance_from_center": {
+      "horizontal": 64
+    },
+    "liquid_settings": "ignore_waterlogging"
+  }
+}

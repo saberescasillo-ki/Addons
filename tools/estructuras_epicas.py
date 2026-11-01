@@ -571,6 +571,15 @@ SPAWNERS = {
     'nether': {'mobs': [('minecraft:zombie_pigman', 2), ('minecraft:magma_cube', 2), ('minecraft:blaze', 1)], 'loot': 'nether'},
     'cripta': {'mobs': [('minecraft:zombie', 3), ('minecraft:zombie_villager_v2', 1), ('minecraft:skeleton', 2)], 'loot': 'cripta'},
     'bosque': {'mobs': [('minecraft:skeleton', 2), ('minecraft:zombie', 2), ('minecraft:spider', 1)], 'loot': 'cripta'},
+    # tanda 2 (se agregan al final para no cambiar los índices de los bloques ya colocados)
+    'trial_melee': {'mobs': [('minecraft:zombie', 3), ('minecraft:husk', 2), ('minecraft:spider', 1)], 'loot': 'camaras'},
+    'trial_ranged': {'mobs': [('minecraft:skeleton', 3), ('minecraft:stray', 2), ('minecraft:bogged', 1)], 'loot': 'camaras'},
+    'trial_breeze': {'mobs': [('minecraft:breeze', 1)], 'loot': 'camaras_breeze'},
+    'trial_small': {'mobs': [('minecraft:slime', 2), ('minecraft:cave_spider', 2), ('minecraft:silverfish', 1)], 'loot': 'camaras'},
+    'fortaleza': {'mobs': [('minecraft:wither_skeleton', 3), ('minecraft:blaze', 2), ('minecraft:magma_cube', 1)], 'loot': 'fortaleza'},
+    'bastion': {'mobs': [('minecraft:piglin', 2), ('minecraft:piglin_brute', 1), ('minecraft:hoglin', 1)], 'loot': 'bastion'},
+    'end': {'mobs': [('minecraft:shulker', 2), ('minecraft:enderman', 2), ('minecraft:endermite', 1)], 'loot': 'end'},
+    'mansion': {'mobs': [('minecraft:vindicator', 3), ('minecraft:pillager', 2), ('minecraft:evocation_illager', 1)], 'loot': 'mansion'},
 }
 SPAWNER_INDEX = {k: i for i, k in enumerate(SPAWNERS)}
 
@@ -1228,6 +1237,437 @@ def build_aldea(rng, kind):
     b.mob(c - 8, G + 1, c + 8, 'minecraft:cat')
     return b, G
 
+# ------------------------------------------------------------------ TANDA 2
+def shell(b, x0, y0, z0, x1, y1, z1, wallb, floorb=None, ceilb=None):
+    """Caja hueca: paredes, suelo y techo; interior vaciado (aire explícito)."""
+    b.fill(x0, y0, z0, x1, y1, z1, wallb)
+    if floorb: b.fill(x0, y0, z0, x1, y0, z1, floorb)
+    if ceilb: b.fill(x0, y1, z0, x1, y1, z1, ceilb)
+    clear(b, x0 + 1, y0 + 1, z0 + 1, x1 - 1, y1 - 1, z1 - 1)
+
+def build_trial_chambers(rng):
+    """Cámaras del Desafío: atrio central de 2 niveles con 4 generadores, 4 pasillos con dispensadores
+    y 4 cámaras laterales temáticas (cuerpo a cuerpo, distancia, breeze y pequeños)."""
+    S = 69; c = S // 2
+    b = Build(S, 26, S)
+    TB, PT, CT = B('tuff_bricks'), B('polished_tuff'), B('chiseled_tuff')
+    CU, GR = B('waxed_cut_copper'), B('waxed_copper_grate')
+    bulb = B('waxed_copper_bulb', lit=True, powered_bit=False)
+    walls_mix = [(TB, 6), (B('chiseled_tuff_bricks'), 1), (PT, 1)]
+    def deco_room(x0, y0, z0, x1, y1, z1):
+        shell(b, x0, y0, z0, x1, y1, z1, TB, PT, GR)
+        b.mix(x0, y0 + 1, z0, x1, y1 - 1, z1, rng, walls_mix, only_existing=False)
+        clear(b, x0 + 1, y0 + 1, z0 + 1, x1 - 1, y1 - 1, z1 - 1)
+        for x in range(x0 + 1, x1):
+            for z in range(z0 + 1, z1):
+                if (x + z) % 2 == 0: b.set(x, y0, z, CT if (x // 2 + z // 2) % 2 else PT)
+        # franja de cobre en las paredes
+        for x in range(x0, x1 + 1):
+            b.set(x, y0 + 3, z0, CU); b.set(x, y0 + 3, z1, CU)
+        for z in range(z0, z1 + 1):
+            b.set(x0, y0 + 3, z, CU); b.set(x1, y0 + 3, z, CU)
+        for (x, z) in ((x0 + 2, z0 + 2), (x1 - 2, z0 + 2), (x0 + 2, z1 - 2), (x1 - 2, z1 - 2)):
+            b.set(x, y1, z, bulb)
+    # atrio central (21x21, 13 de alto, con balcón)
+    A0, A1 = c - 10, c + 10
+    deco_room(A0, 2, A0, A1, 16, A1)
+    b.fill(A0 + 1, 8, A0 + 1, A1 - 1, 8, A1 - 1, B('polished_tuff_slab', vertical_half='top'))
+    clear(b, A0 + 5, 8, A0 + 5, A1 - 5, 8, A1 - 5)           # hueco central del balcón
+    for x in range(A0 + 4, A1 - 3):
+        for z in (A0 + 4, A1 - 4): b.set(x, 9, z, B('waxed_copper_grate'))
+    for z in range(A0 + 4, A1 - 3):
+        for x in (A0 + 4, A1 - 4): b.set(x, 9, z, B('waxed_copper_grate'))
+    for (x, z) in ((A0 + 4, A0 + 4), (A1 - 4, A0 + 4), (A0 + 4, A1 - 4), (A1 - 4, A1 - 4)):
+        b.fill(x, 3, z, x, 15, z, B('chiseled_tuff_bricks'))
+    for yy in range(3, 9): b.set(A0 + 1, yy, c + 6, B('ladder', facing_direction=FACE6['east']))
+    # 4 generadores en el atrio (abajo) + 2 en el balcón
+    b.spawner(c - 4, 3, c, 'trial_melee'); b.spawner(c + 4, 3, c, 'trial_ranged')
+    b.spawner(c, 3, c - 4, 'trial_small'); b.spawner(c, 9, A0 + 2, 'trial_breeze')
+    b.set(c, 2, c, B('waxed_chiseled_copper')); b.set(c, 3, c, B('heavy_core'))
+    for (x, z) in ((A0 + 2, A0 + 2), (A1 - 2, A1 - 2)):
+        b.chest(x, 3, z, 'south', 'camaras')
+    for (x, z) in ((A1 - 2, A0 + 2), (A0 + 2, A1 - 2), (c + 3, A1 - 2)):
+        b.simple_be(x, 3, z, B('decorated_pot', direction=0), 'DecoratedPot', LootTable=f'loot_tables/{NS}/camaras_vasija.json')
+    # pasillos (5 ancho, 5 alto) hacia 4 cámaras
+    rooms = {'north': (c, 6), 'south': (c, S - 7), 'west': (6, c), 'east': (S - 7, c)}
+    themes = {'north': 'trial_melee', 'south': 'trial_ranged', 'west': 'trial_breeze', 'east': 'trial_small'}
+    for side, (rx, rz) in rooms.items():
+        dx, dz = VEC[side]
+        # pasillo
+        if dz:
+            za, zb = sorted((rz - 6 * dz, (A1 if dz > 0 else A0)))
+            shell(b, c - 3, 2, za, c + 3, 8, zb, TB, PT, GR)
+            clear(b, c - 2, 3, za, c + 2, 7, zb)
+            for z in range(za + 2, zb - 1, 4):
+                b.set(c - 3, 5, z, B('dispenser', facing_direction=FACE6['east']))
+                b.simple_be(c - 3, 5, z, B('dispenser', facing_direction=FACE6['east']), 'Dispenser', Items=[], LootTable=f'loot_tables/{NS}/camaras_dispensador.json')
+                b.set(c + 3, 6, z, bulb)
+        else:
+            xa, xb = sorted((rx - 6 * dx, (A1 if dx > 0 else A0)))
+            shell(b, xa, 2, c - 3, xb, 8, c + 3, TB, PT, GR)
+            clear(b, xa, 3, c - 2, xb, 7, c + 2)
+            for x in range(xa + 2, xb - 1, 4):
+                b.simple_be(x, 5, c - 3, B('dispenser', facing_direction=FACE6['south']), 'Dispenser', Items=[], LootTable=f'loot_tables/{NS}/camaras_dispensador.json')
+                b.set(x, 6, c + 3, bulb)
+        # cámara 13x13
+        deco_room(rx - 6, 2, rz - 6, rx + 6, 10, rz + 6)
+        # abrir uniones
+        if dz:
+            clear(b, c - 2, 3, min(rz - 6 * dz, rz) if dz < 0 else rz - 6, c + 2, 7, rz + 6 if dz < 0 else rz - 6)
+            clear(b, c - 2, 3, rz - 6 * dz, c + 2, 7, rz - 6 * dz)
+            clear(b, c - 2, 3, (A0 if dz < 0 else A1), c + 2, 7, (A0 if dz < 0 else A1))
+        else:
+            clear(b, rx - 6 * dx, 3, c - 2, rx - 6 * dx, 7, c + 2)
+            clear(b, (A0 if dx < 0 else A1), 3, c - 2, (A0 if dx < 0 else A1), 7, c + 2)
+        b.spawner(rx, 3, rz, themes[side])
+        b.spawner(rx + 3 * (1 if dz else 0), 3, rz + 3 * (1 if dx else 0), themes[side])
+        b.chest(rx + 4 * dx + (4 if dz else 0), 3, rz + 4 * dz + (4 if dx else 0), OPP[side], 'camaras_tesoro')
+        b.chest(rx + 4 * dx - (4 if dz else 0), 3, rz + 4 * dz - (4 if dx else 0), OPP[side], 'camaras')
+        b.set(rx, 2, rz, B('waxed_oxidized_cut_copper'))
+    return b, 0
+
+def build_fortaleza_nether(rng):
+    """Fortaleza del Nether mayor: torre central con sala de blazes, 4 puentes con corredores techados,
+    4 torres con generadores de esqueletos wither, jardín de verrugas y pilares hasta abajo."""
+    S = 71; c = S // 2; D = 22  # D = altura del piso de los puentes dentro de la plantilla
+    b = Build(S, D + 24, S)
+    NB, RB = B('nether_brick'), B('red_nether_brick')
+    fence = B('nether_brick_fence')
+    mixnb = [(NB, 8), (B('cracked_nether_bricks'), 2), (B('chiseled_nether_bricks'), 0.5)]
+    def pillar(x, z, w=2):
+        for xx in range(x, x + w):
+            for zz in range(z, z + w):
+                b.fill(xx, 0, zz, xx, D - 1, zz, NB)
+    # puentes en cruz (ancho 5) con corredor techado en la mitad
+    for side in ('north', 'south', 'east', 'west'):
+        dx, dz = VEC[side]
+        for k in range(10, c - 5):
+            x, z = c + dx * k, c + dz * k
+            for w in range(-2, 3):
+                bx, bz = (x + w, z) if dz else (x, z + w)
+                b.set(bx, D, bz, NB); b.set(bx, D - 1, bz, NB if abs(w) < 2 else stairs('nether_brick', side if False else ('east' if w < 0 else 'west') if dz else ('south' if w < 0 else 'north'), True))
+                if abs(w) == 2: b.set(bx, D + 1, bz, fence)
+                for yy in range(D + 1, D + 5):
+                    if abs(w) < 2: b.set(bx, yy, bz, AIR)
+            if k % 8 == 2: pillar(x - 1, z - 1)
+            # corredor techado
+            if 14 <= k <= 24:
+                for w in (-2, 2):
+                    bx, bz = (x + w, z) if dz else (x, z + w)
+                    b.fill(bx, D + 1, bz, bx, D + 4, bz, NB)
+                    if k % 3 == 0: b.set(bx, D + 2, bz, fence); b.set(bx, D + 3, bz, fence)
+                for w in range(-2, 3):
+                    bx, bz = (x + w, z) if dz else (x, z + w)
+                    b.set(bx, D + 5, bz, NB)
+                if k % 4 == 0:
+                    b.set(x, D + 4, z, lantern(hanging=True, soul=True)) if False else b.set(x, D + 4, z, B('soul_lantern', hanging=True))
+        # torre del extremo (9x9) con generador de esqueletos wither
+        tx, tz = c + dx * (c - 6), c + dz * (c - 6)
+        shell(b, tx - 4, D, tz - 4, tx + 4, D + 10, tz + 4, NB, NB, NB)
+        b.mix(tx - 4, D + 1, tz - 4, tx + 4, D + 9, tz + 4, rng, mixnb, only_existing=False)
+        clear(b, tx - 3, D + 1, tz - 3, tx + 3, D + 9, tz + 3)
+        for x in range(tx - 4, tx + 5):
+            for z in range(tz - 4, tz + 5):
+                if x in (tx - 4, tx + 4) or z in (tz - 4, tz + 4):
+                    b.set(x, D + 11, z, fence if (x + z) % 2 else NB)
+                if b.get(x, D + 10, z) is None: b.set(x, D + 10, z, NB)
+        for x in range(tx - 3, tx + 4):
+            for z in range(tz - 3, tz + 4):
+                b.fill(x, 0, z, x, D - 1, z, NB) if (x in (tx - 3, tx + 3) and z in (tz - 3, tz + 3)) else None
+        clear(b, tx - 1 if dz else tx - 4 * dx, D + 1, tz - 4 * dz if dz else tz - 1, tx + 1 if dz else tx - 4 * dx, D + 3, tz - 4 * dz if dz else tz + 1)
+        for k2 in (-2, 2):
+            for yy in (D + 3, D + 4):
+                if dz: b.set(tx + k2, yy, tz + 4 * dz, fence)
+                else: b.set(tx + 4 * dx, yy, tz + k2, fence)
+        b.spawner(tx, D + 1, tz, 'fortaleza')
+        b.chest(tx + 2 * (1 if dz else 0) + 2 * dx, D + 1, tz + 2 * (1 if dx else 0) + 2 * dz, OPP[side], 'fortaleza_nether')
+        b.set(tx, D + 9, tz, B('soul_lantern', hanging=True))
+    # torre central (19x19, 3 pisos)
+    K0, K1 = c - 9, c + 9
+    for x in range(K0, K1 + 1):
+        for z in range(K0, K1 + 1):
+            b.fill(x, D - 6, z, x, D - 1, z, NB)
+    for f in range(3):
+        fy = D + f * 7
+        shell(b, K0, fy, K0, K1, fy + 7, K1, NB, RB if f else NB, NB)
+        b.mix(K0, fy + 1, K0, K1, fy + 6, K1, rng, mixnb)
+        clear(b, K0 + 1, fy + 1, K0 + 1, K1 - 1, fy + 6, K1 - 1)
+        for k in range(K0 + 3, K1 - 2, 3):
+            for (x, z) in ((k, K0), (k, K1), (K0, k), (K1, k)):
+                b.set(x, fy + 3, z, fence); b.set(x, fy + 4, z, fence)
+        for (x, z) in ((K0 + 2, K0 + 2), (K1 - 2, K0 + 2), (K0 + 2, K1 - 2), (K1 - 2, K1 - 2)):
+            b.set(x, fy + 6, z, B('soul_lantern', hanging=True))
+    for yy in range(D + 1, D + 21): b.set(K1 - 1, yy, c + 4, B('ladder', facing_direction=FACE6['west']))
+    for side in ('north', 'south', 'east', 'west'):
+        dx, dz = VEC[side]
+        ex, ez = c + dx * 9, c + dz * 9
+        if dz: clear(b, ex - 1, D + 1, ez, ex + 1, D + 3, ez)
+        else: clear(b, ex, D + 1, ez - 1, ex, D + 3, ez + 1)
+    # almenas arriba
+    top = D + 21
+    for x in range(K0, K1 + 1):
+        for z in range(K0, K1 + 1):
+            if x in (K0, K1) or z in (K0, K1):
+                b.set(x, top + 1, z, NB if (x + z) % 2 else fence)
+    # piso 1: jardín de verrugas; piso 2: sala de blazes; piso 3: tesoro
+    for x in range(c - 5, c + 6):
+        for z in range(c - 5, c + 6):
+            if abs(x - c) > 1 and abs(z - c) > 1:
+                b.set(x, D, z, B('soul_sand')); b.set(x, D + 1, z, B('nether_wart', age=3))
+    b.spawner(c, D + 8, c, 'nether')
+    b.spawner(c - 5, D + 8, c - 5, 'fortaleza'); b.spawner(c + 5, D + 8, c + 5, 'fortaleza')
+    b.chest(c, D + 15, c - 6, 'south', 'fortaleza_nether_tesoro'); b.chest(c, D + 15, c + 6, 'north', 'fortaleza_nether_tesoro')
+    b.set(c, D + 14, c, B('gold_block')); b.skull(c, D + 15, c, 'wither_skeleton_skull')
+    return b, D
+
+def build_bastion(rng):
+    """Bastión mayor: fortaleza de piedra negra con muralla, 4 torres, establos de hoglins,
+    puentes y una cámara del tesoro central con oro y un foso de lava."""
+    S = 61; c = S // 2; G = 8
+    b = Build(S, G + 30, S)
+    BS, PB = B('blackstone'), B('polished_blackstone_bricks')
+    mix = [(PB, 6), (B('cracked_polished_blackstone_bricks'), 3), (BS, 2), (B('gilded_blackstone'), 0.4)]
+    # base maciza
+    for x in range(2, S - 2):
+        for z in range(2, S - 2):
+            d = max(abs(x - c), abs(z - c))
+            if d <= 27: b.fill(x, 0, z, x, G, z, BS if rng.random() < 0.7 else B('basalt', pillar_axis='y'))
+    # muralla exterior
+    b.walls(4, G + 1, 4, S - 5, G + 9, S - 5, PB)
+    b.mix(4, G + 1, 4, S - 5, G + 9, S - 5, rng, mix, only_existing=True)
+    clear(b, 5, G + 1, 5, S - 6, G + 9, S - 6)
+    crenellate(b, 4, 4, S - 5, S - 5, G + 10, B('polished_blackstone_brick_wall', wall_post_bit=True))
+    for x in range(5, S - 5):
+        b.set(x, G + 7, 5, slab('polished_blackstone_brick', True)); b.set(x, G + 7, S - 6, slab('polished_blackstone_brick', True))
+    for z in range(5, S - 5):
+        b.set(5, G + 7, z, slab('polished_blackstone_brick', True)); b.set(S - 6, G + 7, z, slab('polished_blackstone_brick', True))
+    clear(b, c - 2, G + 1, S - 5, c + 2, G + 5, S - 5)
+    # torres de esquina
+    for (tx, tz) in ((7, 7), (S - 8, 7), (7, S - 8), (S - 8, S - 8)):
+        shell(b, tx - 3, G, tz - 3, tx + 3, G + 16, tz + 3, PB, BS, PB)
+        b.mix(tx - 3, G + 1, tz - 3, tx + 3, G + 15, tz + 3, rng, mix)
+        clear(b, tx - 2, G + 1, tz - 2, tx + 2, G + 15, tz + 2)
+        crenellate(b, tx - 3, tz - 3, tx + 3, tz + 3, G + 17, B('blackstone_wall', wall_post_bit=True), step=2)
+        for yy in range(G + 1, G + 16): b.set(tx, yy, tz - 2, B('ladder', facing_direction=FACE6['south']))
+        b.set(tx, G + 16, tz - 2, AIR)
+        b.chest(tx + 2, G + 1, tz + 2, 'north', 'bastion')
+        clear(b, tx + (3 if tx < c else -3), G + 1, tz, tx + (3 if tx < c else -3), G + 2, tz)
+    # establos de hoglins (oeste y este)
+    for sx in (12, S - 18):
+        shell(b, sx, G, c - 8, sx + 6, G + 6, c - 2, PB, B('soul_soil'), PB)
+        b.fill(sx + 1, G + 1, c - 7, sx + 5, G + 1, c - 3, B('crimson_roots'))
+        clear(b, sx + 3, G + 1, c - 2, sx + 3, G + 3, c - 2)
+        b.fill(sx + 2, G + 1, c - 2, sx + 4, G + 3, c - 2, B('iron_bars'))
+        b.mob(sx + 3, G + 1, c - 5, 'minecraft:hoglin')
+        b.mob(sx + 3, G + 1, c - 4, 'minecraft:hoglin')
+    # cámara del tesoro central con foso de lava
+    for x in range(c - 11, c + 12):
+        for z in range(c - 11, c + 12):
+            d = max(abs(x - c), abs(z - c))
+            if 9 <= d <= 11: b.set(x, G, z, B('lava', liquid_depth=0)); b.set(x, G - 1, z, BS)
+    for side in ('north', 'south', 'east', 'west'):
+        dx, dz = VEC[side]
+        for k in range(9, 12):
+            for w in (-1, 0, 1):
+                x, z = (c + w, c + dz * k) if dz else (c + dx * k, c + w)
+                b.set(x, G, z, PB)
+    T0, T1 = c - 8, c + 8
+    shell(b, T0, G, T0, T1, G + 14, T1, PB, BS, PB)
+    b.mix(T0, G + 1, T0, T1, G + 13, T1, rng, mix)
+    clear(b, T0 + 1, G + 1, T0 + 1, T1 - 1, G + 13, T1 - 1)
+    for side in ('north', 'south', 'east', 'west'):
+        dx, dz = VEC[side]
+        ex, ez = c + dx * 8, c + dz * 8
+        if dz: clear(b, ex - 1, G + 1, ez, ex + 1, G + 4, ez)
+        else: clear(b, ex, G + 1, ez - 1, ex, G + 4, ez + 1)
+    # pirámide de oro y piedra dorada
+    for i in range(4):
+        for x in range(c - 3 + i, c + 4 - i):
+            for z in range(c - 3 + i, c + 4 - i):
+                b.set(x, G + 1 + i, z, B('gold_block') if i == 3 or rng.random() < 0.35 else B('gilded_blackstone'))
+    b.spawner(c - 5, G + 1, c - 5, 'bastion'); b.spawner(c + 5, G + 1, c + 5, 'bastion')
+    b.spawner(c + 5, G + 1, c - 5, 'bastion')
+    for (x, z, f) in ((c - 6, c, 'east'), (c + 6, c, 'west'), (c, c - 6, 'south')):
+        b.chest(x, G + 1, z, f, 'bastion_tesoro')
+    b.set(c, G + 13, c, B('chain', pillar_axis='y')); b.set(c, G + 12, c, B('soul_lantern', hanging=True))
+    for (x, z) in ((T0 + 1, T0 + 1), (T1 - 1, T0 + 1), (T0 + 1, T1 - 1), (T1 - 1, T1 - 1)):
+        b.fill(x, G + 1, z, x, G + 13, z, B('basalt', pillar_axis='y'))
+        b.set(x, G + 5, z, B('gilded_blackstone'))
+    # puentes del patio y lava decorativa
+    for (x, z) in ((c - 15, c + 12), (c + 15, c + 12)):
+        b.set(x, G, z, B('magma')); b.set(x, G + 1, z, B('soul_fire'))
+    for (x, z) in ((c - 4, c + 14), (c + 4, c + 14), (c, c + 18)):
+        b.mob(x, G + 1, z, 'minecraft:piglin')
+    b.mob(c, G + 1, c + 10, 'minecraft:piglin_brute')
+    return b, G
+
+def build_ciudad_end(rng):
+    """Ciudad del End flotante: isla propia de piedra del End con 3 torres de purpur unidas por puentes,
+    salas con generadores de shulkers y una plataforma con el marco de los élitros."""
+    S = 57; c = S // 2; I = 16  # nivel de la superficie de la isla
+    b = Build(S, I + 44, S)
+    PU, PP = B('purpur_block', pillar_axis='y'), B('purpur_pillar', pillar_axis='y')
+    EB = B('end_bricks')
+    # isla flotante (cono invertido)
+    for x in range(S):
+        for z in range(S):
+            d = ((x - c) ** 2 + (z - c) ** 2) ** 0.5 + rng.uniform(-1.5, 1.5)
+            if d < 26:
+                depth = int((26 - d) * 0.6) + 1
+                for y in range(max(0, I - depth), I + 1): b.set(x, y, z, B('end_stone'))
+    for _ in range(10):
+        x, z = rng.randrange(6, S - 6), rng.randrange(6, S - 6)
+        if b.get(x, I, z) and ((x - c) ** 2 + (z - c) ** 2) > 200:
+            for yy in range(I + 1, I + rng.randint(2, 5)): b.set(x, yy, z, B('chorus_plant'))
+    def tower(cx, cz, floors, r=4):
+        for f in range(floors):
+            fy = I + 1 + f * 6
+            shell(b, cx - r, fy - 1, cz - r, cx + r, fy + 5, cz + r, PU, EB, PU)
+            for (x, z) in ((cx - r, cz - r), (cx + r, cz - r), (cx - r, cz + r), (cx + r, cz + r)):
+                b.fill(x, fy - 1, z, x, fy + 5, z, PP)
+            for k in (cx - 1, cx + 1):
+                for (x, z) in ((k, cz - r), (k, cz + r)):
+                    b.set(x, fy + 2, z, B('magenta_stained_glass')); b.set(x, fy + 3, z, B('magenta_stained_glass'))
+            for k in (cz - 1, cz + 1):
+                for (x, z) in ((cx - r, k), (cx + r, k)):
+                    b.set(x, fy + 2, z, B('magenta_stained_glass')); b.set(x, fy + 3, z, B('magenta_stained_glass'))
+            b.set(cx, fy + 4, cz, B('end_rod', facing_direction=0))
+            for x in range(cx - r - 1, cx + r + 2):
+                b.set(x, fy + 5, cz - r - 1, stairs('purpur', 'south', True)); b.set(x, fy + 5, cz + r + 1, stairs('purpur', 'north', True))
+            for z in range(cz - r, cz + r + 1):
+                b.set(cx - r - 1, fy + 5, z, stairs('purpur', 'east', True)); b.set(cx + r + 1, fy + 5, z, stairs('purpur', 'west', True))
+            for yy in range(fy, fy + 6): b.set(cx + r - 1, yy, cz, B('ladder', facing_direction=FACE6['west']))
+        top = I + floors * 6
+        hip_roof(b, cx - r, cz - r, cx + r, cz + r, top + 1, 'purpur', overhang=1, cap=EB)
+        b.set(cx, top + 1 + r + 2, cz, B('end_rod', facing_direction=1))
+        clear(b, cx - 1, I + 1, cz + r, cx + 1, I + 3, cz + r)
+        return top
+    t1 = tower(c, c, 6, 5)
+    t2 = tower(c - 15, c + 8, 4)
+    t3 = tower(c + 15, c + 8, 3)
+    # puentes de purpur entre torres (en el piso 2)
+    by = I + 7
+    for x in range(c - 11, c - 4):
+        for w in (-1, 0, 1): b.set(x, by - 1, c + 8 + w if x > c - 9 else c + 8 + w, PU)
+        b.set(x, by, c + 6, B('purpur_slab')); b.set(x, by, c + 10, B('purpur_slab'))
+    for x in range(c + 6, c + 12):
+        for w in (-1, 0, 1): b.set(x, by - 1, c + 8 + w, PU)
+        b.set(x, by, c + 6, B('purpur_slab')); b.set(x, by, c + 10, B('purpur_slab'))
+    # plataforma de los élitros (sur), con marco y cofres
+    for x in range(c - 6, c + 7):
+        for z in range(c + 18, c + 25):
+            b.set(x, I + 1, z, PU)
+    for x in range(c - 6, c + 7):
+        b.set(x, I + 2, c + 24, stairs('purpur', 'north', True)) if x % 2 else b.set(x, I + 2, c + 24, PU)
+    b.fill(c - 1, I + 2, c + 23, c + 1, I + 6, c + 23, PU)
+    b.simple_be(c, I + 4, c + 22, B('frame', facing_direction=FACE6['north'], item_frame_map_bit=False, item_frame_photo_bit=False), 'ItemFrame',
+                Item={'Name': 'minecraft:elytra', 'Count': tB(1), 'Damage': tS(0), 'WasPickedUp': tB(0)}, ItemRotation=tF(0.0), ItemDropChance=tF(1.0))
+    b.skull(c, I + 7, c + 23, 'dragon_head')
+    b.chest(c - 3, I + 2, c + 22, 'north', 'ciudad_end_tesoro'); b.chest(c + 3, I + 2, c + 22, 'north', 'ciudad_end_tesoro')
+    # generadores y cofres en las torres
+    b.spawner(c, I + 1 + 2 * 6, c, 'end'); b.spawner(c, I + 1 + 4 * 6, c, 'end')
+    b.spawner(c - 15, I + 1 + 6, c + 8, 'end'); b.spawner(c + 15, I + 1 + 6, c + 8, 'end')
+    b.chest(c - 3, I + 1 + 5 * 6, c - 3, 'south', 'ciudad_end_tesoro'); b.chest(c - 3, I + 1 + 6, c - 3, 'south', 'ciudad_end')
+    b.chest(c - 17, I + 1 + 3 * 6, c + 6, 'south', 'ciudad_end'); b.chest(c + 13, I + 1, c + 6, 'south', 'ciudad_end')
+    for (x, z) in ((c - 4, c - 4), (c + 4, c + 4)):
+        b.mob(x, I + 1 + 3 * 6, z, 'minecraft:shulker')
+    return b, I
+
+def build_mansion(rng):
+    """Mansión del Bosque mayor: 3 pisos de roble oscuro con alas, patio, salón de banquetes, biblioteca,
+    capilla, dormitorios, arena de entrenamiento y sala del tesoro en el ático."""
+    W, Dp = 59, 47; G = 5
+    b = Build(W, G + 32, Dp)
+    pal = P(base=B('cobblestone'), wall=B('dark_oak_planks'), floor=B('birch_planks'), log='dark_oak_log', roof='dark_oak',
+            gable=B('dark_oak_planks'), pane=B('glass_pane'), door='dark_oak', step=B('cobblestone_slab', vertical_half='top'),
+            table=B('dark_oak_fence'))
+    foundation(b, 1, 1, W - 2, Dp - 2, G, 4, B('cobblestone'), B('cobblestone'))
+    x0, z0, x1, z1 = 3, 3, W - 4, Dp - 4
+    fh = 6
+    for f in range(3):
+        fy = G + f * fh
+        b.fill(x0, fy, z0, x1, fy, z1, pal['floor'] if f else B('cobblestone'))
+        b.walls(x0, fy + 1, z0, x1, fy + fh, z1, pal['wall'])
+        clear(b, x0 + 1, fy + 1, z0 + 1, x1 - 1, fy + fh - 1, z1 - 1)
+        # vigas y postes
+        for x in range(x0, x1 + 1, 6):
+            b.fill(x, fy + 1, z0, x, fy + fh, z0, log('dark_oak_log')); b.fill(x, fy + 1, z1, x, fy + fh, z1, log('dark_oak_log'))
+        for z in range(z0, z1 + 1, 6):
+            b.fill(x0, fy + 1, z, x0, fy + fh, z, log('dark_oak_log')); b.fill(x1, fy + 1, z, x1, fy + fh, z, log('dark_oak_log'))
+        b.walls(x0, fy + fh, z0, x1, fy + fh, z1, log('dark_oak_log', 'x'))
+        for z in range(z0, z1 + 1):
+            b.set(x0, fy + fh, z, log('dark_oak_log', 'z')); b.set(x1, fy + fh, z, log('dark_oak_log', 'z'))
+        # ventanas dobles entre postes
+        for x in range(x0 + 2, x1 - 1, 6):
+            for xx in (x, x + 2):
+                for yy in (fy + 2, fy + 3, fy + 4):
+                    b.set(xx, yy, z0, pal['pane']); b.set(xx, yy, z1, pal['pane'])
+        for z in range(z0 + 2, z1 - 1, 6):
+            for zz in (z, z + 2):
+                for yy in (fy + 2, fy + 3, fy + 4):
+                    b.set(x0, yy, zz, pal['pane']); b.set(x1, yy, zz, pal['pane'])
+        # tabiques interiores: cuadrícula de habitaciones 12x10 con puertas
+        for x in range(x0 + 12, x1, 12):
+            b.fill(x, fy + 1, z0 + 1, x, fy + fh - 1, z1 - 1, B('dark_oak_planks') if f != 1 else B('white_wool') if False else B('dark_oak_planks'))
+            for z in range(z0 + 5, z1, 10):
+                clear(b, x, fy + 1, z, x, fy + 2, z + 1)
+        for z in (z0 + 13, z1 - 13):
+            b.fill(x0 + 1, fy + 1, z, x1 - 1, fy + fh - 1, z, B('dark_oak_planks'))
+            for x in range(x0 + 6, x1, 12):
+                clear(b, x, fy + 1, z, x + 1, fy + 2, z)
+        # pasillo central alfombrado
+        for x in range(x0 + 1, x1):
+            for z in range(z0 + 14, z1 - 13):
+                if f: b.set(x, fy, z, B('red_carpet') if False else pal['floor'])
+                b.set(x, fy + 1, z, B('red_carpet')) if z in (z0 + 19, z0 + 20) and b.get(x, fy + 1, z) in (None, AIR) else None
+        for x in range(x0 + 4, x1 - 2, 8):
+            b.set(x, fy + fh - 1, (z0 + z1) // 2, lantern(hanging=True))
+        # escaleras de mano entre pisos
+        if f < 2:
+            for yy in range(fy + 1, fy + fh + 1):
+                b.set(x0 + 1, yy, (z0 + z1) // 2 + 1, B('ladder', facing_direction=FACE6['east']))  # entre ventanas
+    # entrada (sur) con porche
+    cx = (x0 + x1) // 2
+    clear(b, cx - 1, G + 1, z1, cx + 1, G + 3, z1)
+    b.door(cx, G + 1, z1, 'south', 'dark_oak')
+    b.fill(cx - 4, G, z1 + 1, cx + 4, G, z1 + 3, B('cobblestone'))
+    for x in (cx - 4, cx + 4):
+        b.fill(x, G + 1, z1 + 3, x, G + 4, z1 + 3, log('dark_oak_log'))
+    b.fill(cx - 4, G + 5, z1 + 1, cx + 4, G + 5, z1 + 3, slab('dark_oak'))
+    b.banner(cx - 2, G + 4, z1 + 1, 'south', 'gray'); b.banner(cx + 2, G + 4, z1 + 1, 'south', 'gray')
+    # techo a cuatro aguas con ático
+    top = G + 3 * fh
+    hip_roof(b, x0, z0, x1, z1, top + 1, 'dark_oak', overhang=1, cap=B('dark_oak_planks'))
+    b.fill(x0 + 1, top, z0 + 1, x1 - 1, top, z1 - 1, B('dark_oak_planks'))
+    clear(b, x0 + 4, top + 1, z0 + 4, x1 - 4, top + 3, z1 - 4)
+    for yy in range(G + 2 * fh + 1, top + 2): b.set(x0 + 5, yy, (z0 + z1) // 2, B('ladder', facing_direction=FACE6['east']))
+    b.set(x0 + 4, G + 2 * fh + 1, (z0 + z1) // 2, B('dark_oak_planks'))
+    for yy in range(G + 2 * fh + 1, top + 2): b.set(x0 + 4, yy, (z0 + z1) // 2, B('dark_oak_planks'))
+    # contenido por habitación
+    rooms = []
+    for f in range(3):
+        fy = G + f * fh + 1
+        for i, rx in enumerate(range(x0 + 1, x1, 12)):
+            for (rz0, rz1) in ((z0 + 1, z0 + 12), (z1 - 12, z1 - 1)):
+                rooms.append((f, rx, min(rx + 10, x1 - 1), rz0, rz1, fy))
+    kinds = ['tavern', 'library', 'house', 'storage', 'smith', 'chapel', 'bedroom', 'library', 'bedroom', 'house']
+    for n, (f, rx0, rx1, rz0, rz1, fy) in enumerate(rooms):
+        k = kinds[n % len(kinds)]
+        furnish(b, rng, rx0, fy, rz0, rx1, rz1, k, pal, door=None)
+        if n % 4 == 1: b.spawner((rx0 + rx1) // 2, fy, (rz0 + rz1) // 2, 'mansion')
+    # sala del tesoro en el ático
+    b.spawner(cx, top + 1, (z0 + z1) // 2, 'mansion')
+    for dx in (-4, 4): b.chest(cx + dx, top + 1, (z0 + z1) // 2, 'south', 'mansion_tesoro')
+    b.set(cx, top + 1, (z0 + z1) // 2 + 3, B('diamond_block'))
+    # jardín alrededor
+    for _ in range(10):
+        x, z = rng.choice([(rng.randrange(1, W - 1), rng.choice([1, Dp - 2])), (rng.choice([1, W - 2]), rng.randrange(1, Dp - 1))])
+        tree(b, rng, x, G + 1, z, log('dark_oak_log'), leaves('dark_oak'), h=4, r=2)
+    for (x, z) in ((cx - 3, z1 - 3), (cx + 3, z1 - 3), (cx, (z0 + z1) // 2)):
+        b.mob(x, G + 1, z, 'minecraft:vindicator')
+    b.mob(cx, G + 2 * fh + 1, z0 + 6, 'minecraft:evocation_illager')
+    return b, G
+
 DESIGNS = {
     'piramide_del_desierto': (build_piramide, 'Gran Pirámide del Desierto'),
     'templo_de_la_jungla': (build_templo_jungla, 'Templo Mayor de la Jungla'),
@@ -1241,6 +1681,11 @@ DESIGNS = {
     'aldea_sabana': (lambda r: build_aldea(r, 'sabana'), 'Aldea Fortificada (sabana)'),
     'aldea_taiga': (lambda r: build_aldea(r, 'taiga'), 'Aldea Fortificada (taiga)'),
     'aldea_nevada': (lambda r: build_aldea(r, 'nevada'), 'Aldea Fortificada (nevada)'),
+    'camaras_del_desafio': (build_trial_chambers, 'Cámaras del Desafío'),
+    'fortaleza_del_nether': (build_fortaleza_nether, 'Gran Fortaleza del Nether'),
+    'bastion': (build_bastion, 'Gran Bastión'),
+    'ciudad_del_end': (build_ciudad_end, 'Ciudad Flotante del End'),
+    'mansion_del_bosque': (build_mansion, 'Gran Mansión del Bosque'),
 }
 
 # ============================================================== worldgen
@@ -1259,6 +1704,16 @@ WORLDGEN = {
     'aldea_sabana': ([{'all_of': [bt('savanna'), bt('plateau', False)]}], 'beard_thin', 40, 16, 7710020, 'world_surface'),
     'aldea_taiga': ([{'all_of': [bt('taiga'), bt('cold', False)]}], 'beard_thin', 40, 16, 7710021, 'world_surface'),
     'aldea_nevada': ([{'any_of': [bt('ice_plains'), {'all_of': [bt('taiga'), bt('cold')]}]}], 'beard_thin', 40, 16, 7710022, 'world_surface'),
+    # (filtro, adaptación, spacing, separation, salt, heightmap, extras)
+    'camaras_del_desafio': ([bt('ocean', False), bt('deep_dark', False)], 'encapsulate', 34, 12, 7710023, 'none',
+                            {'dim': 'overworld', 'height': {'type': 'uniform', 'min': {'absolute': -40}, 'max': {'absolute': -20}}, 'step': 'underground_structures'}),
+    'fortaleza_del_nether': ([], 'none', 27, 4, 7710024, 'none',
+                             {'dim': 'nether', 'height': {'type': 'uniform', 'min': {'absolute': 26}, 'max': {'absolute': 46}}, 'step': 'underground_decoration'}),
+    'bastion': ([bt('basalt_deltas', False)], 'none', 27, 4, 7710025, 'none',
+                {'dim': 'nether', 'height': {'type': 'uniform', 'min': {'absolute': 22}, 'max': {'absolute': 30}}, 'step': 'surface_structures'}),
+    'ciudad_del_end': ([], 'none', 20, 9, 7710026, 'none',
+                       {'dim': 'the_end', 'height': {'type': 'uniform', 'min': {'absolute': 44}, 'max': {'absolute': 60}}, 'step': 'surface_structures'}),
+    'mansion_del_bosque': ([bt('roofed')], 'beard_thin', 60, 20, 7710027, 'world_surface'),
 }
 
 # ============================================================== loot
@@ -1288,7 +1743,7 @@ LOOT = {
                                        item('iron_sword', 2, ench=(5, 15)), item('iron_pickaxe', 2, ench=(5, 15)), item('iron_chestplate', 1, ench=(5, 15)),
                                        item('iron_helmet', 2), item('coal', 3, 3, 10), item('obsidian', 1, 1, 4)])]},
     'biblioteca': {'pools': [pool(3, 6, [item('book', 4, 1, 3), item('book', 3, ench='random'), item('paper', 3, 3, 9),
-                                         item('lapis_lazuli', 3, 3, 10), item('experience_bottle', 2, 1, 4), item('compass', 1), item('map', 1)])]},
+                                         item('lapis_lazuli', 3, 3, 10), item('experience_bottle', 2, 1, 4), item('compass', 1), item('empty_map', 1)])]},
     'taberna': {'pools': [pool(3, 6, [item('cooked_beef', 3, 2, 5), item('baked_potato', 3, 2, 6), item('pumpkin_pie', 2, 1, 3),
                                       item('honey_bottle', 2, 1, 3), item('potion', 2, potion='strength'), item('potion', 2, potion='regeneration'),
                                       item('emerald', 2, 1, 4), item('cake', 1)])]},
@@ -1310,6 +1765,25 @@ LOOT = {
                                      item('dark_oak_log', 3, 2, 6), item('emerald', 2, 1, 4), item('book', 1, ench='random'), item('bread', 3, 2, 5)])]},
     'puesto_tesoro': {'pools': [pool(4, 7, COMMON), pool(2, 3, RARE + [item('totem_of_undying', 1)])]},
     'pozo': {'pools': [pool(3, 6, COMMON + [item('sand', 2, 4, 10), item('cactus', 2, 1, 4)]), pool(0, 1, RARE)]},
+    'camaras': {'pools': [pool(2, 5, COMMON + [item('wind_charge', 3, 2, 6), item('copper_ingot', 3, 2, 8), item('tuff', 2, 4, 10)])]},
+    'camaras_tesoro': {'pools': [pool(3, 5, COMMON), pool(1, 3, RARE + [item('mace', 1), item('heavy_core', 1), item('breeze_rod', 2, 1, 3)])]},
+    'camaras_vasija': {'pools': [pool(1, 1, [item('emerald', 3, 1, 3), item('wind_charge', 3, 1, 3), item('diamond', 1), item('golden_carrot', 2, 1, 2)])]},
+    'camaras_dispensador': {'pools': [pool(1, 1, [item('arrow', 3, 4, 8), item('snowball', 2, 4, 8), item('fire_charge', 1, 1, 3), item('splash_potion', 1, potion='poison')])]},
+    'fortaleza_nether': {'pools': [pool(3, 6, [item('nether_wart', 4, 3, 7), item('gold_ingot', 4, 1, 4), item('iron_ingot', 3, 1, 5),
+                                               item('diamond', 2, 1, 3), item('golden_sword', 2, ench='random'), item('golden_chestplate', 2, ench='random'),
+                                               item('saddle', 2), item('obsidian', 2, 2, 4), item('blaze_rod', 2, 1, 3)])]},
+    'fortaleza_nether_tesoro': {'pools': [pool(4, 7, COMMON), pool(2, 3, RARE + [item('wither_skeleton_skull', 2), item('netherite_scrap', 2, 1, 2)])]},
+    'bastion': {'pools': [pool(3, 6, [item('gold_ingot', 5, 2, 8), item('gold_nugget', 4, 6, 18), item('crying_obsidian', 3, 1, 4),
+                                      item('golden_carrot', 3, 2, 5), item('arrow', 3, 6, 15), item('crossbow', 2, ench='random'),
+                                      item('golden_axe', 2, ench='random'), item('magma_cream', 2, 2, 5), item('netherite_scrap', 1)])]},
+    'bastion_tesoro': {'pools': [pool(4, 7, [item('gold_block', 4, 2, 5), item('netherite_ingot', 1), item('ancient_debris', 2, 1, 2),
+                                             item('diamond', 3, 2, 5), item('enchanted_golden_apple', 1), item('diamond_sword', 2, ench=(25, 39)),
+                                             item('diamond_chestplate', 2, ench=(25, 39)), item('netherite_upgrade_smithing_template', 2)]), pool(1, 2, RARE)]},
+    'ciudad_end': {'pools': [pool(3, 6, [item('ender_pearl', 3, 1, 3), item('gold_ingot', 3, 2, 6), item('iron_ingot', 3, 3, 8),
+                                         item('diamond', 2, 1, 3), item('emerald', 2, 2, 5), item('beetroot_seeds', 2, 1, 6),
+                                         item('diamond_sword', 1, ench=(20, 39)), item('iron_chestplate', 2, ench=(20, 39))])]},
+    'ciudad_end_tesoro': {'pools': [pool(4, 7, COMMON), pool(2, 3, RARE + [item('shulker_shell', 3, 2, 4), item('spire_armor_trim_smithing_template', 1)])]},
+    'mansion_tesoro': {'pools': [pool(4, 7, COMMON), pool(2, 3, RARE + [item('totem_of_undying', 2), item('vex_armor_trim_smithing_template', 1)])]},
     'portal': {'pools': [pool(4, 8, [item('obsidian', 4, 1, 3), item('flint_and_steel', 2), item('fire_charge', 3, 1, 3),
                                      item('gold_nugget', 5, 4, 18), item('gold_ingot', 3, 2, 6), item('golden_apple', 2),
                                      item('golden_sword', 2, ench='random'), item('golden_chestplate', 2, ench='random'), item('clock', 1),
@@ -1327,6 +1801,12 @@ TRIAL_LOOT_EXTRA = {
     'saqueadores': [item('crossbow', 2, ench=(10, 25)), item('totem_of_undying', 1)],
     'nether': [item('gold_block', 1), item('blaze_rod', 2, 1, 3), item('netherite_scrap', 1)],
     'cripta': [item('bone', 3, 3, 8), item('iron_sword', 2, ench=(10, 25))],
+    'camaras': [item('wind_charge', 3, 2, 5), item('ominous_bottle', 1), item('honey_bottle', 2, 1, 2)],
+    'camaras_breeze': [item('breeze_rod', 4, 1, 3), item('wind_charge', 3, 3, 6)],
+    'fortaleza': [item('nether_wart', 2, 2, 6), item('blaze_rod', 3, 1, 3), item('wither_skeleton_skull', 1)],
+    'bastion': [item('gold_block', 2, 1, 2), item('netherite_scrap', 1), item('ancient_debris', 1)],
+    'end': [item('shulker_shell', 3, 1, 2), item('ender_pearl', 3, 1, 3), item('end_crystal', 1)],
+    'mansion': [item('totem_of_undying', 2), item('emerald', 3, 3, 8)],
 }
 
 # ============================================================== bloque trial spawner, script, RP
@@ -1560,16 +2040,18 @@ def main():
             n = b.save(os.path.join(BP, 'structures', NS, name + '.mcstructure'))
             variants.append(name)
             stats[name] = (b.sx, b.sy, b.sz, n, ground)
-        filt, adapt, spacing, sep, salt, hm = WORLDGEN[sid]
+        filt, adapt, spacing, sep, salt, hm = WORLDGEN[sid][:6]
+        extra = WORLDGEN[sid][6] if len(WORLDGEN[sid]) > 6 else {}
+        dim = extra.get('dim', 'overworld')
         write(os.path.join(BP, 'worldgen', 'template_pools', f'{sid}.json'), {'format_version': FMT_WG, 'minecraft:template_pool': {
             'description': {'identifier': f'{NS}:{sid}'},
             'elements': [{'element': {'element_type': 'minecraft:single_pool_element', 'location': f'{NS}/{v}', 'projection': 'rigid'}, 'weight': 1} for v in variants]}})
         ground = stats[variants[0]][4]
         write(os.path.join(BP, 'worldgen', 'structures', f'{sid}.json'), {'format_version': FMT_WG, 'minecraft:jigsaw': {
             'description': {'identifier': f'{NS}:{sid}'},
-            'biome_filters': [{'all_of': [bt('overworld')] + filt}],
-            'step': 'surface_structures', 'terrain_adaptation': adapt, 'start_pool': f'{NS}:{sid}', 'max_depth': 1,
-            'start_height': {'type': 'constant', 'value': {'absolute': -ground}}, 'heightmap_projection': hm,
+            'biome_filters': [{'all_of': [bt(dim)] + filt}],
+            'step': extra.get('step', 'surface_structures'), 'terrain_adaptation': adapt, 'start_pool': f'{NS}:{sid}', 'max_depth': 1,
+            'start_height': extra.get('height', {'type': 'constant', 'value': {'absolute': -ground}}), 'heightmap_projection': hm,
             'max_distance_from_center': {'horizontal': 64}, 'liquid_settings': 'ignore_waterlogging'}})
         write(os.path.join(BP, 'worldgen', 'structure_sets', f'{sid}.json'), {'format_version': FMT_WG, 'minecraft:structure_set': {
             'description': {'identifier': f'{NS}:{sid}'},

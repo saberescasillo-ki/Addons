@@ -79,7 +79,7 @@
         },
         {
           "type": "item",
-          "name": "minecraft:map",
+          "name": "minecraft:empty_map",
           "weight": 1
         }
       ]

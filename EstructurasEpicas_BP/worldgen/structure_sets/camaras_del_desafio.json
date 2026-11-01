@@ -1,0 +1,21 @@
+{
+  "format_version": "1.21.20",
+  "minecraft:structure_set": {
+    "description": {
+      "identifier": "epicas:camaras_del_desafio"
+    },
+    "placement": {
+      "type": "minecraft:random_spread",
+      "salt": 7710023,
+      "separation": 12,
+      "spacing": 34,
+      "spread_type": "linear"
+    },
+    "structures": [
+      {
+        "structure": "epicas:camaras_del_desafio",
+        "weight": 1
+      }
+    ]
+  }
+}
