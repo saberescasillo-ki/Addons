@@ -1,0 +1,22 @@
+{
+  "format_version": "1.16.100",
+  "minecraft:fog_settings": {
+    "description": {
+      "identifier": "ifrit:niebla_lluvia_de_sangre_2"
+    },
+    "distance": {
+      "air": {
+        "fog_start": 0,
+        "fog_end": 148.2,
+        "fog_color": "#7a0710",
+        "render_distance_type": "fixed"
+      },
+      "weather": {
+        "fog_start": 0,
+        "fog_end": 148.2,
+        "fog_color": "#7a0710",
+        "render_distance_type": "fixed"
+      }
+    }
+  }
+}

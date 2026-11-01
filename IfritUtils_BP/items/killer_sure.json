@@ -1,0 +1,24 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:item": {
+    "description": {
+      "identifier": "ifrit:killer_sure",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": "ifrit_killer",
+      "minecraft:display_name": {
+        "value": "item.ifrit:killer_sure.name"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:use_modifiers": {
+        "use_duration": 0.1,
+        "movement_modifier": 1.0
+      },
+      "minecraft:glint": true,
+      "minecraft:hand_equipped": true
+    }
+  }
+}

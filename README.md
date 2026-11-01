@@ -8,13 +8,14 @@
 | **Objetos de Ayuda** – 4 objetos especiales que ayudan al jugador | [`dist/HelperItems.mcaddon`](dist/HelperItems.mcaddon) | `tools/helper_items.py` |
 | **The LITIUS Blind** – nueva dimensión de islas flotantes | [`dist/LitiusBlind.mcaddon`](dist/LitiusBlind.mcaddon) | `tools/litius_blind.py` |
 | **Reproductor de Música** – objeto para escuchar tus canciones (no 3D) | [`dist/MusicPlayer.mcaddon`](dist/MusicPlayer.mcaddon) | `tools/music_player.py` |
+| **Útils for Ifrit** – utilidades con objetos: niebla, cámara y cinemáticas, kill, hora/clima y efectos | [`dist/IfritUtils.mcaddon`](dist/IfritUtils.mcaddon) | `tools/ifrit_utils.py` |
 
 Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo. No hace falta activar experimentos
 (salvo en The LITIUS Blind, ver abajo).
 
 - The Revamp of the Soul requiere Minecraft Bedrock **1.26.0** o superior.
 - Medieval Mobs requiere **1.21.0** o superior.
-- Ruleta de Colores, Objetos de Ayuda y Reproductor de Música requieren **1.21.90** o superior.
+- Ruleta de Colores, Objetos de Ayuda, Reproductor de Música y Útils for Ifrit requieren **1.21.90** o superior.
 - The LITIUS Blind requiere **26.20** o superior y el experimento **Beta APIs**.
 
 ---
@@ -63,6 +64,65 @@ al sitio desde el que entraste. Cooldown 3 s.
 - Debajo de las islas solo hay vacío: cuidado al saltar entre ellas.
 - El generador está en `tools/litius_blind/gen.js` y se copia tal cual al pack; `CONFIG` en `tools/litius_blind.py`
   cambia el radio de generación.
+
+---
+
+# Útils for Ifrit
+
+![Los seis objetos](docs/ifrit_utils_preview.png)
+
+Utilidades que se activan con objetos. **No se pueden conseguir en supervivencia** (sin receta, cofres ni drops):
+solo en el inventario creativo (pestaña *Objetos*) o con `/give @s <id>`.
+
+Casi todo pregunta al final **¿para quién?**: *Solo yo*, *Todos* o *Jugadores seleccionados* (una lista con casillas
+de los jugadores conectados). Los formularios recuerdan los últimos valores que usaste.
+
+| Objeto | ID | Qué hace |
+|---|---|---|
+| Utilidad de Niebla | `ifrit:utilidad_niebla` | Cambia el color de la niebla y del cielo: **Verde claro**, **Hello Frozen** (blanco invierno + celeste frío), **Lluvia de sangre** (rojo + rojo sangre oscuro), **Blanco** y **Negro**. Densidad **1-15** (1: neblina suave hasta 200 bloques; 15: casi no se ve a 3 bloques). Botón *Quitar niebla*. |
+| Camera | `ifrit:camera` | Menú con **Fade**, **Free** y **Shake** (ver abajo). |
+| Cinematic Creator | `ifrit:cinematic_creator` | Editor de cinemáticas. Te lo da *Camera > Free > Crear animación*. |
+| Killer Sure | `ifrit:killer_sure` | Mata al instante, como `/kill`: toca un jugador en el menú, *Elegir varios*, *Todos menos yo* o *Yo*. También mata al jugador que **golpees** con él. |
+| Time an Thing | `ifrit:time_an_thing` | Hora: Amanecer, Día, Mediodía, Atardecer, Noche y Medianoche, u **hora personalizada** (`21:30` o en ticks), con opción de **parar el ciclo día/noche**. **Clima**: despejado, lluvia o tormenta, con duración (aleatoria, 5 min, 20 min, 1 h o la que quieras) y opción de **fijarlo**. |
+| Effects | `ifrit:effects` | Efectos por secciones (**Positivos** / **Negativos**). Duración **1 min, 10 min, 1 hora, Infinito o personalizada** (segundos), **nivel** (barra 1-10 o el número que quieras hasta 255) y **ocultar partículas**. Botón *Quitar todos los efectos*. |
+
+### Camera
+
+- **Fade**: lo mismo que `/camera <jugadores> fade time <entrada> <pantalla completa> <salida> color <r> <g> <b>`.
+  Tiempos en segundos (0-10) y color de una lista (negro, blanco, rojo, rojo sangre, verde claro, celeste frío)
+  o personalizado con barras RGB.
+- **Shake**: `/camerashake add` con **intensidad (0-4)**, **duración** y tipo **posicional** o **rotacional**, y
+  *Detener temblor* (`/camerashake stop`).
+- **Free**:
+  - **Crear animación**: cierra el menú y te da el **Cinematic Creator**.
+  - **Ejecutar animación**: la lista de cinemáticas exportadas. Cada una se puede **Ejecutar** (eliges para quién),
+    **Editar** (vuelve al Cinematic Creator) o **Borrar**.
+  - **Detener cinemáticas en curso**.
+
+### Cinematic Creator
+
+1. Ponte donde quieres la cámara, mira hacia donde debe mirar y **agáchate + usa el objeto**: se guarda un punto
+   (tu posición y tu rotación). Repite para cada movimiento. También está el botón *Guardar posición actual*.
+2. **Usa el objeto** (sin agacharte) para abrir el editor:
+   - **Puntos**: cada punto tiene *duración del movimiento* hasta él, *espera* antes del siguiente, *tipo de
+     movimiento* (suave, lineal, acelera, frena, rebote, muelle...) y *camera fade* (llega con un fundido en vez
+     de moverse). También: mover el punto a tu posición, ir a él, verlo 2 s, subirlo/bajarlo y borrarlo.
+   - **Ajustes**: nombre, los valores para los puntos nuevos (y aplicarlos a todos), tiempos y color del fade,
+     fade al empezar y al terminar, y ocultar el HUD.
+   - **Previsualizar** (solo para ti), **Exportar** y **Descartar borrador**.
+3. Al **Exportar** se guarda en el mundo, el Cinematic Creator desaparece del inventario y la cinemática sale en
+   *Camera > Free > Ejecutar animación*.
+
+- La cámara va a las coordenadas guardadas en la dimensión de quien la ve.
+- El borrador se guarda en el jugador, así que puedes salir del mundo y seguir después.
+
+### Notas
+
+- La niebla se aplica con `/fog ... push` (una por color y densidad, 75 en total en `IfritUtils_RP/fogs/`). En Bedrock el
+  cielo se tiñe con el color de la niebla: cuanto más densa, más se nota en el cielo.
+- Cualquier jugador que tenga uno de los objetos puede usarlo, así que dáselos solo a quien quieras.
+- Los scripts están en `tools/ifrit_utils/` (uno por objeto) y se copian tal cual; colores y densidad de la niebla en
+  `FOGS` de `tools/ifrit_utils.py`. Para regenerar: `python3 tools/ifrit_utils.py`.
 
 ---
 
@@ -365,6 +425,7 @@ MedievalMobs_BP/   MedievalMobs_RP/    addon medieval
 Roulette_BP/       Roulette_RP/        ruleta de colores (generado)
 HelperItems_BP/    HelperItems_RP/     objetos de ayuda (generado)
 MusicPlayer_BP/    MusicPlayer_RP/     reproductor de música (generado)
+IfritUtils_BP/     IfritUtils_RP/      Útils for Ifrit (generado)
 sources/music_player/                  canciones del reproductor de música
 tools/             generadores en Python (modelos + texturas + JSON)
 dist/              los .mcaddon listos para instalar
@@ -383,6 +444,7 @@ python3 tools/generate.py --preview
 python3 tools/roulette.py --preview
 python3 tools/helper_items.py --preview
 python3 tools/music_player.py
+python3 tools/ifrit_utils.py
 ```
 
 Cada uno vuelve a generar sus packs y su `.mcaddon`. `--preview` además actualiza las imágenes de `docs/`.

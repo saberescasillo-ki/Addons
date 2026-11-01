@@ -1,0 +1,22 @@
+{
+  "format_version": "1.16.100",
+  "minecraft:fog_settings": {
+    "description": {
+      "identifier": "ifrit:niebla_verde_claro_6"
+    },
+    "distance": {
+      "air": {
+        "fog_start": 0,
+        "fog_end": 44.6,
+        "fog_color": "#9eeb8f",
+        "render_distance_type": "fixed"
+      },
+      "weather": {
+        "fog_start": 0,
+        "fog_end": 44.6,
+        "fog_color": "#9eeb8f",
+        "render_distance_type": "fixed"
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "resource_pack_name": "ifrit",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "ifrit_niebla": {
+      "textures": "textures/items/ifrit/niebla"
+    },
+    "ifrit_camara": {
+      "textures": "textures/items/ifrit/camara"
+    },
+    "ifrit_creador": {
+      "textures": "textures/items/ifrit/creador"
+    },
+    "ifrit_killer": {
+      "textures": "textures/items/ifrit/killer"
+    },
+    "ifrit_tiempo": {
+      "textures": "textures/items/ifrit/tiempo"
+    },
+    "ifrit_efectos": {
+      "textures": "textures/items/ifrit/efectos"
+    }
+  }
+}
