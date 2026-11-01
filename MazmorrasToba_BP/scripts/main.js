@@ -6,7 +6,7 @@ import {
   buildDungeon, DIR_NAME, ENTRANCES, MAX_FLOORS, maxFloorsAt, MOB_FAMILIES, planDungeon, THEME_KEYS, THEMES, TYPE_NAME,
 } from "./gen.js";
 
-const CFG = {"item": "mazmorra:cetro", "minRooms": 5, "maxRooms": 30, "defaultRooms": 10, "opsPerYield": 12, "tile": 80, "detect": 6, "leave": 20, "abandonTicks": 600, "mobsBase": 6, "mobsPerPlayer": 2, "simulBase": 3, "spawnDelay": 40, "cooldownTicks": 36000, "rewards": {"always": [["minecraft:trial_key", 1]], "rolls": 2, "random": [["minecraft:emerald", 2, 5], ["minecraft:iron_ingot", 2, 5], ["minecraft:bread", 2, 4], ["minecraft:arrow", 4, 10], ["minecraft:golden_carrot", 2, 4], ["minecraft:glow_berries", 3, 8], ["minecraft:honey_bottle", 1, 2], ["minecraft:diamond", 1, 1], ["minecraft:experience_bottle", 2, 5]]}, "guardianRewards": {"always": [["minecraft:ominous_trial_key", 1], ["minecraft:trial_key", 1]], "rolls": 3, "random": [["minecraft:diamond", 2, 4], ["minecraft:emerald", 6, 12], ["minecraft:golden_apple", 1, 2], ["minecraft:experience_bottle", 5, 10], ["minecraft:ender_pearl", 2, 4], ["minecraft:enchanted_golden_apple", 1, 1], ["minecraft:wind_charge", 4, 10]]}};
+const CFG = {"item": "mazmorra:cetro", "clones": {"minecraft:tuff": ["mazmorra:tuff", ""], "minecraft:polished_tuff": ["mazmorra:polished_tuff", ""], "minecraft:tuff_bricks": ["mazmorra:tuff_bricks", ""], "minecraft:chiseled_tuff": ["mazmorra:chiseled_tuff", ""], "minecraft:chiseled_tuff_bricks": ["mazmorra:chiseled_tuff_bricks", ""], "minecraft:tuff_brick_slab": ["mazmorra:tuff_brick_slab", "slab"], "minecraft:polished_tuff_slab": ["mazmorra:polished_tuff_slab", "slab"], "minecraft:tuff_brick_stairs": ["mazmorra:tuff_brick_stairs", "stairs"], "minecraft:polished_tuff_stairs": ["mazmorra:polished_tuff_stairs", "stairs"], "minecraft:tuff_brick_wall": ["mazmorra:tuff_brick_wall", ""], "minecraft:polished_tuff_wall": ["mazmorra:polished_tuff_wall", ""], "minecraft:deepslate": ["mazmorra:deepslate", "axis"], "minecraft:cobbled_deepslate": ["mazmorra:cobbled_deepslate", ""], "minecraft:polished_deepslate": ["mazmorra:polished_deepslate", ""], "minecraft:deepslate_bricks": ["mazmorra:deepslate_bricks", ""], "minecraft:cracked_deepslate_bricks": ["mazmorra:cracked_deepslate_bricks", ""], "minecraft:deepslate_tiles": ["mazmorra:deepslate_tiles", ""], "minecraft:cracked_deepslate_tiles": ["mazmorra:cracked_deepslate_tiles", ""], "minecraft:chiseled_deepslate": ["mazmorra:chiseled_deepslate", ""], "minecraft:cobbled_deepslate_slab": ["mazmorra:cobbled_deepslate_slab", "slab"], "minecraft:polished_deepslate_slab": ["mazmorra:polished_deepslate_slab", "slab"], "minecraft:deepslate_brick_slab": ["mazmorra:deepslate_brick_slab", "slab"], "minecraft:deepslate_tile_slab": ["mazmorra:deepslate_tile_slab", "slab"], "minecraft:cobbled_deepslate_stairs": ["mazmorra:cobbled_deepslate_stairs", "stairs"], "minecraft:polished_deepslate_stairs": ["mazmorra:polished_deepslate_stairs", "stairs"], "minecraft:deepslate_brick_stairs": ["mazmorra:deepslate_brick_stairs", "stairs"], "minecraft:deepslate_tile_stairs": ["mazmorra:deepslate_tile_stairs", "stairs"], "minecraft:deepslate_brick_wall": ["mazmorra:deepslate_brick_wall", ""], "minecraft:deepslate_tile_wall": ["mazmorra:deepslate_tile_wall", ""], "minecraft:cobbled_deepslate_wall": ["mazmorra:cobbled_deepslate_wall", ""], "minecraft:smooth_basalt": ["mazmorra:smooth_basalt", ""], "minecraft:crying_obsidian": ["mazmorra:crying_obsidian", ""], "minecraft:obsidian": ["mazmorra:obsidian", ""], "minecraft:waxed_weathered_copper_grate": ["mazmorra:waxed_weathered_copper_grate", ""], "minecraft:moss_block": ["mazmorra:moss_block", ""], "minecraft:pale_moss_block": ["mazmorra:pale_moss_block", ""], "minecraft:moss_carpet": ["mazmorra:moss_carpet", ""], "minecraft:pale_moss_carpet": ["mazmorra:pale_moss_carpet", ""], "minecraft:dirt_with_roots": ["mazmorra:dirt_with_roots", ""], "minecraft:clay": ["mazmorra:clay", ""], "minecraft:azalea_leaves": ["mazmorra:azalea_leaves", ""], "minecraft:azalea_leaves_flowered": ["mazmorra:azalea_leaves_flowered", ""], "minecraft:mangrove_roots": ["mazmorra:mangrove_roots", ""], "minecraft:oak_log": ["mazmorra:oak_log", "axis"], "minecraft:azalea": ["mazmorra:azalea", ""], "minecraft:flowering_azalea": ["mazmorra:flowering_azalea", ""], "minecraft:fern": ["mazmorra:fern", ""], "minecraft:short_grass": ["mazmorra:short_grass", ""], "minecraft:hanging_roots": ["mazmorra:hanging_roots", ""], "minecraft:cave_vines": ["mazmorra:cave_vines", ""], "minecraft:cave_vines_body_with_berries": ["mazmorra:cave_vines_body_with_berries", ""], "minecraft:cave_vines_head_with_berries": ["mazmorra:cave_vines_head_with_berries", ""], "minecraft:pale_hanging_moss": ["mazmorra:pale_hanging_moss", "tip"], "minecraft:spore_blossom": ["mazmorra:spore_blossom", ""], "minecraft:big_dripleaf": ["mazmorra:big_dripleaf", ""], "minecraft:glow_lichen": ["mazmorra:glow_lichen", ""], "minecraft:lantern": ["mazmorra:lantern", "lantern"], "minecraft:soul_lantern": ["mazmorra:soul_lantern", "lantern"], "minecraft:chain": ["mazmorra:chain", ""], "minecraft:green_candle": ["mazmorra:green_candle", "candle"], "minecraft:lime_candle": ["mazmorra:lime_candle", "candle"], "minecraft:white_candle": ["mazmorra:white_candle", "candle"], "minecraft:ochre_froglight": ["mazmorra:ochre_froglight", ""], "minecraft:verdant_froglight": ["mazmorra:verdant_froglight", ""], "minecraft:pearlescent_froglight": ["mazmorra:pearlescent_froglight", ""], "minecraft:oak_slab": ["mazmorra:oak_slab", "slab"], "minecraft:spruce_slab": ["mazmorra:spruce_slab", "slab"], "minecraft:mangrove_slab": ["mazmorra:mangrove_slab", "slab"], "minecraft:dark_oak_slab": ["mazmorra:dark_oak_slab", "slab"], "minecraft:pale_oak_slab": ["mazmorra:pale_oak_slab", "slab"], "minecraft:jungle_slab": ["mazmorra:jungle_slab", "slab"], "minecraft:cherry_slab": ["mazmorra:cherry_slab", "slab"], "minecraft:iron_chain": ["mazmorra:chain", ""]}, "minRooms": 5, "maxRooms": 30, "defaultRooms": 10, "opsPerYield": 12, "tile": 80, "detect": 6, "leave": 20, "abandonTicks": 600, "mobsBase": 6, "mobsPerPlayer": 2, "simulBase": 3, "spawnDelay": 40, "cooldownTicks": 36000, "rewards": {"always": [["minecraft:trial_key", 1]], "rolls": 2, "random": [["minecraft:emerald", 2, 5], ["minecraft:iron_ingot", 2, 5], ["minecraft:bread", 2, 4], ["minecraft:arrow", 4, 10], ["minecraft:golden_carrot", 2, 4], ["minecraft:glow_berries", 3, 8], ["minecraft:honey_bottle", 1, 2], ["minecraft:diamond", 1, 1], ["minecraft:experience_bottle", 2, 5]]}, "guardianRewards": {"always": [["minecraft:ominous_trial_key", 1], ["minecraft:trial_key", 1]], "rolls": 3, "random": [["minecraft:diamond", 2, 4], ["minecraft:emerald", 6, 12], ["minecraft:golden_apple", 1, 2], ["minecraft:experience_bottle", 5, 10], ["minecraft:ender_pearl", 2, 4], ["minecraft:enchanted_golden_apple", 1, 1], ["minecraft:wind_charge", 4, 10]]}};
 const TAG = "§2[Mazmorras]§r ";
 
 // ------------------------------------------------------------ blocks
@@ -18,10 +18,33 @@ function resolveOne(b) {
     return null;
   }
 }
+// Every block of the dungeon is placed as its indestructible copy (mazmorra:...), with its
+// states translated; if a copy cannot be resolved, the vanilla block is used.
+const CARD = ["east", "west", "south", "north"];
+function cloneOf(block) {
+  const id = typeof block === "string" ? block : block.id;
+  const c = CFG.clones[id];
+  if (!c) return null;
+  const [cid, kind] = c;
+  const s = typeof block === "string" ? {} : block.states ?? {};
+  switch (kind) {
+    case "slab": return { id: cid, states: { "minecraft:vertical_half": s["minecraft:vertical_half"] ?? "bottom" } };
+    case "stairs": return { id: cid, states: {
+      "minecraft:cardinal_direction": CARD[s.weirdo_direction ?? 0], "minecraft:vertical_half": s.upside_down_bit ? "top" : "bottom" } };
+    case "axis": return { id: cid, states: { "minecraft:block_face": { x: "east", y: "up", z: "south" }[s.pillar_axis ?? "y"] } };
+    case "lantern": return { id: cid, states: { "minecraft:block_face": s.hanging ? "down" : "up" } };
+    case "candle": return { id: cid, states: { "mazmorra:candles": s.candles ?? 0 } };
+    case "tip": return { id: cid, states: { "mazmorra:tip": !!s.tip } };
+    default: return cid;
+  }
+}
+
 function perm(block) {
   const key = typeof block === "string" ? block : JSON.stringify(block);
   if (!perms.has(key)) {
-    let p = resolveOne(block);
+    const clone = cloneOf(block);
+    let p = clone ? resolveOne(clone) : null;
+    if (!p) p = resolveOne(block);
     if (!p && typeof block !== "string") {
       for (const alt of block.alt ?? []) if ((p = resolveOne(alt))) break;
       if (!p) p = resolveOne(block.id);
@@ -162,6 +185,13 @@ async function generate(player, opts) {
           });
       });
 
+  // the dungeon is registered so its vanilla blocks (chests, vaults, spawners...) are protected
+  const did = (world.getDynamicProperty("dng:nextDungeon") ?? 0) + 1;
+  world.setDynamicProperty("dng:nextDungeon", did);
+  const area = { dim: dim.id, boxes: opts.built.pieces.map((p) => p.box) };
+  world.setDynamicProperty(`dng:d:${did}`, JSON.stringify(area));
+  dungeons.push(area);
+
   // the trial spawners start working once everything is built
   for (const s of opts.built.spawners) {
     const id = (world.getDynamicProperty("dng:next") ?? 0) + 1;
@@ -192,7 +222,7 @@ async function openMenu(player) {
   const names = THEME_KEYS.map((k) => `${THEMES[k].name} §7(${THEMES[k].desc})`);
   const form = new ModalFormData()
     .title("Generador de Mazmorras")
-    .dropdown("§2Mazmorra de toba y cuevas frondosas.§r\n\nTipo de mazmorra", names, { defaultValueIndex: 0 })
+    .dropdown("§2Mazmorras de toba y cuevas frondosas, o del abismo.§r\n\nTipo de mazmorra", names, { defaultValueIndex: 0 })
     .slider("Número de salas", CFG.minRooms, CFG.maxRooms, { valueStep: 1, defaultValue: CFG.defaultRooms })
     .slider("Pisos (como máximo)", 1, MAX_FLOORS, { valueStep: 1, defaultValue: 4 })
     .toggle("Salas de parkour", { defaultValue: true })
@@ -203,12 +233,13 @@ async function openMenu(player) {
   const loc = player.location;
   const origin = { x: Math.floor(loc.x), y: Math.floor(loc.y), z: Math.floor(loc.z) };
   const dim = player.dimension;
-  const maxFloors = maxFloorsAt(origin.y, dim.heightRange.min);
+  const theme = THEME_KEYS[Number(ti)] ?? THEME_KEYS[0];
+  const maxFloors = maxFloorsAt(origin.y, dim.heightRange.min, theme);
   if (maxFloors < 1) {
     player.sendMessage(`${TAG}§cEstás demasiado abajo: sube un poco para generar la mazmorra.`);
     return;
   }
-  if (origin.y + 10 >= dim.heightRange.max) {
+  if (origin.y + 34 >= dim.heightRange.max) {
     player.sendMessage(`${TAG}§cEstás demasiado arriba para generar la entrada.`);
     return;
   }
@@ -217,7 +248,6 @@ async function openMenu(player) {
   let seed = Number.parseInt(text, 10);
   if (!Number.isFinite(seed)) seed = text ? [...text].reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0)) | 0, 7) : Math.floor(Math.random() * 2147483647);
   const facing = facingOf(player);
-  const theme = THEME_KEYS[Number(ti)] ?? THEME_KEYS[0];
   const plan = planDungeon({ seed, theme, rooms: Number(rooms), floors, facing, parkour: !!parkour });
   const built = buildDungeon(plan, origin);
   const [x1, , z1, x2, , z2] = built.bounds;
@@ -283,9 +313,45 @@ const forget = (sp) => {
   world.setDynamicProperty(`dng:sp:${sp.id}`, undefined);
 };
 
+// ------------------------------------------------------------ protection
+// The copies cannot be mined nor blown up. The vanilla blocks that must keep working (chests,
+// vaults, trial spawners, vines) are protected here inside every dungeon: players in survival
+// cannot break them, and explosions leave every block of the dungeon alone. The copper grate
+// barriers of the corridors are the exception: they are there to be mined.
+const dungeons = [];
+const PROTECTED = new Set(["minecraft:chest", "minecraft:vault", "minecraft:trial_spawner", "minecraft:vine"]);
+const BREAKABLE = new Set(["minecraft:waxed_copper_grate"]);
+function inDungeon(dimId, l) {
+  for (const d of dungeons) {
+    if (d.dim !== dimId) continue;
+    for (const b of d.boxes)
+      if (l.x >= b[0] && l.x <= b[3] && l.y >= b[1] && l.y <= b[4] && l.z >= b[2] && l.z <= b[5]) return true;
+  }
+  return false;
+}
+world.beforeEvents.playerBreakBlock.subscribe((ev) => {
+  if (!PROTECTED.has(ev.block.typeId)) return;
+  try {
+    if (ev.player.getGameMode() === "Creative" || ev.player.getGameMode() === "creative") return;
+  } catch {}
+  if (inDungeon(ev.dimension.id, ev.block.location)) ev.cancel = true;
+});
+world.beforeEvents.explosion.subscribe((ev) => {
+  if (!dungeons.length) return;
+  const blocks = ev.getImpactedBlocks();
+  const keep = blocks.filter((b) => BREAKABLE.has(b.typeId) || !inDungeon(ev.dimension.id, b.location));
+  if (keep.length !== blocks.length) ev.setImpactedBlocks(keep);
+});
+
 let started = false;
 function start() {
   started = true;
+  for (const id of world.getDynamicPropertyIds()) {
+    if (!id.startsWith("dng:d:")) continue;
+    try {
+      dungeons.push(JSON.parse(world.getDynamicProperty(id)));
+    } catch {}
+  }
   for (const id of world.getDynamicPropertyIds()) {
     if (!id.startsWith("dng:sp:")) continue;
     try {

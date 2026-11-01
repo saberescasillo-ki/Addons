@@ -1,0 +1,44 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:block": {
+    "description": {
+      "identifier": "mazmorra:polished_tuff_wall"
+    },
+    "components": {
+      "minecraft:destructible_by_mining": false,
+      "minecraft:destructible_by_explosion": false,
+      "minecraft:geometry": "geometry.mazmorra.wall",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "mz_polished_tuff_wall",
+          "render_method": "opaque"
+        }
+      },
+      "minecraft:light_dampening": 0,
+      "minecraft:collision_box": {
+        "origin": [
+          -4,
+          0,
+          -4
+        ],
+        "size": [
+          8,
+          16,
+          8
+        ]
+      },
+      "minecraft:selection_box": {
+        "origin": [
+          -4,
+          0,
+          -4
+        ],
+        "size": [
+          8,
+          16,
+          8
+        ]
+      }
+    }
+  }
+}

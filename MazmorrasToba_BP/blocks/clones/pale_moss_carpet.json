@@ -1,0 +1,44 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:block": {
+    "description": {
+      "identifier": "mazmorra:pale_moss_carpet"
+    },
+    "components": {
+      "minecraft:destructible_by_mining": false,
+      "minecraft:destructible_by_explosion": false,
+      "minecraft:geometry": "geometry.mazmorra.carpet",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "mz_pale_moss_carpet",
+          "render_method": "opaque"
+        }
+      },
+      "minecraft:light_dampening": 0,
+      "minecraft:collision_box": {
+        "origin": [
+          -8,
+          0,
+          -8
+        ],
+        "size": [
+          16,
+          1,
+          16
+        ]
+      },
+      "minecraft:selection_box": {
+        "origin": [
+          -8,
+          0,
+          -8
+        ],
+        "size": [
+          16,
+          1,
+          16
+        ]
+      }
+    }
+  }
+}

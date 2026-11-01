@@ -1,0 +1,87 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:block": {
+    "description": {
+      "identifier": "mazmorra:white_candle",
+      "states": {
+        "mazmorra:candles": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    "components": {
+      "minecraft:destructible_by_mining": false,
+      "minecraft:destructible_by_explosion": false,
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "mz_white_candle",
+          "render_method": "alpha_test",
+          "ambient_occlusion": 0
+        }
+      },
+      "minecraft:light_dampening": 0,
+      "minecraft:collision_box": {
+        "origin": [
+          -5,
+          0,
+          -5
+        ],
+        "size": [
+          10,
+          6,
+          10
+        ]
+      },
+      "minecraft:selection_box": {
+        "origin": [
+          -5,
+          0,
+          -5
+        ],
+        "size": [
+          10,
+          7,
+          10
+        ]
+      },
+      "minecraft:geometry": {
+        "identifier": "geometry.mazmorra.candle",
+        "bone_visibility": {
+          "c0": "q.block_state('mazmorra:candles') >= 0",
+          "c1": "q.block_state('mazmorra:candles') >= 1",
+          "c2": "q.block_state('mazmorra:candles') >= 2",
+          "c3": "q.block_state('mazmorra:candles') >= 3"
+        }
+      }
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('mazmorra:candles') == 0",
+        "components": {
+          "minecraft:light_emission": 3
+        }
+      },
+      {
+        "condition": "q.block_state('mazmorra:candles') == 1",
+        "components": {
+          "minecraft:light_emission": 6
+        }
+      },
+      {
+        "condition": "q.block_state('mazmorra:candles') == 2",
+        "components": {
+          "minecraft:light_emission": 9
+        }
+      },
+      {
+        "condition": "q.block_state('mazmorra:candles') == 3",
+        "components": {
+          "minecraft:light_emission": 12
+        }
+      }
+    ]
+  }
+}

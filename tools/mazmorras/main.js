@@ -18,10 +18,33 @@ function resolveOne(b) {
     return null;
   }
 }
+// Every block of the dungeon is placed as its indestructible copy (mazmorra:...), with its
+// states translated; if a copy cannot be resolved, the vanilla block is used.
+const CARD = ["east", "west", "south", "north"];
+function cloneOf(block) {
+  const id = typeof block === "string" ? block : block.id;
+  const c = CFG.clones[id];
+  if (!c) return null;
+  const [cid, kind] = c;
+  const s = typeof block === "string" ? {} : block.states ?? {};
+  switch (kind) {
+    case "slab": return { id: cid, states: { "minecraft:vertical_half": s["minecraft:vertical_half"] ?? "bottom" } };
+    case "stairs": return { id: cid, states: {
+      "minecraft:cardinal_direction": CARD[s.weirdo_direction ?? 0], "minecraft:vertical_half": s.upside_down_bit ? "top" : "bottom" } };
+    case "axis": return { id: cid, states: { "minecraft:block_face": { x: "east", y: "up", z: "south" }[s.pillar_axis ?? "y"] } };
+    case "lantern": return { id: cid, states: { "minecraft:block_face": s.hanging ? "down" : "up" } };
+    case "candle": return { id: cid, states: { "mazmorra:candles": s.candles ?? 0 } };
+    case "tip": return { id: cid, states: { "mazmorra:tip": !!s.tip } };
+    default: return cid;
+  }
+}
+
 function perm(block) {
   const key = typeof block === "string" ? block : JSON.stringify(block);
   if (!perms.has(key)) {
-    let p = resolveOne(block);
+    const clone = cloneOf(block);
+    let p = clone ? resolveOne(clone) : null;
+    if (!p) p = resolveOne(block);
     if (!p && typeof block !== "string") {
       for (const alt of block.alt ?? []) if ((p = resolveOne(alt))) break;
       if (!p) p = resolveOne(block.id);
@@ -162,6 +185,13 @@ async function generate(player, opts) {
           });
       });
 
+  // the dungeon is registered so its vanilla blocks (chests, vaults, spawners...) are protected
+  const did = (world.getDynamicProperty("dng:nextDungeon") ?? 0) + 1;
+  world.setDynamicProperty("dng:nextDungeon", did);
+  const area = { dim: dim.id, boxes: opts.built.pieces.map((p) => p.box) };
+  world.setDynamicProperty(`dng:d:${did}`, JSON.stringify(area));
+  dungeons.push(area);
+
   // the trial spawners start working once everything is built
   for (const s of opts.built.spawners) {
     const id = (world.getDynamicProperty("dng:next") ?? 0) + 1;
@@ -192,7 +222,7 @@ async function openMenu(player) {
   const names = THEME_KEYS.map((k) => `${THEMES[k].name} §7(${THEMES[k].desc})`);
   const form = new ModalFormData()
     .title("Generador de Mazmorras")
-    .dropdown("§2Mazmorra de toba y cuevas frondosas.§r\n\nTipo de mazmorra", names, { defaultValueIndex: 0 })
+    .dropdown("§2Mazmorras de toba y cuevas frondosas, o del abismo.§r\n\nTipo de mazmorra", names, { defaultValueIndex: 0 })
     .slider("Número de salas", CFG.minRooms, CFG.maxRooms, { valueStep: 1, defaultValue: CFG.defaultRooms })
     .slider("Pisos (como máximo)", 1, MAX_FLOORS, { valueStep: 1, defaultValue: 4 })
     .toggle("Salas de parkour", { defaultValue: true })
@@ -203,12 +233,13 @@ async function openMenu(player) {
   const loc = player.location;
   const origin = { x: Math.floor(loc.x), y: Math.floor(loc.y), z: Math.floor(loc.z) };
   const dim = player.dimension;
-  const maxFloors = maxFloorsAt(origin.y, dim.heightRange.min);
+  const theme = THEME_KEYS[Number(ti)] ?? THEME_KEYS[0];
+  const maxFloors = maxFloorsAt(origin.y, dim.heightRange.min, theme);
   if (maxFloors < 1) {
     player.sendMessage(`${TAG}§cEstás demasiado abajo: sube un poco para generar la mazmorra.`);
     return;
   }
-  if (origin.y + 10 >= dim.heightRange.max) {
+  if (origin.y + 34 >= dim.heightRange.max) {
     player.sendMessage(`${TAG}§cEstás demasiado arriba para generar la entrada.`);
     return;
   }
@@ -217,7 +248,6 @@ async function openMenu(player) {
   let seed = Number.parseInt(text, 10);
   if (!Number.isFinite(seed)) seed = text ? [...text].reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0)) | 0, 7) : Math.floor(Math.random() * 2147483647);
   const facing = facingOf(player);
-  const theme = THEME_KEYS[Number(ti)] ?? THEME_KEYS[0];
   const plan = planDungeon({ seed, theme, rooms: Number(rooms), floors, facing, parkour: !!parkour });
   const built = buildDungeon(plan, origin);
   const [x1, , z1, x2, , z2] = built.bounds;
@@ -283,9 +313,45 @@ const forget = (sp) => {
   world.setDynamicProperty(`dng:sp:${sp.id}`, undefined);
 };
 
+// ------------------------------------------------------------ protection
+// The copies cannot be mined nor blown up. The vanilla blocks that must keep working (chests,
+// vaults, trial spawners, vines) are protected here inside every dungeon: players in survival
+// cannot break them, and explosions leave every block of the dungeon alone. The copper grate
+// barriers of the corridors are the exception: they are there to be mined.
+const dungeons = [];
+const PROTECTED = new Set(["minecraft:chest", "minecraft:vault", "minecraft:trial_spawner", "minecraft:vine"]);
+const BREAKABLE = new Set(["minecraft:waxed_copper_grate"]);
+function inDungeon(dimId, l) {
+  for (const d of dungeons) {
+    if (d.dim !== dimId) continue;
+    for (const b of d.boxes)
+      if (l.x >= b[0] && l.x <= b[3] && l.y >= b[1] && l.y <= b[4] && l.z >= b[2] && l.z <= b[5]) return true;
+  }
+  return false;
+}
+world.beforeEvents.playerBreakBlock.subscribe((ev) => {
+  if (!PROTECTED.has(ev.block.typeId)) return;
+  try {
+    if (ev.player.getGameMode() === "Creative" || ev.player.getGameMode() === "creative") return;
+  } catch {}
+  if (inDungeon(ev.dimension.id, ev.block.location)) ev.cancel = true;
+});
+world.beforeEvents.explosion.subscribe((ev) => {
+  if (!dungeons.length) return;
+  const blocks = ev.getImpactedBlocks();
+  const keep = blocks.filter((b) => BREAKABLE.has(b.typeId) || !inDungeon(ev.dimension.id, b.location));
+  if (keep.length !== blocks.length) ev.setImpactedBlocks(keep);
+});
+
 let started = false;
 function start() {
   started = true;
+  for (const id of world.getDynamicPropertyIds()) {
+    if (!id.startsWith("dng:d:")) continue;
+    try {
+      dungeons.push(JSON.parse(world.getDynamicProperty(id)));
+    } catch {}
+  }
   for (const id of world.getDynamicPropertyIds()) {
     if (!id.startsWith("dng:sp:")) continue;
     try {

@@ -1,0 +1,28 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:block": {
+    "description": {
+      "identifier": "mazmorra:mangrove_roots"
+    },
+    "components": {
+      "minecraft:destructible_by_mining": false,
+      "minecraft:destructible_by_explosion": false,
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:material_instances": {
+        "up": {
+          "texture": "mz_mangrove_roots_up",
+          "render_method": "alpha_test_single_sided"
+        },
+        "down": {
+          "texture": "mz_mangrove_roots_down",
+          "render_method": "alpha_test_single_sided"
+        },
+        "*": {
+          "texture": "mz_mangrove_roots_side",
+          "render_method": "alpha_test_single_sided"
+        }
+      },
+      "minecraft:light_dampening": 0
+    }
+  }
+}

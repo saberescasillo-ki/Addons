@@ -28,6 +28,9 @@ import zipfile
 
 from PIL import Image, ImageDraw, ImageFont
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import mazmorras_clones as clones  # noqa: E402
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "tools", "mazmorras")
 ADDON_NAME = "Mazmorras de Toba"
@@ -35,8 +38,8 @@ BP = os.path.join(ROOT, "MazmorrasToba_BP")
 RP = os.path.join(ROOT, "MazmorrasToba_RP")
 DIST = os.path.join(ROOT, "dist")
 
-VERSION = [1, 1, 0]
-MIN_ENGINE = [1, 21, 90]
+VERSION = [1, 2, 0]
+MIN_ENGINE = [1, 26, 0]    # indestructible stairs need several collision boxes per block
 SERVER_API = "2.0.0"
 SERVER_UI_API = "2.0.0"
 UUIDS = dict(bp="012e9dff-6bcd-42ef-8866-3db4d33b8a65", bp_data="0bf4c0f2-b963-480e-a000-38203840ba7e",
@@ -49,6 +52,7 @@ ITEM = f"{NS}:cetro"
 # Everything main.js uses besides the generator.
 CONFIG = dict(
     item=ITEM,
+    clones=clones.CLONE_MAP,  # vanilla block -> its indestructible copy
     minRooms=5, maxRooms=30, defaultRooms=10,
     opsPerYield=12,       # block operations between pauses while generating
     tile=80,              # pieces are built in groups of about 80x80 blocks, each with one loaded area
@@ -72,6 +76,7 @@ CONFIG = dict(
 )
 
 PREVIEW = dict(seed=20261101, theme="ruinas", rooms=12, floors=4, facing=0)
+PREVIEW_ABYSS = dict(seed=20261103, theme="abismo", rooms=10, floors=3, facing=0)
 ENTRANCES = ["Pórtico de Toba", "Pórtico Mayor", "Templo Frondoso", "Gran Santuario de Toba"]
 
 LANG = {
@@ -199,10 +204,18 @@ COLORS = {
     "azalea": "#5f8f2f", "flowering_azalea": "#b77fc0", "azalea_leaves": "#4f7d28", "azalea_leaves_flowered": "#9a6fb0",
     "spore_blossom": "#e07fb0", "hanging_roots": "#9a6c4a", "glow_lichen": "#7fa88a", "fern": "#4f8a30",
     "short_grass": "#6bab3c", "big_dripleaf": "#5fa83a", "cave_vines": "#4a7a2a",
-    "cave_vines_head_with_berries": "#f0a52a", "cave_vines_body_with_berries": "#d99a2a", "vine": "#3f7a22",
-    "lantern": "#f2c25a", "chain": "#3d4148", "chest": "#a2702e", "vault": "#4a5a60", "trial_spawner": "#c4652a",
+    "cave_vines_head_with_berries": "#f0a52a", "cave_vines_body_with_berries": "#d99a2a", "lantern": "#f2c25a", "chain": "#3d4148", "chest": "#a2702e", "vault": "#4a5a60", "trial_spawner": "#c4652a",
     "ochre_froglight": "#f3e3a0", "verdant_froglight": "#d5f0c0", "pearlescent_froglight": "#f0dcef",
     "oak_log": "#6b5132", "mangrove_roots": "#5d4530",
+    "deepslate": "#4d4d52", "cobbled_deepslate": "#46464a", "polished_deepslate": "#555559",
+    "deepslate_bricks": "#4a4a4e", "cracked_deepslate_bricks": "#444448", "deepslate_tiles": "#38383c",
+    "cracked_deepslate_tiles": "#333337", "chiseled_deepslate": "#3d3d41", "smooth_basalt": "#4a4a50",
+    "crying_obsidian": "#5a1f9a", "obsidian": "#1b1626", "lava": "#e8701a", "soul_lantern": "#5fe0e8",
+    "waxed_weathered_copper_grate": "#5f9a7a", "waxed_copper_grate": "#c06a4a", "vine": "#3f7a22",
+    "deepslate_brick_wall": "#4a4a4e", "deepslate_tile_wall": "#38383c", "cobbled_deepslate_wall": "#46464a",
+    "cobbled_deepslate_slab": "#4a4a4e", "polished_deepslate_slab": "#58585c", "deepslate_brick_slab": "#4c4c50",
+    "deepslate_tile_slab": "#3a3a3e", "cobbled_deepslate_stairs": "#46464a", "polished_deepslate_stairs": "#555559",
+    "deepslate_brick_stairs": "#4a4a4e", "deepslate_tile_stairs": "#38383c",
     "green_candle": "#4f8a30", "lime_candle": "#8ad13a", "white_candle": "#f0f0f0",
 }
 PLANTS = {"moss_carpet", "pale_moss_carpet", "pale_hanging_moss", "azalea", "flowering_azalea", "spore_blossom",
@@ -287,9 +300,12 @@ def cutaway(sim):
     return lambda x, y, z: y <= cuts[(x, z)] and y < sim["y0"] + 8
 
 
-def close_up(sim, r, s):
-    """One room without its ceiling and without the two walls in front of the camera."""
+def close_up(sim, r, s, section=False):
+    """One room without its ceiling and without the two walls in front of the camera; or, for the caves,
+    cut in half through the middle so you see the inside."""
     b = r["box"]
+    if section:
+        return render(sim["blocks"], s, lambda x, y, z: b[0] <= x <= b[3] and b[2] <= z <= r["z"] and b[1] <= y <= b[4])
     return render(sim["blocks"], s, lambda x, y, z: b[0] <= x < b[3] and b[2] <= z < b[5] and b[1] <= y < b[4])
 
 
@@ -303,7 +319,10 @@ def font(size):
         return ImageFont.load_default()
 
 
-def preview(sim, entrances):
+ABYSS_BOX = lambda x, y, z: -20 <= x <= 11 and -17 <= z <= 17 and y >= 75
+
+
+def preview(sim, entrances, title, closeups, ent_titles, ent_box=ENTRANCE_BOX):
     W, H = 1700, 1320
     sheet = Image.new("RGBA", (W, H), hx("#0d1117"))
     d = ImageDraw.Draw(sheet)
@@ -315,22 +334,23 @@ def preview(sim, entrances):
         sheet.alpha_composite(im, (cx - im.width // 2, top + (h - im.height) // 2))
 
     counts = ", ".join(f"{n} {t}" for t, n in sim["plan"]["counts"].items())
-    d.text((W // 2, 24), f"Mazmorras de Toba - {PREVIEW['rooms']} salas en {sim['plan']['floors']} pisos ({counts})",
+    d.text((W // 2, 24), f"{title} - {len(sim['rooms']) - 1} salas en {sim['plan']['floors']} pisos ({counts})",
            fill=(220, 235, 210, 255), anchor="mm", font=font(20))
     paste(render(sim["blocks"], 8, cutaway(sim)), 590, 50, 1160, 800)
-    for k, (typ, title) in enumerate([("arbol", "Sala del gran árbol"), ("parkour", "Sala de parkour")]):
+    for k, (typ, name) in enumerate(closeups):
         rooms = [r for r in sim["rooms"] if r["type"] == typ]
         if not rooms:
             continue
-        d.text((1440, 64 + k * 400), f"{title} ({rooms[0]['box'][3] - rooms[0]['box'][0] - 1} x "
+        d.text((1440, 64 + k * 400), f"{name} ({rooms[0]['box'][3] - rooms[0]['box'][0] - 1} x "
                f"{rooms[0]['box'][5] - rooms[0]['box'][2] - 1})", fill=white, anchor="mm", font=font(16))
-        paste(close_up(sim, rooms[0], 12), 1440, 84 + k * 400, 480, 360)
+        paste(close_up(sim, rooms[0], 12, section=sim["plan"]["theme"] == "abismo"), 1440, 84 + k * 400, 480, 360)
     d.text((W // 2, 880), "Entradas según la dificultad (y la rareza) de la mazmorra", fill=(220, 235, 210, 255),
            anchor="mm", font=font(18))
+    n = len(entrances)
     for k, ent in enumerate(entrances):
-        cx = 215 + k * 425
-        d.text((cx, 912), f"{k + 1}. {ENTRANCES[k]}", fill=white, anchor="mm", font=font(15))
-        paste(render(ent["blocks"], 8, ENTRANCE_BOX), cx, 930, 410, 360)
+        cx = W * (2 * k + 1) // (2 * n)
+        d.text((cx, 912), ent_titles[k], fill=white, anchor="mm", font=font(15))
+        paste(render(ent["blocks"], 8, ent_box), cx, 930, W // n - 20, 360)
     d.text((W // 2, H - 14), "Vistas generadas con el mismo generador (tools/mazmorras/simulate.mjs)", fill=soft,
            anchor="mm", font=font(13))
     return sheet
@@ -350,6 +370,13 @@ def main():
     write(os.path.join(RP, "textures/item_texture.json"), {
         "resource_pack_name": "mazmorra", "texture_name": "atlas.items", "texture_data": {
             "mazmorra_cetro": {"textures": path}}})
+    # the indestructible copies of every block of the dungeons
+    ids = json.loads(subprocess.run(["node", os.path.join(SRC, "simulate.mjs"), "ids"], check=True, capture_output=True,
+                                    text=True).stdout)
+    missing, ungrouped = clones.check(ids)
+    if missing or ungrouped:
+        sys.exit(f"Bloques sin copia indestructible: {missing}; copias fuera del inventario: {ungrouped}")
+    clones.write(BP, RP, LANG["es"], LANG["en"], write)
     for code, key in (("es_ES", "es"), ("es_MX", "es"), ("en_US", "en"), ("en_GB", "en")):
         write(os.path.join(RP, f"texts/{code}.lang"), lang(LANG[key]))
         write(os.path.join(BP, f"texts/{code}.lang"), lang({k: v for k, v in LANG[key].items()
@@ -388,7 +415,14 @@ def main():
                     z.write(full, os.path.relpath(full, ROOT))
 
     if prev and sim:
-        preview(sim, [simulate(PREVIEW, t) for t in (1, 2, 3, 4)]).save(os.path.join(ROOT, "docs", "mazmorras_preview.png"))
+        preview(sim, [simulate(PREVIEW, t) for t in (1, 2, 3, 4)], "Mazmorras de Toba",
+                [("arbol", "Sala del gran árbol"), ("parkour", "Sala de parkour")],
+                [f"{k + 1}. {e}" for k, e in enumerate(ENTRANCES)]).save(os.path.join(ROOT, "docs", "mazmorras_preview.png"))
+        asim = simulate(PREVIEW_ABYSS)
+        preview(asim, [simulate(PREVIEW_ABYSS, t) for t in (1, 4)], "Mazmorras Abisales",
+                [("sima", "Sima con pasarelas"), ("parkour", "Parkour de lava")],
+                ["La Boca del Abismo (dificultad 1)", "La Boca del Abismo (dificultad 4)"], ABYSS_BOX).save(
+            os.path.join(ROOT, "docs", "mazmorras_abismo_preview.png"))
     print("Built", ADDON_NAME, ".".join(map(str, VERSION)), "->", os.path.relpath(DIST, ROOT))
 
 

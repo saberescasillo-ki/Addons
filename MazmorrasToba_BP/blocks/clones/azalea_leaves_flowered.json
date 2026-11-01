@@ -1,0 +1,20 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:block": {
+    "description": {
+      "identifier": "mazmorra:azalea_leaves_flowered"
+    },
+    "components": {
+      "minecraft:destructible_by_mining": false,
+      "minecraft:destructible_by_explosion": false,
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "mz_azalea_leaves_flowered",
+          "render_method": "alpha_test_to_opaque"
+        }
+      },
+      "minecraft:light_dampening": 1
+    }
+  }
+}

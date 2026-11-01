@@ -1,0 +1,20 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:block": {
+    "description": {
+      "identifier": "mazmorra:crying_obsidian"
+    },
+    "components": {
+      "minecraft:destructible_by_mining": false,
+      "minecraft:destructible_by_explosion": false,
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "mz_crying_obsidian",
+          "render_method": "opaque"
+        }
+      },
+      "minecraft:light_emission": 10
+    }
+  }
+}

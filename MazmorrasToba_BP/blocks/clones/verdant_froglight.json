@@ -1,0 +1,28 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:block": {
+    "description": {
+      "identifier": "mazmorra:verdant_froglight"
+    },
+    "components": {
+      "minecraft:destructible_by_mining": false,
+      "minecraft:destructible_by_explosion": false,
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:material_instances": {
+        "up": {
+          "texture": "mz_verdant_froglight_up",
+          "render_method": "opaque"
+        },
+        "down": {
+          "texture": "mz_verdant_froglight_down",
+          "render_method": "opaque"
+        },
+        "*": {
+          "texture": "mz_verdant_froglight_side",
+          "render_method": "opaque"
+        }
+      },
+      "minecraft:light_emission": 15
+    }
+  }
+}

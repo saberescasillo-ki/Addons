@@ -1,0 +1,116 @@
+{
+  "format_version": "1.12.0",
+  "minecraft:geometry": [
+    {
+      "description": {
+        "identifier": "geometry.mazmorra.chain",
+        "texture_width": 16,
+        "texture_height": 16
+      },
+      "bones": [
+        {
+          "name": "chain",
+          "pivot": [
+            0,
+            0,
+            0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -1.5,
+                0,
+                0
+              ],
+              "size": [
+                3,
+                16,
+                0
+              ],
+              "uv": {
+                "north": {
+                  "uv": [
+                    0,
+                    0
+                  ],
+                  "uv_size": [
+                    3,
+                    16
+                  ],
+                  "material_instance": "c1"
+                },
+                "south": {
+                  "uv": [
+                    0,
+                    0
+                  ],
+                  "uv_size": [
+                    3,
+                    16
+                  ],
+                  "material_instance": "c1"
+                }
+              },
+              "rotation": [
+                0,
+                45,
+                0
+              ],
+              "pivot": [
+                0,
+                8,
+                0
+              ]
+            },
+            {
+              "origin": [
+                -1.5,
+                0,
+                0
+              ],
+              "size": [
+                3,
+                16,
+                0
+              ],
+              "uv": {
+                "north": {
+                  "uv": [
+                    0,
+                    0
+                  ],
+                  "uv_size": [
+                    3,
+                    16
+                  ],
+                  "material_instance": "c2"
+                },
+                "south": {
+                  "uv": [
+                    0,
+                    0
+                  ],
+                  "uv_size": [
+                    3,
+                    16
+                  ],
+                  "material_instance": "c2"
+                }
+              },
+              "rotation": [
+                0,
+                -45,
+                0
+              ],
+              "pivot": [
+                0,
+                8,
+                0
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:block": {
+    "description": {
+      "identifier": "mazmorra:flowering_azalea"
+    },
+    "components": {
+      "minecraft:destructible_by_mining": false,
+      "minecraft:destructible_by_explosion": false,
+      "minecraft:material_instances": {
+        "top": {
+          "texture": "mz_flowering_azalea_top",
+          "render_method": "alpha_test",
+          "ambient_occlusion": 0
+        },
+        "side": {
+          "texture": "mz_flowering_azalea_side",
+          "render_method": "alpha_test",
+          "ambient_occlusion": 0
+        },
+        "plant": {
+          "texture": "mz_flowering_azalea_plant",
+          "render_method": "alpha_test",
+          "ambient_occlusion": 0
+        },
+        "*": {
+          "texture": "mz_flowering_azalea_top",
+          "render_method": "alpha_test",
+          "ambient_occlusion": 0
+        }
+      },
+      "minecraft:light_dampening": 1,
+      "minecraft:geometry": {
+        "identifier": "geometry.mazmorra.azalea"
+      }
+    }
+  }
+}

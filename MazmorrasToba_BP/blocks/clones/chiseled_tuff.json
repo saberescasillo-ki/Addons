@@ -1,0 +1,27 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:block": {
+    "description": {
+      "identifier": "mazmorra:chiseled_tuff"
+    },
+    "components": {
+      "minecraft:destructible_by_mining": false,
+      "minecraft:destructible_by_explosion": false,
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:material_instances": {
+        "up": {
+          "texture": "mz_chiseled_tuff_up",
+          "render_method": "opaque"
+        },
+        "down": {
+          "texture": "mz_chiseled_tuff_down",
+          "render_method": "opaque"
+        },
+        "*": {
+          "texture": "mz_chiseled_tuff_side",
+          "render_method": "opaque"
+        }
+      }
+    }
+  }
+}

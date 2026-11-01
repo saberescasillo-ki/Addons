@@ -1,0 +1,121 @@
+{
+  "format_version": "1.21.60",
+  "minecraft:crafting_items_catalog": {
+    "categories": [
+      {
+        "category_name": "construction",
+        "groups": [
+          {
+            "group_identifier": {
+              "icon": "mazmorra:tuff_bricks",
+              "name": "mazmorra:grupo_toba"
+            },
+            "items": [
+              "mazmorra:tuff",
+              "mazmorra:polished_tuff",
+              "mazmorra:tuff_bricks",
+              "mazmorra:chiseled_tuff",
+              "mazmorra:chiseled_tuff_bricks",
+              "mazmorra:tuff_brick_slab",
+              "mazmorra:polished_tuff_slab",
+              "mazmorra:tuff_brick_stairs",
+              "mazmorra:polished_tuff_stairs",
+              "mazmorra:tuff_brick_wall",
+              "mazmorra:polished_tuff_wall"
+            ]
+          },
+          {
+            "group_identifier": {
+              "icon": "mazmorra:deepslate_tiles",
+              "name": "mazmorra:grupo_abismo"
+            },
+            "items": [
+              "mazmorra:deepslate",
+              "mazmorra:cobbled_deepslate",
+              "mazmorra:polished_deepslate",
+              "mazmorra:deepslate_bricks",
+              "mazmorra:cracked_deepslate_bricks",
+              "mazmorra:deepslate_tiles",
+              "mazmorra:cracked_deepslate_tiles",
+              "mazmorra:chiseled_deepslate",
+              "mazmorra:cobbled_deepslate_slab",
+              "mazmorra:polished_deepslate_slab",
+              "mazmorra:deepslate_brick_slab",
+              "mazmorra:deepslate_tile_slab",
+              "mazmorra:cobbled_deepslate_stairs",
+              "mazmorra:polished_deepslate_stairs",
+              "mazmorra:deepslate_brick_stairs",
+              "mazmorra:deepslate_tile_stairs",
+              "mazmorra:deepslate_brick_wall",
+              "mazmorra:deepslate_tile_wall",
+              "mazmorra:cobbled_deepslate_wall",
+              "mazmorra:smooth_basalt",
+              "mazmorra:crying_obsidian",
+              "mazmorra:obsidian",
+              "mazmorra:waxed_weathered_copper_grate"
+            ]
+          },
+          {
+            "group_identifier": {
+              "icon": "mazmorra:lantern",
+              "name": "mazmorra:grupo_adornos"
+            },
+            "items": [
+              "mazmorra:oak_log",
+              "mazmorra:lantern",
+              "mazmorra:soul_lantern",
+              "mazmorra:chain",
+              "mazmorra:green_candle",
+              "mazmorra:lime_candle",
+              "mazmorra:white_candle",
+              "mazmorra:ochre_froglight",
+              "mazmorra:verdant_froglight",
+              "mazmorra:pearlescent_froglight",
+              "mazmorra:oak_slab",
+              "mazmorra:spruce_slab",
+              "mazmorra:mangrove_slab",
+              "mazmorra:dark_oak_slab",
+              "mazmorra:pale_oak_slab",
+              "mazmorra:jungle_slab",
+              "mazmorra:cherry_slab"
+            ]
+          }
+        ]
+      },
+      {
+        "category_name": "nature",
+        "groups": [
+          {
+            "group_identifier": {
+              "icon": "mazmorra:flowering_azalea",
+              "name": "mazmorra:grupo_plantas"
+            },
+            "items": [
+              "mazmorra:moss_block",
+              "mazmorra:pale_moss_block",
+              "mazmorra:moss_carpet",
+              "mazmorra:pale_moss_carpet",
+              "mazmorra:dirt_with_roots",
+              "mazmorra:clay",
+              "mazmorra:azalea_leaves",
+              "mazmorra:azalea_leaves_flowered",
+              "mazmorra:mangrove_roots",
+              "mazmorra:azalea",
+              "mazmorra:flowering_azalea",
+              "mazmorra:fern",
+              "mazmorra:short_grass",
+              "mazmorra:hanging_roots",
+              "mazmorra:cave_vines",
+              "mazmorra:cave_vines_body_with_berries",
+              "mazmorra:cave_vines_head_with_berries",
+              "mazmorra:pale_hanging_moss",
+              "mazmorra:spore_blossom",
+              "mazmorra:big_dripleaf",
+              "mazmorra:glow_lichen"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

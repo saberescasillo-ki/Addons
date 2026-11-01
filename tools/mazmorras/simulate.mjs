@@ -33,7 +33,7 @@ function reachable(map, start, targets) {
   };
   const free = (x, y, z) => {
     const b = map.get(`${x},${y},${z}`);
-    return b === undefined || SOLID_FREE.test(b);
+    return b === undefined || SOLID_FREE.test(b) || b === "waxed_copper_grate"; // the barrier can be mined
   };
   // a position is standable at (x,y,z) if y and y+1 are free and there is ground at y-1
   const seen = new Set();
@@ -58,7 +58,21 @@ function reachable(map, start, targets) {
 }
 
 const [mode, ...args] = process.argv.slice(2);
-if (mode === "blocks") {
+if (mode === "ids") {
+  // every block id the generator can write, over many dungeons of every theme and entrance
+  const ids = new Set();
+  for (let i = 0; i < 40; i++)
+    for (const theme of THEME_KEYS) {
+      const plan = planDungeon({ seed: 7000 + i, theme, rooms: 30, floors: 6, facing: i % 4 });
+      plan.tier = 1 + (i % 4);
+      for (const p of buildDungeon(plan, ORIGIN).pieces)
+        for (const op of p.ops) {
+          const b = op[0] === "f" ? op[7] : op[4];
+          ids.add(typeof b === "string" ? b : b.id);
+        }
+    }
+  process.stdout.write(JSON.stringify([...ids].sort()));
+} else if (mode === "blocks") {
   const [seed, theme, rooms, floors, facing, tier] = args;
   const plan = planDungeon({ seed: Number(seed), theme, rooms: Number(rooms), floors: Number(floors), facing: Number(facing) });
   if (tier) plan.tier = Number(tier); // to draw every kind of entrance

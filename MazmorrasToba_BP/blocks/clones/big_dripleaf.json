@@ -1,0 +1,45 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:block": {
+    "description": {
+      "identifier": "mazmorra:big_dripleaf"
+    },
+    "components": {
+      "minecraft:destructible_by_mining": false,
+      "minecraft:destructible_by_explosion": false,
+      "minecraft:material_instances": {
+        "leaf": {
+          "texture": "mz_big_dripleaf_leaf",
+          "render_method": "alpha_test",
+          "ambient_occlusion": 0
+        },
+        "stem": {
+          "texture": "mz_big_dripleaf_stem",
+          "render_method": "alpha_test",
+          "ambient_occlusion": 0
+        },
+        "*": {
+          "texture": "mz_big_dripleaf_leaf",
+          "render_method": "alpha_test",
+          "ambient_occlusion": 0
+        }
+      },
+      "minecraft:light_dampening": 0,
+      "minecraft:collision_box": {
+        "origin": [
+          -8,
+          15,
+          -8
+        ],
+        "size": [
+          16,
+          1,
+          16
+        ]
+      },
+      "minecraft:geometry": {
+        "identifier": "geometry.mazmorra.dripleaf"
+      }
+    }
+  }
+}

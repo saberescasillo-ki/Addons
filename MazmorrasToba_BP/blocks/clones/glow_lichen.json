@@ -1,0 +1,37 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:block": {
+    "description": {
+      "identifier": "mazmorra:glow_lichen"
+    },
+    "components": {
+      "minecraft:destructible_by_mining": false,
+      "minecraft:destructible_by_explosion": false,
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "mz_glow_lichen",
+          "render_method": "alpha_test",
+          "ambient_occlusion": 0
+        }
+      },
+      "minecraft:light_dampening": 0,
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": {
+        "origin": [
+          -6,
+          12,
+          -6
+        ],
+        "size": [
+          12,
+          4,
+          12
+        ]
+      },
+      "minecraft:geometry": {
+        "identifier": "geometry.mazmorra.lichen"
+      },
+      "minecraft:light_emission": 7
+    }
+  }
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "flipbook_texture": "textures/blocks/lantern",
+    "atlas_tile": "mz_lantern",
+    "ticks_per_frame": 8
+  },
+  {
+    "flipbook_texture": "textures/blocks/soul_lantern",
+    "atlas_tile": "mz_soul_lantern",
+    "ticks_per_frame": 8
+  }
+]

@@ -1,0 +1,302 @@
+{
+  "resource_pack_name": "mazmorra",
+  "texture_name": "atlas.terrain",
+  "padding": 8,
+  "num_mip_levels": 4,
+  "texture_data": {
+    "mz_tuff": {
+      "textures": "textures/blocks/tuff"
+    },
+    "mz_polished_tuff": {
+      "textures": "textures/blocks/polished_tuff"
+    },
+    "mz_tuff_bricks": {
+      "textures": "textures/blocks/tuff_bricks"
+    },
+    "mz_chiseled_tuff_up": {
+      "textures": "textures/blocks/chiseled_tuff_top"
+    },
+    "mz_chiseled_tuff_down": {
+      "textures": "textures/blocks/chiseled_tuff_top"
+    },
+    "mz_chiseled_tuff_side": {
+      "textures": "textures/blocks/chiseled_tuff"
+    },
+    "mz_chiseled_tuff_bricks_up": {
+      "textures": "textures/blocks/chiseled_tuff_bricks_top"
+    },
+    "mz_chiseled_tuff_bricks_down": {
+      "textures": "textures/blocks/chiseled_tuff_bricks_top"
+    },
+    "mz_chiseled_tuff_bricks_side": {
+      "textures": "textures/blocks/chiseled_tuff_bricks"
+    },
+    "mz_tuff_brick_slab": {
+      "textures": "textures/blocks/tuff_bricks"
+    },
+    "mz_polished_tuff_slab": {
+      "textures": "textures/blocks/polished_tuff"
+    },
+    "mz_tuff_brick_stairs": {
+      "textures": "textures/blocks/tuff_bricks"
+    },
+    "mz_polished_tuff_stairs": {
+      "textures": "textures/blocks/polished_tuff"
+    },
+    "mz_tuff_brick_wall": {
+      "textures": "textures/blocks/tuff_bricks"
+    },
+    "mz_polished_tuff_wall": {
+      "textures": "textures/blocks/polished_tuff"
+    },
+    "mz_deepslate_up": {
+      "textures": "textures/blocks/deepslate/deepslate_top"
+    },
+    "mz_deepslate_down": {
+      "textures": "textures/blocks/deepslate/deepslate_top"
+    },
+    "mz_deepslate_side": {
+      "textures": "textures/blocks/deepslate/deepslate"
+    },
+    "mz_cobbled_deepslate": {
+      "textures": "textures/blocks/deepslate/cobbled_deepslate"
+    },
+    "mz_polished_deepslate": {
+      "textures": "textures/blocks/deepslate/polished_deepslate"
+    },
+    "mz_deepslate_bricks": {
+      "textures": "textures/blocks/deepslate/deepslate_bricks"
+    },
+    "mz_cracked_deepslate_bricks": {
+      "textures": "textures/blocks/deepslate/cracked_deepslate_bricks"
+    },
+    "mz_deepslate_tiles": {
+      "textures": "textures/blocks/deepslate/deepslate_tiles"
+    },
+    "mz_cracked_deepslate_tiles": {
+      "textures": "textures/blocks/deepslate/cracked_deepslate_tiles"
+    },
+    "mz_chiseled_deepslate": {
+      "textures": "textures/blocks/deepslate/chiseled_deepslate"
+    },
+    "mz_cobbled_deepslate_slab": {
+      "textures": "textures/blocks/deepslate/cobbled_deepslate"
+    },
+    "mz_polished_deepslate_slab": {
+      "textures": "textures/blocks/deepslate/polished_deepslate"
+    },
+    "mz_deepslate_brick_slab": {
+      "textures": "textures/blocks/deepslate/deepslate_bricks"
+    },
+    "mz_deepslate_tile_slab": {
+      "textures": "textures/blocks/deepslate/deepslate_tiles"
+    },
+    "mz_cobbled_deepslate_stairs": {
+      "textures": "textures/blocks/deepslate/cobbled_deepslate"
+    },
+    "mz_polished_deepslate_stairs": {
+      "textures": "textures/blocks/deepslate/polished_deepslate"
+    },
+    "mz_deepslate_brick_stairs": {
+      "textures": "textures/blocks/deepslate/deepslate_bricks"
+    },
+    "mz_deepslate_tile_stairs": {
+      "textures": "textures/blocks/deepslate/deepslate_tiles"
+    },
+    "mz_deepslate_brick_wall": {
+      "textures": "textures/blocks/deepslate/deepslate_bricks"
+    },
+    "mz_deepslate_tile_wall": {
+      "textures": "textures/blocks/deepslate/deepslate_tiles"
+    },
+    "mz_cobbled_deepslate_wall": {
+      "textures": "textures/blocks/deepslate/cobbled_deepslate"
+    },
+    "mz_smooth_basalt": {
+      "textures": "textures/blocks/smooth_basalt"
+    },
+    "mz_crying_obsidian": {
+      "textures": "textures/blocks/crying_obsidian"
+    },
+    "mz_obsidian": {
+      "textures": "textures/blocks/obsidian"
+    },
+    "mz_waxed_weathered_copper_grate": {
+      "textures": "textures/blocks/weathered_copper_grate"
+    },
+    "mz_moss_block": {
+      "textures": "textures/blocks/moss_block"
+    },
+    "mz_pale_moss_block": {
+      "textures": "textures/blocks/pale_moss_block"
+    },
+    "mz_moss_carpet": {
+      "textures": "textures/blocks/moss_block"
+    },
+    "mz_pale_moss_carpet": {
+      "textures": "textures/blocks/pale_moss_block"
+    },
+    "mz_dirt_with_roots": {
+      "textures": "textures/blocks/dirt_with_roots"
+    },
+    "mz_clay": {
+      "textures": "textures/blocks/clay"
+    },
+    "mz_azalea_leaves": {
+      "textures": "textures/blocks/azalea_leaves"
+    },
+    "mz_azalea_leaves_flowered": {
+      "textures": "textures/blocks/azalea_leaves_flowers"
+    },
+    "mz_mangrove_roots_up": {
+      "textures": "textures/blocks/mangrove_roots_top"
+    },
+    "mz_mangrove_roots_down": {
+      "textures": "textures/blocks/mangrove_roots_top"
+    },
+    "mz_mangrove_roots_side": {
+      "textures": "textures/blocks/mangrove_roots_side"
+    },
+    "mz_oak_log_up": {
+      "textures": "textures/blocks/log_oak_top"
+    },
+    "mz_oak_log_down": {
+      "textures": "textures/blocks/log_oak_top"
+    },
+    "mz_oak_log_side": {
+      "textures": "textures/blocks/log_oak"
+    },
+    "mz_azalea_top": {
+      "textures": "textures/blocks/azalea_top"
+    },
+    "mz_azalea_side": {
+      "textures": "textures/blocks/azalea_side"
+    },
+    "mz_azalea_plant": {
+      "textures": "textures/blocks/azalea_plant"
+    },
+    "mz_flowering_azalea_top": {
+      "textures": "textures/blocks/flowering_azalea_top"
+    },
+    "mz_flowering_azalea_side": {
+      "textures": "textures/blocks/flowering_azalea_side"
+    },
+    "mz_flowering_azalea_plant": {
+      "textures": "textures/blocks/azalea_plant"
+    },
+    "mz_fern": {
+      "textures": "textures/blocks/fern"
+    },
+    "mz_short_grass": {
+      "textures": "textures/blocks/tallgrass"
+    },
+    "mz_hanging_roots": {
+      "textures": "textures/blocks/hanging_roots"
+    },
+    "mz_cave_vines": {
+      "textures": "textures/blocks/cave_vines_body"
+    },
+    "mz_cave_vines_body_with_berries": {
+      "textures": "textures/blocks/cave_vines_body_berries"
+    },
+    "mz_cave_vines_head_with_berries": {
+      "textures": "textures/blocks/cave_vines_head_berries"
+    },
+    "mz_pale_hanging_moss_body": {
+      "textures": "textures/blocks/pale_hanging_moss_middle"
+    },
+    "mz_pale_hanging_moss_tip": {
+      "textures": "textures/blocks/pale_hanging_moss_tip"
+    },
+    "mz_spore_blossom_flower": {
+      "textures": "textures/blocks/spore_blossom"
+    },
+    "mz_spore_blossom_base": {
+      "textures": "textures/blocks/spore_blossom_base"
+    },
+    "mz_big_dripleaf_leaf": {
+      "textures": "textures/blocks/big_dripleaf_top"
+    },
+    "mz_big_dripleaf_stem": {
+      "textures": "textures/blocks/big_dripleaf_stem"
+    },
+    "mz_glow_lichen": {
+      "textures": "textures/blocks/glow_lichen"
+    },
+    "mz_lantern": {
+      "textures": "textures/blocks/lantern"
+    },
+    "mz_lantern_link": {
+      "textures": "textures/blocks/chain1"
+    },
+    "mz_soul_lantern": {
+      "textures": "textures/blocks/soul_lantern"
+    },
+    "mz_soul_lantern_link": {
+      "textures": "textures/blocks/chain1"
+    },
+    "mz_chain_c1": {
+      "textures": "textures/blocks/chain1"
+    },
+    "mz_chain_c2": {
+      "textures": "textures/blocks/chain2"
+    },
+    "mz_green_candle": {
+      "textures": "textures/blocks/candles/green_candle_lit"
+    },
+    "mz_lime_candle": {
+      "textures": "textures/blocks/candles/lime_candle_lit"
+    },
+    "mz_white_candle": {
+      "textures": "textures/blocks/candles/white_candle_lit"
+    },
+    "mz_ochre_froglight_up": {
+      "textures": "textures/blocks/ochre_froglight_top"
+    },
+    "mz_ochre_froglight_down": {
+      "textures": "textures/blocks/ochre_froglight_top"
+    },
+    "mz_ochre_froglight_side": {
+      "textures": "textures/blocks/ochre_froglight_side"
+    },
+    "mz_verdant_froglight_up": {
+      "textures": "textures/blocks/verdant_froglight_top"
+    },
+    "mz_verdant_froglight_down": {
+      "textures": "textures/blocks/verdant_froglight_top"
+    },
+    "mz_verdant_froglight_side": {
+      "textures": "textures/blocks/verdant_froglight_side"
+    },
+    "mz_pearlescent_froglight_up": {
+      "textures": "textures/blocks/pearlescent_froglight_top"
+    },
+    "mz_pearlescent_froglight_down": {
+      "textures": "textures/blocks/pearlescent_froglight_top"
+    },
+    "mz_pearlescent_froglight_side": {
+      "textures": "textures/blocks/pearlescent_froglight_side"
+    },
+    "mz_oak_slab": {
+      "textures": "textures/blocks/planks_oak"
+    },
+    "mz_spruce_slab": {
+      "textures": "textures/blocks/planks_spruce"
+    },
+    "mz_mangrove_slab": {
+      "textures": "textures/blocks/mangrove_planks"
+    },
+    "mz_dark_oak_slab": {
+      "textures": "textures/blocks/planks_big_oak"
+    },
+    "mz_pale_oak_slab": {
+      "textures": "textures/blocks/pale_oak_planks"
+    },
+    "mz_jungle_slab": {
+      "textures": "textures/blocks/planks_jungle"
+    },
+    "mz_cherry_slab": {
+      "textures": "textures/blocks/cherry_planks"
+    }
+  }
+}

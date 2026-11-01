@@ -1,0 +1,57 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:block": {
+    "description": {
+      "identifier": "mazmorra:pale_hanging_moss",
+      "states": {
+        "mazmorra:tip": [
+          false,
+          true
+        ]
+      }
+    },
+    "components": {
+      "minecraft:destructible_by_mining": false,
+      "minecraft:destructible_by_explosion": false,
+      "minecraft:geometry": "minecraft:geometry.cross",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "mz_pale_hanging_moss_body",
+          "render_method": "alpha_test",
+          "ambient_occlusion": 0,
+          "face_dimming": false
+        }
+      },
+      "minecraft:collision_box": false,
+      "minecraft:selection_box": {
+        "origin": [
+          -6,
+          0,
+          -6
+        ],
+        "size": [
+          12,
+          16,
+          12
+        ]
+      },
+      "minecraft:light_dampening": 0
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('mazmorra:tip')",
+        "components": {
+          "minecraft:geometry": "minecraft:geometry.cross",
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "mz_pale_hanging_moss_tip",
+              "render_method": "alpha_test",
+              "ambient_occlusion": 0,
+              "face_dimming": false
+            }
+          }
+        }
+      }
+    ]
+  }
+}
