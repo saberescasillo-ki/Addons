@@ -3,7 +3,7 @@
 import { BlockPermutation, BlockVolume, ItemStack, system, world } from "@minecraft/server";
 import { ActionFormData, ModalFormData } from "@minecraft/server-ui";
 import {
-  buildDungeon, DIR_NAME, maxFloorsAt, MOB_FAMILIES, planDungeon, THEME_KEYS, THEMES, TYPE_NAME,
+  buildDungeon, DIR_NAME, ENTRANCES, MAX_FLOORS, maxFloorsAt, MOB_FAMILIES, planDungeon, THEME_KEYS, THEMES, TYPE_NAME,
 } from "./gen.js";
 
 const CFG = __CONFIG__;
@@ -167,7 +167,7 @@ async function generate(player, opts) {
     const id = (world.getDynamicProperty("dng:next") ?? 0) + 1;
     world.setDynamicProperty("dng:next", id);
     const sp = {
-      id, dim: dim.id, x: s.x, y: s.y, z: s.z, box: s.box, kind: s.kind, family: s.family,
+      id, dim: dim.id, x: s.x, y: s.y, z: s.z, box: s.box, kind: s.kind, family: s.family, bonus: s.bonus ?? 0,
       state: "waiting", spawned: 0, players: 1, until: 0,
     };
     spawners.set(id, sp);
@@ -194,7 +194,7 @@ async function openMenu(player) {
     .title("Generador de Mazmorras")
     .dropdown("§2Mazmorra de toba y cuevas frondosas.§r\n\nTipo de mazmorra", names, { defaultValueIndex: 0 })
     .slider("Número de salas", CFG.minRooms, CFG.maxRooms, { valueStep: 1, defaultValue: CFG.defaultRooms })
-    .slider("Pisos (como máximo)", 1, 4, { valueStep: 1, defaultValue: 2 })
+    .slider("Pisos (como máximo)", 1, MAX_FLOORS, { valueStep: 1, defaultValue: 4 })
     .toggle("Salas de parkour", { defaultValue: true })
     .textField("Semilla (opcional)", "aleatoria");
   const res = await showForm(player, form);
@@ -226,8 +226,10 @@ async function openMenu(player) {
   const confirm = new ActionFormData()
     .title(THEMES[theme].name)
     .body(
-      `§fSalas: §a${rooms}§f (${counts})\n` +
+      `§fSalas: §a${plan.rooms.length - 1}§f (${counts})\n` +
+      (plan.rooms.length - 1 < Number(rooms) ? `§7(no cabían más salas: se pidieron ${rooms})\n` : "") +
       `§fPisos: §a${plan.floorsUsed}${floors < Number(floorsWanted) ? " §7(no caben más aquí)" : ""}\n` +
+      `§fEntrada: §a${ENTRANCES[plan.tier - 1]}§f (dificultad ${plan.tier}/4)${plan.rare ? " §d¡mazmorra rara!" : ""}\n` +
       `§fSemilla: §7${seed}\n\n` +
       `§fLa entrada aparecerá §aaquí mismo§f y la mazmorra bajará hacia el §a${DIR_NAME[facing]}§f.\n` +
       `§fZona: unos §a${x2 - x1 + 1} x ${z2 - z1 + 1}§f bloques.\n\n` +
@@ -395,7 +397,7 @@ function tickSpawner(sp) {
     sp.state = "active";
     sp.players = Math.max(1, players.length);
     const guard = sp.kind === "guardian" ? 2 : 1;
-    sp.total = (CFG.mobsBase + CFG.mobsPerPlayer * (sp.players - 1)) * guard;
+    sp.total = (CFG.mobsBase + CFG.mobsPerPlayer * (sp.players - 1) + (sp.bonus ?? 0)) * guard;
     sp.simul = CFG.simulBase + (sp.players - 1) + (guard - 1);
     sp.spawned = 0;
     sp.lastSpawn = 0;
@@ -403,8 +405,6 @@ function tickSpawner(sp) {
     save(sp);
     setState(block, STATE.active);
     dim.playSound("trial_spawner.detect_player", centre(sp), { volume: 1 });
-    for (const p of players)
-      p.onScreenDisplay.setActionBar(sp.kind === "guardian" ? "§5¡El guardián del tesoro despierta!" : "§6¡El generador de prueba se activa!");
     return;
   }
   // active
@@ -426,14 +426,11 @@ function tickSpawner(sp) {
       save(sp);
     }
   }
-  const left = sp.total - sp.spawned + alive.length;
-  for (const p of players) p.onScreenDisplay.setActionBar(`§7Enemigos restantes: §f${left}`);
   if (sp.spawned >= sp.total && !alive.length) {
     sp.state = "eject";
     save(sp);
     setState(block, STATE.eject);
     const ticks = reward(dim, sp);
-    for (const p of players) p.onScreenDisplay.setActionBar("§a¡Prueba superada!");
     system.runTimeout(() => {
       sp.state = "cooldown";
       sp.until = world.getAbsoluteTime() + CFG.cooldownTicks;

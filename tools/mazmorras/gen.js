@@ -2,43 +2,43 @@
 // Plain JavaScript with no game imports, so the same code builds the dungeon in the
 // game (scripts/main.js) and in the simulation (tools/mazmorras/simulate.mjs).
 //
-// planDungeon() lays the rooms out on a grid (one room per grid column, several floors);
-// buildDungeon() turns the plan into block operations, split in pieces:
+// planDungeon() places the rooms (every room has its own size, from 5x5 to 18x18) one
+// after another next to an existing room, joined by a straight corridor or staircase,
+// and never overlapping anything; buildDungeon() turns the plan into block operations:
 //   ["f", x1, y1, z1, x2, y2, z2, block]   fill a box
 //   ["s", x, y, z, block]                  set one block
 //   ["c", x, y, z, block, items]           chest with items [[id, count], ...]
 // A block is an id string or { id, states, alt: [other blocks to try] }.
 
-export const GRID = 24;        // distance between two room centres
 export const FLOOR_H = 10;     // height between two floors
 export const ENTRY_DEPTH = 16; // the first floor is this many blocks under the entrance
-export const VEST_OFF = 23;    // distance from the entrance to the centre of the hall
+export const MAX_FLOORS = 6;
+const ENTRY_STEPS = 18;        // the entrance staircase: 16 steps and 2 landing blocks
 
 // Directions. Stairs ascend towards the direction of their weirdo_direction.
 export const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]]; // east, west, south, north
 export const OPP = [1, 0, 3, 2];
 const PERP = [2, 3, 1, 0];                               // the +v side of a frame looking along d
 const CARD = ["east", "west", "south", "north"];
-const FACING = [5, 4, 3, 2];                             // facing_direction of each direction
 const VINE_BIT = [8, 2, 1, 4];                           // vine_direction_bits: the side it hangs from
 export const DIR_NAME = ["este", "oeste", "sur", "norte"];
 
 // ------------------------------------------------------------ themes
 export const THEMES = {
   ruinas: {
-    name: "Ruinas Frondosas", desc: "equilibrada: generadores, parkour y jardines",
-    parkour: 0.22, spawner: 0.65, down: 0.3, lush: 0.55, pale: 0.12, light: "ochre_froglight", wood: ["oak", "spruce", "mangrove"],
-    mobs: [["zombis", 3], ["esqueletos", 3], ["aranas", 2], ["slimes", 1], ["lepismas", 1], ["breeze", 1]],
+    name: "Ruinas Frondosas", desc: "equilibrada: generadores, parkour y jardines", bonus: 0,
+    parkour: 0.22, spawner: 0.65, down: 0.5, lush: 0.6, pale: 0.12, light: "ochre_froglight", wood: ["oak", "spruce", "mangrove"],
+    mobs: [["zombis", 3], ["esqueletos", 3], ["aranas", 2], ["ahogados", 2], ["lepismas", 1], ["breeze", 1]],
   },
   cripta: {
-    name: "Cripta de Toba", desc: "más generadores, musgo pálido y menos luz",
-    parkour: 0.12, spawner: 0.85, down: 0.4, lush: 0.25, pale: 0.7, light: "pearlescent_froglight", wood: ["dark_oak", "spruce", "pale_oak"],
+    name: "Cripta de Toba", desc: "difícil: más generadores, musgo pálido, muy profunda", bonus: 8,
+    parkour: 0.12, spawner: 0.85, down: 0.62, lush: 0.3, pale: 0.7, light: "pearlescent_froglight", wood: ["dark_oak", "spruce", "pale_oak"],
     mobs: [["esqueletos", 3], ["pantanosos", 2], ["zombis", 2], ["aranas", 2], ["breeze", 2]],
   },
   jardin: {
-    name: "Jardín Colgante", desc: "muy frondosa, con más salas de parkour",
-    parkour: 0.35, spawner: 0.5, down: 0.25, lush: 0.9, pale: 0.05, light: "verdant_froglight", wood: ["mangrove", "jungle", "cherry"],
-    mobs: [["pantanosos", 3], ["aranas", 2], ["slimes", 2], ["zombis", 1]],
+    name: "Jardín Colgante", desc: "muy frondosa, con más salas de parkour", bonus: 3,
+    parkour: 0.35, spawner: 0.5, down: 0.45, lush: 0.95, pale: 0.05, light: "verdant_froglight", wood: ["mangrove", "jungle", "cherry"],
+    mobs: [["pantanosos", 3], ["aranas", 2], ["ahogados", 2], ["zombis", 1]],
   },
 };
 export const THEME_KEYS = Object.keys(THEMES);
@@ -48,24 +48,18 @@ export const MOB_FAMILIES = {
   esqueletos: ["minecraft:skeleton", "minecraft:bogged"],
   pantanosos: ["minecraft:bogged"],
   aranas: ["minecraft:spider", "minecraft:cave_spider"],
-  slimes: ["minecraft:slime"],
+  ahogados: ["minecraft:drowned"],
   lepismas: ["minecraft:silverfish"],
   breeze: ["minecraft:breeze"],
   guardianes: ["minecraft:bogged", "minecraft:stray", "minecraft:breeze"],
 };
 
 export const TYPE_NAME = {
-  vestibulo: "vestíbulo", spawner: "generador", parkour: "parkour", jardin: "jardín", tesoro: "tesoro",
+  vestibulo: "vestíbulo", spawner: "generador", parkour: "parkour", jardin: "jardín", tesoro: "tesoro", arbol: "gran árbol",
 };
 
-// Interior of each room, in the room's own frame: u along the way in, v across.
-const SPECS = {
-  vestibulo: { u0: -3, u1: 3, vh: 3, h: 6 },
-  spawner: { u0: -2, u1: 2, vh: 2, h: 5 },   // 5x5, spawner in the centre
-  jardin: { u0: -3, u1: 3, vh: 3, h: 6 },
-  tesoro: { u0: -4, u1: 4, vh: 4, h: 7 },
-  parkour: { u0: -4, u1: 3, vh: 2, h: 7, pit: 4 }, // 8 long x 5 wide
-};
+// The entrance gets grander with the difficulty (and rarity) of the dungeon.
+export const ENTRANCES = ["Pórtico de Toba", "Pórtico Mayor", "Templo Frondoso", "Gran Santuario de Toba"];
 
 // ------------------------------------------------------------ random
 function hash(...n) {
@@ -120,19 +114,20 @@ const T = {
   moss: mc("moss_block"), mossCarpet: mc("moss_carpet"), paleMoss: mc("pale_moss_block"),
   paleCarpet: mc("pale_moss_carpet"), rooted: mc("dirt_with_roots"), clay: mc("clay"), water: mc("water"),
   azalea: mc("azalea"), flowering: mc("flowering_azalea"), spore: mc("spore_blossom"), roots: mc("hanging_roots"),
-  fern: mc("fern"), grass: mc("short_grass"),
+  fern: mc("fern"), grass: mc("short_grass"), mangroveRoots: mc("mangrove_roots"),
   leaves: st("azalea_leaves", { persistent_bit: true }),
   leavesFlower: st("azalea_leaves_flowered", { persistent_bit: true }),
   lichenUp: st("glow_lichen", { multi_face_direction_bits: 2 }),
   lantern: st("lantern", { hanging: false }), lanternHang: st("lantern", { hanging: true }),
   chain: st("chain", { pillar_axis: "y" }, [st("iron_chain", { pillar_axis: "y" })]),
   dripleaf: (d) => st("big_dripleaf", { big_dripleaf_head: true, big_dripleaf_tilt: "none", "minecraft:cardinal_direction": CARD[d] }),
+  log: (axis) => st("oak_log", { pillar_axis: axis }),
 };
 const slab = (id, top) => st(id, { "minecraft:vertical_half": top ? "top" : "bottom" });
 const woodSlab = (wood, top) => st(`${wood}_slab`, { "minecraft:vertical_half": top ? "top" : "bottom" },
   [st("oak_slab", { "minecraft:vertical_half": top ? "top" : "bottom" })]);
 const stairs = (id, asc, upside = false) => st(id, { weirdo_direction: asc, upside_down_bit: upside });
-const chest = (d) => st("chest", { "minecraft:cardinal_direction": CARD[d] }, [st("chest", { facing_direction: FACING[d] })]);
+const chest = (d) => st("chest", { "minecraft:cardinal_direction": CARD[d] });
 const vine = (d) => st("vine", { vine_direction_bits: VINE_BIT[d] });
 const froglight = (th) => st(th.light, { pillar_axis: "y" });
 const candle = (color, n) => st(`${color}_candle`, { candles: n, lit: true });
@@ -152,6 +147,7 @@ function ceilVariant(rng, th) {
     [T.rooted, 1 * th.lush]]);
 }
 const carpetFor = (b) => (b === T.moss ? T.mossCarpet : b === T.paleMoss ? T.paleCarpet : null);
+const lusher = (th, k) => ({ ...th, lush: Math.min(1, th.lush + k) });
 
 // ------------------------------------------------------------ building helpers
 class Builder {
@@ -170,95 +166,84 @@ class Builder {
   }
   // A frame centred on (cx, cz) looking along direction d: u forwards, v to the side.
   frame(cx, cz, d) {
-    const [dx, dz] = DIRS[d];
-    const px = -dz, pz = dx;
-    const b = this;
-    const X = (u, v) => cx + u * dx + v * px, Z = (u, v) => cz + u * dz + v * pz;
-    return {
-      d,
-      // the world direction of a local direction: "u+", "u-", "v+", "v-"
-      dir: (k) => ({ "u+": d, "u-": OPP[d], "v+": PERP[d], "v-": OPP[PERP[d]] })[k],
-      fill: (u1, v1, y1, u2, v2, y2, blk) => b.fill(X(u1, v1), y1, Z(u1, v1), X(u2, v2), y2, Z(u2, v2), blk),
-      set: (u, v, y, blk) => b.set(X(u, v), y, Z(u, v), blk),
-      chest: (u, v, y, blk, items) => b.chest(X(u, v), y, Z(u, v), blk, items),
-      x: X, z: Z,
-    };
+    return frame(cx, cz, d, this);
   }
 }
+function frame(cx, cz, d, b) {
+  const [dx, dz] = DIRS[d];
+  const px = -dz, pz = dx;
+  const X = (u, v) => cx + u * dx + v * px, Z = (u, v) => cz + u * dz + v * pz;
+  return {
+    d,
+    // the world direction of a local direction: "u+", "u-", "v+", "v-"
+    dir: (k) => ({ "u+": d, "u-": OPP[d], "v+": PERP[d], "v-": OPP[PERP[d]] })[k],
+    local: (wd) => (wd === d ? "u+" : wd === OPP[d] ? "u-" : wd === PERP[d] ? "v+" : "v-"),
+    axis: (k) => ((k === "u") === (d < 2) ? "x" : "z"),
+    fill: (u1, v1, y1, u2, v2, y2, blk) => b.fill(X(u1, v1), y1, Z(u1, v1), X(u2, v2), y2, Z(u2, v2), blk),
+    set: (u, v, y, blk) => b.set(X(u, v), y, Z(u, v), blk),
+    chest: (u, v, y, blk, items) => b.chest(X(u, v), y, Z(u, v), blk, items),
+    x: X, z: Z,
+  };
+}
 
-// Cave vines hanging from the block above yTop, len blocks long.
-function caveVines(L, u, v, yTop, len, rng) {
+// Cave vines hanging from the block above yTop, len blocks long, almost all with glow berries.
+function caveVines(L, u, v, yTop, len, rng, berries = 0.85) {
   for (let k = 0; k < len; k++) {
-    const head = k === len - 1, berries = rng.chance(0.55);
-    const id = head ? (berries ? "cave_vines_head_with_berries" : "cave_vines")
-      : (berries ? "cave_vines_body_with_berries" : "cave_vines");
+    const head = k === len - 1, b = rng.chance(berries);
+    const id = head ? (b ? "cave_vines_head_with_berries" : "cave_vines") : (b ? "cave_vines_body_with_berries" : "cave_vines");
     L.set(u, v, yTop - k, mc(id));
   }
 }
 function paleMoss(L, u, v, yTop, len) {
   for (let k = 0; k < len; k++) L.set(u, v, yTop - k, st("pale_hanging_moss", { tip: k === len - 1 }));
 }
-// Something hanging from the ceiling, depending on the theme.
+// Something hanging from the ceiling, depending on the theme: mostly glow berries.
 function hanging(L, u, v, yTop, maxLen, rng, th) {
-  const k = rng.weighted([["vines", th.lush], ["pale", th.pale * 0.8], ["roots", 0.25], ["lichen", 0.35]]);
-  if (k === "vines") caveVines(L, u, v, yTop, rng.int(1, maxLen), rng);
-  else if (k === "pale") paleMoss(L, u, v, yTop, rng.int(1, maxLen));
+  const k = rng.weighted([["vines", 0.3 + th.lush], ["pale", th.pale * 0.7], ["roots", 0.2], ["lichen", 0.25]]);
+  if (k === "vines") caveVines(L, u, v, yTop, rng.int(1, Math.max(1, maxLen)), rng);
+  else if (k === "pale") paleMoss(L, u, v, yTop, rng.int(1, Math.max(1, maxLen)));
   else if (k === "roots") L.set(u, v, yTop, T.roots);
   else L.set(u, v, yTop, T.lichenUp);
 }
 
-// Random variety on the inside faces of a room's walls (the ring just outside the interior).
-function wallOverlay(L, s, y1, y2, rng, th, p = 0.35) {
-  const { u0, u1, vh } = s;
-  for (let y = y1; y <= y2; y++) {
-    for (let u = u0; u <= u1; u++) {
-      if (rng.chance(p)) L.set(u, -vh - 1, y, wallVariant(rng, th));
-      if (rng.chance(p)) L.set(u, vh + 1, y, wallVariant(rng, th));
-    }
-    for (let v = -vh; v <= vh; v++) {
-      if (rng.chance(p)) L.set(u0 - 1, v, y, wallVariant(rng, th));
-      if (rng.chance(p)) L.set(u1 + 1, v, y, wallVariant(rng, th));
-    }
+// ------------------------------------------------------------ room shapes
+// Every room has its own size: L along the way in (u), W across (v), h of air.
+const sizeOf = (rng) => rng.weighted([[[5, 7], 4], [[8, 12], 3.5], [[13, 18], 1.6]]);
+const rint = (rng, [lo, hi]) => rng.int(lo, hi);
+
+function makeSpec(type, rng) {
+  let L, W, h;
+  switch (type) {
+    case "vestibulo": L = rng.int(7, 11); W = rng.int(7, 11); break;
+    case "spawner": L = rint(rng, sizeOf(rng)); W = rint(rng, sizeOf(rng)); break;
+    case "jardin": L = rng.int(7, 15); W = rng.int(7, 15); break;
+    case "tesoro": L = rng.int(9, 15); W = rng.int(9, 15); break;
+    case "parkour": L = rng.int(8, 16); W = rng.int(5, 7); h = 8; break;
+    case "arbol": L = rng.int(16, 18); W = rng.int(16, 18); h = 16; break;
   }
+  h ??= Math.min(9, 5 + Math.floor(Math.max(L, W) / 4));
+  const u0 = -Math.floor((L - 1) / 2), v0 = -Math.floor((W - 1) / 2);
+  const bottom = type === "parkour" ? -6 : type === "jardin" || type === "arbol" ? -2 : -1;
+  return { type, L, W, h, u0, u1: u0 + L - 1, v0, v1: v0 + W - 1, bottom };
 }
-function ceilOverlay(L, s, y, rng, th, p = 0.4) {
-  for (let u = s.u0; u <= s.u1; u++)
-    for (let v = -s.vh; v <= s.vh; v++) if (rng.chance(p)) L.set(u, v, y, ceilVariant(rng, th));
+
+function wallDist(room, dir) {
+  const s = room.spec;
+  if (dir === room.dirIn) return s.u1 + 1;
+  if (dir === OPP[room.dirIn]) return -s.u0 + 1;
+  return dir === PERP[room.dirIn] ? s.v1 + 1 : -s.v0 + 1;
 }
-// The basic box: walls, floor and ceiling of tuff bricks, interior air.
-function roomBox(L, s, yFloor, yTop, rng, th) {
-  L.fill(s.u0 - 1, -s.vh - 1, yFloor, s.u1 + 1, s.vh + 1, yTop, T.bricks);
-  L.fill(s.u0, -s.vh, yFloor + 1, s.u1, s.vh, yTop - 1, AIR);
+
+// World box of a local box, in coordinates relative to the hall (plan) or absolute (build).
+function worldBox(cx, cz, d, u1, v1, u2, v2, y1, y2) {
+  const F = frame(cx, cz, d, null);
+  const xa = F.x(u1, v1), xb = F.x(u2, v2), za = F.z(u1, v1), zb = F.z(u2, v2);
+  return [Math.min(xa, xb), y1, Math.min(za, zb), Math.max(xa, xb), y2, Math.max(za, zb)];
 }
-// Floor with a polished border and random patches; returns the chosen blocks.
-function roomFloor(L, s, y, rng, th, center) {
-  const out = new Map();
-  for (let u = s.u0; u <= s.u1; u++)
-    for (let v = -s.vh; v <= s.vh; v++) {
-      const border = u === s.u0 || u === s.u1 || v === -s.vh || v === s.vh;
-      const b = border ? (rng.chance(0.75) ? T.polished : floorVariant(rng, th)) : (center?.(u, v) ?? floorVariant(rng, th));
-      L.set(u, v, y, b);
-      out.set(`${u},${v}`, b);
-    }
-  return out;
-}
-function carpets(L, floor, y, rng, p, skip) {
-  for (const [k, b] of floor) {
-    const c = carpetFor(b);
-    if (!c || !rng.chance(p)) continue;
-    const [u, v] = k.split(",").map(Number);
-    if (skip?.(u, v)) continue;
-    L.set(u, v, y, c);
-  }
-}
-// The cornice: top slabs along the inside of the walls, just under the ceiling.
-function cornice(L, s, y, mat = "tuff_brick_slab") {
-  const b = slab(mat, true);
-  L.fill(s.u0, -s.vh, y, s.u1, -s.vh, y, b);
-  L.fill(s.u0, s.vh, y, s.u1, s.vh, y, b);
-  L.fill(s.u0, -s.vh, y, s.u0, s.vh, y, b);
-  L.fill(s.u1, -s.vh, y, s.u1, s.vh, y, b);
-}
+const overlaps = (a, b, m) => a[0] <= b[3] + m && b[0] <= a[3] + m && a[1] <= b[4] + m && b[1] <= a[4] + m &&
+  a[2] <= b[5] + m && b[2] <= a[5] + m;
+const roomBoxOf = (r, x = r.cx, z = r.cz) => worldBox(x, z, r.dirIn, r.spec.u0 - 1, r.spec.v0 - 1, r.spec.u1 + 1, r.spec.v1 + 1,
+  r.Y + r.spec.bottom, r.Y + r.spec.h);
 
 // ------------------------------------------------------------ loot
 function loot(rng, table, nMin, nMax) {
@@ -280,6 +265,9 @@ const PARKOUR_LOOT = [["diamond", 1, 3, 5], ["emerald", 3, 8, 8], ["golden_apple
 const GARDEN_LOOT = [["glow_berries", 4, 16, 10], ["bread", 2, 6, 8], ["moss_block", 4, 12, 6], ["azalea", 1, 3, 5],
   ["flowering_azalea", 1, 2, 4], ["big_dripleaf", 1, 4, 4], ["spore_blossom", 1, 1, 2], ["bone_meal", 4, 10, 6],
   ["iron_ingot", 1, 4, 4], ["emerald", 1, 4, 3]];
+const TREE_LOOT = [["glow_berries", 8, 24, 10], ["golden_apple", 1, 3, 8], ["emerald", 4, 10, 8], ["diamond", 1, 3, 5],
+  ["azalea", 2, 4, 5], ["flowering_azalea", 2, 4, 5], ["spore_blossom", 1, 2, 4], ["experience_bottle", 4, 10, 6],
+  ["enchanted_golden_apple", 1, 1, 1], ["oak_sapling", 2, 6, 4]];
 const TREASURE_LOOT = [["diamond", 3, 6, 10], ["emerald", 8, 16, 10], ["golden_apple", 2, 3, 8],
   ["enchanted_golden_apple", 1, 1, 3], ["totem_of_undying", 1, 1, 3], ["netherite_scrap", 1, 2, 3],
   ["experience_bottle", 8, 16, 8], ["ominous_trial_key", 1, 1, 4], ["trial_key", 2, 3, 6], ["diamond_block", 1, 1, 1],
@@ -288,291 +276,527 @@ const TREASURE_LOOT = [["diamond", 3, 6, 10], ["emerald", 8, 16, 10], ["golden_a
 // ------------------------------------------------------------ plan
 // opts: { seed, rooms, floors, theme, facing, parkour }
 export function planDungeon(opts) {
-  const th = THEMES[opts.theme] ?? THEMES.ruinas;
+  const theme = opts.theme in THEMES ? opts.theme : "ruinas";
+  const th = THEMES[theme];
   const rng = makeRng(opts.seed, 1);
   const facing = opts.facing;
-  const list = [{ id: 0, gx: 0, gz: 0, f: 0, type: "vestibulo", dirIn: facing, parent: -1, depth: 0, kids: [] }];
-  const occ = new Set(["0,0"]);
-  // the entrance staircase comes in from behind the hall: nothing can be built there
-  occ.add(`${-DIRS[facing][0]},${-DIRS[facing][1]}`);
-  const free = (r) => [0, 1, 2, 3].filter((d) => !occ.has(`${r.gx + DIRS[d][0]},${r.gz + DIRS[d][1]}`));
+  const floors = Math.max(1, Math.min(MAX_FLOORS, opts.floors));
+  const n = opts.rooms;
 
-  for (let guard = 0; list.length <= opts.rooms && guard < 10000; guard++) {
-    const cands = list.filter((r) => r.kids.length < 3 && free(r).length);
-    if (!cands.length) break;
-    // half of the time grow from one of the last rooms (long branches), else anywhere
-    const parent = rng.chance(0.55) ? cands[Math.max(0, cands.length - 1 - rng.int(0, 2))] : rng.pick(cands);
-    const dir = rng.pick(free(parent));
-    let f = parent.f;
-    if (f + 1 < opts.floors && rng.chance(th.down)) f++;
-    else if (f > 0 && rng.chance(0.08)) f--;
-    const room = {
-      id: list.length, gx: parent.gx + DIRS[dir][0], gz: parent.gz + DIRS[dir][1], f, type: "",
-      dirIn: dir, parent: parent.id, depth: parent.depth + 1, kids: [],
-    };
-    parent.kids.push(room.id);
-    occ.add(`${room.gx},${room.gz}`);
-    list.push(room);
-  }
+  // which rooms: one giant tree hall, parkour rooms and the treasure are dead ends
+  const nTree = n >= 6 && floors >= 2 ? 1 : 0;
+  const nParkour = opts.parkour === false ? 0 : Math.max(0, Math.min(Math.max(1, Math.round(n * th.parkour)), n - 2 - nTree));
+  const nInner = n - 1 - nParkour - nTree;
+  const inner = [];
+  for (let i = 0; i < nInner; i++) inner.push(rng.chance(th.spawner) ? "spawner" : "jardin");
+  for (let i = 0; i < Math.min(2, nInner); i++) inner[i] = "spawner";
+  if (nInner >= 4 && !inner.includes("jardin")) inner[nInner - 1] = "jardin";
+  const order = rng.shuffle(inner);
+  if (nTree) order.splice(rng.int(Math.floor(order.length / 3), order.length), 0, "arbol");
+  for (let i = 0; i < nParkour; i++) order.push("parkour");
+  order.push("tesoro");
 
-  // room types: the deepest leaf holds the treasure, other leaves can be parkour rooms
-  const rest = list.slice(1);
-  const leaves = rest.filter((r) => !r.kids.length);
-  const treasure = leaves.reduce((a, b) => (b.depth * 10 + b.f > a.depth * 10 + a.f ? b : a), leaves[0]);
-  treasure.type = "tesoro";
-  if (opts.parkour !== false) {
-    const want = Math.max(1, Math.round(opts.rooms * th.parkour));
-    for (const r of rng.shuffle(leaves.filter((r) => r !== treasure)).slice(0, want)) r.type = "parkour";
-  }
-  const others = rest.filter((r) => !r.type);
-  for (const r of others) r.type = rng.chance(th.spawner) ? "spawner" : "jardin";
-  // at least two spawner rooms and one garden when there is room for them
-  const count = (t) => rest.filter((r) => r.type === t).length;
-  for (const r of rng.shuffle(others)) {
-    if (count("spawner") < Math.min(2, others.length)) r.type = "spawner";
-    else break;
-  }
-  if (others.length >= 4 && !count("jardin")) rng.pick(others.filter((r) => r.type === "spawner")).type = "jardin";
-  for (const r of rest) {
-    if (r.type === "spawner" || r.type === "tesoro") {
-      const fam = rng.weighted(th.mobs.filter(([k]) => k !== "breeze" || r.f > 0 || r.type === "tesoro"));
-      r.mobs = r.type === "tesoro" ? "guardianes" : fam;
+  // the hall: everything is placed relative to its centre (0, 0) and its floor (y = 0)
+  const vest = { id: 0, type: "vestibulo", spec: makeSpec("vestibulo", rng), cx: 0, cz: 0, f: 0, Y: 0,
+    dirIn: facing, parent: -1, depth: 0, kids: [], used: new Set([OPP[facing]]) };
+  const vestOff = ENTRY_STEPS + 2 - vest.spec.u0; // the staircase reaches the back wall of the hall
+  const list = [vest];
+  const boxes = [{ box: roomBoxOf(vest), owner: 0 },
+    // the entrance staircase, from the surface down to the hall
+    { box: worldBox(0, 0, facing, -vestOff - 8, -6, vest.spec.u0 - 2, 6, -4, ENTRY_DEPTH + 24), owner: -1 }];
+  const leaf = (t) => t === "parkour" || t === "tesoro";
+
+  for (const type of order) {
+    let placed = false;
+    for (let attempt = 0; attempt < 120 && !placed; attempt++) {
+      const cands = list.filter((r) => !leaf(r.type) && r.kids.length < 3 && r.used.size < 4);
+      if (!cands.length) break;
+      let parent;
+      if (type === "tesoro") {
+        // the treasure goes as deep as possible
+        const deep = cands.slice().sort((a, b) => b.f * 100 + b.depth - (a.f * 100 + a.depth));
+        parent = deep[Math.min(deep.length - 1, Math.floor(attempt / 8))];
+      } else {
+        const k = rng.next();
+        if (k < 0.45) parent = cands[Math.max(0, cands.length - 1 - rng.int(0, 2))];
+        else if (k < 0.75) {
+          // grow from the deepest floor reached: the dungeon keeps going down
+          const fMax = Math.max(...cands.map((r) => r.f));
+          parent = rng.pick(cands.filter((r) => r.f === fMax));
+        } else parent = rng.pick(cands);
+      }
+      const dir = rng.pick([0, 1, 2, 3].filter((d) => !parent.used.has(d)));
+      let f = parent.f;
+      const canDown = parent.f + 1 < floors;
+      if (canDown && (type === "tesoro" || rng.chance(th.down))) f++;
+      else if (f > 0 && rng.chance(0.05)) f--;
+      if (type === "arbol" && f < 1) {
+        if (!canDown) continue;
+        f = parent.f + 1;
+      }
+      const spec = makeSpec(type, rng);
+      const stair = f !== parent.f;
+      const len = stair ? rng.int(12, 15) : rng.int(3, 8);
+      const t0 = wallDist(parent, dir);
+      const D = t0 + len + 1 + (-spec.u0 + 1);
+      const room = {
+        id: list.length, type, spec, f, Y: -f * FLOOR_H, dirIn: dir, parent: parent.id, depth: parent.depth + 1,
+        cx: parent.cx + DIRS[dir][0] * D, cz: parent.cz + DIRS[dir][1] * D, kids: [], used: new Set([OPP[dir]]),
+      };
+      const rb = roomBoxOf(room);
+      const cb = worldBox(parent.cx, parent.cz, dir, t0 + 1, -2, t0 + len, 2,
+        Math.min(room.Y, parent.Y) - 2, Math.max(room.Y, parent.Y) + 4);
+      // the corridor starts at the parent's wall: only the parent may touch it
+      if (boxes.some((b) => overlaps(b.box, rb, 2)) || boxes.some((b) => b.owner !== parent.id && overlaps(b.box, cb, 1))) continue;
+      boxes.push({ box: rb, owner: room.id }, { box: cb, owner: -2 });
+      parent.kids.push(room.id);
+      parent.used.add(dir);
+      list.push(room);
+      placed = true;
     }
   }
+
+  for (const r of list.slice(1))
+    if (r.type === "spawner" || r.type === "tesoro")
+      r.mobs = r.type === "tesoro" ? "guardianes" : rng.weighted(th.mobs.filter(([k]) => k !== "breeze" || r.f > 0));
 
   const floorsUsed = new Set(list.map((r) => r.f)).size;
   const counts = {};
-  for (const r of rest) counts[r.type] = (counts[r.type] ?? 0) + 1;
-  return { seed: opts.seed, theme: opts.theme in THEMES ? opts.theme : "ruinas", facing, rooms: list, floorsUsed, counts };
-}
-
-function wallDist(room, dir) {
-  const s = SPECS[room.type];
-  if (dir === room.dirIn) return s.u1 + 1;
-  if (dir === OPP[room.dirIn]) return -s.u0 + 1;
-  return s.vh + 1;
+  for (const r of list.slice(1)) counts[r.type] = (counts[r.type] ?? 0) + 1;
+  // difficulty: rooms, floors and theme; now and then a dungeon is rare and gets a grander entrance
+  const score = list.length - 1 + floorsUsed * 3 + th.bonus;
+  const rare = rng.chance(0.12);
+  const tier = Math.min(4, (score < 17 ? 1 : score < 27 ? 2 : score < 37 ? 3 : 4) + (rare ? 1 : 0));
+  return { seed: opts.seed, theme, facing, rooms: list, floorsUsed, counts, vestOff, tier, rare, wanted: n };
 }
 
 // ------------------------------------------------------------ rooms
-function buildVestibulo(L, s, Y, rng, th) {
-  roomBox(L, s, Y - 1, Y + s.h, rng, th);
-  wallOverlay(L, s, Y, Y + s.h - 1, rng, th);
-  ceilOverlay(L, s, Y + s.h, rng, th);
-  const floor = roomFloor(L, s, Y - 1, rng, th, (u, v) =>
-    Math.abs(u) <= 1 && Math.abs(v) <= 1 ? T.moss : Math.abs(u) <= 2 && Math.abs(v) <= 2 ? T.bricks : null);
-  carpets(L, floor, Y, rng, 0.6, (u, v) => Math.abs(u) === 3 || Math.abs(v) === 3);
-  cornice(L, s, Y + s.h - 1);
-  L.set(0, 0, Y + s.h - 1, T.spore);
-  L.set(0, 0, Y + s.h, T.chiseled);
-  for (const su of [-1, 1])
-    for (const sv of [-1, 1]) {
-      // flowering azalea on moss in the corners, lanterns on chains, benches along the side walls
-      L.set(3 * su, 3 * sv, Y - 1, T.moss);
-      L.set(3 * su, 3 * sv, Y, rng.chance(0.6) ? T.flowering : T.azalea);
-      L.set(2 * su, 2 * sv, Y + s.h - 1, T.chain);
-      L.set(2 * su, 2 * sv, Y + s.h - 2, T.lanternHang);
-      L.set(2 * su, 3 * sv, Y, stairs("polished_tuff_stairs", L.dir(sv > 0 ? "v+" : "v-")));
+// c: { L, s, Y, rng, th, room, out, doors } (doors: the local walls with a door)
+function inLane(c, u, v) {
+  const s = c.s;
+  return (c.doors.has("u-") && u <= s.u0 + 1 && Math.abs(v) <= 1) || (c.doors.has("u+") && u >= s.u1 - 1 && Math.abs(v) <= 1) ||
+    (c.doors.has("v-") && v <= s.v0 + 1 && Math.abs(u) <= 1) || (c.doors.has("v+") && v >= s.v1 - 1 && Math.abs(u) <= 1);
+}
+const onCross = (u, v) => Math.abs(u) <= 1 || Math.abs(v) <= 1; // keep the ways between doors free
+const isBorder = (s, u, v) => u === s.u0 || u === s.u1 || v === s.v0 || v === s.v1;
+
+function shell(c) {
+  const { L, s, Y } = c;
+  L.fill(s.u0 - 1, s.v0 - 1, Y + s.bottom, s.u1 + 1, s.v1 + 1, Y + s.h, T.bricks);
+  L.fill(s.u0, s.v0, Y + s.bottom + 1, s.u1, s.v1, Y + s.h - 1, AIR);
+}
+function wallOverlay(c, y1, y2, p = 0.35, th = c.th) {
+  const { L, s, rng } = c;
+  for (let y = y1; y <= y2; y++) {
+    for (let u = s.u0; u <= s.u1; u++) {
+      if (rng.chance(p)) L.set(u, s.v0 - 1, y, wallVariant(rng, th));
+      if (rng.chance(p)) L.set(u, s.v1 + 1, y, wallVariant(rng, th));
+    }
+    for (let v = s.v0; v <= s.v1; v++) {
+      if (rng.chance(p)) L.set(s.u0 - 1, v, y, wallVariant(rng, th));
+      if (rng.chance(p)) L.set(s.u1 + 1, v, y, wallVariant(rng, th));
+    }
+  }
+}
+function ceilOverlay(c, p = 0.4, th = c.th) {
+  const { L, s, rng, Y } = c;
+  for (let u = s.u0; u <= s.u1; u++)
+    for (let v = s.v0; v <= s.v1; v++) if (rng.chance(p)) L.set(u, v, Y + s.h, ceilVariant(rng, th));
+}
+// Floor with a polished border; center(u, v) can choose a block. Returns the chosen blocks.
+function roomFloor(c, center) {
+  const { L, s, Y, rng, th } = c;
+  const out = new Map();
+  for (let u = s.u0; u <= s.u1; u++)
+    for (let v = s.v0; v <= s.v1; v++) {
+      const b = isBorder(s, u, v) ? (rng.chance(0.75) ? T.polished : floorVariant(rng, th)) : (center?.(u, v) ?? floorVariant(rng, th));
+      L.set(u, v, Y - 1, b);
+      out.set(`${u},${v}`, b);
+    }
+  return out;
+}
+function carpets(c, floor, p, skip) {
+  for (const [k, b] of floor) {
+    const cp = carpetFor(b);
+    if (!cp || !c.rng.chance(p)) continue;
+    const [u, v] = k.split(",").map(Number);
+    if (skip?.(u, v)) continue;
+    c.L.set(u, v, c.Y, cp);
+  }
+}
+// The cornice: top slabs along the inside of the walls, just under the ceiling.
+function cornice(c, mat = "tuff_brick_slab") {
+  const { L, s, Y } = c;
+  const b = slab(mat, true), y = Y + s.h - 1;
+  L.fill(s.u0, s.v0, y, s.u1, s.v0, y, b);
+  L.fill(s.u0, s.v1, y, s.u1, s.v1, y, b);
+  L.fill(s.u0, s.v0, y, s.u0, s.v1, y, b);
+  L.fill(s.u1, s.v0, y, s.u1, s.v1, y, b);
+}
+// Froglights in the walls, away from the door lintels.
+function wallLights(c, y) {
+  const { L, s, th } = c;
+  const marks = (a, b) => {
+    const n = b - a + 1;
+    const out = n >= 9 ? [a + Math.floor(n / 4), b - Math.floor(n / 4)] : [a + 1, b - 1];
+    return out.filter((k) => Math.abs(k) >= 3);
+  };
+  for (const u of marks(s.u0, s.u1)) {
+    L.set(u, s.v0 - 1, y, froglight(th));
+    L.set(u, s.v1 + 1, y, froglight(th));
+  }
+  for (const v of marks(s.v0, s.v1)) {
+    L.set(s.u0 - 1, v, y, froglight(th));
+    L.set(s.u1 + 1, v, y, froglight(th));
+  }
+}
+// Glow berries and other things hanging from the ceiling, about one every `per` cells.
+function ceilingLife(c, per, maxLen, skip) {
+  const { L, s, Y, rng, th } = c;
+  for (let u = s.u0; u <= s.u1; u++)
+    for (let v = s.v0; v <= s.v1; v++) {
+      if (skip?.(u, v) || !rng.chance(1 / per)) continue;
+      hanging(L, u, v, Y + s.h - 1, maxLen, rng, th);
     }
 }
+function pillar(c, u, v, top) {
+  const { L, Y, rng } = c;
+  L.set(u, v, Y, T.chiseledBricks);
+  L.fill(u, v, Y + 1, u, v, top - 1, rng.chance(0.5) ? T.polished : T.bricks);
+  L.set(u, v, top, T.chiseled);
+  if (rng.chance(0.5 * c.th.lush + 0.1)) L.set(u, v, Y + rng.int(1, 3), T.moss);
+}
 
-function buildSpawner(L, s, Y, rng, th, room, out) {
-  roomBox(L, s, Y - 1, Y + s.h, rng, th);
-  wallOverlay(L, s, Y, Y + s.h - 1, rng, th, 0.3);
-  // a band of chiseled tuff bricks above the doors and a cornice of slabs
-  for (let i = -2; i <= 2; i++) {
-    L.set(i, -3, Y + 3, T.chiseledBricks);
-    L.set(i, 3, Y + 3, T.chiseledBricks);
-    L.set(-3, i, Y + 3, T.chiseledBricks);
-    L.set(3, i, Y + 3, T.chiseledBricks);
-  }
-  ceilOverlay(L, s, Y + s.h, rng, th, 0.3);
+function buildVestibulo(c) {
+  const { L, s, Y, rng } = c;
+  shell(c);
+  wallOverlay(c, Y, Y + s.h - 1);
+  ceilOverlay(c);
+  const floor = roomFloor(c, (u, v) => Math.abs(u) <= 1 && Math.abs(v) <= 1 ? T.moss
+    : Math.abs(u) <= 2 && Math.abs(v) <= 2 ? T.bricks : null);
+  carpets(c, floor, 0.6, (u, v) => isBorder(s, u, v));
+  cornice(c);
+  L.set(0, 0, Y + s.h - 1, T.spore);
   L.set(0, 0, Y + s.h, T.chiseled);
-  const floor = roomFloor(L, s, Y - 1, rng, th, (u, v) =>
-    u === 0 && v === 0 ? T.chiseledBricks : Math.max(Math.abs(u), Math.abs(v)) === 1 ? T.bricks : null);
-  carpets(L, floor, Y, rng, 0.3, (u, v) => Math.abs(u) <= 1 && Math.abs(v) <= 1);
-  cornice(L, s, Y + s.h - 1, "polished_tuff_slab");
-  // corner posts with lanterns
-  for (const su of [-1, 1])
-    for (const sv of [-1, 1]) {
-      L.set(2 * su, 2 * sv, Y, T.brickWall);
-      L.set(2 * su, 2 * sv, Y + 1, rng.chance(0.5) ? T.lantern : candle("green", rng.int(1, 4)));
+  for (const u of [s.u0, s.u1])
+    for (const v of [s.v0, s.v1]) {
+      L.set(u, v, Y - 1, T.moss);
+      L.set(u, v, Y, rng.chance(0.6) ? T.flowering : T.azalea);
     }
-  // things hanging from the ceiling around the spawner
-  for (const [u, v] of rng.shuffle([[-1, -1], [-1, 1], [1, -1], [1, 1], [0, -1], [0, 1], [-1, 0], [1, 0]]).slice(0, 3))
-    hanging(L, u, v, Y + s.h - 1, 2, rng, th);
+  for (const u of [s.u0 + 1, s.u1 - 1])
+    for (const v of [s.v0 + 1, s.v1 - 1]) {
+      L.fill(u, v, Y + 4, u, v, Y + s.h - 1, T.chain);
+      L.set(u, v, Y + 3, T.lanternHang);
+    }
+  // benches along the side walls
+  for (const u of [s.u0 + 1, s.u1 - 1]) {
+    if (!inLane(c, u, s.v0)) L.set(u, s.v0, Y, stairs("polished_tuff_stairs", L.dir("v-")));
+    if (!inLane(c, u, s.v1)) L.set(u, s.v1, Y, stairs("polished_tuff_stairs", L.dir("v+")));
+  }
+  ceilingLife(c, 7, 2, (u, v) => Math.abs(u) <= 1 && Math.abs(v) <= 1);
+  wallLights(c, Y + 3);
+}
+
+function buildSpawner(c) {
+  const { L, s, Y, rng, th, room, out } = c;
+  shell(c);
+  wallOverlay(c, Y, Y + s.h - 1, 0.3);
+  // a band of chiseled tuff bricks above the doors and a cornice of slabs
+  L.fill(s.u0 - 1, s.v0 - 1, Y + 3, s.u1 + 1, s.v0 - 1, Y + 3, T.chiseledBricks);
+  L.fill(s.u0 - 1, s.v1 + 1, Y + 3, s.u1 + 1, s.v1 + 1, Y + 3, T.chiseledBricks);
+  L.fill(s.u0 - 1, s.v0 - 1, Y + 3, s.u0 - 1, s.v1 + 1, Y + 3, T.chiseledBricks);
+  L.fill(s.u1 + 1, s.v0 - 1, Y + 3, s.u1 + 1, s.v1 + 1, Y + 3, T.chiseledBricks);
+  ceilOverlay(c, 0.3);
+  L.set(0, 0, Y + s.h, T.chiseled);
+  const ring = (u, v) => Math.max(Math.abs(u), Math.abs(v));
+  const floor = roomFloor(c, (u, v) => ring(u, v) === 0 ? T.chiseledBricks : ring(u, v) === 1 ? T.bricks
+    : ring(u, v) % 4 === 0 ? T.polished : null);
+  carpets(c, floor, 0.3, (u, v) => ring(u, v) <= 1);
+  cornice(c, "polished_tuff_slab");
+  // corner posts with lanterns
+  for (const u of [s.u0, s.u1])
+    for (const v of [s.v0, s.v1]) {
+      L.set(u, v, Y, T.brickWall);
+      L.set(u, v, Y + 1, rng.chance(0.5) ? T.lantern : candle("green", rng.int(1, 4)));
+    }
+  // big rooms: pillars, azalea in the corners
+  const big = s.L >= 11 && s.W >= 11;
+  if (big)
+    for (const u of [s.u0 + 3, s.u1 - 3])
+      for (const v of [s.v0 + 3, s.v1 - 3]) if (!onCross(u, v)) pillar(c, u, v, Y + s.h - 1);
+  if (s.L * s.W >= 80)
+    for (const [u, v] of [[s.u0 + 1, s.v0], [s.u0, s.v0 + 1], [s.u1 - 1, s.v1], [s.u1, s.v1 - 1]])
+      if (!inLane(c, u, v) && rng.chance(0.4 * th.lush + 0.2)) L.set(u, v, Y, rng.chance(0.5) ? T.leavesFlower : T.leaves);
+  ceilingLife(c, 6, Math.min(3, s.h - 3), (u, v) => ring(u, v) === 0);
+  if (s.L >= 7 || s.W >= 7) wallLights(c, Y + 2);
   L.set(0, 0, Y, trialSpawner(false));
   out.spawners.push({
     x: L.x(0, 0), y: Y, z: L.z(0, 0), kind: "normal", family: room.mobs, room: room.id,
-    box: box(L, s.u0, -s.vh, Y, s.u1, s.vh, Y + s.h - 1),
+    bonus: Math.max(0, Math.floor((s.L * s.W - 25) / 40)) + c.tier - 1,
+    box: boxOf(L, s.u0, s.v0, Y, s.u1, s.v1, Y + s.h - 1),
   });
 }
 
-function buildJardin(L, s, Y, rng, th, room, out) {
-  roomBox(L, s, Y - 2, Y + s.h, rng, th);
-  L.fill(s.u0, -s.vh, Y - 2, s.u1, s.vh, Y - 2, T.clay);
-  wallOverlay(L, s, Y, Y + s.h - 1, rng, { ...th, lush: Math.min(1, th.lush + 0.4) }, 0.45);
-  ceilOverlay(L, s, Y + s.h, rng, { ...th, lush: Math.min(1, th.lush + 0.5) }, 0.6);
-  // moss floor with a cross-shaped pond in the middle, dripleaves around it and a slab border
+function buildJardin(c) {
+  const { L, s, Y, rng, th } = c;
+  shell(c);
+  L.fill(s.u0, s.v0, Y - 2, s.u1, s.v1, Y - 2, T.clay);
+  wallOverlay(c, Y, Y + s.h - 1, 0.45, lusher(th, 0.4));
+  ceilOverlay(c, 0.6, lusher(th, 0.5));
+  // moss floor, a pond in the middle with dripleaves around and a border of slabs
   const floor = new Map();
-  for (let u = -3; u <= 3; u++)
-    for (let v = -3; v <= 3; v++) {
+  for (let u = s.u0; u <= s.u1; u++)
+    for (let v = s.v0; v <= s.v1; v++) {
       const b = rng.chance(0.15) ? T.rooted : th.pale > 0.5 && rng.chance(0.4) ? T.paleMoss : T.moss;
       L.set(u, v, Y - 1, b);
       floor.set(`${u},${v}`, b);
     }
-  const pond = [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]];
-  for (const [u, v] of pond) {
-    L.set(u, v, Y - 1, T.water);
-    floor.delete(`${u},${v}`);
-  }
-  for (const [u, v] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) {
-    L.set(u, v, Y - 1, T.clay);
-    floor.delete(`${u},${v}`);
-    L.set(u, v, Y, T.dripleaf(rng.int(0, 3)));
-  }
-  for (const [u, v] of [[2, 0], [-2, 0], [0, 2], [0, -2]]) {
-    L.set(u, v, Y, slab("tuff_brick_slab", false));
-    floor.delete(`${u},${v}`);
-  }
+  const pr = Math.max(1, Math.floor(Math.min(s.L, s.W) / 5));
+  for (let u = -pr; u <= pr; u++)
+    for (let v = -pr; v <= pr; v++) {
+      const corner = Math.abs(u) === pr && Math.abs(v) === pr;
+      floor.delete(`${u},${v}`);
+      if (corner) {
+        L.set(u, v, Y - 1, T.clay);
+        L.set(u, v, Y, T.dripleaf(rng.int(0, 3)));
+      } else L.set(u, v, Y - 1, T.water);
+    }
+  for (let u = -pr - 1; u <= pr + 1; u++)
+    for (let v = -pr - 1; v <= pr + 1; v++) {
+      if (Math.max(Math.abs(u), Math.abs(v)) !== pr + 1 || u < s.u0 || u > s.u1 || v < s.v0 || v > s.v1) continue;
+      if (rng.chance(0.6) || onCross(u, v)) {
+        L.set(u, v, Y, slab("tuff_brick_slab", false));
+        floor.delete(`${u},${v}`);
+      }
+    }
   // corners: azalea bushes, one of them may hold a chest
-  const corners = rng.shuffle([[3, 3], [3, -3], [-3, 3], [-3, -3]]);
+  const corners = rng.shuffle([[s.u1, s.v1], [s.u1, s.v0], [s.u0, s.v1], [s.u0, s.v0]]);
   const withChest = rng.chance(0.5) ? corners[0] : null;
   for (const [u, v] of corners) {
     floor.delete(`${u},${v}`);
     if (withChest && u === withChest[0] && v === withChest[1]) {
-      const face = u > 0 ? "u-" : "u+";
-      L.chest(u, v, Y, chest(L.dir(face)), loot(rng, GARDEN_LOOT, 3, 5));
+      c.L.chest(u, v, Y, chest(L.dir(u > 0 ? "u-" : "u+")), loot(rng, GARDEN_LOOT, 3, 5));
       L.set(u, v, Y + 1, T.leavesFlower);
       continue;
     }
     L.set(u, v, Y, rng.chance(0.5) ? T.leavesFlower : T.leaves);
     L.set(u, v, Y + 1, rng.chance(0.5) ? T.flowering : T.azalea);
-    for (const [du, dv] of [[-Math.sign(u), 0], [0, -Math.sign(v)]])
-      if (rng.chance(0.6)) {
-        L.set(u + du, v + dv, Y, rng.chance(0.4) ? T.fern : T.grass);
-        floor.delete(`${u + du},${v + dv}`);
-      }
   }
-  carpets(L, floor, Y, rng, 0.45);
-  // the ceiling: spore blossom over the pond, vines and roots around
+  // plants on the moss, bushes along the walls in big gardens
+  for (const [k] of floor) {
+    const [u, v] = k.split(",").map(Number);
+    if (inLane(c, u, v)) continue;
+    const r = rng.next();
+    if (r < 0.12) L.set(u, v, Y, rng.chance(0.4) ? T.fern : T.grass), floor.delete(k);
+    else if (r < 0.17 && !onCross(u, v)) L.set(u, v, Y, rng.chance(0.5) ? T.azalea : T.flowering), floor.delete(k);
+    else if (r < 0.22 && isBorder(s, u, v) && !onCross(u, v)) L.set(u, v, Y, T.leaves), floor.delete(k);
+  }
+  carpets(c, floor, 0.45);
+  // the ceiling: spore blossoms, lots of glow berries
   L.set(0, 0, Y + s.h - 1, T.spore);
-  for (let u = -3; u <= 3; u++)
-    for (let v = -3; v <= 3; v++) {
-      if (u === 0 && v === 0) continue;
-      if (rng.chance(0.22)) hanging(L, u, v, Y + s.h - 1, 3, rng, { ...th, lush: th.lush + 0.6 });
-    }
-  // a light in the middle of each wall, above the doors
-  for (const [u, v] of [[0, -4], [0, 4], [-4, 0], [4, 0]]) L.set(u, v, Y + 4, froglight(th));
+  for (let i = 1; i < Math.floor((s.L * s.W) / 45); i++) L.set(rng.int(s.u0, s.u1), rng.int(s.v0, s.v1), Y + s.h - 1, T.spore);
+  ceilingLife(c, 3.5, 3, (u, v) => u === 0 && v === 0);
+  wallLights(c, Y + 4);
 }
 
-function buildTesoro(L, s, Y, rng, th, room, out) {
-  roomBox(L, s, Y - 1, Y + s.h, rng, th);
-  wallOverlay(L, s, Y, Y + s.h - 1, rng, th, 0.3);
-  ceilOverlay(L, s, Y + s.h, rng, th, 0.35);
-  const floor = roomFloor(L, s, Y - 1, rng, th, (u, v) =>
-    (u + v) % 2 === 0 ? T.bricks : T.polished);
-  // moss path from the door
-  for (let u = -4; u <= -1; u++) {
+function buildTesoro(c) {
+  const { L, s, Y, rng, th, room, out } = c;
+  shell(c);
+  wallOverlay(c, Y, Y + s.h - 1, 0.3);
+  ceilOverlay(c, 0.35);
+  const floor = roomFloor(c, (u, v) => ((u + v) & 1 ? T.polished : T.bricks));
+  const su = Math.min(-1, s.u1 - 5); // the guardian spawner
+  for (let u = s.u0; u < su; u++) {
     L.set(u, 0, Y - 1, T.moss);
     L.set(u, 0, Y, T.mossCarpet);
   }
-  carpets(L, floor, Y, rng, 0.25, (u, v) => u >= 2);
+  carpets(c, floor, 0.25, (u, v) => u >= s.u1 - 2 || v === 0);
   // pillars along the side walls
-  for (const u of [-2, 1])
-    for (const v of [-4, 4]) {
-      L.set(u, v, Y, T.chiseledBricks);
-      L.fill(u, v, Y + 1, u, v, Y + s.h - 2, T.polished);
-      L.set(u, v, Y + s.h - 1, T.chiseled);
-    }
-  cornice(L, s, Y + s.h - 1);
+  for (let u = s.u0 + 2; u <= s.u1 - 3; u += 3)
+    for (const v of [s.v0, s.v1]) pillar(c, u, v, Y + s.h - 2);
+  cornice(c);
   // the dais at the back: a slab step, the chest between two vaults, candles
   const back = L.dir("u-");
-  L.fill(2, -3, Y, 2, 3, Y, slab("polished_tuff_slab", false));
-  L.fill(3, -3, Y, 4, 3, Y, T.polished);
-  L.fill(4, -4, Y, 4, 4, Y, T.chiseledBricks);
-  L.chest(4, 0, Y + 1, chest(back), loot(rng, TREASURE_LOOT, 6, 8));
-  L.set(4, -2, Y + 1, vault(back, false));
-  L.set(4, 2, Y + 1, vault(back, true));
-  for (const v of [-1, 1]) L.set(4, v, Y + 1, candle("lime", rng.int(2, 4)));
-  for (const v of [-3, 3]) L.set(3, v, Y + 1, candle("white", rng.int(1, 3)));
-  for (const v of [-4, 4]) {
-    L.set(4, v, Y + 1, T.leavesFlower);
-    L.set(4, v, Y + 2, T.flowering);
+  L.fill(s.u1 - 2, s.v0 + 1, Y, s.u1 - 2, s.v1 - 1, Y, slab("polished_tuff_slab", false));
+  L.fill(s.u1 - 1, s.v0 + 1, Y, s.u1, s.v1 - 1, Y, T.polished);
+  L.fill(s.u1, s.v0, Y, s.u1, s.v1, Y, T.chiseledBricks);
+  L.chest(s.u1, 0, Y + 1, chest(back), loot(rng, TREASURE_LOOT, 6, 8));
+  L.set(s.u1, -2, Y + 1, vault(back, false));
+  L.set(s.u1, 2, Y + 1, vault(back, true));
+  for (const v of [-1, 1]) L.set(s.u1, v, Y + 1, candle("lime", rng.int(2, 4)));
+  for (const v of [s.v0 + 1, s.v1 - 1]) L.set(s.u1 - 1, v, Y + 1, candle("white", rng.int(1, 3)));
+  for (const v of [s.v0, s.v1]) {
+    L.set(s.u1, v, Y + 1, T.leavesFlower);
+    L.set(s.u1, v, Y + 2, T.flowering);
+    L.set(s.u0, v, Y, T.leaves);
+    L.set(s.u0, v, Y + 1, T.leavesFlower);
   }
-  // azalea in the corners of the door side, lanterns on chains, the guardian spawner
-  for (const v of [-4, 4]) {
-    L.set(-4, v, Y, T.leaves);
-    L.set(-4, v, Y + 1, T.leavesFlower);
-  }
-  for (const [u, v] of [[-2, -2], [-2, 2], [2, -2], [2, 2]]) {
-    L.fill(u, v, Y + 4, u, v, Y + s.h - 1, T.chain);
-    L.set(u, v, Y + 3, T.lanternHang);
-  }
-  L.set(-3, 0, Y + s.h - 1, T.spore);
-  for (let i = 0; i < 6; i++) {
-    const u = rng.int(-4, 4), v = rng.pick([-3, 3]);
-    hanging(L, u, v, Y + s.h - 2, 2, rng, th);
-  }
-  L.set(-1, 0, Y - 1, T.chiseledBricks);
-  L.set(-1, 0, Y, trialSpawner(true));
+  for (const u of [s.u0 + 2, s.u1 - 3])
+    for (const v of [s.v0 + 2, s.v1 - 2]) {
+      L.fill(u, v, Y + 4, u, v, Y + s.h - 1, T.chain);
+      L.set(u, v, Y + 3, T.lanternHang);
+    }
+  L.set(s.u0 + 1, 0, Y + s.h - 1, T.spore);
+  ceilingLife(c, 6, 2, (u, v) => u === su && v === 0);
+  wallLights(c, Y + 4);
+  L.set(su, 0, Y - 1, T.chiseledBricks);
+  L.set(su, 0, Y, trialSpawner(true));
   out.spawners.push({
-    x: L.x(-1, 0), y: Y, z: L.z(-1, 0), kind: "guardian", family: room.mobs, room: room.id,
-    box: box(L, s.u0, -s.vh, Y, 1, s.vh, Y + s.h - 1),
+    x: L.x(su, 0), y: Y, z: L.z(su, 0), kind: "guardian", family: room.mobs, room: room.id, bonus: c.tier - 1,
+    box: boxOf(L, s.u0, s.v0, Y, s.u1 - 3, s.v1, Y + s.h - 1),
   });
 }
 
-// 8x5 room over a pit of water: wooden slabs hanging from chains lead to a chest on the far side.
-function buildParkour(L, s, Y, rng, th, room, out) {
-  const pitY = Y - s.pit;           // the water
-  roomBox(L, s, pitY - 2, Y + s.h, rng, th);
-  L.fill(s.u0, -s.vh, pitY - 1, s.u1, s.vh, pitY - 1, T.clay);
-  L.fill(s.u0 + 1, -s.vh, pitY, s.u1 - 1, s.vh, pitY, T.water);
-  wallOverlay(L, s, pitY, Y + s.h - 1, rng, { ...th, lush: Math.min(1, th.lush + 0.3) }, 0.4);
-  ceilOverlay(L, s, Y + s.h, rng, th, 0.5);
-  // the ledge at the door and the raised ledge with the chest
-  L.fill(s.u0, -s.vh, pitY, s.u0, s.vh, Y - 2, T.bricks);
-  for (let v = -2; v <= 2; v++) L.set(s.u0, v, Y - 1, rng.chance(0.7) ? T.polished : floorVariant(rng, th));
-  L.fill(s.u1, -s.vh, pitY, s.u1, s.vh, Y - 1, T.bricks);
-  L.fill(s.u1, -s.vh, Y, s.u1, s.vh, Y, T.polished);
+// A long room over a pit of water: wooden slabs hanging from chains lead to a chest on the far side.
+function buildParkour(c) {
+  const { L, s, Y, rng, th } = c;
+  const pitY = Y + s.bottom + 2; // the water
+  shell(c);
+  L.fill(s.u0, s.v0, pitY - 1, s.u1, s.v1, pitY - 1, T.clay);
+  L.fill(s.u0 + 1, s.v0, pitY, s.u1 - 1, s.v1, pitY, T.water);
+  wallOverlay(c, pitY, Y + s.h - 1, 0.4, lusher(th, 0.3));
+  ceilOverlay(c, 0.5);
+  // the ledge at the door
+  L.fill(s.u0, s.v0, pitY, s.u0, s.v1, Y - 2, T.bricks);
+  for (let v = s.v0; v <= s.v1; v++) L.set(s.u0, v, Y - 1, rng.chance(0.7) ? T.polished : floorVariant(rng, th));
   // vines on the pit side of the first ledge, to climb back after a fall
-  const vinesDir = L.dir("u-");
-  for (const v of [-2, 0, 2]) L.fill(s.u0 + 1, v, pitY + 1, s.u0 + 1, v, Y - 1, vine(vinesDir));
-  // three platforms at u = -2, 0, 2: the slab you land on and the slab holding the chain
+  for (let v = s.v0; v <= s.v1; v += 2) L.fill(s.u0 + 1, v, pitY + 1, s.u0 + 1, v, Y - 1, vine(L.dir("u-")));
+  // platforms every two blocks: the slab you land on and the slab holding the chain
   const wood = rng.pick(th.wood);
-  let v = rng.int(-1, 1), h = 0;
-  for (const u of [-2, 0, 2]) {
+  const lanes = [];
+  for (let v = s.v0 + 1; v <= s.v1 - 1; v++) lanes.push(v);
+  let v = rng.pick(lanes), h = 0, lastU = s.u0, lastY = Y - 1;
+  for (let u = s.u0 + 2; u <= s.u1 - 1; u += 2) {
     const hold = v <= 0 ? v - 1 : v + 1;
-    const y = Y - 1 + h;              // top slab at y: you stand at y + 1
+    const y = Y - 1 + h;                // top slab at y: you stand at y + 1
     L.set(u, v, y, woodSlab(wood, true));
     L.set(u, hold, y, woodSlab(wood, true));
     L.fill(u, hold, y + 1, u, hold, Y + s.h - 1, T.chain);
     L.set(u, hold, Y + s.h, T.chiseled);
-    // next: another lane, and maybe one block higher (only with a short side step)
-    const lanes = [-1, 0, 1].filter((x) => x !== v);
-    const nv = rng.pick(lanes);
-    if (h === 0 && Math.abs(nv - v) === 1 && rng.chance(0.5)) h = 1;
+    lastU = u;
+    lastY = y;
+    // next: another lane, at most two to the side, or one to the side and one block higher
+    const nv = rng.pick(lanes.filter((x) => x !== v && Math.abs(x - v) <= 2));
+    if (h < 2 && Math.abs(nv - v) === 1 && rng.chance(0.4)) h++;
     v = nv;
   }
-  // the reward
+  // the raised ledge with the reward, one block over the last platform
+  const lastH = lastY + (lastU === s.u1 - 1 ? 1 : 0); // a step up, or the same height across a gap
+  L.fill(s.u1, s.v0, pitY, s.u1, s.v1, lastH, T.bricks);
+  L.fill(s.u1, s.v0, lastH, s.u1, s.v1, lastH, T.polished);
   const back = L.dir("u-");
-  L.chest(s.u1, 0, Y + 1, chest(back), loot(rng, PARKOUR_LOOT, 4, 6));
-  for (const v2 of [-2, 2]) L.set(s.u1, v2, Y + 1, rng.chance(0.5) ? T.flowering : T.azalea);
-  L.set(s.u1, -1, Y + 1, candle("green", rng.int(1, 3)));
-  L.set(s.u1, 1, Y + 1, T.lantern);
-  // light and decoration: spore blossom, vines on the walls, glow lichen
-  L.set(-1, 0, Y + s.h - 1, T.spore);
+  L.chest(s.u1, 0, lastH + 1, chest(back), loot(rng, PARKOUR_LOOT, 4, 6));
+  for (const vv of [s.v0, s.v1]) L.set(s.u1, vv, lastH + 1, rng.chance(0.5) ? T.flowering : T.azalea);
+  L.set(s.u1, -1, lastH + 1, candle("green", rng.int(1, 3)));
+  L.set(s.u1, 1, lastH + 1, T.lantern);
+  // light and decoration: spore blossoms, glow berries along the walls, froglights
+  for (let u = s.u0 + 1; u < s.u1; u += 5) L.set(u, 0, Y + s.h - 1, T.spore);
   for (let u = s.u0; u <= s.u1; u++)
-    for (const vv of [-2, 2]) if (rng.chance(0.35)) hanging(L, u, vv, Y + s.h - 1, 3, rng, { ...th, lush: th.lush + 0.5 });
-  for (const vv of [-3, 3]) L.set(0, vv, Y + 3, froglight(th));
-  L.set(s.u1 + 1, 0, Y + 3, froglight(th));
+    for (const vv of [s.v0, s.v1]) if (rng.chance(0.4)) hanging(L, u, vv, Y + s.h - 1, 3, rng, lusher(th, 0.5));
+  for (let u = s.u0 + 2; u <= s.u1 - 2; u += 4)
+    for (const vv of [s.v0 - 1, s.v1 + 1]) L.set(u, vv, Y + 3, froglight(th));
+  L.set(s.u1 + 1, 0, Y + 4, froglight(th));
 }
 
-function box(L, u1, v1, y1, u2, v2, y2) {
+// A giant azalea-like tree: 2x2 (or 1x1) oak trunk, root flares, branches, a canopy of azalea
+// leaves and glow berries hanging under it. (cu, cv) is the north-west log of the trunk.
+function bigTree(L, cu, cv, yb, H, r, rng, opts = {}) {
+  const t2 = opts.thin ? 0 : 1;
+  const mu = cu + t2 / 2, mv = cv + t2 / 2, cy = yb + H + 1;
+  const ry = Math.max(2, Math.round(r * 0.65));
+  const bottom = new Map();
+  for (let du = -r - 1; du <= r + 1; du++)
+    for (let dv = -r - 1; dv <= r + 1; dv++)
+      for (let dy = -ry; dy <= ry; dy++) {
+        const u = Math.round(mu + du), v = Math.round(mv + dv), y = cy + dy;
+        const d = ((u - mu) / r) ** 2 + ((v - mv) / r) ** 2 + (dy / ry) ** 2;
+        if (d > 1 - rng.next() * 0.28 * (d > 0.55)) continue;
+        if (opts.maxY !== undefined && y > opts.maxY) continue;
+        L.set(u, v, y, rng.chance(0.3) ? T.leavesFlower : T.leaves);
+        const k = `${u},${v}`;
+        if (!bottom.has(k) || bottom.get(k) > y) bottom.set(k, y);
+      }
+  // trunk, branches and root flares
+  L.fill(cu, cv, yb, cu + t2, cv + t2, yb + H, T.log("y"));
+  const by = yb + H - 2;
+  const au = L.axis("u"), av = L.axis("v");
+  for (const [du, dv] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+    const len = opts.thin ? 2 : rng.int(2, 3);
+    for (let k = 1; k <= len; k++) {
+      const u = du < 0 ? cu - k : du > 0 ? cu + t2 + k : cu + (k & 1 ? 0 : t2);
+      const v = dv < 0 ? cv - k : dv > 0 ? cv + t2 + k : cv + (k & 1 ? t2 : 0);
+      L.set(u, v, by - (du + dv > 0 ? 1 : 0) + Math.floor(k / 2), T.log(du ? au : av));
+    }
+    if (!opts.thin) {
+      const u = du < 0 ? cu - 1 : du > 0 ? cu + t2 + 1 : cu + rng.int(0, t2);
+      const v = dv < 0 ? cv - 1 : dv > 0 ? cv + t2 + 1 : cv + rng.int(0, t2);
+      L.set(u, v, yb, T.log(du ? au : av));
+      L.set(u, v, yb + 1, T.mangroveRoots);
+      L.set(u, v, yb - 1, T.rooted);
+    }
+  }
+  // glow berries hanging under the canopy
+  for (const [k, y] of bottom) {
+    const [u, v] = k.split(",").map(Number);
+    if (u >= cu && u <= cu + t2 && v >= cv && v <= cv + t2) continue;
+    if (!rng.chance(opts.vines ?? 0.3)) continue;
+    const len = Math.min(rng.int(1, 4), y - 1 - (yb + 2));
+    if (len > 0) caveVines(L, u, v, y - 1, len, rng, 0.9);
+  }
+}
+
+// The great hall with a tree inside.
+function buildArbol(c) {
+  const { L, s, Y, rng, th } = c;
+  shell(c);
+  L.fill(s.u0, s.v0, Y - 2, s.u1, s.v1, Y - 2, T.clay);
+  wallOverlay(c, Y, Y + s.h - 1, 0.45, lusher(th, 0.4));
+  ceilOverlay(c, 0.6, lusher(th, 0.5));
+  // moss and rooted dirt, grass, ferns, bushes and small ponds in the corners
+  for (let u = s.u0; u <= s.u1; u++)
+    for (let v = s.v0; v <= s.v1; v++) {
+      const near = Math.abs(u - 0.5) <= 3 && Math.abs(v - 0.5) <= 3;
+      L.set(u, v, Y - 1, near && rng.chance(0.6) ? T.rooted : th.pale > 0.5 && rng.chance(0.3) ? T.paleMoss : T.moss);
+      if (inLane(c, u, v) || near) continue;
+      const r = rng.next();
+      if (r < 0.18) L.set(u, v, Y, rng.chance(0.35) ? T.fern : T.grass);
+      else if (r < 0.3) L.set(u, v, Y, T.mossCarpet);
+      else if (r < 0.34 && !onCross(u, v)) L.set(u, v, Y, rng.chance(0.5) ? T.flowering : T.azalea);
+      else if (r < 0.38 && isBorder(s, u, v) && !onCross(u, v)) {
+        L.set(u, v, Y, T.leaves);
+        if (rng.chance(0.5)) L.set(u, v, Y + 1, T.leavesFlower);
+      }
+    }
+  for (const [u, v] of [[s.u0 + 2, s.v0 + 2], [s.u1 - 3, s.v1 - 3], [s.u0 + 2, s.v1 - 3], [s.u1 - 3, s.v0 + 2]]) {
+    if (!rng.chance(0.6)) continue;
+    L.fill(u, v, Y, u + 1, v + 1, Y + 1, AIR);
+    L.fill(u, v, Y - 1, u + 1, v + 1, Y - 1, T.water);
+    L.set(u - 1, v, Y, T.dripleaf(L.dir("u-")));
+    L.set(u + 2, v + 1, Y, T.dripleaf(L.dir("u+")));
+  }
+  // the tree, an offering chest at its feet and spore blossoms on the ceiling
+  const r = Math.min(6, Math.floor(Math.min(s.L, s.W) / 2) - 2);
+  bigTree(L, 0, 0, Y, s.h - 7, r, rng, { vines: 0.35, maxY: Y + s.h - 1 });
+  L.chest(-2, 0, Y, chest(L.dir("u-")), loot(rng, TREE_LOOT, 4, 6));
+  L.set(-2, 1, Y, candle("lime", rng.int(1, 4)));
+  for (let i = 0; i < 6; i++) {
+    const u = rng.pick([rng.int(s.u0, s.u0 + 3), rng.int(s.u1 - 3, s.u1)]), v = rng.int(s.v0, s.v1);
+    L.set(u, v, Y + s.h - 1, T.spore);
+  }
+  ceilingLife(c, 5, 4, (u, v) => Math.abs(u - 0.5) <= r + 1 && Math.abs(v - 0.5) <= r + 1);
+  wallLights(c, Y + 3);
+  wallLights(c, Y + 9);
+}
+
+function boxOf(L, u1, v1, y1, u2, v2, y2) {
   const xa = L.x(u1, v1), xb = L.x(u2, v2), za = L.z(u1, v1), zb = L.z(u2, v2);
   return [Math.min(xa, xb), y1, Math.min(za, zb), Math.max(xa, xb), y2, Math.max(za, zb)];
 }
 
-const BUILDERS = { vestibulo: buildVestibulo, spawner: buildSpawner, jardin: buildJardin, tesoro: buildTesoro, parkour: buildParkour };
+const BUILDERS = {
+  vestibulo: buildVestibulo, spawner: buildSpawner, jardin: buildJardin, tesoro: buildTesoro, parkour: buildParkour,
+  arbol: buildArbol,
+};
 
 // ------------------------------------------------------------ corridors
 // One 3x3 column of a corridor or a staircase at distance t along the frame.
@@ -599,12 +823,13 @@ function column(L, t, b, th, rng, opts = {}) {
     return;
   }
   if (opts.asc !== undefined) {
-    if (rng.chance(0.25)) L.set(t, 0, b + 3, T.lichenUp);
+    if (rng.chance(0.4)) caveVines(L, t, rng.pick([-1, 1]), b + 3, 1, rng);
+    else if (rng.chance(0.3)) L.set(t, 0, b + 3, T.lichenUp);
     return;
   }
   for (let l = -1; l <= 1; l++) {
-    const c = carpetFor(floor[l + 1]);
-    if (c && rng.chance(0.5)) L.set(t, l, b + 1, c);
+    const cp = carpetFor(floor[l + 1]);
+    if (cp && rng.chance(0.5)) L.set(t, l, b + 1, cp);
   }
   if (opts.rib) {
     // a beam of slabs across the ceiling
@@ -613,7 +838,7 @@ function column(L, t, b, th, rng, opts = {}) {
     L.fill(t, 2, b + 1, t, 2, b + 3, T.polished);
     return;
   }
-  if (rng.chance(0.35 + 0.25 * th.lush)) hanging(L, t, rng.pick([-1, 1]), b + 3, 1, rng, th);
+  if (rng.chance(0.45 + 0.3 * th.lush)) hanging(L, t, rng.pick([-1, 1]), b + 3, 1, rng, th);
 }
 
 // Door through a room wall at distance t: 3x3 opening with a frame.
@@ -625,19 +850,19 @@ function door(L, t, Y) {
 }
 
 // The corridor (flat or with stairs) from room a to its child room c.
-function corridor(bld, a, c, pa, pc, th, rng) {
+function corridor(bld, a, c, th, rng) {
   const d = c.dirIn;
-  const L = bld.frame(pa.x, pa.z, d);
-  const t0 = wallDist(a, d), t1 = GRID - wallDist(c, OPP[d]);
+  const L = bld.frame(a.x, a.z, d);
+  const t0 = wallDist(a, d), t1 = Math.abs((c.x - a.x) * DIRS[d][0] + (c.z - a.z) * DIRS[d][1]) - wallDist(c, OPP[d]);
   const n = t1 - t0 - 1;
   const k0 = Math.floor((n - 10) / 2);
   for (let i = 0; i < n; i++) {
     const t = t0 + 1 + i;
     let b, asc;
-    if (pa.Y === pc.Y) b = pa.Y - 1;
+    if (a.Y === c.Y) b = a.Y - 1;
     else {
-      const down = pc.Y < pa.Y;                 // going down along d
-      const hi = down ? pa.Y : pc.Y, lo = down ? pc.Y : pa.Y;
+      const down = c.Y < a.Y;
+      const hi = down ? a.Y : c.Y, lo = down ? c.Y : a.Y;
       const j = (down ? i : n - 1 - i) - k0;
       if (j < 0) b = hi - 1;
       else if (j < 10) {
@@ -648,20 +873,47 @@ function corridor(bld, a, c, pa, pc, th, rng) {
     const light = i % 5 === 2 ? (i % 10 === 2 ? -2 : 2) : undefined;
     column(L, t, b, th, rng, { asc, light, rib: asc === undefined && i % 5 === 0 && i > 0 && i < n - 1 });
   }
-  door(L, t0, pa.Y);
-  door(L, t1, pc.Y);
+  door(L, t0, a.Y);
+  door(L, t1, c.Y);
 }
 
 // ------------------------------------------------------------ entrance
-// The "Pórtico de Toba": a mossy roofed porch over a staircase that goes down to the hall.
-function entrance(bld, origin, facing, y0, th, rng) {
+// A small obelisk: chiseled base, polished shaft, lantern on top, berries hanging from it.
+function obelisk(L, t, v, ys, hgt, rng) {
+  L.set(t, v, ys, T.chiseledBricks);
+  L.fill(t, v, ys + 1, t, v, ys + hgt - 2, T.polished);
+  L.set(t, v, ys + hgt - 1, T.chiseled);
+  L.set(t, v, ys + hgt, T.lantern);
+  if (rng.chance(0.7)) L.set(t, v, ys + rng.int(1, hgt - 2), T.moss);
+}
+// Paved ground at the surface, with foundation under it and air over it.
+function pave(L, t1, v1, t2, v2, ys, rng, th, airTo = 12) {
+  L.fill(t1, v1, ys, t2, v2, ys + airTo, AIR);
+  L.fill(t1, v1, ys - 4, t2, v2, ys - 1, T.tuff);
+  for (let t = Math.min(t1, t2); t <= Math.max(t1, t2); t++)
+    for (let v = Math.min(v1, v2); v <= Math.max(v1, v2); v++) {
+      const path = Math.abs(v) <= 1;
+      const b = path ? (t & 1 ? T.chiseledBricks : T.polished) : rng.chance(0.3 * th.lush + 0.1) ? T.moss : rng.chance(0.5) ? T.bricks : T.polished;
+      L.set(t, v, ys - 1, b);
+      if (b === T.moss && rng.chance(0.5)) L.set(t, v, ys, T.mossCarpet);
+    }
+}
+
+// The entrance: a roofed porch over a staircase down to the hall. The higher the tier,
+// the grander: a paved forecourt with obelisks, a temple with a spire and trees, and
+// finally a sanctuary with a great gate, pools and a crown of light.
+function entrance(bld, origin, facing, y0, hallBack, tier, th, rng) {
   const L = bld.frame(origin.x, origin.z, facing);
   const ys = origin.y;            // the air block the player stands in
   const T0 = -3, T1 = 6, W = 4;   // the porch spans t in [T0, T1], v in [-W, W]
+  // the ground in front: bigger with each tier
+  const front = [0, -4, -12, -12, -18][tier], side = [0, 5, 7, 12, 13][tier];
+  if (tier >= 2) pave(L, front, -side, T0 - 1, side, ys, rng, th, tier >= 3 ? 16 : 10);
+  if (tier >= 3) pave(L, T0, -side, T1 + 2, side, ys, rng, th, 16);
   L.fill(T0 - 1, -W - 1, ys, T1 + 1, W + 1, ys + 9, AIR);
   L.fill(T0, -W, ys - 4, T1, W, ys - 1, T.tuff);
   // the staircase: 16 steps, the first 4 open under the roof
-  for (let t = 1; t <= 18; t++) {
+  for (let t = 1; t <= ENTRY_STEPS; t++) {
     const j = t - 1;
     if (j < 16) {
       const b = ys - 1 - j;
@@ -670,7 +922,7 @@ function entrance(bld, origin, facing, y0, th, rng) {
       column(L, t, b, th, rng, opts);
     } else column(L, t, y0 - 1, th, rng, { light: t === 17 ? 2 : undefined });
   }
-  door(L, 19, y0);
+  door(L, hallBack, y0);
   // the floor of the porch, around the hole
   const hole = (t, v) => t >= 1 && t <= 4 && Math.abs(v) <= 1;
   for (let t = T0; t <= T1; t++)
@@ -686,53 +938,75 @@ function entrance(bld, origin, facing, y0, th, rng) {
   for (let t = 1; t <= 4; t++) for (const v of [-2, 2]) L.set(t, v, ys, T.brickWall);
   L.fill(5, -2, ys, 5, 2, ys, T.brickWall);
   // four pillars, beams with slab arches, a roof in three tiers with eaves
+  const ph = tier >= 3 ? 5 : 3;    // a taller porch for the temple
   for (const t of [T0, T1])
     for (const v of [-W, W]) {
       L.set(t, v, ys, T.chiseledBricks);
-      L.fill(t, v, ys + 1, t, v, ys + 3, T.polished);
-      L.set(t, v, ys + 4, T.chiseled);
+      L.fill(t, v, ys + 1, t, v, ys + ph, T.polished);
+      L.set(t, v, ys + ph + 1, T.chiseled);
     }
-  for (const v of [-2, 2]) L.fill(T1, v, ys + 1, T1, v, ys + 3, T.polishedWall);
-  L.fill(T0, -W, ys + 5, T1, -W, ys + 5, T.bricks);
-  L.fill(T0, W, ys + 5, T1, W, ys + 5, T.bricks);
-  L.fill(T0, -W, ys + 5, T0, W, ys + 5, T.bricks);
-  L.fill(T1, -W, ys + 5, T1, W, ys + 5, T.bricks);
-  L.set(T0, 0, ys + 5, T.chiseledBricks);
+  const R = ys + ph + 2;           // the beams; the roof starts over them
+  if (tier >= 3) {
+    // a colonnade along the sides
+    for (const t of [0, 3]) for (const v of [-W, W]) {
+      L.set(t, v, ys, T.chiseledBricks);
+      L.fill(t, v, ys + 1, t, v, ys + ph, T.polishedWall);
+      L.set(t, v, ys + ph + 1, T.chiseledBricks);
+    }
+  }
+  for (const v of [-2, 2]) L.fill(T1, v, ys + 1, T1, v, ys + ph, T.polishedWall);
+  L.fill(T0, -W, R, T1, -W, R, T.bricks);
+  L.fill(T0, W, R, T1, W, R, T.bricks);
+  L.fill(T0, -W, R, T0, W, R, T.bricks);
+  L.fill(T1, -W, R, T1, W, R, T.bricks);
+  L.set(T0, 0, R, T.chiseledBricks);
   const arch = slab("tuff_brick_slab", true);
   for (const v of [-W + 1, W - 1]) {
-    L.set(T0, v, ys + 4, arch);
-    L.set(T1, v, ys + 4, arch);
+    L.set(T0, v, R - 1, arch);
+    L.set(T1, v, R - 1, arch);
   }
   for (const t of [T0 + 1, T1 - 1]) {
-    L.set(t, -W, ys + 4, arch);
-    L.set(t, W, ys + 4, arch);
+    L.set(t, -W, R - 1, arch);
+    L.set(t, W, R - 1, arch);
   }
-  L.fill(T0 - 1, -W - 1, ys + 6, T1 + 1, W + 1, ys + 6, slab("tuff_brick_slab", false));
-  L.fill(T0, -W, ys + 6, T1, W, ys + 6, T.bricks);
-  L.fill(T0 + 1, -W + 1, ys + 7, T1 - 1, W - 1, ys + 7, slab("polished_tuff_slab", false));
-  L.fill(T0 + 2, -W + 2, ys + 7, T1 - 2, W - 2, ys + 7, T.polished);
-  L.fill(T0 + 3, -1, ys + 8, T1 - 3, 1, ys + 8, slab("tuff_brick_slab", false));
-  L.set(1, 0, ys + 8, T.chiseled);
-  L.set(1, 0, ys + 9, T.lantern);
-  // moss and azalea growing over the roof, vines hanging from the eaves
+  L.fill(T0 - 1, -W - 1, R + 1, T1 + 1, W + 1, R + 1, slab("tuff_brick_slab", false));
+  L.fill(T0, -W, R + 1, T1, W, R + 1, T.bricks);
+  L.fill(T0 + 1, -W + 1, R + 2, T1 - 1, W - 1, R + 2, slab("polished_tuff_slab", false));
+  L.fill(T0 + 2, -W + 2, R + 2, T1 - 2, W - 2, R + 2, T.polished);
+  L.fill(T0 + 3, -1, R + 3, T1 - 3, 1, R + 3, slab("tuff_brick_slab", false));
+  let topY = R + 3;
+  if (tier >= 3) {
+    // the spire
+    L.fill(T0 + 3, -1, R + 3, T1 - 3, 1, R + 3, T.polished);
+    L.fill(1, 0, R + 4, 2, 0, R + 6, T.chiseledBricks);
+    L.set(1, 0, R + 7, T.chiseled);
+    L.set(2, 0, R + 7, T.chiseled);
+    topY = R + 7;
+    for (const t of [T0, T1]) for (const v of [-W, W]) {
+      L.set(t, v, R + 2, T.brickWall);
+      L.set(t, v, R + 3, T.lantern);
+    }
+  }
+  L.set(1, 0, topY, tier >= 4 ? froglight(th) : T.chiseled);
+  L.set(1, 0, topY + 1, T.lantern);
+  // moss and azalea growing over the roof, glow berries hanging from the eaves
   for (let t = T0 - 1; t <= T1 + 1; t++)
     for (let v = -W - 1; v <= W + 1; v++) {
       const ring = t === T0 - 1 || t === T1 + 1 || Math.abs(v) === W + 1;
-      const tier = t >= T0 + 1 && t <= T1 - 1 && Math.abs(v) <= W - 1;
+      const inner = t >= T0 + 1 && t <= T1 - 1 && Math.abs(v) <= W - 1;
       if (ring) {
-        if (rng.chance(0.3 * th.lush + 0.08)) caveVines(L, t, v, ys + 5, rng.int(1, 3), rng);
-      } else if (!tier) {
-        if (rng.chance(0.35 * th.lush + 0.1)) L.set(t, v, ys + 7, rng.chance(0.3) ? T.leavesFlower : T.mossCarpet);
-      }
+        if (rng.chance(0.35 * th.lush + 0.15 + 0.08 * tier)) caveVines(L, t, v, R, rng.int(1, 2 + tier), rng, 0.9);
+      } else if (!inner && rng.chance(0.35 * th.lush + 0.1)) L.set(t, v, R + 2, rng.chance(0.3) ? T.leavesFlower : T.mossCarpet);
     }
-  for (const [t, v] of [[T0, -W], [T0, W], [T1, -W], [T1, W]]) {
-    L.set(t, v, ys + 7, T.leavesFlower);
-    if (rng.chance(0.6)) L.set(t, v, ys + 8, T.leaves);
-  }
+  if (tier < 3)
+    for (const [t, v] of [[T0, -W], [T0, W], [T1, -W], [T1, W]]) {
+      L.set(t, v, R + 2, T.leavesFlower);
+      if (rng.chance(0.6)) L.set(t, v, R + 3, T.leaves);
+    }
   // lanterns over the staircase, plants on the porch
   for (const t of [2, 4]) {
-    L.set(t, 0, ys + 5, T.chain);
-    L.set(t, 0, ys + 4, T.lanternHang);
+    L.fill(t, 0, ys + 4, t, 0, R, T.chain);
+    L.set(t, 0, ys + 3, T.lanternHang);
   }
   for (const v of [-3, 3]) {
     L.set(-2, v, ys - 1, T.moss);
@@ -741,6 +1015,55 @@ function entrance(bld, origin, facing, y0, th, rng) {
     L.set(T1 - 1, v, ys, T.dripleaf(L.dir(v < 0 ? "v+" : "v-")));
     L.set(0, v, ys, T.lantern);
     L.set(-1, v, ys, slab("polished_tuff_slab", false));
+  }
+
+  if (tier >= 2) {
+    // forecourt: low walls, obelisks and azalea planters
+    for (let t = front; t <= T0 - 1; t++)
+      for (const v of [-side, side]) if ((t - front) % 4 !== 2) L.set(t, v, ys, T.brickWall);
+    for (let v = -side; v <= side; v++) if (Math.abs(v) > 2) L.set(front, v, ys, T.brickWall);
+    for (let t = front + 2; t <= T0 - 2; t += 4) for (const v of [-4, 4]) obelisk(L, t, v, ys, tier >= 3 ? 6 : 4, rng);
+    for (let t = front + 4; t <= T0 - 2; t += 4) for (const v of [-side + 2, side - 2]) {
+      if (Math.abs(v) === 4) continue;
+      L.set(t, v, ys - 1, T.moss);
+      L.set(t, v, ys, rng.chance(0.5) ? T.flowering : T.azalea);
+    }
+  }
+  if (tier >= 3)
+    // two trees beside the porch, glow berries everywhere
+    for (const v of [-9, 9]) {
+      L.fill(1, v - 1, ys - 1, 2, v + 1, ys - 1, T.rooted);
+      bigTree(L, 1, v, ys, tier >= 4 ? 7 : 5, tier >= 4 ? 4 : 3, rng, { thin: tier < 4, vines: 0.4 });
+    }
+  if (tier >= 4) {
+    // the great gate: two tall pillars, a lintel and a curtain of glow berries
+    const g = front + 1, gh = 9;
+    for (const v of [-3, 3]) {
+      L.fill(g, v, ys, g, v, ys + gh - 1, T.chiseledBricks);
+      L.fill(g, v, ys + 2, g, v, ys + gh - 3, T.polished);
+      L.set(g, v, ys + gh - 2, froglight(th));
+    }
+    L.fill(g, -4, ys + gh, g, 4, ys + gh, T.chiseledBricks);
+    L.fill(g, -3, ys + gh + 1, g, 3, ys + gh + 1, slab("tuff_brick_slab", false));
+    L.set(g, 0, ys + gh + 1, T.chiseled);
+    L.set(g, 0, ys + gh + 2, T.lantern);
+    for (const v of [-2, 2]) {
+      L.set(g, v, ys + gh - 1, stairs("tuff_brick_stairs", L.dir(v < 0 ? "v-" : "v+"), true));
+    }
+    for (let v = -2; v <= 2; v++) if (v !== 0) caveVines(L, g, v, ys + gh - 1 - (Math.abs(v) === 2 ? 1 : 0), rng.int(2, 4), rng, 0.95);
+    // pools on both sides of the path, with dripleaves
+    for (const v0 of [3, -7]) {
+      L.fill(front + 4, v0, ys - 1, front + 9, v0 + 4, ys - 1, T.polished);
+      L.fill(front + 5, v0 + 1, ys - 2, front + 8, v0 + 3, ys - 2, T.clay);
+      L.fill(front + 5, v0 + 1, ys - 1, front + 8, v0 + 3, ys - 1, T.water);
+      L.fill(front + 5, v0 + 1, ys, front + 8, v0 + 3, ys, AIR);
+      L.set(front + 5, v0 + 2, ys - 1, T.clay);
+      L.set(front + 5, v0 + 2, ys, T.dripleaf(L.dir("u+")));
+      L.set(front + 8, v0 + 2, ys - 1, T.clay);
+      L.set(front + 8, v0 + 2, ys, T.dripleaf(L.dir("u-")));
+    }
+    // a crown of froglights around the spire
+    for (const [t, v] of [[0, -1], [0, 1], [3, -1], [3, 1]]) L.set(t, v, R + 4, froglight(th));
   }
 }
 
@@ -751,26 +1074,29 @@ function entrance(bld, origin, facing, y0, th, rng) {
 export function buildDungeon(plan, origin) {
   const th = THEMES[plan.theme];
   const [fdx, fdz] = DIRS[plan.facing];
-  const ox = origin.x + fdx * VEST_OFF, oz = origin.z + fdz * VEST_OFF;
+  const vx = origin.x + fdx * plan.vestOff, vz = origin.z + fdz * plan.vestOff;
   const y0 = origin.y - ENTRY_DEPTH;
-  const pos = (r) => ({ x: ox + r.gx * GRID, z: oz + r.gz * GRID, Y: y0 - r.f * FLOOR_H });
+  const rooms = plan.rooms.map((r) => ({ ...r, x: vx + r.cx, z: vz + r.cz, Y: y0 + r.Y }));
   const pieces = [];
   const out = { spawners: [] };
-  for (const r of plan.rooms) {
+  for (const r of rooms) {
     const bld = new Builder();
-    const p = pos(r);
-    BUILDERS[r.type](bld.frame(p.x, p.z, r.dirIn), SPECS[r.type], p.Y, makeRng(plan.seed, 100, r.id), th, r, out);
+    const L = bld.frame(r.x, r.z, r.dirIn);
+    const doors = new Set(["u-", ...r.kids.map((k) => L.local(rooms[k].dirIn))]);
+    BUILDERS[r.type]({ L, s: r.spec, Y: r.Y, rng: makeRng(plan.seed, 100, r.id), th, room: r, out, doors, tier: plan.tier });
+    // where you stand just inside the door (used by the simulation)
+    r.probe = [L.x(r.spec.u0, 0), r.Y, L.z(r.spec.u0, 0)];
+    r.box = roomBoxOf(r, r.x, r.z);
     pieces.push({ phase: 0, name: `${TYPE_NAME[r.type]} ${r.id}`, ops: bld.ops });
   }
-  for (const r of plan.rooms) {
+  for (const r of rooms) {
     if (r.parent < 0) continue;
     const bld = new Builder();
-    const a = plan.rooms[r.parent];
-    corridor(bld, a, r, pos(a), pos(r), th, makeRng(plan.seed, 200, r.id));
-    pieces.push({ phase: 1, name: `pasillo ${a.id}-${r.id}`, ops: bld.ops });
+    corridor(bld, rooms[r.parent], r, th, makeRng(plan.seed, 200, r.id));
+    pieces.push({ phase: 1, name: `pasillo ${r.parent}-${r.id}`, ops: bld.ops });
   }
   const bld = new Builder();
-  entrance(bld, origin, plan.facing, y0, th, makeRng(plan.seed, 300));
+  entrance(bld, origin, plan.facing, y0, plan.vestOff - (-rooms[0].spec.u0 + 1), plan.tier, th, makeRng(plan.seed, 300));
   pieces.push({ phase: 2, name: "entrada", ops: bld.ops });
 
   for (const p of pieces) {
@@ -785,13 +1111,13 @@ export function buildDungeon(plan, origin) {
   const all = pieces.map((p) => p.box);
   const bounds = [0, 1, 2].map((i) => Math.min(...all.map((b) => b[i])))
     .concat([3, 4, 5].map((i) => Math.max(...all.map((b) => b[i]))));
-  return { pieces, spawners: out.spawners, bounds, y0, rooms: plan.rooms.map((r) => ({ ...r, ...pos(r) })) };
+  return { pieces, spawners: out.spawners, bounds, y0, rooms };
 }
 
-// The lowest floor that still fits above minY (the bottom of the world).
+// How many floors fit above minY (the bottom of the world).
 export function maxFloorsAt(y, minY) {
   const y0 = y - ENTRY_DEPTH;
   let n = 0;
-  while (n < 4 && y0 - n * FLOOR_H - 7 > minY + 1) n++;
+  while (n < MAX_FLOORS && y0 - n * FLOOR_H - 7 > minY + 1) n++;
   return n;
 }

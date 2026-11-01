@@ -1,16 +1,17 @@
 """Builds "Mazmorras de Toba": a dungeon generator for Minecraft Bedrock.
 
 - Cetro de las Mazmorras (mazmorra:cetro): using it opens a form to choose the kind of
-  dungeon, the number of rooms (5-30), the floors (1-4), parkour rooms and a seed.
+  dungeon, the number of rooms (5-30), the floors (1-6), parkour rooms and a seed.
   The entrance appears where you stand and the dungeon goes down in the direction you look.
 - Dungeons of tuff (tuff bricks, polished, chiseled, slabs, stairs and walls) overgrown with
-  lush cave plants: moss, pale moss, azalea, cave vines with glow berries, spore blossoms,
-  big dripleaves, hanging roots, glow lichen.
-- 3x3 corridors and staircases between rooms and floors.
-- 5x5 trial spawner rooms (the spawner in the centre) that wake up when a player comes close.
-- 8x5 parkour rooms: wooden slabs hanging from chains over a pit, a chest on the far side.
-- Gardens, a treasure room with vaults and a guardian spawner, and the entrance: the
-  Portico de Toba, a roofed porch over the staircase.
+  lush cave plants: moss, pale moss, azalea, lots of cave vines with glow berries, spore
+  blossoms, big dripleaves, hanging roots, glow lichen.
+- Rooms of every size from 5x5 to 18x18, placed one by one without overlapping, going down
+  often; 3x3 corridors and staircases between them.
+- Trial spawner rooms (the spawner in the centre) that wake up when a player comes close.
+- Parkour rooms: wooden slabs hanging from chains over a pit, a chest on the far side.
+- A great hall with a giant tree, gardens, and a treasure room with vaults and a guardian spawner.
+- The entrance gets grander with the difficulty (and rarity) of the dungeon: 4 tiers.
 
 The dungeon is built by tools/mazmorras/gen.js, copied into the pack as it is;
 tools/mazmorras/simulate.mjs runs it with Node to check it and draw the preview.
@@ -34,7 +35,7 @@ BP = os.path.join(ROOT, "MazmorrasToba_BP")
 RP = os.path.join(ROOT, "MazmorrasToba_RP")
 DIST = os.path.join(ROOT, "dist")
 
-VERSION = [1, 0, 0]
+VERSION = [1, 1, 0]
 MIN_ENGINE = [1, 21, 90]
 SERVER_API = "2.0.0"
 SERVER_UI_API = "2.0.0"
@@ -70,7 +71,8 @@ CONFIG = dict(
                 ["minecraft:enchanted_golden_apple", 1, 1], ["minecraft:wind_charge", 4, 10]]),
 )
 
-PREVIEW = dict(seed=20261101, theme="ruinas", rooms=10, floors=2, facing=0)
+PREVIEW = dict(seed=20261101, theme="ruinas", rooms=12, floors=4, facing=0)
+ENTRANCES = ["Pórtico de Toba", "Pórtico Mayor", "Templo Frondoso", "Gran Santuario de Toba"]
 
 LANG = {
     "es": {
@@ -200,6 +202,7 @@ COLORS = {
     "cave_vines_head_with_berries": "#f0a52a", "cave_vines_body_with_berries": "#d99a2a", "vine": "#3f7a22",
     "lantern": "#f2c25a", "chain": "#3d4148", "chest": "#a2702e", "vault": "#4a5a60", "trial_spawner": "#c4652a",
     "ochre_froglight": "#f3e3a0", "verdant_froglight": "#d5f0c0", "pearlescent_froglight": "#f0dcef",
+    "oak_log": "#6b5132", "mangrove_roots": "#5d4530",
     "green_candle": "#4f8a30", "lime_candle": "#8ad13a", "white_candle": "#f0f0f0",
 }
 PLANTS = {"moss_carpet", "pale_moss_carpet", "pale_hanging_moss", "azalea", "flowering_azalea", "spore_blossom",
@@ -216,9 +219,9 @@ def color_of(bid):
     return hx("#ff00ff")
 
 
-def simulate(p):
+def simulate(p, tier=None):
     args = ["node", os.path.join(SRC, "simulate.mjs"), "blocks", str(p["seed"]), p["theme"], str(p["rooms"]),
-            str(p["floors"]), str(p["facing"])]
+            str(p["floors"]), str(p["facing"])] + ([str(tier)] if tier else [])
     return json.loads(subprocess.run(args, check=True, capture_output=True, text=True).stdout)
 
 
@@ -262,21 +265,35 @@ def render(blocks, s, keep=lambda x, y, z: True):
     return img.crop(bbox) if bbox else img
 
 
+def in_box(r, x, z):
+    b = r["box"]
+    return b[0] <= x <= b[3] and b[2] <= z <= b[5]
+
+
 def cutaway(sim):
     """Hide the ceilings: in every column keep only what is below the walking level + 2."""
     lowest = {}
     for x, y, z, _ in sim["blocks"]:
         k = (x, z)
         lowest[k] = min(lowest.get(k, y), y)
-    rooms = sim["rooms"]
+    cuts = {}
+    for (x, z), low in lowest.items():
+        cut = low + 3
+        for r in sim["rooms"]:
+            if in_box(r, x, z):
+                cut = r["Y"] + (13 if r["type"] == "arbol" else 2)
+                break
+        cuts[(x, z)] = cut
+    return lambda x, y, z: y <= cuts[(x, z)] and y < sim["y0"] + 8
 
-    def cut(x, z):
-        for r in rooms:
-            if abs(x - r["x"]) <= 6 and abs(z - r["z"]) <= 6:
-                return r["Y"] + 2
-        return lowest[(x, z)] + 3
 
-    return lambda x, y, z: y <= cut(x, z) and y < sim["y0"] + 8
+def close_up(sim, r, s):
+    """One room without its ceiling and without the two walls in front of the camera."""
+    b = r["box"]
+    return render(sim["blocks"], s, lambda x, y, z: b[0] <= x < b[3] and b[2] <= z < b[5] and b[1] <= y < b[4])
+
+
+ENTRANCE_BOX = lambda x, y, z: -21 <= x <= 9 and -15 <= z <= 15 and y >= 76
 
 
 def font(size):
@@ -286,33 +303,36 @@ def font(size):
         return ImageFont.load_default()
 
 
-def preview(sim):
-    main = render(sim["blocks"], 8, cutaway(sim))
-    main.thumbnail((1100, 760), Image.LANCZOS)
-    ent = render(sim["blocks"], 6, lambda x, y, z: -6 <= x <= 9 and -7 <= z <= 7 and y >= 72)
-    ent.thumbnail((420, 340), Image.LANCZOS)
-    pk = [r for r in sim["rooms"] if r["type"] == "parkour"]
-    W, H = 1560, 860
+def preview(sim, entrances):
+    W, H = 1700, 1320
     sheet = Image.new("RGBA", (W, H), hx("#0d1117"))
     d = ImageDraw.Draw(sheet)
+    white, soft = (240, 240, 240, 255), (170, 200, 160, 255)
+
+    def paste(im, cx, top, w, h):
+        im = im.copy()
+        im.thumbnail((w, h), Image.LANCZOS)
+        sheet.alpha_composite(im, (cx - im.width // 2, top + (h - im.height) // 2))
+
     counts = ", ".join(f"{n} {t}" for t, n in sim["plan"]["counts"].items())
     d.text((W // 2, 24), f"Mazmorras de Toba - {PREVIEW['rooms']} salas en {sim['plan']['floors']} pisos ({counts})",
            fill=(220, 235, 210, 255), anchor="mm", font=font(20))
-    sheet.alpha_composite(main, (20 + (1100 - main.width) // 2, 60 + (760 - main.height) // 2))
-    d.text((1340, 70), "Entrada: el Pórtico de Toba", fill=(240, 240, 240, 255), anchor="mm", font=font(16))
-    sheet.alpha_composite(ent, (1340 - ent.width // 2, 90))
-    if pk:
-        r = pk[0]
-        inside = [(x, z) for x, y, z, b in sim["blocks"] if abs(x - r["x"]) <= 6 and abs(z - r["z"]) <= 6]
-        xm, zm = max(x for x, _ in inside), max(z for _, z in inside)
-        # without the ceiling and the two walls in front of the camera
-        room = render(sim["blocks"], 16, lambda x, y, z: abs(x - r["x"]) <= 6 and abs(z - r["z"]) <= 6
-                      and y < r["Y"] + 7 and x < xm and z < zm)
-        room.thumbnail((420, 360), Image.LANCZOS)
-        d.text((1340, 460), "Sala de parkour (8x5)", fill=(240, 240, 240, 255), anchor="mm", font=font(16))
-        sheet.alpha_composite(room, (1340 - room.width // 2, 480))
-    d.text((W // 2, H - 18), "Vista sin techos generada con el mismo generador (tools/mazmorras/simulate.mjs)",
-           fill=(170, 200, 160, 255), anchor="mm", font=font(13))
+    paste(render(sim["blocks"], 8, cutaway(sim)), 590, 50, 1160, 800)
+    for k, (typ, title) in enumerate([("arbol", "Sala del gran árbol"), ("parkour", "Sala de parkour")]):
+        rooms = [r for r in sim["rooms"] if r["type"] == typ]
+        if not rooms:
+            continue
+        d.text((1440, 64 + k * 400), f"{title} ({rooms[0]['box'][3] - rooms[0]['box'][0] - 1} x "
+               f"{rooms[0]['box'][5] - rooms[0]['box'][2] - 1})", fill=white, anchor="mm", font=font(16))
+        paste(close_up(sim, rooms[0], 12), 1440, 84 + k * 400, 480, 360)
+    d.text((W // 2, 880), "Entradas según la dificultad (y la rareza) de la mazmorra", fill=(220, 235, 210, 255),
+           anchor="mm", font=font(18))
+    for k, ent in enumerate(entrances):
+        cx = 215 + k * 425
+        d.text((cx, 912), f"{k + 1}. {ENTRANCES[k]}", fill=white, anchor="mm", font=font(15))
+        paste(render(ent["blocks"], 8, ENTRANCE_BOX), cx, 930, 410, 360)
+    d.text((W // 2, H - 14), "Vistas generadas con el mismo generador (tools/mazmorras/simulate.mjs)", fill=soft,
+           anchor="mm", font=font(13))
     return sheet
 
 
@@ -349,7 +369,7 @@ def main():
     sim = None
     try:
         sim = simulate(PREVIEW)
-        ent = render(sim["blocks"], 3, lambda x, y, z: -6 <= x <= 9 and -7 <= z <= 7 and y >= 74)
+        ent = render(simulate(PREVIEW, 4)["blocks"], 3, ENTRANCE_BOX)
         ent.thumbnail((120, 112), Image.LANCZOS)
         icon.alpha_composite(ent, ((128 - ent.width) // 2, (128 - ent.height) // 2 - 4))
         icon.alpha_composite(icon16.resize((40, 40), Image.NEAREST), (86, 86))
@@ -368,7 +388,7 @@ def main():
                     z.write(full, os.path.relpath(full, ROOT))
 
     if prev and sim:
-        preview(sim).save(os.path.join(ROOT, "docs", "mazmorras_preview.png"))
+        preview(sim, [simulate(PREVIEW, t) for t in (1, 2, 3, 4)]).save(os.path.join(ROOT, "docs", "mazmorras_preview.png"))
     print("Built", ADDON_NAME, ".".join(map(str, VERSION)), "->", os.path.relpath(DIST, ROOT))
 
 

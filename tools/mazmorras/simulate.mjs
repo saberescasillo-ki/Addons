@@ -1,7 +1,7 @@
 // Runs the dungeon generator outside the game.
 //   node simulate.mjs blocks <seed> <theme> <rooms> <floors> <facing>  -> JSON with the plan and the blocks
 //   node simulate.mjs check <runs>                                     -> checks many random dungeons
-import { buildDungeon, planDungeon, THEME_KEYS, ENTRY_DEPTH } from "./gen.js";
+import { buildDungeon, planDungeon, THEME_KEYS } from "./gen.js";
 
 const ORIGIN = { x: 0, y: 80, z: 0 };
 
@@ -59,38 +59,48 @@ function reachable(map, start, targets) {
 
 const [mode, ...args] = process.argv.slice(2);
 if (mode === "blocks") {
-  const [seed, theme, rooms, floors, facing] = args;
+  const [seed, theme, rooms, floors, facing, tier] = args;
   const plan = planDungeon({ seed: Number(seed), theme, rooms: Number(rooms), floors: Number(floors), facing: Number(facing) });
+  if (tier) plan.tier = Number(tier); // to draw every kind of entrance
   const built = buildDungeon(plan, ORIGIN);
   const map = voxels(built.pieces);
   const blocks = [];
   for (const [k, id] of map) blocks.push([...k.split(",").map(Number), id]);
   process.stdout.write(JSON.stringify({
     plan: { counts: plan.counts, floors: plan.floorsUsed, theme: plan.theme },
-    rooms: built.rooms.map((r) => ({ id: r.id, type: r.type, x: r.x, z: r.z, Y: r.Y, f: r.f })),
+    rooms: built.rooms.map((r) => ({ id: r.id, type: r.type, x: r.x, z: r.z, Y: r.Y, f: r.f, box: r.box })),
+    tier: plan.tier,
     spawners: built.spawners, bounds: built.bounds, y0: built.y0, ops: built.pieces.reduce((a, p) => a + p.ops.length, 0),
     blocks,
   }));
 } else if (mode === "check") {
   const runs = Number(args[0] ?? 50);
   const errors = [];
-  let ops = 0, maxOps = 0;
+  let ops = 0, maxOps = 0, missing = 0;
+  const tiers = [0, 0, 0, 0, 0], floorsHist = {}, sizes = new Set(), types = {};
   for (let i = 0; i < runs; i++) {
     const theme = THEME_KEYS[i % THEME_KEYS.length];
-    const rooms = 5 + (i * 7) % 26, floors = 1 + (i % 4), facing = i % 4;
+    const rooms = 5 + (i * 7) % 26, floors = 1 + (i % 6), facing = i % 4;
     const plan = planDungeon({ seed: 1000 + i, theme, rooms, floors, facing });
     const built = buildDungeon(plan, ORIGIN);
     const n = built.pieces.reduce((a, p) => a + p.ops.length, 0);
     ops += n;
     maxOps = Math.max(maxOps, n);
-    if (plan.rooms.length !== rooms + 1) errors.push(`${i}: ${plan.rooms.length - 1} salas de ${rooms}`);
+    tiers[plan.tier]++;
+    floorsHist[`${floors}->${plan.floorsUsed}`] = (floorsHist[`${floors}->${plan.floorsUsed}`] ?? 0) + 1;
+    missing += rooms - (plan.rooms.length - 1);
+    for (const r of built.rooms) {
+      sizes.add(`${r.spec.L}x${r.spec.W}`);
+      types[r.type] = (types[r.type] ?? 0) + 1;
+    }
+    for (const a of built.rooms)
+      for (const b of built.rooms)
+        if (a.id < b.id && a.box[0] <= b.box[3] && b.box[0] <= a.box[3] && a.box[1] <= b.box[4] && b.box[1] <= a.box[4] &&
+          a.box[2] <= b.box[5] && b.box[2] <= a.box[5]) errors.push(`${i}: salas ${a.id} y ${b.id} se solapan`);
     const map = voxels(built.pieces);
-    // targets: the floor in front of each room's centre (spawner rooms: next to the spawner)
-    const targets = built.rooms.map((r) => [r.x + (r.type === "spawner" ? 1 : 0), r.Y, r.z + (r.type === "spawner" ? 1 : 0)]);
-    // parkour rooms: the chest ledge is the goal; test only the door ledge on foot
-    const lost = reachable(map, [ORIGIN.x, ORIGIN.y, ORIGIN.z], targets.filter((_, k) => built.rooms[k].type !== "parkour"));
+    const lost = reachable(map, [ORIGIN.x, ORIGIN.y, ORIGIN.z], built.rooms.map((r) => r.probe));
     if (lost.length) errors.push(`${i} (${theme}, ${rooms} salas, ${floors} pisos): inalcanzables ${JSON.stringify(lost)}`);
-    if (built.y0 !== ORIGIN.y - ENTRY_DEPTH) errors.push("y0");
   }
-  console.log(JSON.stringify({ runs, avgOps: Math.round(ops / runs), maxOps, errors: errors.slice(0, 15), nErrors: errors.length }, null, 1));
+  console.log(JSON.stringify({ runs, avgOps: Math.round(ops / runs), maxOps, missingRooms: missing, tiers, floorsHist,
+    types, distinctSizes: sizes.size, errors: errors.slice(0, 15), nErrors: errors.length }, null, 1));
 }

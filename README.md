@@ -21,7 +21,7 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 
 # Mazmorras de Toba
 
-![Mazmorra de 10 salas en 2 pisos, sin techos](docs/mazmorras_preview.png)
+![Mazmorra de 12 salas en 4 pisos, sin techos, y las 4 entradas](docs/mazmorras_preview.png)
 
 Genera mazmorras de **toba volcánica** invadidas por plantas de las **cuevas frondosas**, con un objeto.
 
@@ -30,36 +30,48 @@ o con `/give @s mazmorra:cetro`. Úsalo (clic derecho) y se abre un formulario:
 
 | Opción | Valores |
 |---|---|
-| Tipo de mazmorra | **Ruinas Frondosas** (equilibrada), **Cripta de Toba** (más generadores, musgo pálido, menos luz), **Jardín Colgante** (muy frondosa, más parkour) |
+| Tipo de mazmorra | **Ruinas Frondosas** (equilibrada), **Cripta de Toba** (difícil: más generadores, musgo pálido, baja más), **Jardín Colgante** (muy frondosa, más parkour) |
 | Número de salas | **5 a 30** (10 por defecto) |
-| Pisos | 1 a 4 como máximo (se reparten al azar; menos si estás muy abajo) |
+| Pisos | 1 a 6 como máximo (4 por defecto; menos si estás muy abajo) |
 | Salas de parkour | sí / no |
 | Semilla | opcional: la misma semilla, tipo y salas dan la misma mazmorra |
 
-Después te muestra un resumen (cuántas salas de cada tipo, pisos, tamaño de la zona) y pide confirmar.
-**La entrada aparece donde estás** y la mazmorra baja **hacia donde miras**. Todo lo que haya bajo tierra en esa
-zona se reemplaza. Tarda unos segundos; el progreso sale encima de la barra de objetos.
+Después te muestra un resumen (salas de cada tipo, pisos, qué entrada tendrá y su dificultad, tamaño de la zona) y
+pide confirmar. **La entrada aparece donde estás** y la mazmorra baja **hacia donde miras**. Todo lo que haya bajo
+tierra en esa zona se reemplaza. Tarda unos segundos; el progreso sale encima de la barra de objetos.
 
-- **Entrada – el Pórtico de Toba:** un porche de toba con cuatro pilares, arcos de losas, tejado en tres
-  niveles con aleros, musgo y azaleas creciendo encima, enredaderas con bayas luminosas colgando de los aleros y
-  faroles con cadenas. En medio, una escalera de 3x3 con barandillas baja 16 bloques hasta el **vestíbulo**.
-- **Pasillos y escaleras de 3x3**, con vigas de losas, luces de ranaluz en las paredes, musgo, alfombras de musgo,
-  líquenes y enredaderas. Las escaleras unen salas de pisos distintos (10 bloques entre piso y piso).
-- **Salas de generador (5x5):** un **generador de desafío** en el centro. Al acercarte (6 bloques) se activa y
-  saca enemigos por oleadas (6, +2 por cada jugador extra; 3 a la vez). Al matarlos todos suelta su
-  recompensa (siempre una **llave de desafío**) y descansa **30 minutos**. Si todos os vais, se duerme otra vez y
-  se lleva sus mobs. Cada sala tiene una familia: zombis, esqueletos/pantanosos, arañas, slimes, lepismas o
+- **Salas de todos los tamaños:** cada sala mide entre **5x5 y 18x18** (largo y ancho por separado) y su altura
+  crece con el tamaño. Se colocan una a una junto a otra sala, sin chocar nunca, y la mazmorra **tiende a bajar**:
+  la mitad de las salas nuevas salen del piso más profundo alcanzado, y muchas bajan otro piso más.
+- **Pasillos y escaleras de 3x3**, con vigas de losas, luces de ranaluz, musgo, líquenes y muchas **bayas
+  luminosas** colgando. Las escaleras unen pisos (10 bloques entre piso y piso).
+- **Salas de generador (5x5 a 18x18):** un **generador de desafío** en el centro; las grandes tienen pilares.
+  Se activa solo cuando un jugador se acerca a 6 bloques (sus llamas cambian y suena), sin mensajes ni contador:
+  saca enemigos por oleadas (6, +2 por jugador extra, más cuanto mayor es la sala y más difícil la mazmorra). Al
+  acabar con todos suelta su recompensa (siempre una **llave de desafío**) y descansa **30 minutos**. Si todos os
+  vais, se duerme y se lleva sus mobs. Familias: zombis, esqueletos/pantanosos, arañas, **ahogados**, lepismas o
   breezes (solo a partir del segundo piso).
-- **Salas de parkour (8x5):** más largas, sobre un foso con agua. **Losas de madera colgando del techo con
-  cadenas** llevan al otro lado, donde hay un **cofre con recompensas** en una repisa elevada. Si caes, el agua
-  amortigua y hay enredaderas para volver a subir. Siempre son salas sin salida.
-- **Jardines (7x7):** suelo de musgo, estanque en cruz, plantaformas grandes, azaleas, flor de esporas y a veces
-  un cofre con provisiones.
-- **Sala del tesoro (9x9):** la sala más profunda. Un **generador ominoso** guardián (más mobs, suelta una llave
-  ominosa), y al fondo una tarima con el cofre del tesoro entre una **bóveda** y una **bóveda ominosa**.
-- Bloques: toba, toba pulida, ladrillos de toba, toba cincelada y sus losas, escaleras y muros; musgo, musgo
-  pálido, tierra enraizada, arcilla, azaleas, enredaderas con bayas luminosas, raíces colgantes, liquen
-  luminoso, musgo pálido colgante, plantaformas grandes y ranaluces.
+- **Salas de parkour (8 a 16 de largo, 5 a 7 de ancho):** **losas de madera colgando del techo con cadenas** sobre
+  un foso con agua, cambiando de carril y subiendo de altura, y al otro lado un **cofre con recompensas**. Si caes,
+  el agua amortigua y hay enredaderas para volver a subir. Siempre son salas sin salida.
+- **Sala del gran árbol (16x16 a 18x18, 16 de alto):** una por mazmorra (desde 6 salas y 2 pisos), en un piso
+  inferior. Un árbol gigante de tronco 2x2 con raíces, ramas y copa de hojas de azalea floridas, con **bayas
+  luminosas** colgando de la copa, césped, helechos, arbustos, estanques con plantaformas, flores de esporas y un
+  cofre de ofrendas al pie del tronco.
+- **Jardines (7x7 a 15x15):** suelo de musgo, estanque, plantaformas grandes, azaleas, flores de esporas, techo
+  lleno de bayas luminosas y a veces un cofre con provisiones.
+- **Sala del tesoro (9x9 a 15x15):** la sala más profunda. Un **generador ominoso** guardián y al fondo una tarima
+  con el cofre del tesoro entre una **bóveda** y una **bóveda ominosa**.
+
+**Entradas:** cuanto más difícil es la mazmorra (más salas, más pisos, Cripta > Jardín > Ruinas), más majestuosa
+es su entrada. Además, el 12 % de las mazmorras son **raras** y suben un nivel de entrada.
+
+| Nivel | Entrada |
+|---|---|
+| 1 | **Pórtico de Toba:** porche de cuatro pilares con tejado de tres niveles, musgo, azaleas y bayas colgando, sobre la escalera de 3x3 que baja 16 bloques al vestíbulo. |
+| 2 | **Pórtico Mayor:** además, un patio empedrado delante con muretes, obeliscos con faroles y jardineras de azalea. |
+| 3 | **Templo Frondoso:** patio más grande, porche más alto con columnata, aguja en el tejado, obeliscos altos y dos árboles de azalea a los lados. |
+| 4 | **Gran Santuario de Toba:** todo lo anterior más una gran puerta de 9 bloques con cortina de bayas luminosas, dos estanques con plantaformas, árboles más grandes y una corona de ranaluces en la aguja. |
 
 Notas:
 - El generador de desafío de vanilla solo funciona con datos que los scripts no pueden poner, así que el addon
@@ -67,10 +79,11 @@ Notas:
   Si rompes el generador, deja de funcionar.
 - Para generar lejos de los jugadores el addon crea una zona de carga temporal (`/tickingarea`) por cada trozo
   de unos 80x80 bloques y la quita al acabar. Necesita que haya hueco (máximo 10 zonas en el mundo).
+- Si no caben todas las salas pedidas (muy raro), el resumen lo dice.
 - Solo se puede generar una mazmorra a la vez.
 - El generador está en `tools/mazmorras/gen.js` y se copia tal cual al pack; `CONFIG` en `tools/mazmorras.py`
-  cambia los tiempos, número de mobs y recompensas de los generadores. `node tools/mazmorras/simulate.mjs check 60`
-  genera 60 mazmorras al azar y comprueba que se puede llegar andando a todas las salas.
+  cambia los tiempos, número de mobs y recompensas de los generadores. `node tools/mazmorras/simulate.mjs check 90`
+  genera 90 mazmorras al azar y comprueba que ninguna sala se solapa y que se llega andando a todas.
 
 ---
 
