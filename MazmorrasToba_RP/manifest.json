@@ -1,0 +1,39 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Mazmorras de Toba",
+    "description": "Texturas de Mazmorras de Toba.",
+    "uuid": "881065c8-240f-4e5e-8f33-8f855ebaea4d",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      90
+    ]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "24fdaea4-d89a-43b5-869a-9f1d444b7ce7",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "012e9dff-6bcd-42ef-8866-3db4d33b8a65",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ]
+}

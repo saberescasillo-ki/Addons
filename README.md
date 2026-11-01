@@ -7,14 +7,70 @@
 | **Ruleta de Colores** – ruleta en el HUD con comandos de administrador | [`dist/Roulette.mcaddon`](dist/Roulette.mcaddon) | `tools/roulette.py` |
 | **Objetos de Ayuda** – 4 objetos especiales que ayudan al jugador | [`dist/HelperItems.mcaddon`](dist/HelperItems.mcaddon) | `tools/helper_items.py` |
 | **The LITIUS Blind** – nueva dimensión de islas flotantes | [`dist/LitiusBlind.mcaddon`](dist/LitiusBlind.mcaddon) | `tools/litius_blind.py` |
+| **Mazmorras de Toba** – generador de mazmorras con un objeto | [`dist/MazmorrasToba.mcaddon`](dist/MazmorrasToba.mcaddon) | `tools/mazmorras.py` |
 
 Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo. No hace falta activar experimentos
 (salvo en The LITIUS Blind, ver abajo).
 
 - The Revamp of the Soul requiere Minecraft Bedrock **1.26.0** o superior.
 - Medieval Mobs requiere **1.21.0** o superior.
-- Ruleta de Colores y Objetos de Ayuda requieren **1.21.90** o superior.
+- Ruleta de Colores, Objetos de Ayuda y Mazmorras de Toba requieren **1.21.90** o superior.
 - The LITIUS Blind requiere **26.20** o superior y el experimento **Beta APIs**.
+
+---
+
+# Mazmorras de Toba
+
+![Mazmorra de 10 salas en 2 pisos, sin techos](docs/mazmorras_preview.png)
+
+Genera mazmorras de **toba volcánica** invadidas por plantas de las **cuevas frondosas**, con un objeto.
+
+**Cómo usarlo:** coge el **Cetro de las Mazmorras** (`mazmorra:cetro`) del inventario creativo (pestaña de equipo)
+o con `/give @s mazmorra:cetro`. Úsalo (clic derecho) y se abre un formulario:
+
+| Opción | Valores |
+|---|---|
+| Tipo de mazmorra | **Ruinas Frondosas** (equilibrada), **Cripta de Toba** (más generadores, musgo pálido, menos luz), **Jardín Colgante** (muy frondosa, más parkour) |
+| Número de salas | **5 a 30** (10 por defecto) |
+| Pisos | 1 a 4 como máximo (se reparten al azar; menos si estás muy abajo) |
+| Salas de parkour | sí / no |
+| Semilla | opcional: la misma semilla, tipo y salas dan la misma mazmorra |
+
+Después te muestra un resumen (cuántas salas de cada tipo, pisos, tamaño de la zona) y pide confirmar.
+**La entrada aparece donde estás** y la mazmorra baja **hacia donde miras**. Todo lo que haya bajo tierra en esa
+zona se reemplaza. Tarda unos segundos; el progreso sale encima de la barra de objetos.
+
+- **Entrada – el Pórtico de Toba:** un porche de toba con cuatro pilares, arcos de losas, tejado en tres
+  niveles con aleros, musgo y azaleas creciendo encima, enredaderas con bayas luminosas colgando de los aleros y
+  faroles con cadenas. En medio, una escalera de 3x3 con barandillas baja 16 bloques hasta el **vestíbulo**.
+- **Pasillos y escaleras de 3x3**, con vigas de losas, luces de ranaluz en las paredes, musgo, alfombras de musgo,
+  líquenes y enredaderas. Las escaleras unen salas de pisos distintos (10 bloques entre piso y piso).
+- **Salas de generador (5x5):** un **generador de desafío** en el centro. Al acercarte (6 bloques) se activa y
+  saca enemigos por oleadas (6, +2 por cada jugador extra; 3 a la vez). Al matarlos todos suelta su
+  recompensa (siempre una **llave de desafío**) y descansa **30 minutos**. Si todos os vais, se duerme otra vez y
+  se lleva sus mobs. Cada sala tiene una familia: zombis, esqueletos/pantanosos, arañas, slimes, lepismas o
+  breezes (solo a partir del segundo piso).
+- **Salas de parkour (8x5):** más largas, sobre un foso con agua. **Losas de madera colgando del techo con
+  cadenas** llevan al otro lado, donde hay un **cofre con recompensas** en una repisa elevada. Si caes, el agua
+  amortigua y hay enredaderas para volver a subir. Siempre son salas sin salida.
+- **Jardines (7x7):** suelo de musgo, estanque en cruz, plantaformas grandes, azaleas, flor de esporas y a veces
+  un cofre con provisiones.
+- **Sala del tesoro (9x9):** la sala más profunda. Un **generador ominoso** guardián (más mobs, suelta una llave
+  ominosa), y al fondo una tarima con el cofre del tesoro entre una **bóveda** y una **bóveda ominosa**.
+- Bloques: toba, toba pulida, ladrillos de toba, toba cincelada y sus losas, escaleras y muros; musgo, musgo
+  pálido, tierra enraizada, arcilla, azaleas, enredaderas con bayas luminosas, raíces colgantes, liquen
+  luminoso, musgo pálido colgante, plantaformas grandes y ranaluces.
+
+Notas:
+- El generador de desafío de vanilla solo funciona con datos que los scripts no pueden poner, así que el addon
+  lo controla él mismo (el bloque cambia de estado: esperando, activo, soltando recompensa, enfriamiento).
+  Si rompes el generador, deja de funcionar.
+- Para generar lejos de los jugadores el addon crea una zona de carga temporal (`/tickingarea`) por cada trozo
+  de unos 80x80 bloques y la quita al acabar. Necesita que haya hueco (máximo 10 zonas en el mundo).
+- Solo se puede generar una mazmorra a la vez.
+- El generador está en `tools/mazmorras/gen.js` y se copia tal cual al pack; `CONFIG` en `tools/mazmorras.py`
+  cambia los tiempos, número de mobs y recompensas de los generadores. `node tools/mazmorras/simulate.mjs check 60`
+  genera 60 mazmorras al azar y comprueba que se puede llegar andando a todas las salas.
 
 ---
 
