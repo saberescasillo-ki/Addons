@@ -26,6 +26,8 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 
 ![Mazmorra abisal de 10 salas en 3 pisos: cuevas, una sima cortada por la mitad, parkour de lava y la entrada](docs/mazmorras_abismo_preview.png)
 
+![Entrada de cueva: la gran sala natural de cada clase, cortada por la mitad](docs/mazmorras_cueva_preview.png)
+
 Genera mazmorras con un objeto: de **toba volcánica** invadidas por plantas de las **cuevas frondosas**, o
 **abisales**, cuevas enormes de **pizarra profunda** casi a oscuras. Todos sus bloques son **indestructibles**.
 
@@ -37,6 +39,7 @@ o con `/give @s mazmorra:cetro`. Úsalo (clic derecho) y se abre un formulario:
 | Tipo de mazmorra | **Ruinas Frondosas** (equilibrada), **Cripta de Toba** (difícil: más generadores, musgo pálido, baja más), **Jardín Colgante** (muy frondosa, más parkour), **Mazmorras Abisales** (muy difícil, ver abajo) |
 | Número de salas | **5 a 30** (10 por defecto) |
 | Pisos | 1 a 6 como máximo (4 por defecto; menos si estás muy abajo) |
+| Entrada | **Normal** (estructura en la superficie y escalera) o **Cueva** (sin entrada, ver abajo) |
 | Salas de parkour | sí / no |
 | Semilla | opcional: la misma semilla, tipo y salas dan la misma mazmorra |
 
@@ -50,15 +53,17 @@ encima de la barra de objetos.
 Cada bloque que usan las mazmorras tiene una **copia indestructible** (`mazmorra:<nombre>`, 72 en total): misma
 textura que el vanilla, pero no se puede minar ni la rompen las explosiones (en creativo sí se puede quitar). Las
 plantas y lo que cuelga (bayas luminosas, raíces, musgo pálido, flores de esporas) no necesitan soporte, así que **ya
-no se rompen al generarse**. Las escaleras tienen dos cajas de colisión: se suben andando como las normales.
+no se rompen al generarse**. Las escaleras tienen dos cajas de colisión: se suben andando como las normales. Son un único modelo girado con
+`minecraft:transformation`, que gira también la colisión, así que lo que ves y lo que pisas siempre coincide. Las
+losas, escaleras y muros no dejan pasar la luz.
 
 En el inventario creativo están en **cuatro grupos desplegables** (con la flechita): *Toba indestructible*,
 *Abismo indestructible*, *Luces y adornos indestructibles* (pestaña de construcción) y *Plantas indestructibles*
 (pestaña de naturaleza).
 
 Siguen siendo vanilla los bloques que tienen que funcionar: **cofres, bóvedas, generadores de desafío, enredaderas**
-(para trepar), agua y lava. Dentro de una mazmorra el addon impide que un jugador en supervivencia rompa cofres,
-bóvedas, generadores y enredaderas, y que las explosiones rompan cualquier bloque de la mazmorra.
+(para trepar), el **marco del tótem**, agua y lava. Dentro de una mazmorra el addon impide que un jugador en supervivencia rompa cofres,
+bóvedas, generadores, enredaderas y el marco del tótem, y que las explosiones rompan cualquier bloque de la mazmorra.
 
 **Barreras:** en la mitad de cada pasillo **sin escaleras** hay una barrera de **rejillas de cobre** que cierra el
 paso. Esas rejillas son normales a propósito: hay que **picarlas** para pasar (las de las pasarelas abisales sí
@@ -83,8 +88,23 @@ son indestructibles).
   volver a subir.
 - **Sala del gran árbol (16x16 a 18x18, 16 de alto):** un árbol gigante con raíces, ramas, copa de azalea florida y
   bayas luminosas colgando, estanques con plantaformas y un cofre de ofrendas al pie del tronco.
+- **Torre del Tótem (20 de largo, 40 de alto):** una por mazmorra (desde 6 salas). Entras arriba y abajo del todo
+  hay **lava**. Un parkour de **cornisas en las paredes** (losas sobre escaleras invertidas) y **losas colgadas de
+  cadenas** da vueltas a la torre mientras baja, hasta un **altar majestuoso** sobre un pedestal que sale de la
+  lava: escalinata, tarima de ladrillos cincelados, pilares con velas, azaleas, dos faroles colgados de cadenas
+  larguísimas y, en la pared del fondo, un **marco luminoso con un tótem de la inmortalidad**. Todos los saltos se
+  pueden hacer de vuelta (como mucho un bloque hacia arriba), así que se sale por donde se entró.
 - **Jardines (7x7 a 15x15)** y **sala del tesoro (9x9 a 15x15)** con un **generador ominoso** guardián, el cofre del
   tesoro y una **bóveda** y una **bóveda ominosa**.
+
+**Entrada de cueva** (las dos clases de mazmorra): no hay nada en la superficie. La mazmorra empieza en una **gran
+sala natural**, más grande que todas las demás (20 a 26 bloques en toba, 34 a 38 en las abisales), con forma de
+cueva y sin muros alrededor: se junta con la piedra y las cuevas del terreno. Sus bloques hacen un **degradado**:
+en el borde piedra, andesita, diorita, granito y piedra labrada (o pizarra profunda y toba si está bajo y=0) y,
+hacia el centro, los materiales de la mazmorra (toba con musgo, bayas, plantaformas y flores de esporas; o
+pizarra profunda con picos). De su parte trasera salen 2 o 3 **túneles** sinuosos que suben y se meten en la piedra
+(acaban ciegos o se cruzan con cuevas). Se genera **donde estás**: si estás demasiado cerca de la superficie, la
+sala se hunde lo necesario (el resumen dice cuántos bloques). Esa piedra natural es normal (se puede picar).
 
 **Entradas:** cuanto más difícil es la mazmorra (más salas, más pisos, Cripta > Jardín > Ruinas), más majestuosa
 es su entrada. Además, el 12 % de las mazmorras son **raras** y suben un nivel de entrada.
@@ -100,7 +120,8 @@ es su entrada. Además, el 12 % de las mazmorras son **raras** y suben un nivel 
 
 Son las más ambiciosas: **cuevas** de pizarra profunda (labrada, pulida, ladrillos, baldosas, agrietada, cincelada),
 basalto liso y toba, con **casi ninguna luz** (un farol de almas en algunas salas, algún liquen y vetas de obsidiana
-llorosa). Dificultad alta: la entrada siempre es grandiosa.
+llorosa; algo más de luz que en la versión anterior: un farol de almas en cada sala y más liquen). Dificultad
+alta: la entrada siempre es grandiosa.
 
 - **Salas de 20x20 a 32x32**, con forma de cueva: paredes irregulares, techos en bóveda, **suelos en relieve hechos
   con losas** (cada escalón es medio bloque), **escaleras al pie de las paredes y escaleras invertidas bajo el techo**,
@@ -130,7 +151,7 @@ Notas:
   de desafío de las mazmorras (solo los que están en zonas cargadas: mira si hay un jugador cerca, saca mobs,
   suelta recompensas y cuenta el descanso). Además escucha cuando alguien usa el cetro y, para la protección,
   cuando un jugador rompe un bloque o algo explota (comprueba si es dentro de una mazmorra). No usa comandos salvo
-  `/tickingarea` mientras genera. Los generadores y las zonas de las mazmorras se guardan en el mundo.
+  `/tickingarea` mientras genera (y coloca la estructura del tótem). Los generadores y las zonas de las mazmorras se guardan en el mundo.
 - El generador de desafío de vanilla solo funciona con datos que los scripts no pueden poner, así que el addon
   lo controla él mismo (el bloque cambia de estado: esperando, activo, soltando recompensa, enfriamiento).
   Dentro de la mazmorra solo se puede romper en creativo; si lo rompes, deja de funcionar.
@@ -138,6 +159,8 @@ Notas:
   de unos 80x80 bloques y la quita al acabar. Necesita que haya hueco (máximo 10 zonas en el mundo).
 - Si no caben todas las salas pedidas (muy raro), el resumen lo dice.
 - Solo se puede generar una mazmorra a la vez.
+- El marco con el tótem es una estructura del pack (`structures/mazmorra/totem_*.mcstructure`, escrita por
+  `tools/mcstructure.py`): un script no puede meter un objeto en un marco, una estructura sí.
 - El generador está en `tools/mazmorras/gen.js` y se copia tal cual al pack; `CONFIG` en `tools/mazmorras.py`
   cambia los tiempos, número de mobs y recompensas de los generadores. `node tools/mazmorras/simulate.mjs check 90`
   genera 90 mazmorras al azar (de los 4 tipos) y comprueba que ninguna sala se solapa y que se llega andando a todas.

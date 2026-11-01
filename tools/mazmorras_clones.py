@@ -17,7 +17,9 @@ import os
 
 NS = "mazmorra"
 FORMAT = "1.26.0"          # several collision boxes per block (stairs) need 1.26.0
-KEEP_VANILLA = {"air", "water", "lava", "chest", "vault", "trial_spawner", "vine", "waxed_copper_grate"}
+KEEP_VANILLA = {"air", "water", "lava", "chest", "vault", "trial_spawner", "vine", "waxed_copper_grate", "glow_frame",
+                # the natural stone around the hall of a cave-entrance dungeon: it is part of the terrain
+                "stone", "andesite", "cobblestone", "diorite", "granite"}
 
 TB = "textures/blocks/"
 DS = TB + "deepslate/"
@@ -209,8 +211,9 @@ def candle_spots():
 
 GEOMETRIES = {
     "slab": geo("slab", [bone("bottom", [cube(-8, 0, -8, 16, 8, 16)]), bone("top", [cube(-8, 8, -8, 16, 8, 16)])]),
-    "stairs": geo("stairs", [bone(f"{h}_{d}", [cube(*b) for b in stair_boxes(d, h)])
-                             for d in DIRS for h in ("bottom", "top")]),
+    # one stair facing north; the other directions are the same model turned by minecraft:transformation,
+    # which turns the collision boxes too (so what you see and what you walk on always match)
+    "stairs": geo("stairs", [bone(h, [cube(*b) for b in stair_boxes("north", h)]) for h in ("bottom", "top")]),
     "wall": geo("wall", [bone("post", [cube(-4, 0, -4, 8, 16, 8)])]),
     "carpet": geo("carpet", [bone("carpet", [cube(-8, 0, -8, 16, 1, 16)])]),
     "lichen": geo("lichen", [bone("lichen", [cube(-8, 15.9, -8, 16, 0, 16, only=("down", "up"))])]),
@@ -280,6 +283,8 @@ def block(name):
             return out
         return {"*": {"texture": key(name), "render_method": render, **extra}}
 
+    if kind in ("cube", "axis"):
+        comps["minecraft:light_dampening"] = 15
     if kind in ("cube", "axis", "glass", "leaves"):
         render = {"cube": "opaque", "axis": "opaque", "glass": "alpha_test_single_sided", "leaves": "alpha_test_to_opaque"}[kind]
         comps["minecraft:geometry"] = "minecraft:geometry.full_block"
@@ -302,7 +307,7 @@ def block(name):
             "bottom": "q.block_state('minecraft:vertical_half') == 'bottom'",
             "top": "q.block_state('minecraft:vertical_half') == 'top'"}}
         comps["minecraft:material_instances"] = mats("opaque")
-        comps["minecraft:light_dampening"] = 0
+        comps["minecraft:light_dampening"] = 15  # no light through floors, ceilings and ledges of slabs
         for half, y in (("bottom", 0), ("top", 8)):
             perms.append({"condition": f"q.block_state('minecraft:vertical_half') == '{half}'", "components": {
                 "minecraft:collision_box": box(-8, y, -8, 16, 8, 16), "minecraft:selection_box": box(-8, y, -8, 16, 8, 16)}})
@@ -310,19 +315,21 @@ def block(name):
         desc["traits"] = {"minecraft:placement_direction": {"enabled_states": ["minecraft:cardinal_direction"]},
                           "minecraft:placement_position": {"enabled_states": ["minecraft:vertical_half"]}}
         comps["minecraft:geometry"] = {"identifier": f"geometry.{NS}.stairs", "bone_visibility": {
-            f"{h}_{d}": f"q.block_state('minecraft:cardinal_direction') == '{d}' && q.block_state('minecraft:vertical_half') == '{h}'"
-            for d in DIRS for h in ("bottom", "top")}}
+            h: f"q.block_state('minecraft:vertical_half') == '{h}'" for h in ("bottom", "top")}}
         comps["minecraft:material_instances"] = mats("opaque")
-        comps["minecraft:light_dampening"] = 0
+        comps["minecraft:light_dampening"] = 15
+        # the official rotations for minecraft:cardinal_direction
+        yaw = {"north": 0, "west": 90, "south": 180, "east": -90}
         for d in DIRS:
             for h in ("bottom", "top"):
                 perms.append({
                     "condition": f"q.block_state('minecraft:cardinal_direction') == '{d}' && q.block_state('minecraft:vertical_half') == '{h}'",
-                    "components": {"minecraft:collision_box": [box(*b) for b in stair_boxes(d, h)]}})
+                    "components": {"minecraft:transformation": {"rotation": [0, yaw[d], 0]},
+                                   "minecraft:collision_box": [box(*b) for b in stair_boxes("north", h)]}})
     elif kind in ("wall", "carpet"):
         comps["minecraft:geometry"] = f"geometry.{NS}.{kind}"
         comps["minecraft:material_instances"] = mats("opaque")
-        comps["minecraft:light_dampening"] = 0
+        comps["minecraft:light_dampening"] = 15 if kind == "wall" else 0
         shape = box(-4, 0, -4, 8, 16, 8) if kind == "wall" else box(-8, 0, -8, 16, 1, 16)
         comps["minecraft:collision_box"] = shape
         comps["minecraft:selection_box"] = shape

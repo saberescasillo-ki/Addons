@@ -22,6 +22,7 @@ function resolveOne(b) {
 // states translated; if a copy cannot be resolved, the vanilla block is used.
 const CARD = ["east", "west", "south", "north"];
 function cloneOf(block) {
+  if (typeof block !== "string" && block.vanilla) return null; // the natural stone around a cave hall
   const id = typeof block === "string" ? block : block.id;
   const c = CFG.clones[id];
   if (!c) return null;
@@ -62,6 +63,11 @@ function apply(dim, op) {
     if (!p) return;
     if (x1 === x2 && y1 === y2 && z1 === z2) dim.getBlock({ x: x1, y: y1, z: z1 })?.setPermutation(p);
     else dim.fillBlocks(new BlockVolume({ x: x1, y: y1, z: z1 }, { x: x2, y: y2, z: z2 }), p);
+    return;
+  }
+  if (op[0] === "t") {
+    // a structure of the pack: the item frame with the totem
+    world.structureManager.place(op[4], dim, { x: op[1], y: op[2], z: op[3] });
     return;
   }
   const [, x, y, z, b, items] = op;
@@ -223,18 +229,34 @@ async function openMenu(player) {
   const form = new ModalFormData()
     .title("Generador de Mazmorras")
     .dropdown("§2Mazmorras de toba y cuevas frondosas, o del abismo.§r\n\nTipo de mazmorra", names, { defaultValueIndex: 0 })
+    .dropdown("Entrada", ["Normal §7(estructura en la superficie y escalera)",
+      "Cueva §7(sin entrada: una gran sala natural aquí abajo, unida a las cuevas)"], { defaultValueIndex: 0 })
     .slider("Número de salas", CFG.minRooms, CFG.maxRooms, { valueStep: 1, defaultValue: CFG.defaultRooms })
     .slider("Pisos (como máximo)", 1, MAX_FLOORS, { valueStep: 1, defaultValue: 4 })
     .toggle("Salas de parkour", { defaultValue: true })
     .textField("Semilla (opcional)", "aleatoria");
   const res = await showForm(player, form);
   if (res.canceled || !res.formValues) return;
-  const [ti, rooms, floorsWanted, parkour, seedText] = res.formValues;
+  const [ti, ei, rooms, floorsWanted, parkour, seedText] = res.formValues;
   const loc = player.location;
   const origin = { x: Math.floor(loc.x), y: Math.floor(loc.y), z: Math.floor(loc.z) };
   const dim = player.dimension;
   const theme = THEME_KEYS[Number(ti)] ?? THEME_KEYS[0];
-  const maxFloors = maxFloorsAt(origin.y, dim.heightRange.min, theme);
+  const cave = Number(ei) === 1;
+  let sunk = 0;
+  if (cave) {
+    // the hall goes where the player stands, but always well under the surface: it has no entrance
+    let top = origin.y;
+    try {
+      top = dim.getTopmostBlock({ x: origin.x, z: origin.z })?.y ?? origin.y;
+    } catch {}
+    const need = (THEMES[theme].style === "abismo" ? 16 : 12) + 10;
+    if (top - origin.y < need) {
+      sunk = need - (top - origin.y);
+      origin.y -= sunk;
+    }
+  }
+  const maxFloors = maxFloorsAt(origin.y, dim.heightRange.min, theme, cave);
   if (maxFloors < 1) {
     player.sendMessage(`${TAG}§cEstás demasiado abajo: sube un poco para generar la mazmorra.`);
     return;
@@ -248,7 +270,9 @@ async function openMenu(player) {
   let seed = Number.parseInt(text, 10);
   if (!Number.isFinite(seed)) seed = text ? [...text].reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0)) | 0, 7) : Math.floor(Math.random() * 2147483647);
   const facing = facingOf(player);
-  const plan = planDungeon({ seed, theme, rooms: Number(rooms), floors, facing, parkour: !!parkour });
+  const floorY = cave ? origin.y : origin.y - 16;
+  const plan = planDungeon({ seed, theme, rooms: Number(rooms), floors, facing, parkour: !!parkour, cave,
+    maxDepth: floorY - dim.heightRange.min - 3 });
   const built = buildDungeon(plan, origin);
   const [x1, , z1, x2, , z2] = built.bounds;
   const counts = Object.entries(plan.counts).map(([t, n]) => `${n} de ${TYPE_NAME[t]}`).join(", ");
@@ -259,9 +283,12 @@ async function openMenu(player) {
       `§fSalas: §a${plan.rooms.length - 1}§f (${counts})\n` +
       (plan.rooms.length - 1 < Number(rooms) ? `§7(no cabían más salas: se pidieron ${rooms})\n` : "") +
       `§fPisos: §a${plan.floorsUsed}${floors < Number(floorsWanted) ? " §7(no caben más aquí)" : ""}\n` +
-      `§fEntrada: §a${ENTRANCES[plan.tier - 1]}§f (dificultad ${plan.tier}/4)${plan.rare ? " §d¡mazmorra rara!" : ""}\n` +
+      `§fEntrada: §a${cave ? "cueva" : plan.abyss ? "La Boca del Abismo" : ENTRANCES[plan.tier - 1]}§f (dificultad ${plan.tier}/4)${plan.rare ? " §d¡mazmorra rara!" : ""}\n` +
       `§fSemilla: §7${seed}\n\n` +
-      `§fLa entrada aparecerá §aaquí mismo§f y la mazmorra bajará hacia el §a${DIR_NAME[facing]}§f.\n` +
+      (cave
+        ? `§fSin entrada: la §agran sala§f se formará ${sunk ? `§a${sunk} bloques bajo tus pies` : "§aaquí mismo"}§f, ` +
+          `unida a las cuevas, y la mazmorra seguirá hacia el §a${DIR_NAME[facing]}§f.\n`
+        : `§fLa entrada aparecerá §aaquí mismo§f y la mazmorra bajará hacia el §a${DIR_NAME[facing]}§f.\n`) +
       `§fZona: unos §a${x2 - x1 + 1} x ${z2 - z1 + 1}§f bloques.\n\n` +
       "§cTodo lo que haya en esa zona bajo tierra será reemplazado.",
     )
@@ -319,7 +346,8 @@ const forget = (sp) => {
 // cannot break them, and explosions leave every block of the dungeon alone. The copper grate
 // barriers of the corridors are the exception: they are there to be mined.
 const dungeons = [];
-const PROTECTED = new Set(["minecraft:chest", "minecraft:vault", "minecraft:trial_spawner", "minecraft:vine"]);
+const PROTECTED = new Set(["minecraft:chest", "minecraft:vault", "minecraft:trial_spawner", "minecraft:vine",
+  "minecraft:glow_frame"]);
 const BREAKABLE = new Set(["minecraft:waxed_copper_grate"]);
 function inDungeon(dimId, l) {
   for (const d of dungeons) {

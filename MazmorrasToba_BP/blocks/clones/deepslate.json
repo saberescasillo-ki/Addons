@@ -14,6 +14,7 @@
     "components": {
       "minecraft:destructible_by_mining": false,
       "minecraft:destructible_by_explosion": false,
+      "minecraft:light_dampening": 15,
       "minecraft:geometry": "minecraft:geometry.full_block",
       "minecraft:material_instances": {
         "up": {

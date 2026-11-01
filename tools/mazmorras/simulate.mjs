@@ -18,7 +18,8 @@ function voxels(pieces) {
       if (op[0] === "f") {
         const [, x1, y1, z1, x2, y2, z2, b] = op;
         for (let x = x1; x <= x2; x++) for (let y = y1; y <= y2; y++) for (let z = z1; z <= z2; z++) put(x, y, z, b);
-      } else put(op[1], op[2], op[3], op[4]);
+      } else if (op[0] === "t") put(op[1], op[2], op[3], "minecraft:glow_frame"); // the frame with the totem
+      else put(op[1], op[2], op[3], op[4]);
     }
   return map;
 }
@@ -63,19 +64,20 @@ if (mode === "ids") {
   const ids = new Set();
   for (let i = 0; i < 40; i++)
     for (const theme of THEME_KEYS) {
-      const plan = planDungeon({ seed: 7000 + i, theme, rooms: 30, floors: 6, facing: i % 4 });
+      const plan = planDungeon({ seed: 7000 + i, theme, rooms: 30, floors: 6, facing: i % 4, cave: i % 2 === 1 });
       plan.tier = 1 + (i % 4);
       for (const p of buildDungeon(plan, ORIGIN).pieces)
         for (const op of p.ops) {
-          const b = op[0] === "f" ? op[7] : op[4];
+          const b = op[0] === "f" ? op[7] : op[0] === "t" ? "minecraft:glow_frame" : op[4];
           ids.add(typeof b === "string" ? b : b.id);
         }
     }
   process.stdout.write(JSON.stringify([...ids].sort()));
 } else if (mode === "blocks") {
-  const [seed, theme, rooms, floors, facing, tier] = args;
-  const plan = planDungeon({ seed: Number(seed), theme, rooms: Number(rooms), floors: Number(floors), facing: Number(facing) });
-  if (tier) plan.tier = Number(tier); // to draw every kind of entrance
+  const [seed, theme, rooms, floors, facing, tier, cave] = args;
+  const plan = planDungeon({ seed: Number(seed), theme, rooms: Number(rooms), floors: Number(floors), facing: Number(facing),
+    cave: cave === "cave" });
+  if (Number(tier)) plan.tier = Number(tier); // to draw every kind of entrance
   const built = buildDungeon(plan, ORIGIN);
   const map = voxels(built.pieces);
   const blocks = [];
@@ -90,13 +92,17 @@ if (mode === "ids") {
 } else if (mode === "check") {
   const runs = Number(args[0] ?? 50);
   const errors = [];
-  let ops = 0, maxOps = 0, missing = 0;
+  let ops = 0, maxOps = 0, missing = 0, towersSeen = 0;
   const tiers = [0, 0, 0, 0, 0], floorsHist = {}, sizes = new Set(), types = {};
   for (let i = 0; i < runs; i++) {
     const theme = THEME_KEYS[i % THEME_KEYS.length];
     const rooms = 5 + (i * 7) % 26, floors = 1 + (i % 6), facing = i % 4;
-    const plan = planDungeon({ seed: 1000 + i, theme, rooms, floors, facing });
+    const cave = i % 3 === 1;
+    const plan = planDungeon({ seed: 1000 + i, theme, rooms, floors, facing, cave });
     const built = buildDungeon(plan, ORIGIN);
+    const towers = plan.rooms.filter((r) => r.type === "torre").length;
+    if (built.towers !== towers) errors.push(`${i}: la torre no llega al altar`);
+    towersSeen += towers;
     const n = built.pieces.reduce((a, p) => a + p.ops.length, 0);
     ops += n;
     maxOps = Math.max(maxOps, n);
@@ -115,6 +121,6 @@ if (mode === "ids") {
     const lost = reachable(map, [ORIGIN.x, ORIGIN.y, ORIGIN.z], built.rooms.map((r) => r.probe));
     if (lost.length) errors.push(`${i} (${theme}, ${rooms} salas, ${floors} pisos): inalcanzables ${JSON.stringify(lost)}`);
   }
-  console.log(JSON.stringify({ runs, avgOps: Math.round(ops / runs), maxOps, missingRooms: missing, tiers, floorsHist,
+  console.log(JSON.stringify({ runs, towers: towersSeen, avgOps: Math.round(ops / runs), maxOps, missingRooms: missing, tiers, floorsHist,
     types, distinctSizes: sizes.size, errors: errors.slice(0, 15), nErrors: errors.length }, null, 1));
 }

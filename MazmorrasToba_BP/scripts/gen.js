@@ -66,7 +66,7 @@ export const MOB_FAMILIES = {
 
 export const TYPE_NAME = {
   vestibulo: "vestíbulo", spawner: "generador", parkour: "parkour", jardin: "jardín", tesoro: "tesoro", arbol: "gran árbol",
-  sima: "sima",
+  sima: "sima", torre: "torre del tótem",
 };
 
 // The entrance gets grander with the difficulty (and rarity) of the dungeon.
@@ -178,6 +178,10 @@ class Builder {
   chest(x, y, z, b, items) {
     this.ops.push(["c", x, y, z, b, items]);
   }
+  // a structure of the pack placed there (the item frame with the totem)
+  struct(x, y, z, name) {
+    this.ops.push(["t", x, y, z, name]);
+  }
   // A frame centred on (cx, cz) looking along direction d: u forwards, v to the side.
   frame(cx, cz, d) {
     return frame(cx, cz, d, this);
@@ -196,6 +200,7 @@ function frame(cx, cz, d, b) {
     fill: (u1, v1, y1, u2, v2, y2, blk) => b.fill(X(u1, v1), y1, Z(u1, v1), X(u2, v2), y2, Z(u2, v2), blk),
     set: (u, v, y, blk) => b.set(X(u, v), y, Z(u, v), blk),
     chest: (u, v, y, blk, items) => b.chest(X(u, v), y, Z(u, v), blk, items),
+    struct: (u, v, y, name) => b.struct(X(u, v), y, Z(u, v), name),
     x: X, z: Z,
   };
 }
@@ -235,11 +240,20 @@ function makeSpec(type, rng, abyss = false) {
     case "tesoro": L = rng.int(9, 15); W = rng.int(9, 15); break;
     case "parkour": L = rng.int(8, 16); W = rng.int(5, 7); h = 8; break;
     case "arbol": L = rng.int(16, 18); W = rng.int(16, 18); h = 16; break;
+    // 20 long and 40 high: 10 of air over the door, 30 down to the lava
+    case "torre": L = 20; W = rng.int(9, 11); h = 10; break;
   }
   h ??= Math.min(9, 5 + Math.floor(Math.max(L, W) / 4));
   const u0 = -Math.floor((L - 1) / 2), v0 = -Math.floor((W - 1) / 2);
-  const bottom = type === "parkour" ? -6 : type === "jardin" || type === "arbol" ? -2 : -1;
+  const bottom = type === "parkour" ? -6 : type === "torre" ? -30 : type === "jardin" || type === "arbol" ? -2 : -1;
   return { type, L, W, h, u0, u1: u0 + L - 1, v0, v1: v0 + W - 1, bottom };
+}
+
+// The main hall of a cave-entrance dungeon: bigger than every other room.
+function caveHallSpec(rng, abyss) {
+  const L = abyss ? rng.int(34, 38) : rng.int(20, 26), W = abyss ? rng.int(34, 38) : rng.int(20, 26);
+  const u0 = -Math.floor((L - 1) / 2), v0 = -Math.floor((W - 1) / 2);
+  return { type: "vestibulo", L, W, h: abyss ? 16 : 12, u0, u1: u0 + L - 1, v0, v1: v0 + W - 1, bottom: -2, natural: true };
 }
 
 // Abyss rooms: 20x20 at least, 32x32 at most.
@@ -316,8 +330,10 @@ export function planDungeon(opts) {
   const abyss = isAbyss(th);
   // which rooms: one giant tree hall, parkour rooms and the treasure are dead ends
   const nTree = n >= 6 && floors >= 2 && !abyss ? 1 : 0;
-  const nParkour = opts.parkour === false ? 0 : Math.max(0, Math.min(Math.max(1, Math.round(n * th.parkour)), n - 2 - nTree));
-  const nInner = n - 1 - nParkour - nTree;
+  const nTower = n >= 6 && !abyss ? 1 : 0; // the Torre del Tótem
+  const nParkour = opts.parkour === false ? 0
+    : Math.max(0, Math.min(Math.max(1, Math.round(n * th.parkour)), n - 2 - nTree - nTower));
+  const nInner = n - 1 - nParkour - nTree - nTower;
   const inner = [];
   const second = abyss ? "sima" : "jardin";
   for (let i = 0; i < nInner; i++) inner.push(rng.chance(th.spawner) ? "spawner" : second);
@@ -325,18 +341,26 @@ export function planDungeon(opts) {
   if (nInner >= 4 && !inner.includes(second)) inner[nInner - 1] = second;
   const order = rng.shuffle(inner);
   if (nTree) order.splice(rng.int(Math.floor(order.length / 3), order.length), 0, "arbol");
+  if (nTower) order.push("torre");
   for (let i = 0; i < nParkour; i++) order.push("parkour");
   order.push("tesoro");
+  const cave = !!opts.cave;
+  const maxDepth = opts.maxDepth ?? 1e9; // how far under the hall floor a room may reach
 
   // the hall: everything is placed relative to its centre (0, 0) and its floor (y = 0)
-  const vest = { id: 0, type: "vestibulo", spec: makeSpec("vestibulo", rng, abyss), cx: 0, cz: 0, f: 0, Y: 0,
-    dirIn: facing, parent: -1, depth: 0, kids: [], used: new Set([OPP[facing]]) };
-  const vestOff = ENTRY_STEPS + 2 - vest.spec.u0; // the staircase reaches the back wall of the hall
+  const vest = { id: 0, type: "vestibulo", spec: cave ? caveHallSpec(rng, abyss) : makeSpec("vestibulo", rng, abyss), cx: 0, cz: 0,
+    f: 0, Y: 0, dirIn: facing, parent: -1, depth: 0, kids: [], used: new Set([OPP[facing]]) };
+  // normal: the staircase reaches the back wall of the hall; cave: the hall is where the player stands
+  const vestOff = cave ? 0 : ENTRY_STEPS + 2 - vest.spec.u0;
   const list = [vest];
-  const boxes = [{ box: roomBoxOf(vest), owner: 0 },
+  const boxes = [{ box: roomBoxOf(vest), owner: 0 }, cave
+    // the tunnels that join the hall with the caves around it
+    ? { box: worldBox(0, 0, facing, vest.spec.u0 - 30, -9, vest.spec.u0 - 1, 9, -4, 24), owner: -1 }
     // the entrance staircase, from the surface down to the hall
-    { box: worldBox(0, 0, facing, -vestOff - 8, -6, vest.spec.u0 - 2, 6, -4, ENTRY_DEPTH + 24), owner: -1 }];
-  const leaf = (t) => t === "parkour" || t === "tesoro";
+    : { box: worldBox(0, 0, facing, -vestOff - 8, -6, vest.spec.u0 - 2, 6, -4, ENTRY_DEPTH + 24), owner: -1 }];
+  // the highest a room of the first floor may reach (under the surface)
+  const topLimit = cave ? vest.spec.h + 2 : ENTRY_DEPTH - 5;
+  const leaf = (t) => t === "parkour" || t === "tesoro" || t === "torre";
 
   for (const type of order) {
     let placed = false;
@@ -368,7 +392,7 @@ export function planDungeon(opts) {
       }
       const spec = makeSpec(type, rng, abyss);
       // the rooms of the first floor stay well under the surface
-      if (-f * FLOOR_H + spec.h > ENTRY_DEPTH - 5) continue;
+      if (-f * FLOOR_H + spec.h > topLimit || -f * FLOOR_H + spec.bottom < -maxDepth) continue;
       const stair = f !== parent.f;
       const len = stair ? rng.int(12, abyss ? 18 : 15) : abyss ? rng.int(8, 18) : rng.int(3, 8);
       const half = abyss ? 3 : 2;
@@ -403,7 +427,7 @@ export function planDungeon(opts) {
   const score = list.length - 1 + floorsUsed * 3 + th.bonus;
   const rare = rng.chance(0.12);
   const tier = Math.min(4, (score < 17 ? 1 : score < 27 ? 2 : score < 37 ? 3 : 4) + (rare ? 1 : 0));
-  return { seed: opts.seed, theme, facing, rooms: list, floorsUsed, counts, vestOff, tier, rare, wanted: n, abyss };
+  return { seed: opts.seed, theme, facing, rooms: list, floorsUsed, counts, vestOff, tier, rare, wanted: n, abyss, cave };
 }
 
 // ------------------------------------------------------------ rooms
@@ -824,8 +848,9 @@ function boxOf(L, u1, v1, y1, u2, v2, y2) {
 
 const BUILDERS = {
   vestibulo: buildVestibulo, spawner: buildSpawner, jardin: buildJardin, tesoro: buildTesoro, parkour: buildParkour,
-  arbol: buildArbol,
+  arbol: buildArbol, torre: buildTorre,
 };
+const NS = "mazmorra";
 
 // ------------------------------------------------------------ corridors
 // One 3x3 column of a corridor or a staircase at distance t along the frame.
@@ -1291,7 +1316,7 @@ function caveLights(c, cells, lanterns = 1) {
     L.fill(cl.u, cl.v, cl.ch - len + 1, cl.u, cl.v, cl.ch, T.chain);
     L.set(cl.u, cl.v, cl.ch - len, A.soulHang);
   }
-  for (let i = 0; i < 3 && open.length; i++) {
+  for (let i = 0; i < 5 && open.length; i++) {
     const cl = rng.pick(open);
     L.set(cl.u, cl.v, cl.ch, A.lichen);
   }
@@ -1312,7 +1337,7 @@ function aVestibulo(c) {
   L.set(0, 0, Y, A.chiseled);
   L.set(0, 0, Y + 1, A.soulLantern);
   for (const [du, dv] of N4) L.set(du, dv, Y, aStair(rng, L.dir(ldir(-du, -dv)), false));
-  caveLights(c, cells, 0);
+  caveLights(c, cells, 1);
 }
 
 function aCaverna(c) {
@@ -1324,7 +1349,7 @@ function aCaverna(c) {
   for (let u = -2; u <= 2; u++)
     for (let v = -2; v <= 2; v++) L.set(u, v, Y - 1, Math.max(Math.abs(u), Math.abs(v)) === 2 ? A.polished : A.tiles);
   L.set(0, 0, Y - 1, A.chiseled);
-  caveLights(c, cells, rng.chance(0.5) ? 1 : 0);
+  caveLights(c, cells, rng.chance(0.3) ? 2 : 1);
   L.set(0, 0, Y, trialSpawner(false));
   out.spawners.push({
     x: L.x(0, 0), y: Y, z: L.z(0, 0), kind: "normal", family: room.mobs, room: room.id,
@@ -1372,7 +1397,7 @@ function aSima(c) {
       if (cl?.pit) L.fill(u, v, cl.air, u, v, Y - 1, vine(L.dir(d)));
     }
   L.set(0, 0, Y - 1, A.chiseled);
-  caveLights(c, cells, 1);
+  caveLights(c, cells, 2);
   L.set(0, 0, Y, trialSpawner(false));
   out.spawners.push({
     x: L.x(0, 0), y: Y, z: L.z(0, 0), kind: "normal", family: room.mobs, room: room.id,
@@ -1497,7 +1522,7 @@ function acol(L, t, b, rng, o = {}) {
     const side = rng.pick([-2, 2]);
     L.set(t, side, b + 3, rng.chance(0.5) ? aTip(rng) : aSlab(rng, true));
   }
-  if (rng.chance(0.03)) L.set(t, rng.pick([-2, 2]), b + 3, A.lichen);
+  if (rng.chance(0.06)) L.set(t, rng.pick([-2, 2]), b + 3, A.lichen);
   if (o.barrier) L.fill(t, -2, b - 2, t, 2, b + 3, BARRIER);
 }
 
@@ -1591,6 +1616,187 @@ function abyssEntrance(bld, origin, facing, y0, hallBack, tier, rng) {
     for (const v of [-11, 11]) spike(L, null, 1, v, ys, 6 + 2 * tier, true, rng, true);
 }
 
+// ------------------------------------------------------------ the Torre del Tótem
+// A shaft 20 long and 40 high with lava at the bottom. From the door, a parkour of ledges on
+// the walls and slabs hanging from chains goes round and round, down to a majestic altar on a
+// pedestal that rises from the lava, with a totem in a glow item frame. Every jump can be made
+// back up (at most one block up with a one-block gap), so you can leave the same way.
+function buildTorre(c) {
+  const { L, s, Y, rng, th } = c;
+  const lavaY = Y + s.bottom + 1;
+  shell(c);
+  L.fill(s.u0, s.v0, lavaY, s.u1, s.v1, lavaY, mc("lava"));
+  wallOverlay(c, lavaY + 1, Y + s.h - 1, 0.3, lusher(th, 0.2));
+  ceilOverlay(c, 0.4);
+  for (let y = lavaY + 6; y < Y + s.h - 1; y += 8) {
+    L.fill(s.u0 - 1, s.v0 - 1, y, s.u1 + 1, s.v0 - 1, y, T.chiseledBricks);
+    L.fill(s.u0 - 1, s.v1 + 1, y, s.u1 + 1, s.v1 + 1, y, T.chiseledBricks);
+    L.fill(s.u0 - 1, s.v0 - 1, y, s.u0 - 1, s.v1 + 1, y, T.chiseledBricks);
+    L.fill(s.u1 + 1, s.v0 - 1, y, s.u1 + 1, s.v1 + 1, y, T.chiseledBricks);
+  }
+  // the ledge at the door, held by upside-down stairs
+  L.fill(s.u0, s.v0, Y - 1, s.u0 + 1, s.v1, Y - 1, T.polished);
+  L.fill(s.u0 + 1, s.v0, Y - 2, s.u0 + 1, s.v1, Y - 2, stairs("tuff_brick_stairs", L.dir("u-"), true));
+  // the pedestal of the altar, rising from the lava at the far end
+  const A = Y - 22, a0 = s.u1 - 4;
+  L.fill(a0, s.v0, lavaY, s.u1, s.v1, A - 1, T.bricks);
+  for (let y = lavaY + 3; y < A - 1; y += 5) L.fill(a0, s.v0, y, a0, s.v1, y, T.chiseledBricks);
+  for (let v = s.v0; v <= s.v1; v++) if (rng.chance(0.35)) caveVines(L, a0 - 1, v, A - 2, rng.int(1, 4), rng, 0.8);
+  L.fill(a0, s.v0, A - 1, s.u1, s.v1, A - 1, T.polished);
+  // the altar: steps up to a dais of chiseled bricks, the totem on the back wall
+  L.fill(a0, 0, A, s.u1 - 3, 0, A, T.mossCarpet);
+  L.fill(s.u1 - 2, -2, A, s.u1 - 2, 2, A, stairs("polished_tuff_stairs", L.dir("u+")));
+  L.fill(s.u1 - 1, -2, A, s.u1, 2, A, T.chiseledBricks);
+  L.set(s.u1, 0, A + 1, T.chiseledBricks);
+  L.struct(s.u1, 0, A + 2, `${NS}:totem_${CARD[L.dir("u-")]}`);
+  L.fill(s.u1 + 1, -2, A + 1, s.u1 + 1, 2, A + 4, T.chiseledBricks);
+  L.set(s.u1 + 1, 0, A + 5, froglight(th));
+  for (const v of [-1, 1]) L.set(s.u1, v, A + 1, candle("lime", rng.int(2, 4)));
+  for (const v of [-3, 3]) {
+    if (v < s.v0 || v > s.v1) continue;
+    L.set(s.u1 - 1, v, A, T.chiseledBricks);
+    L.fill(s.u1 - 1, v, A + 1, s.u1 - 1, v, A + 4, T.polished);
+    L.set(s.u1 - 1, v, A + 5, T.chiseled);
+    L.set(s.u1 - 1, v, A + 6, candle("white", rng.int(2, 4)));
+    L.set(s.u1, v, A, T.leavesFlower);
+    L.set(s.u1, v, A + 1, T.flowering);
+    L.set(a0, v, A, rng.chance(0.5) ? T.azalea : T.flowering);
+  }
+  // two chandeliers on long chains over the altar
+  for (const v of [-2, 2]) {
+    L.fill(s.u1 - 2, v, A + 6, s.u1 - 2, v, Y + s.h - 1, T.chain);
+    L.set(s.u1 - 2, v, A + 5, T.lanternHang);
+  }
+
+  // the parkour: a ring along the walls, travelled several times while going down
+  const ring = [];
+  for (let u = s.u0 + 2; u <= a0 - 1; u++) ring.push([u, s.v1]);
+  for (let v = s.v1 - 1; v >= s.v0; v--) ring.push([a0 - 1, v]);
+  for (let u = a0 - 2; u >= s.u0 + 2; u--) ring.push([u, s.v0]);
+  for (let v = s.v0 + 1; v <= s.v1 - 1; v++) ring.push([s.u0 + 2, v]);
+  const used = new Set();
+  const wood = rng.pick(th.wood);
+  const place = (u, v, sv) => {
+    const y = sv - 1;
+    used.add(`${u},${v},${y}`);
+    if (v === s.v0 || v === s.v1) {
+      // a ledge on the wall: a slab over an upside-down stair
+      L.set(u, v, y, slab("tuff_brick_slab", true));
+      L.set(u, v, y - 1, stairs("tuff_brick_stairs", L.dir(v === s.v1 ? "v+" : "v-"), true));
+      if (rng.chance(0.3)) caveVines(L, u, v, y - 2, rng.int(1, 3), rng, 0.7);
+      used.add(`${u},${v},${y - 1}`);
+      return;
+    }
+    // a hanging slab, with the chain on the slab next to it (towards the middle)
+    const hu = u === a0 - 1 ? u - 1 : u + 1;
+    L.set(u, v, y, woodSlab(wood, true));
+    L.set(hu, v, y, woodSlab(wood, true));
+    used.add(`${hu},${v},${y}`);
+    let top = y + 1;
+    while (top < Y + s.h - 1 && !used.has(`${hu},${v},${top + 1}`)) top++;
+    L.fill(hu, v, y + 1, hu, v, top, T.chain);
+  };
+  let i = 1, sv = Y, reached = false;
+  place(...ring[1], sv);
+  for (let guard = 0; guard < 400; guard++) {
+    const [u] = ring[i % ring.length];
+    if (sv <= A && u === a0 - 1) { reached = true; break; } // next to the altar: the last jump
+    const k = rng.chance(0.75) ? 2 : 3;
+    if (sv > A && k === 2 && rng.chance(0.9)) sv--;
+    i += k;
+    place(...ring[i % ring.length], sv);
+  }
+  c.out.towers = (c.out.towers ?? 0) + (reached ? 1 : 0);
+  c.out.towerJumps = Math.floor((i - 1) / 2.25);
+}
+
+// ------------------------------------------------------------ the cave entrance
+// No entrance: the main hall is a natural-looking cave, larger than every other room, whose
+// blocks go from the stone around it to the materials of the dungeon (a gradient), without a
+// box around it, so it joins the caves of the terrain.
+const natural = (rng, deep) => ({ id: mc(rng.pick(deep ? ["deepslate", "cobbled_deepslate", "tuff", "deepslate"]
+  : ["stone", "stone", "andesite", "cobblestone", "diorite", "granite", "stone"])), vanilla: true });
+
+function naturalHall(c) {
+  const { L, s, Y, rng, th } = c;
+  const abyss = isAbyss(th);
+  const deep = Y < 2;
+  const cells = caveLayout(c, { core: 4, square: 2.2 });
+  // 0 = the dungeon, 1 = the stone around it
+  const g = (cl, extra = 0) => Math.min(1, Math.max(0, (cl.d - 0.2) / 0.65 + (rng.next() - 0.5) * 0.4 + extra));
+  const wallMat = () => (abyss ? aWall(rng) : wallVariant(rng, th));
+  const floorMat = () => (abyss ? aFloor(rng) : rng.chance(0.45) ? T.moss : floorVariant(rng, th));
+  for (const cl of cells.values()) {
+    if (!cl.cave) continue;
+    const { u, v, fh, ch } = cl;
+    L.fill(u, v, cl.air, u, v, ch, AIR);
+    const fy = Y - 1 + Math.floor(fh / 2), gf = g(cl);
+    const fb = rng.next() < gf ? natural(rng, deep) : floorMat();
+    L.set(u, v, fy, fb);
+    L.set(u, v, fy - 1, rng.next() < gf ? natural(rng, deep) : abyss ? A.cobbled : T.tuff);
+    if (fh & 1) L.set(u, v, fy + 1, abyss ? aSlab(rng, false) : slab(rng.chance(0.5) ? "tuff_brick_slab" : "polished_tuff_slab", false));
+    else if (!abyss && fb === T.moss && rng.chance(0.4)) L.set(u, v, fy + 1, T.mossCarpet);
+    L.set(u, v, ch + 1, rng.next() < g(cl, 0.1) ? natural(rng, deep) : wallMat());
+    for (const [du, dv] of N4) {
+      if (cells.get(`${u + du},${v + dv}`)?.cave) continue;
+      for (let y = cl.air; y <= ch; y++) L.set(u + du, v + dv, y, rng.next() < g(cl, 0.2) ? natural(rng, deep) : wallMat());
+    }
+  }
+  const open = [...cells.values()].filter((cl) => cl.cave);
+  if (abyss) {
+    caveSpikes(c, cells, { upEvery: 50, downEvery: 30 });
+    caveLights(c, cells, 3);
+    return;
+  }
+  // a lush cave: plants, glow berries, pools with dripleaves, spore blossoms
+  for (const cl of open) {
+    if (cl.ch - cl.air >= 5 && rng.chance(0.1)) hanging(L, cl.u, cl.v, cl.ch, 3, rng, lusher(th, 0.5));
+    if (cl.lane || cl.fh & 1 || cl.d > 0.85) continue;
+    const r = rng.next();
+    if (r < 0.05) L.set(cl.u, cl.v, cl.air, rng.chance(0.5) ? T.fern : T.grass);
+    else if (r < 0.08) L.set(cl.u, cl.v, cl.air, rng.chance(0.5) ? T.azalea : T.flowering);
+  }
+  const flat = open.filter((cl) => cl.fh === 0 && !cl.lane && !(Math.abs(cl.u) <= 4 && Math.abs(cl.v) <= 4));
+  for (let k = 0; k < 3 && flat.length; k++) {
+    const cl = rng.pick(flat);
+    const ok = [[0, 0], [1, 0], [0, 1], [1, 1]].every(([du, dv]) => {
+      const n = cells.get(`${cl.u + du},${cl.v + dv}`);
+      return n && n.cave && n.fh === 0 && !n.lane;
+    });
+    if (!ok) continue;
+    L.fill(cl.u, cl.v, Y, cl.u + 1, cl.v + 1, Y + 1, AIR);
+    L.fill(cl.u, cl.v, Y - 1, cl.u + 1, cl.v + 1, Y - 1, T.water);
+    L.fill(cl.u, cl.v, Y - 2, cl.u + 1, cl.v + 1, Y - 2, T.clay);
+  }
+  for (let k = 0; k < 4 && open.length; k++) {
+    const cl = rng.pick(open);
+    L.set(cl.u, cl.v, cl.ch, T.spore);
+  }
+}
+
+// Two or three winding tunnels from the back of the hall, going up and away into the stone:
+// they end blind under the surface or meet the caves of the terrain.
+function caveTunnels(bld, hall, th, rng) {
+  const L = bld.frame(hall.x, hall.z, hall.dirIn);
+  const s = hall.spec, Y = hall.Y;
+  for (let k = rng.int(2, 3); k > 0; k--) {
+    let u = s.u0 + 3, v = rng.int(-6, 6), y = Y + 1, dv = 0;
+    const len = rng.int(22, 28);
+    for (let i = 0; i < len; i++) {
+      const r = rng.chance(0.3) ? 2 : 1;
+      L.fill(u - r, v - r, y - 1, u + r, v + r, y + r, AIR);
+      if (!isAbyss(th) && i < 8) {
+        if (rng.chance(0.4)) L.set(u, v, y - 2, rng.chance(0.6) ? T.moss : T.tuff);
+        if (rng.chance(0.25)) caveVines(L, u, v, y + r, rng.int(1, 2), rng);
+      }
+      u -= 1;
+      dv = Math.max(-1, Math.min(1, dv + rng.int(-1, 1)));
+      if (rng.chance(0.5)) v = Math.max(-7, Math.min(7, v + dv));
+      if (i % 3 === 2 && y < Y + 14) y++;
+    }
+  }
+}
+
 // ------------------------------------------------------------ the whole dungeon
 // origin: the block the player stands in (feet), the top of the entrance.
 // Returns pieces in three phases (rooms, then corridors, then the entrance):
@@ -1599,17 +1805,20 @@ export function buildDungeon(plan, origin) {
   const th = THEMES[plan.theme];
   const [fdx, fdz] = DIRS[plan.facing];
   const vx = origin.x + fdx * plan.vestOff, vz = origin.z + fdz * plan.vestOff;
-  const y0 = origin.y - ENTRY_DEPTH;
+  // cave entrance: the hall floor is where the player stands
+  const y0 = plan.cave ? origin.y : origin.y - ENTRY_DEPTH;
   const rooms = plan.rooms.map((r) => ({ ...r, x: vx + r.cx, z: vz + r.cz, Y: y0 + r.Y }));
   const pieces = [];
   const out = { spawners: [] };
   for (const r of rooms) {
     const bld = new Builder();
     const L = bld.frame(r.x, r.z, r.dirIn);
-    const doors = new Set(["u-", ...r.kids.map((k) => L.local(rooms[k].dirIn))]);
-    (isAbyss(th) ? ABYSS_BUILDERS : BUILDERS)[r.type]({ L, s: r.spec, Y: r.Y, rng: makeRng(plan.seed, 100, r.id), th, room: r, out, doors, tier: plan.tier });
+    const natural = plan.cave && r.id === 0;
+    const doors = new Set([...(natural ? [] : ["u-"]), ...r.kids.map((k) => L.local(rooms[k].dirIn))]);
+    const build = natural ? naturalHall : (isAbyss(th) ? ABYSS_BUILDERS : BUILDERS)[r.type];
+    build({ L, s: r.spec, Y: r.Y, rng: makeRng(plan.seed, 100, r.id), th, room: r, out, doors, tier: plan.tier });
     // where you stand just inside the door (used by the simulation)
-    r.probe = [L.x(r.spec.u0, 0), r.Y, L.z(r.spec.u0, 0)];
+    r.probe = natural ? [r.x, r.Y, r.z] : [L.x(r.spec.u0, 0), r.Y, L.z(r.spec.u0, 0)];
     r.box = roomBoxOf(r, r.x, r.z);
     pieces.push({ phase: 0, name: `${TYPE_NAME[r.type]} ${r.id}`, ops: bld.ops });
   }
@@ -1620,9 +1829,10 @@ export function buildDungeon(plan, origin) {
     pieces.push({ phase: 1, name: `pasillo ${r.parent}-${r.id}`, ops: bld.ops });
   }
   const bld = new Builder();
-  (isAbyss(th) ? (b, o, f, y, h, t, _th, r) => abyssEntrance(b, o, f, y, h, t, r) : entrance)(
+  if (plan.cave) caveTunnels(bld, rooms[0], th, makeRng(plan.seed, 300));
+  else (isAbyss(th) ? (b, o, f, y, h, t, _th, r) => abyssEntrance(b, o, f, y, h, t, r) : entrance)(
     bld, origin, plan.facing, y0, plan.vestOff - (-rooms[0].spec.u0 + 1), plan.tier, th, makeRng(plan.seed, 300));
-  pieces.push({ phase: 2, name: "entrada", ops: bld.ops });
+  pieces.push({ phase: 2, name: plan.cave ? "túneles" : "entrada", ops: bld.ops });
 
   for (const p of pieces) {
     let x1 = Infinity, z1 = Infinity, x2 = -Infinity, z2 = -Infinity, y1 = Infinity, y2 = -Infinity;
@@ -1636,12 +1846,12 @@ export function buildDungeon(plan, origin) {
   const all = pieces.map((p) => p.box);
   const bounds = [0, 1, 2].map((i) => Math.min(...all.map((b) => b[i])))
     .concat([3, 4, 5].map((i) => Math.max(...all.map((b) => b[i]))));
-  return { pieces, spawners: out.spawners, bounds, y0, rooms };
+  return { pieces, spawners: out.spawners, bounds, y0, rooms, towers: out.towers ?? 0 };
 }
 
 // How many floors fit above minY (the bottom of the world).
-export function maxFloorsAt(y, minY, theme) {
-  const y0 = y - ENTRY_DEPTH;
+export function maxFloorsAt(y, minY, theme, cave = false) {
+  const y0 = cave ? y : y - ENTRY_DEPTH;
   const below = isAbyss(THEMES[theme] ?? {}) ? 18 : 7; // the chasms go 16 blocks under their floor
   let n = 0;
   while (n < MAX_FLOORS && y0 - n * FLOOR_H - below > minY + 1) n++;

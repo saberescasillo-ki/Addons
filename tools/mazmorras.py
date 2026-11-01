@@ -30,6 +30,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import mazmorras_clones as clones  # noqa: E402
+import mcstructure  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "tools", "mazmorras")
@@ -38,7 +39,7 @@ BP = os.path.join(ROOT, "MazmorrasToba_BP")
 RP = os.path.join(ROOT, "MazmorrasToba_RP")
 DIST = os.path.join(ROOT, "dist")
 
-VERSION = [1, 2, 0]
+VERSION = [1, 3, 0]
 MIN_ENGINE = [1, 26, 0]    # indestructible stairs need several collision boxes per block
 SERVER_API = "2.0.0"
 SERVER_UI_API = "2.0.0"
@@ -207,6 +208,8 @@ COLORS = {
     "cave_vines_head_with_berries": "#f0a52a", "cave_vines_body_with_berries": "#d99a2a", "lantern": "#f2c25a", "chain": "#3d4148", "chest": "#a2702e", "vault": "#4a5a60", "trial_spawner": "#c4652a",
     "ochre_froglight": "#f3e3a0", "verdant_froglight": "#d5f0c0", "pearlescent_froglight": "#f0dcef",
     "oak_log": "#6b5132", "mangrove_roots": "#5d4530",
+    "stone": "#7d7d7d", "andesite": "#8a8a8e", "cobblestone": "#6e6e6e", "diorite": "#bdbdbd", "granite": "#9a6b58",
+    "glow_frame": "#d8c06a",
     "deepslate": "#4d4d52", "cobbled_deepslate": "#46464a", "polished_deepslate": "#555559",
     "deepslate_bricks": "#4a4a4e", "cracked_deepslate_bricks": "#444448", "deepslate_tiles": "#38383c",
     "cracked_deepslate_tiles": "#333337", "chiseled_deepslate": "#3d3d41", "smooth_basalt": "#4a4a50",
@@ -232,9 +235,9 @@ def color_of(bid):
     return hx("#ff00ff")
 
 
-def simulate(p, tier=None):
+def simulate(p, tier=None, cave=False):
     args = ["node", os.path.join(SRC, "simulate.mjs"), "blocks", str(p["seed"]), p["theme"], str(p["rooms"]),
-            str(p["floors"]), str(p["facing"])] + ([str(tier)] if tier else [])
+            str(p["floors"]), str(p["facing"]), str(tier or 0), "cave" if cave else "normal"]
     return json.loads(subprocess.run(args, check=True, capture_output=True, text=True).stdout)
 
 
@@ -356,6 +359,26 @@ def preview(sim, entrances, title, closeups, ent_titles, ent_box=ENTRANCE_BOX):
     return sheet
 
 
+def cave_preview():
+    """The cave entrance: the main hall of each style cut in half, without any terrain around."""
+    W, H = 1700, 760
+    sheet = Image.new("RGBA", (W, H), hx("#0d1117"))
+    d = ImageDraw.Draw(sheet)
+    d.text((W // 2, 24), "Entrada de cueva: la gran sala natural (cortada por la mitad), del borde de piedra a la mazmorra",
+           fill=(220, 235, 210, 255), anchor="mm", font=font(18))
+    for k, (p, title) in enumerate([(PREVIEW, "Toba (cueva frondosa)"), (PREVIEW_ABYSS, "Abisal")]):
+        sim = simulate(p, cave=True)
+        hall = sim["rooms"][0]
+        b = hall["box"]
+        im = render(sim["blocks"], 10, lambda x, y, z: b[0] - 2 <= x <= b[3] + 2 and b[2] - 2 <= z <= hall["z"]
+                    and b[1] - 2 <= y <= b[4] + 2)
+        im.thumbnail((820, 640), Image.LANCZOS)
+        cx = W * (2 * k + 1) // 4
+        d.text((cx, 60), title, fill=(240, 240, 240, 255), anchor="mm", font=font(16))
+        sheet.alpha_composite(im, (cx - im.width // 2, 90 + (640 - im.height) // 2))
+    return sheet
+
+
 # ---------------------------------------------------------------- build
 def main():
     prev = "--preview" in sys.argv
@@ -377,6 +400,12 @@ def main():
     if missing or ungrouped:
         sys.exit(f"Bloques sin copia indestructible: {missing}; copias fuera del inventario: {ungrouped}")
     clones.write(BP, RP, LANG["es"], LANG["en"], write)
+    # the glow item frame with the totem of the Torre del Tótem, one per direction it can face
+    for facing in mcstructure.FACING:
+        path = os.path.join(BP, "structures", NS, f"totem_{facing}.mcstructure")
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "wb") as f:
+            f.write(mcstructure.item_frame(facing, "minecraft:totem_of_undying"))
     for code, key in (("es_ES", "es"), ("es_MX", "es"), ("en_US", "en"), ("en_GB", "en")):
         write(os.path.join(RP, f"texts/{code}.lang"), lang(LANG[key]))
         write(os.path.join(BP, f"texts/{code}.lang"), lang({k: v for k, v in LANG[key].items()
@@ -416,13 +445,14 @@ def main():
 
     if prev and sim:
         preview(sim, [simulate(PREVIEW, t) for t in (1, 2, 3, 4)], "Mazmorras de Toba",
-                [("arbol", "Sala del gran árbol"), ("parkour", "Sala de parkour")],
+                [("torre", "Torre del Tótem"), ("arbol", "Sala del gran árbol")],
                 [f"{k + 1}. {e}" for k, e in enumerate(ENTRANCES)]).save(os.path.join(ROOT, "docs", "mazmorras_preview.png"))
         asim = simulate(PREVIEW_ABYSS)
         preview(asim, [simulate(PREVIEW_ABYSS, t) for t in (1, 4)], "Mazmorras Abisales",
                 [("sima", "Sima con pasarelas"), ("parkour", "Parkour de lava")],
                 ["La Boca del Abismo (dificultad 1)", "La Boca del Abismo (dificultad 4)"], ABYSS_BOX).save(
             os.path.join(ROOT, "docs", "mazmorras_abismo_preview.png"))
+        cave_preview().save(os.path.join(ROOT, "docs", "mazmorras_cueva_preview.png"))
     print("Built", ADDON_NAME, ".".join(map(str, VERSION)), "->", os.path.relpath(DIST, ROOT))
 
 

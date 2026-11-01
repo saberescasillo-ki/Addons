@@ -14,7 +14,7 @@
           "render_method": "opaque"
         }
       },
-      "minecraft:light_dampening": 0,
+      "minecraft:light_dampening": 15,
       "minecraft:collision_box": {
         "origin": [
           -4,
