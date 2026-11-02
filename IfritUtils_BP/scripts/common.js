@@ -43,19 +43,57 @@ export function say(player, msg) {
   } catch {}
 }
 
-export async function messagesMenu(player) {
+export const ADMIN_TAG = "admin";
+
+export function isAdmin(player) {
+  try {
+    return player.hasTag(ADMIN_TAG);
+  } catch {
+    return false;
+  }
+}
+
+/** Settings form for one or more players (the values shown are those of the first one). */
+async function editMessages(player, targets) {
+  const first = targets[0];
+  const whose = targets.length === 1 && first.id === player.id ? "tuyos" : `de ${names(targets)}`;
   const v = await modal(
     player,
     "§5Ajustes de mensajes",
     [
-      { type: "toggle", label: "Mostrar mensajes en la barra de acción §7(encima de la barra de objetos)", value: player.getDynamicProperty(NO_ACTIONBAR) !== true },
-      { type: "toggle", label: "Mostrar mensajes en el chat", value: player.getDynamicProperty(NO_CHAT) !== true },
+      {
+        type: "toggle",
+        label: `Mostrar mensajes en la barra de acción §7(ajustes ${whose})`,
+        value: first.getDynamicProperty(NO_ACTIONBAR) !== true,
+      },
+      { type: "toggle", label: "Mostrar mensajes en el chat", value: first.getDynamicProperty(NO_CHAT) !== true },
     ],
     "Guardar"
   );
   if (!v) return;
-  player.setDynamicProperty(NO_ACTIONBAR, v[0] !== true);
-  player.setDynamicProperty(NO_CHAT, v[1] !== true);
+  for (const p of targets) {
+    if (!valid(p)) continue;
+    p.setDynamicProperty(NO_ACTIONBAR, v[0] !== true);
+    p.setDynamicProperty(NO_CHAT, v[1] !== true);
+  }
+  if (targets.some((p) => p.id !== player.id)) tell(player, `§aAjustes guardados para ${names(targets)}`);
+}
+
+/** Everyone can change their own settings; players with the "admin" tag can also change other players'. */
+export async function messagesMenu(player) {
+  if (!isAdmin(player)) return editMessages(player, [player]);
+  const others = world.getAllPlayers().filter((p) => p.id !== player.id);
+  await menu(player, "§5Ajustes de mensajes", "§7Eres §cadmin§7: puedes cambiar los ajustes de los demás.", [
+    ["Mis ajustes", () => editMessages(player, [player])],
+    ...others.map((p) => [`${p.name}${isAdmin(p) ? " §c(admin)" : ""}`, () => editMessages(player, [p])]),
+    [
+      "Varios jugadores / todos...",
+      async () => {
+        const targets = await pickTargets(player, "¿A quién le cambias los ajustes?");
+        if (targets) await editMessages(player, targets);
+      },
+    ],
+  ]);
 }
 
 /** The last button of every item menu. */

@@ -79,6 +79,8 @@ de los jugadores conectados). Los formularios recuerdan los últimos valores que
 
 **Ajustes de mensajes:** el último botón de cada menú. Dos interruptores, cada jugador los suyos:
 *mostrar mensajes en la barra de acción* y *mostrar mensajes en el chat*.
+Los jugadores con el tag **`admin`** (`/tag <jugador> add admin`) además pueden cambiar los ajustes de **otros**
+jugadores: uno de la lista, varios o todos. Los demás solo pueden cambiar los suyos.
 
 | Objeto | ID | Qué hace |
 |---|---|---|
