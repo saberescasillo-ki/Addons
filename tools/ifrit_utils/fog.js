@@ -6,7 +6,7 @@
 // whole sky takes that colour. Only its owner sees it.
 import { system, world } from "@minecraft/server";
 import { CIELO, NIEBLAS, NIEBLA_DENSIDAD_MAX, NIEBLA_FIN } from "./config.js";
-import { menu, modal, names, pickTargets, run, tell, valid } from "./common.js";
+import { menu, modal, names, pickTargets, run, settingsButton, tell, valid } from "./common.js";
 
 const TAG = "ifrit_niebla";
 const LAST = "ifrit:niebla_densidad";
@@ -15,25 +15,44 @@ const OWNER = "ifrit:dueno"; // on the dome: id of its player
 const DIMENSIONS = ["overworld", "nether", "the_end"];
 
 const domes = new Map(); // player id -> dome entity
+// Only the players WITH fog, kept in memory so the tick loop does no reads or JSON parsing:
+// player id -> { color, densidad, radius, last: [x, y, z] of the last teleport }
+const active = new Map();
 
-function getState(p) {
+function readState(p) {
   try {
     const s = JSON.parse(String(p.getDynamicProperty(STATE) ?? ""));
-    return NIEBLAS[s.color] && s.densidad >= 1 ? s : undefined;
+    if (!NIEBLAS[s.color] || !(s.densidad >= 1)) return undefined;
+    const radius = Math.round((NIEBLA_FIN[s.densidad - 1] * 1.05 + 0.6) * 100) / 100;
+    return { color: s.color, densidad: s.densidad, radius, last: null };
   } catch {
     return undefined;
   }
 }
 
+function loadState(p) {
+  const s = readState(p);
+  if (s) active.set(p.id, s);
+  else active.delete(p.id);
+}
+
+// Players already in the world when the script loads, and players who join.
+for (const p of world.getAllPlayers()) loadState(p);
+world.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
+  if (initialSpawn) loadState(player);
+});
+
 function setFog(p, color, density) {
   run(p, `fog @s remove ${TAG}`);
   if (color === undefined) {
     p.setDynamicProperty(STATE, undefined);
+    active.delete(p.id);
     removeDome(p.id);
     return;
   }
   run(p, `fog @s push ifrit:niebla_${NIEBLAS[color].id}_${density} ${TAG}`);
   p.setDynamicProperty(STATE, JSON.stringify({ color, densidad: density }));
+  loadState(p);
 }
 
 function removeDome(playerId) {
@@ -44,36 +63,47 @@ function removeDome(playerId) {
   } catch {}
 }
 
-// Every tick: keep each dome on its player's camera.
+// Every tick: keep each dome on its player's camera. With nobody using fog it does nothing.
 system.runInterval(() => {
-  for (const p of world.getAllPlayers()) {
-    const s = getState(p);
-    // Under water the water fog is used, so the dome would show: hide it there.
-    if (!s || p.isInWater) {
-      if (domes.has(p.id)) removeDome(p.id);
+  if (active.size === 0) return;
+  for (const [id, s] of active) {
+    const p = world.getEntity(id);
+    if (!p) {
+      active.delete(id);
+      removeDome(id);
       continue;
     }
-    let dome = domes.get(p.id);
-    if (dome && (!valid(dome) || dome.dimension.id !== p.dimension.id)) {
-      removeDome(p.id);
-      dome = undefined;
+    // Under water the water fog is used, so the dome would show: hide it there.
+    if (p.isInWater) {
+      if (domes.has(id)) removeDome(id);
+      continue;
     }
-    const head = p.getHeadLocation();
+    let dome = domes.get(id);
     try {
+      if (dome && (!valid(dome) || dome.dimension.id !== p.dimension.id)) {
+        removeDome(id);
+        dome = undefined;
+      }
+      const head = p.getHeadLocation();
       if (!dome) {
         dome = p.dimension.spawnEntity(CIELO, head);
-        dome.setDynamicProperty(OWNER, p.id);
-        domes.set(p.id, dome);
+        dome.setDynamicProperty(OWNER, id);
+        domes.set(id, dome);
+        s.last = null;
       }
-      const radius = Math.round((NIEBLA_FIN[s.densidad - 1] * 1.05 + 0.6) * 100) / 100;
-      if (Math.abs((dome.getProperty("ifrit:radio") ?? 0) - radius) > 0.01) dome.setProperty("ifrit:radio", radius);
       if (dome.getProperty("ifrit:color") !== s.color) dome.setProperty("ifrit:color", s.color);
-      dome.teleport(head);
+      if (Math.abs((dome.getProperty("ifrit:radio") ?? 0) - s.radius) > 0.01) dome.setProperty("ifrit:radio", s.radius);
+      // Teleport only when the player moved (standing still sends nothing).
+      const l = s.last;
+      if (!l || Math.abs(l[0] - head.x) + Math.abs(l[1] - head.y) + Math.abs(l[2] - head.z) > 0.005) {
+        dome.teleport(head);
+        s.last = [head.x, head.y, head.z];
+      }
     } catch {}
   }
 }, 1);
 
-// Every 2 s: remove domes left behind (player gone, world reloaded...).
+// Every 5 s: remove domes left behind (player gone, world reloaded...).
 system.runInterval(() => {
   for (const id of DIMENSIONS) {
     let list = [];
@@ -89,9 +119,12 @@ system.runInterval(() => {
       }
     }
   }
-}, 40);
+}, 100);
 
-world.afterEvents.playerLeave.subscribe(({ playerId }) => removeDome(playerId));
+world.afterEvents.playerLeave.subscribe(({ playerId }) => {
+  active.delete(playerId);
+  removeDome(playerId);
+});
 
 export async function fogMenu(player) {
   const entries = NIEBLAS.map((n, color) => [
@@ -124,5 +157,6 @@ export async function fogMenu(player) {
       tell(player, `§aNiebla quitada a ${names(targets)}`);
     },
   ]);
+  entries.push(settingsButton(player));
   await menu(player, "§5Utilidad de Niebla", "Elige el color de la niebla y del cielo.", entries);
 }

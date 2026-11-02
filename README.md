@@ -77,6 +77,9 @@ solo en el inventario creativo (pestaña *Objetos*) o con `/give @s <id>`.
 Casi todo pregunta al final **¿para quién?**: *Solo yo*, *Todos* o *Jugadores seleccionados* (una lista con casillas
 de los jugadores conectados). Los formularios recuerdan los últimos valores que usaste.
 
+**Ajustes de mensajes:** el último botón de cada menú. Dos interruptores, cada jugador los suyos:
+*mostrar mensajes en la barra de acción* y *mostrar mensajes en el chat*.
+
 | Objeto | ID | Qué hace |
 |---|---|---|
 | Utilidad de Niebla | `ifrit:utilidad_niebla` | Cambia el color de la niebla y del cielo: **Verde claro**, **Hello Frozen** (blanco invierno + celeste frío), **Lluvia de sangre** (rojo + rojo sangre oscuro), **Blanco** y **Negro**. Densidad **1-15** (1: neblina suave hasta 96 bloques; 15: casi no se ve a 3 bloques). **El cielo entero** toma el color. Botón *Quitar niebla*. |
@@ -128,6 +131,9 @@ de los jugadores conectados). Los formularios recuerdan los últimos valores que
   - En **tercera persona** (F5) la cúpula se oculta, porque la cámara se aleja de ella.
   - Bajo el agua se quita (allí se usa la niebla del agua) y vuelve al salir.
 - Cualquier jugador que tenga uno de los objetos puede usarlo, así que dáselos solo a quien quieras.
+- **Rendimiento:** todo funciona por eventos (solo trabaja al usar un objeto), salvo la cúpula de cielo de la niebla:
+  un bucle por tick que solo recorre a los jugadores con niebla y solo mueve la cúpula si se movieron. Sin nadie con
+  niebla no hace nada. Pesa unos 60 KB y añade una entidad por jugador con niebla.
 - Los scripts están en `tools/ifrit_utils/` (uno por objeto) y se copian tal cual; colores y densidad de la niebla en
   `FOGS` de `tools/ifrit_utils.py`. Para regenerar: `python3 tools/ifrit_utils.py`.
 

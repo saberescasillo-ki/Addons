@@ -26,7 +26,7 @@ BP = os.path.join(ROOT, "IfritUtils_BP")
 RP = os.path.join(ROOT, "IfritUtils_RP")
 DIST = os.path.join(ROOT, "dist")
 
-VERSION = [1, 1, 0]
+VERSION = [1, 2, 0]
 SCRIPT_API = "2.0.0"
 SCRIPT_UI_API = "2.0.0"
 MIN_ENGINE = [1, 21, 90]

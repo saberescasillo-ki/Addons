@@ -1,5 +1,5 @@
 // Camera item: fade, free (cinematics) and shake.
-import { COLORS, menu, modal, names, num, pickTargets, run, tell } from "./common.js";
+import { COLORS, menu, modal, names, num, pickTargets, run, settingsButton, tell } from "./common.js";
 import { freeMenu } from "./cinematics.js";
 
 const FADE = "ifrit:fade";
@@ -18,6 +18,7 @@ export async function cameraMenu(player) {
     ["Fade\n§8Fundido a un color", () => fadeMenu(player)],
     ["Free\n§8Cinemáticas", () => freeMenu(player)],
     ["Shake\n§8Temblor de cámara", () => shakeMenu(player)],
+    settingsButton(player),
   ]);
 }
 

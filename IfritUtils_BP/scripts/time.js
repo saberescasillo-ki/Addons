@@ -1,6 +1,6 @@
 // Time an Thing: time of day (presets and custom) and weather.
 import { WeatherType, world } from "@minecraft/server";
-import { menu, modal, num, run, tell } from "./common.js";
+import { menu, modal, num, run, settingsButton, tell } from "./common.js";
 
 // Minecraft ticks: 0 = 06:00, 6000 = 12:00, 18000 = 00:00.
 const PRESETS = [
@@ -78,7 +78,8 @@ export async function timeMenu(player) {
         tell(player, cycle ? "§eEl ciclo día/noche está detenido" : "§aEl ciclo día/noche está activado");
       },
     ],
-    ["Clima...", () => weatherMenu(player)]
+    ["Clima...", () => weatherMenu(player)],
+    settingsButton(player)
   );
   await menu(player, "§5Time an Thing", `§7Hora actual: §f${clock(world.getTimeOfDay())}`, entries);
 }

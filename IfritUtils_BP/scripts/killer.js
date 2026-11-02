@@ -1,6 +1,6 @@
 // Killer Sure: kills any player at once, like /kill.
 import { world } from "@minecraft/server";
-import { menu, pickPlayers, run, tell, valid } from "./common.js";
+import { menu, pickPlayers, run, settingsButton, tell, valid } from "./common.js";
 
 export function kill(player, targets) {
   const dead = targets.filter((p) => valid(p) && run(p, "kill @s"));
@@ -13,7 +13,8 @@ export async function killerMenu(player) {
   entries.push(
     ["Elegir varios...", async () => kill(player, (await pickPlayers(player, "¿A quién matas?")) ?? [])],
     ["§4Todos menos yo", () => kill(player, others)],
-    ["Yo", () => kill(player, [player])]
+    ["Yo", () => kill(player, [player])],
+    settingsButton(player)
   );
   await menu(
     player,

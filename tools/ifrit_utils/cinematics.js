@@ -20,6 +20,8 @@ import {
   pickTargets,
   removeItem,
   run,
+  say,
+  settingsButton,
   tell,
 } from "./common.js";
 
@@ -221,7 +223,8 @@ function startCreating(player, draft) {
   if (draft) setDraft(player, draft);
   else if (!getDraft(player)) setDraft(player, newDraft());
   giveItem(player, ITEMS.creador);
-  player.sendMessage(
+  say(
+    player,
     "§d[Cinematic Creator] §fUsa el objeto para abrir el editor. §7Agáchate y úsalo para guardar tu posición como un punto."
   );
 }
@@ -352,6 +355,7 @@ export async function creatorMenu(player) {
     ["Previsualizar\n§8Solo para ti", () => playCine(player, draft, [player])],
     ["§aExportar\n§8Aparece en Camera > Free", () => exportDraft(player)],
     ["§cDescartar borrador", () => discardDraft(player)],
+    settingsButton(player),
   ]);
 }
 
@@ -526,7 +530,7 @@ function exportDraft(player) {
   saveCine(draft);
   setDraft(player, null);
   removeItem(player, ITEMS.creador);
-  player.sendMessage(`§d[Cinematic Creator] §a"${draft.nombre}" exportada. §7Está en Camera > Free > Ejecutar animación.`);
+  say(player, `§d[Cinematic Creator] §a"${draft.nombre}" exportada. §7Está en Camera > Free > Ejecutar animación.`);
 }
 
 async function discardDraft(player) {

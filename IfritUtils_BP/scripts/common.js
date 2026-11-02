@@ -23,10 +23,44 @@ export function run(entity, cmd) {
   }
 }
 
+// Message settings, saved on each player (Ajustes de mensajes, at the end of every menu).
+const NO_ACTIONBAR = "ifrit:sin_actionbar";
+const NO_CHAT = "ifrit:sin_chat";
+
+/** Action bar message (unless the player turned them off). */
 export function tell(player, msg) {
   try {
+    if (player.getDynamicProperty(NO_ACTIONBAR) === true) return;
     player.onScreenDisplay.setActionBar(msg);
   } catch {}
+}
+
+/** Chat message (unless the player turned them off). */
+export function say(player, msg) {
+  try {
+    if (player.getDynamicProperty(NO_CHAT) === true) return;
+    player.sendMessage(msg);
+  } catch {}
+}
+
+export async function messagesMenu(player) {
+  const v = await modal(
+    player,
+    "§5Ajustes de mensajes",
+    [
+      { type: "toggle", label: "Mostrar mensajes en la barra de acción §7(encima de la barra de objetos)", value: player.getDynamicProperty(NO_ACTIONBAR) !== true },
+      { type: "toggle", label: "Mostrar mensajes en el chat", value: player.getDynamicProperty(NO_CHAT) !== true },
+    ],
+    "Guardar"
+  );
+  if (!v) return;
+  player.setDynamicProperty(NO_ACTIONBAR, v[0] !== true);
+  player.setDynamicProperty(NO_CHAT, v[1] !== true);
+}
+
+/** The last button of every item menu. */
+export function settingsButton(player) {
+  return ["§8Ajustes de mensajes", () => messagesMenu(player)];
 }
 
 export function wait(ticks) {

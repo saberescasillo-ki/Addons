@@ -1,5 +1,5 @@
 // Effects: gives effects to the chosen players, ordered in sections.
-import { menu, modal, names, num, pickTargets, run, tell } from "./common.js";
+import { menu, modal, names, num, pickTargets, run, settingsButton, tell } from "./common.js";
 
 const POSITIVE = [
   ["speed", "Velocidad"],
@@ -69,6 +69,7 @@ export async function effectsMenu(player) {
         tell(player, `§aEfectos quitados a ${names(targets)}`);
       },
     ],
+    settingsButton(player),
   ]);
 }
 
