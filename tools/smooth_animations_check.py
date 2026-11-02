@@ -413,7 +413,7 @@ def static_checks():
     # The vanilla-unused slots really are unused by vanilla controllers.
     vanilla_ctrls = open(os.path.join(SRC, "player.animation_controllers.json")).read()
     for short in ("look_at_target_inverted", "first_person_attack_rotation_item", "first_person_crossbow_hold",
-                  "fishing_rod", "base_controller", "hudplayer"):
+                  "base_controller", "hudplayer"):
         if f'"{short}"' in vanilla_ctrls:
             errors.append(f"{short} is used by a vanilla controller")
     print(f"static: {len(exprs)} expressions, {len(ctrls)} controllers, {len(errors)} problems")
@@ -450,8 +450,8 @@ def random_world(rng):
         "all_animations_finished": 1.0,
         "is_moving": b(), "is_emoting": b(0.05),
         "is_pack_setting_enabled": (lambda name, _s={n: float(rng.random() < 0.2) for n in (
-            "sa:no_item_switch", "sa:no_fp_ease", "sa:no_armor", "sa:no_shield_guard", "sa:no_fall",
-            "sa:no_glide", "sa:no_idle", "sa:no_walk", "sa:no_death")}: _s[name]),
+            "sa:no_item_switch", "sa:no_fp_ease", "sa:no_armor", "sa:no_shield_guard",
+            "sa:no_glide", "sa:no_idle", "sa:no_death")}: _s[name]),
         "get_pack_setting": lambda name: rng.choice([0.0, 10.0, 30.0]),
     }
     v = {"is_holding_right": float(bool(main)), "is_holding_left": float(bool(off)),
@@ -526,7 +526,7 @@ def simulate(n=20000, seed=1):
 def expected_state(short, q, v, sa):
     e = lambda s: evaluate(s, Env(q, v))
     if short == "base":
-        on = [n for n, c in (("hold_r", "variable.is_holding_right"), ("sneak", sa.SNEAK_POSE), ("fall", sa.FALL),
+        on = [n for n, c in (("hold_r", "variable.is_holding_right"), ("sneak", sa.SNEAK_POSE),
                              ("glide", sa.GLIDE), ("idle", sa.IDLE)) if e(c)]
         return "_".join(on) or "default"
     if short == "gear":
@@ -743,16 +743,10 @@ def preview(path):
         scene("Quitarse peto", ["animation.player.first_person.attack_rotation_item"], armor=5, t=0.45),
         scene("Quitarse botas", ["animation.player.first_person.attack_rotation_item"], armor=7, t=0.57),
         scene("Ponerse élitros", ["animation.player.first_person.attack_rotation_item"], armor=8, t=0.4),
-        scene("Caída", ["animation.humanoid.fishing_rod"], t=1.0, q_={"life_time": 1.0}),
         scene("Élitros", ["animation.player.first_person.crossbow_hold"]),
         scene("Espera (quieto\n14 s)", ["animation.player.holding_heavy_core"], t=14.0),
         scene("Tridente\n(cargado)", ["animation.humanoid.brandish_spear"], main="trident",
               vars_={"is_brandishing_spear": 1.0, "charge_amount": 1.0}),
-        scene("Correr\n(sin herramienta)", [], vars_={"tcos0": 45.0},
-              q_={"modified_move_speed": 1.0, "ground_speed": 5.8}),
-        scene("Correr\n(con espada)", [], main="diamond_sword", vars_={"tcos0": 45.0},
-              q_={"modified_move_speed": 1.0, "ground_speed": 5.8,
-                  "equipped_item_any_tag": lambda slot, *t: float("minecraft:is_sword" in t)}),
         scene("Muerte (0,4 s)\n(el juego inclina\nal jugador; se\ncompensa)", ["animation.player.sleeping"],
               q_={"is_alive": 0.0, "death_ticks": 8.0, "frame_alpha": 0.0},
               tilt=90.0 * min(1.0, math.sqrt(max(0.0, (8.0 - 1.0) / 20.0 * 1.6)))),

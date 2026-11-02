@@ -1,54 +1,6 @@
 {
   "format_version": "1.10.0",
   "animations": {
-    "animation.humanoid.fishing_rod": {
-      "loop": "hold_on_last_frame",
-      "animation_length": 3600.0,
-      "bones": {
-        "rightarm": {
-          "rotation": [
-            "(-this * 0.8 - 125.0 - 18.0 * math.sin(query.life_time * 210.0)) * (math.clamp(query.anim_time / 0.4, 0.0, 1.0) * math.clamp(query.anim_time / 0.4, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.4, 0.0, 1.0)))",
-            "(-8.0 * math.sin(query.life_time * 210.0 + 120.0)) * (math.clamp(query.anim_time / 0.4, 0.0, 1.0) * math.clamp(query.anim_time / 0.4, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.4, 0.0, 1.0)))",
-            "(32.0 + 12.0 * math.sin(query.life_time * 210.0 + 120.0)) * (math.clamp(query.anim_time / 0.4, 0.0, 1.0) * math.clamp(query.anim_time / 0.4, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.4, 0.0, 1.0)))"
-          ]
-        },
-        "leftarm": {
-          "rotation": [
-            "(-this * 0.8 - 125.0 - 18.0 * math.sin(query.life_time * 210.0 + 120.0)) * (math.clamp(query.anim_time / 0.4, 0.0, 1.0) * math.clamp(query.anim_time / 0.4, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.4, 0.0, 1.0)))",
-            "(8.0 * math.sin(query.life_time * 210.0)) * (math.clamp(query.anim_time / 0.4, 0.0, 1.0) * math.clamp(query.anim_time / 0.4, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.4, 0.0, 1.0)))",
-            "(-32.0 - 12.0 * math.sin(query.life_time * 210.0)) * (math.clamp(query.anim_time / 0.4, 0.0, 1.0) * math.clamp(query.anim_time / 0.4, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.4, 0.0, 1.0)))"
-          ]
-        },
-        "rightleg": {
-          "rotation": [
-            "(-this * 0.8 - 22.0 + 16.0 * math.sin(query.life_time * 330.0)) * (math.clamp(query.anim_time / 0.4, 0.0, 1.0) * math.clamp(query.anim_time / 0.4, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.4, 0.0, 1.0)))",
-            0.0,
-            "5.0 * (math.clamp(query.anim_time / 0.4, 0.0, 1.0) * math.clamp(query.anim_time / 0.4, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.4, 0.0, 1.0)))"
-          ]
-        },
-        "leftleg": {
-          "rotation": [
-            "(-this * 0.8 - 6.0 - 16.0 * math.sin(query.life_time * 330.0)) * (math.clamp(query.anim_time / 0.4, 0.0, 1.0) * math.clamp(query.anim_time / 0.4, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.4, 0.0, 1.0)))",
-            0.0,
-            "-5.0 * (math.clamp(query.anim_time / 0.4, 0.0, 1.0) * math.clamp(query.anim_time / 0.4, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.4, 0.0, 1.0)))"
-          ]
-        },
-        "head": {
-          "rotation": [
-            "16.0 * (math.clamp(query.anim_time / 0.4, 0.0, 1.0) * math.clamp(query.anim_time / 0.4, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.4, 0.0, 1.0)))",
-            0.0,
-            0.0
-          ]
-        },
-        "root": {
-          "rotation": [
-            "-5.0 * (math.clamp(query.anim_time / 0.4, 0.0, 1.0) * math.clamp(query.anim_time / 0.4, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.4, 0.0, 1.0)))",
-            0.0,
-            0.0
-          ]
-        }
-      }
-    },
     "animation.player.first_person.attack_rotation_item": {
       "loop": false,
       "animation_length": 0.9,

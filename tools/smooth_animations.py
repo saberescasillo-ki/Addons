@@ -6,7 +6,7 @@ abrupt animation changes and adds a few new ones.
 
 What it does (third person unless noted):
 - Cross-fades (engine "blend_transition") instead of snapping: sneaking, empty
-  hand <-> item, mounting, bow, crossbow, shield, spear states, falling,
+  hand <-> item, mounting, bow, crossbow, shield, spear states,
   elytra, idle.
 - Item switch: every time the kind of item in the main hand changes (sword,
   spear, axe, tool, mace, bow, crossbow, shield, food, block/other...) the arm
@@ -16,7 +16,6 @@ What it does (third person unless noted):
   short animation.
 - Shield: sneaking with a shield (either hand) keeps the player standing in a
   guard stance instead of crouching.
-- Falling from high up: arms go up and out, legs bend, softly.
 - Elytra: arms slightly spread while gliding.
 - Idle: after standing still for a while (10 s by default) the player looks
   around, breathes and shifts their weight.
@@ -32,7 +31,7 @@ pack only uses animation names that the vanilla player entity already has:
 - animations listed by the vanilla entity but never played
   (look_at_target.inverted, attack.positions [it only set a 0 rotation],
   first_person.attack_rotation_item, first_person.crossbow_hold,
-  humanoid.fishing_rod) or whose content moved elsewhere (holding_heavy_core,
+  [humanoid.fishing_rod is free again]) or whose content moved elsewhere (holding_heavy_core,
   now inside animation.player.holding).
 See SLOTS below. Nothing keeps per-frame state, so it does not jitter.
 
@@ -54,7 +53,7 @@ SRC = os.path.join(ROOT, "sources", "vanilla_player_1.26.60")
 RP = os.path.join(ROOT, "SmoothAnimations_RP")
 DIST = os.path.join(ROOT, "dist")
 
-VERSION = [1, 3, 0]
+VERSION = [1, 5, 0]
 MIN_ENGINE = [1, 26, 0]
 UUIDS = dict(rp="52ee589c-ac10-4f69-818c-6d27bce78aa0", rp_res="b70c157b-5b10-4813-9a33-ef6bf87622b6")
 
@@ -64,7 +63,6 @@ SLOTS = dict(
     item_swap="attack.positions",                    # animation.player.attack.positions
     armor_equip="first_person_attack_rotation_item",  # animation.player.first_person.attack_rotation_item
     glide="first_person_crossbow_hold",               # animation.player.first_person.crossbow_hold
-    fall="fishing_rod",                              # animation.humanoid.fishing_rod
     idle="holding_heavy_core",                       # animation.player.holding_heavy_core
     pose_ctrl="base_controller",                     # controller.animation.player.base
     gear_ctrl="hudplayer",                           # controller.animation.player.hudplayer
@@ -76,12 +74,10 @@ SLOT_IDS = {
     "attack.positions": "animation.player.attack.positions",
     "first_person_attack_rotation_item": "animation.player.first_person.attack_rotation_item",
     "first_person_crossbow_hold": "animation.player.first_person.crossbow_hold",
-    "fishing_rod": "animation.humanoid.fishing_rod",
     "holding_heavy_core": "animation.player.holding_heavy_core",
 }
 
 BLEND = 0.15        # seconds of cross-fade between poses
-FALL_SPEED = -9.0   # m/s; a jump never falls this fast, a drop of ~3 blocks does
 SWAP_LEN = 0.32     # third person item switch
 EQUIP_LEN = 0.9     # armor
 IDLE_DELAY = 10     # default seconds standing still before the idle animation (pack setting)
@@ -95,10 +91,8 @@ SETTINGS = [
     ("toggle", "sa:no_fp_ease", "Quitar suavizado del cambio de objeto (1a persona)"),
     ("toggle", "sa:no_armor", "Quitar animaciones de ponerse armadura"),
     ("toggle", "sa:no_shield_guard", "Quitar guardia con escudo (agacharse como en vanilla)"),
-    ("toggle", "sa:no_fall", "Quitar animación de caída"),
     ("toggle", "sa:no_glide", "Quitar brazos abiertos con élitros"),
     ("toggle", "sa:no_idle", "Quitar animación de espera"),
-    ("toggle", "sa:no_walk", "Quitar caminar y correr mejorados (y con herramienta)"),
     ("toggle", "sa:no_death", "Quitar animación de muerte (arrodillarse)"),
     ("slider", "sa:idle_delay", "Segundos quieto antes de la animación de espera"),
 ]
@@ -134,16 +128,11 @@ GUARD_ON = f"!{off('shield_guard')}"
 GUARD = (f"({GUARD_ON} ? (query.is_sneaking || query.blocking) : query.blocking) && {SHIELD_ANY} && "
          "!query.is_sleeping && !query.is_swimming && !query.is_crawling")
 SNEAK_POSE = f"(query.is_sneaking && !query.is_sleeping && !({GUARD_ON} && {SHIELD_ANY}))"
-FALL = (f"!query.is_on_ground && query.vertical_speed < {FALL_SPEED} && !query.is_gliding && "
-        "!query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && "
-        f"!query.is_sleeping && !query.is_spectator && !{off('fall')}")
 GLIDE = f"query.is_gliding && !{off('glide')}"
 IDLE = ("query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && "
         "!query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && "
         "!query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && "
         f"!{off('idle')}")
-TOOL_IN_HAND = (f"({tag_in('is_sword', 'is_axe', 'is_pickaxe', 'is_shovel', 'is_hoe', 'is_spear')} || "
-                f"{name_in(MAIN, 'trident', 'mace')})")
 DEATH = f"!query.is_alive && !{off('death')}"
 CROSSBOW = name_in(MAIN, "crossbow")
 HEAVY_CORE = name_in(MAIN, "heavy_core")
@@ -236,7 +225,6 @@ def pose_controller():
     return combo_controller([
         flag("hold_r", "variable.is_holding_right", [SLOTS["hold_right"]]),
         flag("sneak", SNEAK_POSE, ["sneaking"]),
-        flag("fall", FALL, [SLOTS["fall"]]),
         flag("glide", GLIDE, [SLOTS["glide"]]),
         flag("idle", IDLE, [SLOTS["idle"]]),
     ])
@@ -356,7 +344,7 @@ def build_controllers():
             continue
         out.append(entry)
         if key == "holding":
-            out.append(SLOTS["pose_ctrl"])            # right arm pose, sneaking, falling
+            out.append(SLOTS["pose_ctrl"])            # right arm pose, sneaking, elytra, idle
     assert not moved, f"not found in the vanilla controller: {moved}"
     out += [SLOTS["item_ctrl"], SLOTS["armor_ctrl"]]
     ctrls["controller.animation.player.root"]["states"]["third_person"]["animations"] = out
@@ -456,28 +444,6 @@ def armor_equip_animation():
     return {"loop": False, "animation_length": EQUIP_LEN, "bones": bones}
 
 
-def fall_animation():
-    """Arms rise over the first 0.4 s and then wave slowly up and out, legs pedal a little and the
-    head looks down; the whole body arches back slightly."""
-    r = smooth01("query.anim_time / 0.4")
-    s1 = "math.sin(query.life_time * 210.0)"
-    s2 = "math.sin(query.life_time * 210.0 + 120.0)"
-    s3 = "math.sin(query.life_time * 330.0)"
-    return {
-        "loop": "hold_on_last_frame", "animation_length": 3600.0,
-        "bones": {
-            "rightarm": {"rotation": [f"(-this * 0.8 - 125.0 - 18.0 * {s1}) * {r}", f"(-8.0 * {s2}) * {r}",
-                                      f"(32.0 + 12.0 * {s2}) * {r}"]},
-            "leftarm": {"rotation": [f"(-this * 0.8 - 125.0 - 18.0 * {s2}) * {r}", f"(8.0 * {s1}) * {r}",
-                                     f"(-32.0 - 12.0 * {s1}) * {r}"]},
-            "rightleg": {"rotation": [f"(-this * 0.8 - 22.0 + 16.0 * {s3}) * {r}", 0.0, f"5.0 * {r}"]},
-            "leftleg": {"rotation": [f"(-this * 0.8 - 6.0 - 16.0 * {s3}) * {r}", 0.0, f"-5.0 * {r}"]},
-            "head": {"rotation": [f"16.0 * {r}", 0.0, 0.0]},
-            "root": {"rotation": [f"-5.0 * {r}", 0.0, 0.0]},
-        },
-    }
-
-
 def idle_animation():
     """Plays from the moment the player stands still; does nothing until the delay has passed, then
     fades in: looking around, breathing and shifting weight."""
@@ -508,36 +474,12 @@ def idle_animation():
     }
 
 
-def build_walk(anims):
-    """Walking and running (setting sa:no_walk turns it back to vanilla). Running is measured from the
-    ground speed, so it fades in and out. With a tool or weapon in the main hand the right arm barely
-    swings and, when running, carries it forward and up; the left arm swings more instead."""
-    k = on_factor("walk")
-    run = (f"(math.clamp((query.ground_speed - 4.4) / 1.2, 0.0, 1.0) * !query.is_riding * !query.is_gliding * "
-           f"!query.is_swimming * {k})")
-    walk = f"(math.clamp(query.modified_move_speed * 2.0, 0.0, 1.0) * !query.is_riding * {k})"
-    tool = f"({TOOL_IN_HAND} * {k})"
-    arms = anims["animation.player.move.arms"]["bones"]
-    assert arms["leftarm"]["rotation"][0] == "variable.tcos0" and arms["rightarm"]["rotation"][0] == "-variable.tcos0"
-    arms["leftarm"]["rotation"] = [
-        f"variable.tcos0 * (1.0 + 0.3 * {run} + 0.25 * {tool}) - 6.0 * {run}", 0.0, f"-3.0 * {walk} - 3.0 * {run}"]
-    arms["rightarm"]["rotation"] = [
-        f"-variable.tcos0 * (1.0 + 0.3 * {run} - {tool} * (0.7 + 0.3 * {run})) - 6.0 * {run} - 22.0 * {tool} * {run}",
-        f"8.0 * {tool} * {run}", f"3.0 * {walk} + 3.0 * {run}"]
-    legs = anims["animation.player.move.legs"]["bones"]
-    assert legs["leftleg"]["rotation"][0] == "variable.tcos0 * -1.4"
-    legs["leftleg"]["rotation"][0] = f"variable.tcos0 * -1.4 * (1.0 + 0.15 * {run})"
-    legs["rightleg"]["rotation"][0] = f"variable.tcos0 * 1.4 * (1.0 + 0.15 * {run})"
-    # Running leans the whole body forward a little, pivoting at the feet.
-    legs["root"] = {"rotation": [f"7.0 * {run}", 0.0, 0.0]}
-
-
 def build_trident(anims):
     """Trident aiming, a bit exaggerated (always on): the body leans back, the free arm points at the
     target, feet apart, and the throwing arm goes further back. Grows with variable.charge_amount."""
     c = "((variable.is_brandishing_spear ?? 0.0) * math.clamp(variable.charge_amount ?? 0.0, 0.0, 1.0))"
     legs = anims["animation.player.move.legs"]["bones"]
-    legs["root"]["rotation"][0] = f"{legs['root']['rotation'][0]} - 9.0 * {c}"
+    legs["root"] = {"rotation": [f"-9.0 * {c}", 0.0, 0.0]}
     legs["leftleg"]["rotation"] = [f"{legs['leftleg']['rotation'][0]} - 18.0 * {c}", -0.1, f"-0.1 - 4.0 * {c}"]
     legs["rightleg"]["rotation"] = [f"{legs['rightleg']['rotation'][0]} + 14.0 * {c}", 0.1, f"0.1 + 4.0 * {c}"]
     # animation.player.bob plays after the vanilla trident pose (brandish_spear) while aiming.
@@ -622,7 +564,6 @@ def build_animations():
     sb_main["leftleg"] = {"rotation": [f"12.0 * {still}", 0.0, f"-4.0 * {still}"]}
     sb_main["leftarm"] = {"rotation": [f"-8.0 * {still}", 0.0, f"-4.0 * {still}"]}
 
-    build_walk(anims)
     build_trident(anims)
     build_death(anims)
 
@@ -635,7 +576,6 @@ def build_animations():
 
     # Slots the vanilla player never plays.
     save("animations/smooth_extra.animation.json", {"format_version": "1.10.0", "animations": {
-        "animation.humanoid.fishing_rod": fall_animation(),
         "animation.player.first_person.attack_rotation_item": armor_equip_animation(),
     }})
 

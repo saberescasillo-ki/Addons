@@ -4,14 +4,14 @@
     "name": "Animaciones Suaves",
     "description": "Animaciones del jugador más suaves y nuevas (armadura, escudo, caída, élitros, espera). Ajustes en el engranaje del pack. Compatible con skins del Marketplace.",
     "uuid": "52ee589c-ac10-4f69-818c-6d27bce78aa0",
-    "version": "1.3.0",
+    "version": "1.5.0",
     "min_engine_version": "1.26.0"
   },
   "modules": [
     {
       "type": "resources",
       "uuid": "b70c157b-5b10-4813-9a33-ef6bf87622b6",
-      "version": "1.3.0"
+      "version": "1.5.0"
     }
   ],
   "settings": [
@@ -45,12 +45,6 @@
     },
     {
       "type": "toggle",
-      "name": "sa:no_fall",
-      "text": "Quitar animación de caída",
-      "default": false
-    },
-    {
-      "type": "toggle",
       "name": "sa:no_glide",
       "text": "Quitar brazos abiertos con élitros",
       "default": false
@@ -59,12 +53,6 @@
       "type": "toggle",
       "name": "sa:no_idle",
       "text": "Quitar animación de espera",
-      "default": false
-    },
-    {
-      "type": "toggle",
-      "name": "sa:no_walk",
-      "text": "Quitar caminar y correr mejorados (y con herramienta)",
       "default": false
     },
     {
