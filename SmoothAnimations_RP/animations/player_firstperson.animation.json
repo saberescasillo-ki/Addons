@@ -325,7 +325,7 @@
         "rightarm": {
           "position": [
             0.0,
-            "temp.h = math.clamp((variable.sa_arm_ok ?? 0.0) ? variable.sa_arm : variable.player_arm_height, 0.0, 1.0); return -10.0 * (1.0 - temp.h * temp.h * (3.0 - 2.0 * temp.h));",
+            "temp.h = math.clamp(variable.player_arm_height, 0.0, 1.0); return -10.0 * (1.0 - temp.h * temp.h * (3.0 - 2.0 * temp.h));",
             0.0
           ]
         }
@@ -344,7 +344,7 @@
         "rightarm": {
           "position": [
             0.0,
-            "temp.h = math.clamp((variable.sa_arm_ok ?? 0.0) ? variable.sa_arm : variable.player_arm_height, 0.0, 1.0); return query.get_equipped_item_name('off_hand') != 'shield' ? -10.0 * (1.0 - temp.h * temp.h * (3.0 - 2.0 * temp.h)) : 0.0;",
+            "temp.h = math.clamp(variable.player_arm_height, 0.0, 1.0); return query.get_equipped_item_name('off_hand') != 'shield' ? -10.0 * (1.0 - temp.h * temp.h * (3.0 - 2.0 * temp.h)) : 0.0;",
             0.0
           ]
         }

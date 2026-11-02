@@ -296,30 +296,20 @@
             "move.arms",
             "move.legs",
             "cape",
-            {
-              "riding.root": "variable.sa_ride"
-            },
-            {
-              "riding.arms": "variable.sa_ride"
-            },
-            {
-              "riding.legs": "variable.sa_ride"
-            },
+            "hudplayer",
             "holding",
+            "base_controller",
             {
-              "brandish_spear": "variable.sa_trident"
+              "brandish_spear": "variable.is_brandishing_spear"
             },
             {
-              "holding_spyglass": "variable.sa_spyglass"
+              "holding_spyglass": "variable.is_holding_spyglass"
             },
             {
-              "charging": "variable.sa_charge"
+              "charging": "query.is_charging"
             },
             {
-              "sneaking": "variable.sa_sneak"
-            },
-            {
-              "bob": "1.0 - math.max(variable.sa_spyglass, math.max(variable.sa_horn, variable.sa_brush))"
+              "bob": "!variable.is_holding_spyglass && !variable.is_tooting_goat_horn && !variable.is_using_brush"
             },
             {
               "damage_nearby_mobs": "variable.damage_nearby_mobs"
@@ -355,25 +345,16 @@
               "attack.rotations": "variable.attack_time >= 0.0 && !variable.melee_spear_equipped"
             },
             {
-              "shield_block_main_hand": "variable.sa_shield_main"
-            },
-            {
-              "shield_block_off_hand": "variable.sa_shield_off"
-            },
-            {
               "crossbow_controller": "query.get_equipped_item_name == 'crossbow'"
             },
             {
-              "third_person_bow_equipped": "variable.sa_bow"
-            },
-            {
-              "tooting_goat_horn": "variable.sa_horn"
+              "tooting_goat_horn": "variable.is_tooting_goat_horn"
             },
             {
               "holding_brush": "query.get_equipped_item_name == 'brush'"
             },
             {
-              "brushing": "variable.sa_brush"
+              "brushing": "variable.is_using_brush"
             },
             {
               "holding_heavy_core": "query.is_item_name_any('slot.weapon.mainhand', 'minecraft:heavy_core')"
@@ -393,6 +374,980 @@
               "map_player": "variable.map_face_icon"
             }
           ]
+        }
+      }
+    },
+    "controller.animation.player.base": {
+      "initial_state": "default",
+      "states": {
+        "default": {
+          "transitions": [
+            {
+              "sneak": "!(variable.is_holding_right) && (query.is_sneaking && !query.is_sleeping)"
+            },
+            {
+              "hold_r": "(variable.is_holding_right) && !(query.is_sneaking && !query.is_sleeping)"
+            },
+            {
+              "hold_r_sneak": "(variable.is_holding_right) && (query.is_sneaking && !query.is_sleeping)"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "sneak": {
+          "animations": [
+            "sneaking"
+          ],
+          "transitions": [
+            {
+              "default": "!(variable.is_holding_right) && !(query.is_sneaking && !query.is_sleeping)"
+            },
+            {
+              "hold_r": "(variable.is_holding_right) && !(query.is_sneaking && !query.is_sleeping)"
+            },
+            {
+              "hold_r_sneak": "(variable.is_holding_right) && (query.is_sneaking && !query.is_sleeping)"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "hold_r": {
+          "animations": [
+            "look_at_target_inverted"
+          ],
+          "transitions": [
+            {
+              "default": "!(variable.is_holding_right) && !(query.is_sneaking && !query.is_sleeping)"
+            },
+            {
+              "sneak": "!(variable.is_holding_right) && (query.is_sneaking && !query.is_sleeping)"
+            },
+            {
+              "hold_r_sneak": "(variable.is_holding_right) && (query.is_sneaking && !query.is_sleeping)"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "hold_r_sneak": {
+          "animations": [
+            "look_at_target_inverted",
+            "sneaking"
+          ],
+          "transitions": [
+            {
+              "default": "!(variable.is_holding_right) && !(query.is_sneaking && !query.is_sleeping)"
+            },
+            {
+              "sneak": "!(variable.is_holding_right) && (query.is_sneaking && !query.is_sleeping)"
+            },
+            {
+              "hold_r": "(variable.is_holding_right) && !(query.is_sneaking && !query.is_sleeping)"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        }
+      }
+    },
+    "controller.animation.player.hudplayer": {
+      "initial_state": "default",
+      "states": {
+        "default": {
+          "transitions": [
+            {
+              "shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main_shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "shield_off": {
+          "animations": [
+            "shield_block_off_hand"
+          ],
+          "transitions": [
+            {
+              "default": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main_shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "shield_main": {
+          "animations": [
+            "shield_block_main_hand"
+          ],
+          "transitions": [
+            {
+              "default": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main_shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "shield_main_shield_off": {
+          "animations": [
+            "shield_block_main_hand",
+            "shield_block_off_hand"
+          ],
+          "transitions": [
+            {
+              "default": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "bow": {
+          "animations": [
+            "third_person_bow_equipped"
+          ],
+          "transitions": [
+            {
+              "default": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main_shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "bow_shield_off": {
+          "animations": [
+            "third_person_bow_equipped",
+            "shield_block_off_hand"
+          ],
+          "transitions": [
+            {
+              "default": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main_shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "bow_shield_main": {
+          "animations": [
+            "third_person_bow_equipped",
+            "shield_block_main_hand"
+          ],
+          "transitions": [
+            {
+              "default": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main_shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "bow_shield_main_shield_off": {
+          "animations": [
+            "third_person_bow_equipped",
+            "shield_block_main_hand",
+            "shield_block_off_hand"
+          ],
+          "transitions": [
+            {
+              "default": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main_shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "ride": {
+          "animations": [
+            "riding.root",
+            "riding.arms",
+            "riding.legs"
+          ],
+          "transitions": [
+            {
+              "default": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main_shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "ride_shield_off": {
+          "animations": [
+            "riding.root",
+            "riding.arms",
+            "riding.legs",
+            "shield_block_off_hand"
+          ],
+          "transitions": [
+            {
+              "default": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main_shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "ride_shield_main": {
+          "animations": [
+            "riding.root",
+            "riding.arms",
+            "riding.legs",
+            "shield_block_main_hand"
+          ],
+          "transitions": [
+            {
+              "default": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main_shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "ride_shield_main_shield_off": {
+          "animations": [
+            "riding.root",
+            "riding.arms",
+            "riding.legs",
+            "shield_block_main_hand",
+            "shield_block_off_hand"
+          ],
+          "transitions": [
+            {
+              "default": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main_shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "ride_bow": {
+          "animations": [
+            "riding.root",
+            "riding.arms",
+            "riding.legs",
+            "third_person_bow_equipped"
+          ],
+          "transitions": [
+            {
+              "default": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main_shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "ride_bow_shield_off": {
+          "animations": [
+            "riding.root",
+            "riding.arms",
+            "riding.legs",
+            "third_person_bow_equipped",
+            "shield_block_off_hand"
+          ],
+          "transitions": [
+            {
+              "default": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main_shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "ride_bow_shield_main": {
+          "animations": [
+            "riding.root",
+            "riding.arms",
+            "riding.legs",
+            "third_person_bow_equipped",
+            "shield_block_main_hand"
+          ],
+          "transitions": [
+            {
+              "default": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main_shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "ride_bow_shield_main_shield_off": {
+          "animations": [
+            "riding.root",
+            "riding.arms",
+            "riding.legs",
+            "third_person_bow_equipped",
+            "shield_block_main_hand",
+            "shield_block_off_hand"
+          ],
+          "transitions": [
+            {
+              "default": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "shield_main_shield_off": "!(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "bow_shield_main_shield_off": "!(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_shield_main_shield_off": "(query.is_riding) && !(query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_off": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && (query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            },
+            {
+              "ride_bow_shield_main": "(query.is_riding) && (query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && query.get_equipped_item_name == 'shield') && !(query.blocking && query.get_equipped_item_name('off_hand') == 'shield')"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
         }
       }
     }

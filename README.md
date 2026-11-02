@@ -22,8 +22,8 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 # Animaciones Suaves
 
 Pack de recursos (texturas) que **suaviza las animaciones bruscas del jugador**. En vanilla muchas poses se
-activan de golpe en un solo frame; con este pack pasan de una a otra en unas décimas de segundo, con
-aceleración y frenado suaves (curva *smoothstep*), igual a 30, 60 o 144 FPS.
+activan de golpe en un solo frame; con este pack el juego hace un fundido entre una pose y otra (la mezcla
+`blend_transition` del propio motor).
 
 **Cómo activarlo:** abre `dist/SmoothAnimations.mcpack` y actívalo en *Ajustes → Recursos globales* (así funciona
 en todos los mundos) o solo en los recursos de un mundo. Requiere Minecraft Bedrock **1.26.0** o superior; está
@@ -31,28 +31,23 @@ hecho sobre los archivos vanilla de la **1.26.60**. No necesita experimentos.
 
 | Animación | Antes | Ahora |
 |---|---|---|
-| Agacharse / levantarse | instantáneo | 0,16 s |
-| Cambiar de objeto (3a persona, mano vacía ↔ objeto) | el brazo salta | 0,14 s |
-| Cambiar de objeto (1a persona) | el brazo baja de golpe | baja en 0,08 s y sube con frenado suave |
-| Montar / desmontar (caballo, barca, vagoneta...) | instantáneo | 0,25 s |
-| Levantar el escudo | instantáneo | 0,10 s |
-| Tensar el arco, catalejo, cuerno de cabra, pincel, tridente, ataque cargado | instantáneo | 0,12–0,14 s |
-| Ballesta y lanza (3a persona) | cambio de estado de golpe | mezcla de 0,15 s |
-| Inclinación del arco/ballesta/lanza al agacharse | salto de 15–27° | sigue al agacharse suave |
+| Agacharse / levantarse | instantáneo | fundido de 0,15 s |
+| Cambiar de objeto (3a persona, mano vacía ↔ objeto, brazo derecho) | el brazo salta | fundido de 0,15 s |
+| Cambiar de objeto (1a persona) | el brazo sube en línea recta | sube con aceleración y frenado suaves |
+| Montar / desmontar (caballo, barca, vagoneta...) | instantáneo | fundido de 0,15 s |
+| Levantar el escudo, tensar el arco | instantáneo | fundido de 0,15 s |
+| Ballesta y lanza (3a persona) | cambio de estado de golpe | fundido de 0,15 s |
 
-- **Compatible con skins del Marketplace, persona (Creador de personajes), capas y emotes:** el pack no toca la
-  geometría, las texturas ni los render controllers del jugador. Solo cambia el *peso* con el que se mezclan las
-  animaciones vanilla, así que cualquier skin (también las de modelo personalizado) se anima igual que en vanilla,
-  pero suave.
-- Funciona también con los demás jugadores que veas (el suavizado se calcula en tu dispositivo).
-- No cambia nada de jugabilidad: el escudo bloquea, el arco dispara y la hitbox al agacharse funcionan igual que
-  en vanilla; solo cambia lo que se ve. La bajada de la cámara al agacharse la controla el juego y no se puede
-  cambiar desde un pack.
-- Sustituye `entity/player.entity.json` y los archivos de animación del jugador. Si otro pack o un mundo del
-  Marketplace también los sustituye, gana el que esté más arriba en la lista. Cuando Mojang cambie esos archivos
-  en una actualización habrá que regenerar el pack con los nuevos archivos vanilla (se guardan en
-  `sources/vanilla_player_1.26.60/`).
-- Las duraciones están en `DURATIONS` al principio de `tools/smooth_animations.py`.
+- **Compatible con skins del Marketplace, persona (Creador de personajes), capas y emotes:** el pack **no
+  sustituye** `entity/player.entity.json` (sustituirlo hace que el juego ignore las skins del Marketplace y
+  ponga a Steve). Solo cambia el controlador de animaciones y algunas animaciones del jugador, usando los
+  nombres de animación que el jugador vanilla ya tiene.
+- No guarda valores entre frames, así que no tiembla aunque el jugador se dibuje varias veces (HUD, inventario).
+- No cambia nada de jugabilidad; solo lo que se ve. La bajada de la cámara al agacharse la controla el juego.
+- Sustituye `animation_controllers/player.animation_controllers.json` y los archivos de animación del jugador.
+  Si otro pack también los sustituye, gana el que esté más arriba. Cuando Mojang cambie esos archivos habrá que
+  regenerar el pack con los nuevos vanilla (`sources/vanilla_player_1.26.60/`).
+- La duración de los fundidos está en `BASE`, `HUD` y `CONTROLLER_BLEND` en `tools/smooth_animations.py`.
 
 ---
 

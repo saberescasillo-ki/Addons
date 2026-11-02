@@ -99,14 +99,14 @@
       "bones": {
         "leftarm": {
           "rotation": [
-            "-90.0 + query.target_x_rotation - (variable.sa_sneak ?? query.is_sneaking) * 15.0 - this",
+            "-90.0 + query.target_x_rotation - query.is_sneaking * 15.0 - this",
             "27.5 + query.target_y_rotation",
             0.0
           ]
         },
         "rightarm": {
           "rotation": [
-            "-90.0 + query.target_x_rotation - (variable.sa_sneak ?? query.is_sneaking) * 15.0 - this",
+            "-90.0 + query.target_x_rotation - query.is_sneaking * 15.0 - this",
             "-5.0 + query.target_y_rotation",
             0.0
           ]
@@ -166,14 +166,14 @@
       "bones": {
         "leftarm": {
           "rotation": [
-            "query.is_swimming ? 0.0 : -93.0 + query.target_x_rotation - (variable.sa_sneak ?? query.is_sneaking) * 27.0 -this",
+            "query.is_swimming ? 0.0 : -93.0 + query.target_x_rotation - query.is_sneaking * 27.0 -this",
             "query.is_swimming ? 0.0 : 42.0 + math.clamp(query.target_y_rotation, -45.0, 5.0) -this",
-            "(variable.sa_sneak ?? query.is_sneaking) * -15.0"
+            "query.is_sneaking * -15.0"
           ]
         },
         "rightarm": {
           "rotation": [
-            "query.is_swimming ? 0.0 : -93.0 + query.target_x_rotation - (variable.sa_sneak ?? query.is_sneaking) * 27.0 -this",
+            "query.is_swimming ? 0.0 : -93.0 + query.target_x_rotation - query.is_sneaking * 27.0 -this",
             "query.is_swimming ? 0.0 : math.clamp(query.target_y_rotation, -60.0, 45.0) -this",
             0.0
           ]
@@ -192,7 +192,7 @@
         },
         "rightarm": {
           "rotation": [
-            "v.tp_melee_spear_base_arm_rotation_x + q.target_x_rotation - (variable.sa_sneak ?? query.is_sneaking) * 27.0 - this + v.tp_melee_spear_attack_arm_rotation_x",
+            "v.tp_melee_spear_base_arm_rotation_x + q.target_x_rotation - q.is_sneaking * 27.0 - this + v.tp_melee_spear_attack_arm_rotation_x",
             "math.clamp(q.target_y_rotation, -60.0, 45.0) - this - v.attack_body_rot_y",
             0.0
           ]
@@ -249,14 +249,7 @@
       "bones": {
         "leftarm": {
           "rotation": [
-            "(-this * 0.5 - 18.0) * (variable.sa_hold_l ?? ((variable.is_holding_left ?? 0.0) ? 1.0 : 0.0))",
-            0.0,
-            0.0
-          ]
-        },
-        "rightarm": {
-          "rotation": [
-            "(-this * 0.5 - 18.0) * (variable.sa_hold_r ?? ((variable.is_holding_right ?? 0.0) ? 1.0 : 0.0))",
+            "variable.is_holding_left ? (-this * 0.5 - 18.0) : 0.0",
             0.0,
             0.0
           ]
@@ -298,10 +291,10 @@
     "animation.player.look_at_target.inverted": {
       "loop": true,
       "bones": {
-        "head": {
+        "rightarm": {
           "rotation": [
-            "-query.target_x_rotation",
-            "-query.target_y_rotation",
+            "-this * 0.5 - 18.0",
+            0.0,
             0.0
           ]
         }

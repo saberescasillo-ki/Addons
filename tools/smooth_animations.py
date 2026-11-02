@@ -1,21 +1,31 @@
 """Builds "Animaciones Suaves": a resource pack that smooths the player's
-abrupt animation changes (sneaking, item switch, mounting, shield, bow,
-spyglass...) so they blend over a few frames instead of snapping.
+abrupt animation changes (sneaking, item switch, mounting, shield, bow) so
+they blend over a few frames instead of snapping.
 
-How it works: vanilla player animations are switched on and off with blend
-weights that are 0 or 1 (e.g. {"sneaking": "query.is_sneaking"}), so the pose
-jumps in a single frame. This pack adds, in the player's pre_animation script,
-one variable per animation that moves from 0 to 1 (and back) over DURATIONS
-seconds using query.delta_time (same speed at any frame rate), eased with a
-smoothstep curve. The animation controller then uses those variables as blend
-weights.
+How it works: the pack does NOT replace entity/player.entity.json (replacing it
+makes the game drop Marketplace / persona skins and show Steve). It only uses
+the animation names that the vanilla player entity already has:
 
-The files are the vanilla ones from Minecraft 1.26.60 (sources/vanilla_player_1.26.60,
-from github.com/Mojang/bedrock-samples) with only those changes, so geometry,
-textures, render controllers, persona and Marketplace skins work as in vanilla.
+- controller.animation.player.base and controller.animation.player.hudplayer
+  are listed in the vanilla player entity ("base_controller", "hudplayer") but
+  are not defined by the game, so the pack defines them. Each one has a state
+  for every combination of a few on/off poses (sneaking, holding an item...)
+  and uses "blend_transition", the engine's own cross-fade between states.
+- "look_at_target_inverted" (animation.player.look_at_target.inverted) is in
+  the vanilla entity but no controller uses it; the pack turns it into the
+  "right arm holding an item" pose so that pose can be cross-faded too.
+- controller.animation.player.root is the vanilla one with those poses moved
+  into the two new controllers.
+
+Nothing keeps per-frame state in variables, so there is no jitter between the
+different renders of the player (HUD, inventory, first/third person).
+
+The source files are the vanilla ones from Minecraft 1.26.60
+(sources/vanilla_player_1.26.60, from github.com/Mojang/bedrock-samples).
 
     python3 tools/smooth_animations.py      # regenerate the pack and the .mcpack
 """
+import itertools
 import json
 import os
 import re
@@ -29,62 +39,28 @@ SRC = os.path.join(ROOT, "sources", "vanilla_player_1.26.60")
 RP = os.path.join(ROOT, "SmoothAnimations_RP")
 DIST = os.path.join(ROOT, "dist")
 
-VERSION = [1, 0, 0]
+VERSION = [1, 1, 0]
 MIN_ENGINE = [1, 26, 0]
 UUIDS = dict(rp="52ee589c-ac10-4f69-818c-6d27bce78aa0", rp_res="b70c157b-5b10-4813-9a33-ef6bf87622b6")
 
-# Seconds each transition takes (0 -> 1 and 1 -> 0).
-DURATIONS = dict(
-    sneak=0.16,       # agacharse / levantarse
-    ride=0.25,        # montar / desmontar
-    hold_r=0.14,      # brazo derecho: mano vacia <-> objeto
-    hold_l=0.14,      # brazo izquierdo: mano vacia <-> objeto
-    trident=0.14,     # apuntar el tridente
-    charge=0.14,      # cargar (ataque cargado)
-    spyglass=0.14,    # catalejo
-    horn=0.14,        # cuerno de cabra
-    brush=0.14,       # pincel
-    bow=0.12,         # tensar el arco
-    shield_main=0.10, # escudo en la mano principal
-    shield_off=0.10,  # escudo en la otra mano
-)
-ARM_DROP = 0.08       # 1a persona: tiempo que tarda el brazo en bajar al cambiar de objeto
-CONTROLLER_BLEND = 0.15  # blend_transition para los estados de ballesta y lanza en 3a persona
+RIGHT_HOLD = "look_at_target_inverted"  # entity slot reused for the right arm "holding" pose
 
-# Condition that switches each smoothed animation on (copied from the vanilla controller).
-TARGETS = dict(
-    sneak="query.is_sneaking && !query.is_sleeping",
-    ride="query.is_riding",
-    hold_r="variable.is_holding_right ?? 0.0",
-    hold_l="variable.is_holding_left ?? 0.0",
-    trident="variable.is_brandishing_spear ?? 0.0",
-    charge="query.is_charging",
-    spyglass="variable.is_holding_spyglass ?? 0.0",
-    horn="variable.is_tooting_goat_horn ?? 0.0",
-    brush="variable.is_using_brush ?? 0.0",
-    bow="query.get_equipped_item_name == 'bow' && ((variable.item_use_normalized ?? 0.0) > 0.0 && "
-        "(variable.item_use_normalized ?? 0.0) < 1.0)",
-    shield_main="query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && "
-                "query.get_equipped_item_name == 'shield'",
-    shield_off="query.blocking && query.get_equipped_item_name('off_hand') == 'shield'",
-)
-
-# Blend weights in controller.animation.player.root, state third_person.
-THIRD_PERSON_WEIGHTS = {
-    "riding.root": "variable.sa_ride",
-    "riding.arms": "variable.sa_ride",
-    "riding.legs": "variable.sa_ride",
-    "brandish_spear": "variable.sa_trident",
-    "holding_spyglass": "variable.sa_spyglass",
-    "charging": "variable.sa_charge",
-    "sneaking": "variable.sa_sneak",
-    "bob": "1.0 - math.max(variable.sa_spyglass, math.max(variable.sa_horn, variable.sa_brush))",
-    "shield_block_main_hand": "variable.sa_shield_main",
-    "shield_block_off_hand": "variable.sa_shield_off",
-    "third_person_bow_equipped": "variable.sa_bow",
-    "tooting_goat_horn": "variable.sa_horn",
-    "brushing": "variable.sa_brush",
-}
+# Each smoothed controller: (on/off poses, blend seconds). A pose is
+# (name, condition, animations listed while it is on).
+BASE = ([
+    ("hold_r", "variable.is_holding_right", [RIGHT_HOLD]),
+    ("sneak", "query.is_sneaking && !query.is_sleeping", ["sneaking"]),
+], 0.15)
+HUD = ([
+    ("ride", "query.is_riding", ["riding.root", "riding.arms", "riding.legs"]),
+    ("bow", "query.get_equipped_item_name == 'bow' && variable.item_use_normalized > 0.0 && "
+            "variable.item_use_normalized < 1.0", ["third_person_bow_equipped"]),
+    ("shield_main", "query.blocking && query.get_equipped_item_name('off_hand') != 'shield' && "
+                    "query.get_equipped_item_name == 'shield'", ["shield_block_main_hand"]),
+    ("shield_off", "query.blocking && query.get_equipped_item_name('off_hand') == 'shield'",
+     ["shield_block_off_hand"]),
+], 0.15)
+CONTROLLER_BLEND = 0.15  # blend_transition added to the vanilla crossbow and spear controllers
 
 
 def load(name):
@@ -101,51 +77,50 @@ def save(rel, data):
         f.write("\n")
 
 
-def ease(var):
-    return f"variable.{var} * variable.{var} * (3.0 - 2.0 * variable.{var})"
+def combo_controller(poses, blend):
+    """One state per combination of poses; every state can go straight to any other one."""
+    def name(bits):
+        on = [p[0] for p, b in zip(poses, bits) if b]
+        return "_".join(on) if on else "default"
 
+    def cond(bits):
+        return " && ".join(f"({c})" if b else f"!({c})" for (_, c, _), b in zip(poses, bits))
 
-def ramp_script(key, duration):
-    """variable.sa_<key>_t moves linearly towards the target; variable.sa_<key> is the eased value."""
-    raw = f"sa_{key}_t"
-    step = f"math.clamp(query.delta_time, 0.0, 0.25) / {duration}"
-    return (f"temp.sa_target = ({TARGETS[key]}) ? 1.0 : 0.0; "
-            f"variable.{raw} = temp.sa_target > variable.{raw} ? math.min(variable.{raw} + {step}, 1.0) "
-            f": math.max(variable.{raw} - {step}, 0.0); "
-            f"variable.sa_{key} = {ease(raw)};")
-
-
-def build_entity():
-    data = load("player.entity.json")
-    scripts = data["minecraft:client_entity"]["description"]["scripts"]
-    for key in DURATIONS:
-        scripts["initialize"] += [f"variable.sa_{key}_t = 0.0;", f"variable.sa_{key} = 0.0;"]
-    scripts["initialize"] += ["variable.sa_arm = 1.0;", "variable.sa_arm_ok = 0.0;"]
-    scripts["pre_animation"] += [ramp_script(k, d) for k, d in DURATIONS.items()]
-    # First person item switch: the engine drops player_arm_height to 0 at once and raises it again;
-    # here the arm goes down in ARM_DROP seconds instead and follows the engine on the way up.
-    # If player_arm_height cannot be read here, sa_arm_ok stays 0 and the animation uses the engine value.
-    scripts["pre_animation"].append(
-        "variable.sa_arm_ok = (variable.player_arm_height ?? -1.0) >= 0.0; "
-        "temp.sa_h = math.clamp(variable.player_arm_height ?? 1.0, 0.0, 1.0); "
-        f"variable.sa_arm = temp.sa_h >= variable.sa_arm ? temp.sa_h "
-        f": math.max(temp.sa_h, variable.sa_arm - math.clamp(query.delta_time, 0.0, 0.25) / {ARM_DROP});")
-    save("entity/player.entity.json", data)
+    combos = list(itertools.product([0, 1], repeat=len(poses)))
+    states = {}
+    for bits in combos:
+        anims = [a for p, b in zip(poses, bits) if b for a in p[2]]
+        state = {}
+        if anims:
+            state["animations"] = anims
+        state["transitions"] = [{name(o): cond(o)} for o in combos if o != bits]
+        state["blend_transition"] = blend
+        state["blend_via_shortest_path"] = True
+        states[name(bits)] = state
+    return {"initial_state": "default", "states": states}
 
 
 def build_controllers():
     data = load("player.animation_controllers.json")
     ctrls = data["animation_controllers"]
     third = ctrls["controller.animation.player.root"]["states"]["third_person"]["animations"]
-    done = set()
+    moved = {a for poses, _ in (BASE, HUD) for p in poses for a in p[2]} - {RIGHT_HOLD}
+    out = []
     for entry in third:
-        if isinstance(entry, dict):
-            (name,) = entry.keys()
-            if name in THIRD_PERSON_WEIGHTS:
-                entry[name] = THIRD_PERSON_WEIGHTS[name]
-                done.add(name)
-    missing = set(THIRD_PERSON_WEIGHTS) - done
-    assert not missing, f"not found in the vanilla controller: {missing}"
+        key = entry if isinstance(entry, str) else next(iter(entry))
+        if key in moved:
+            moved.discard(key)
+            if key == "riding.root":
+                out.append("hudplayer")      # same place in the list as the vanilla riding poses
+            continue
+        if key == "holding":
+            out += ["holding", "base_controller"]   # right arm pose + sneaking, right after holding
+            continue
+        out.append(entry)
+    assert not moved, f"not found in the vanilla controller: {moved}"
+    ctrls["controller.animation.player.root"]["states"]["third_person"]["animations"] = out
+    ctrls["controller.animation.player.base"] = combo_controller(*BASE)
+    ctrls["controller.animation.player.hudplayer"] = combo_controller(*HUD)
     for cid in ("controller.animation.player.crossbow", "controller.animation.player.melee_spear"):
         for state in ctrls[cid]["states"].values():
             state["blend_transition"] = CONTROLLER_BLEND
@@ -153,55 +128,37 @@ def build_controllers():
     save("animation_controllers/player.animation_controllers.json", data)
 
 
-def replace_in(obj, old, new):
-    if isinstance(obj, str):
-        return obj.replace(old, new)
-    if isinstance(obj, list):
-        return [replace_in(x, old, new) for x in obj]
-    if isinstance(obj, dict):
-        return {k: replace_in(v, old, new) for k, v in obj.items()}
-    return obj
-
-
 def build_animations():
     data = load("player.animation.json")
     anims = data["animations"]
     bones = anims["animation.player.holding"]["bones"]
-    for bone, side in (("rightarm", "r"), ("leftarm", "l")):
-        flag = "right" if side == "r" else "left"
-        assert bones[bone]["rotation"][0] == f"variable.is_holding_{flag} ? (-this * 0.5 - 18.0) : 0.0"
-        bones[bone]["rotation"][0] = (f"(-this * 0.5 - 18.0) * (variable.sa_hold_{side} ?? "
-                                      f"((variable.is_holding_{flag} ?? 0.0) ? 1.0 : 0.0))")
-    # Poses that tilt by a fixed amount when sneaking follow the smoothed sneak instead.
-    smooth_sneak = "(variable.sa_sneak ?? query.is_sneaking)"
-    for aid in ("animation.player.bow_equipped", "animation.player.crossbow_hold",
-                "animation.player.melee_spear_attack"):
-        a = replace_in(anims[aid], "query.is_sneaking", smooth_sneak)
-        anims[aid] = replace_in(a, "q.is_sneaking", smooth_sneak)
+    assert bones["rightarm"]["rotation"][0] == "variable.is_holding_right ? (-this * 0.5 - 18.0) : 0.0"
+    # The right arm moves to look_at_target.inverted (cross-faded by controller.animation.player.base);
+    # the left arm stays as in vanilla.
+    del bones["rightarm"]
+    assert "animation.player.look_at_target.inverted" in anims
+    anims["animation.player.look_at_target.inverted"] = {
+        "loop": True,
+        "bones": {"rightarm": {"rotation": ["-this * 0.5 - 18.0", 0.0, 0.0]}},
+    }
     save("animations/player.animation.json", data)
 
     data = load("player_firstperson.animation.json")
     anims = data["animations"]
-    arm_h = ("temp.h = math.clamp((variable.sa_arm_ok ?? 0.0) ? variable.sa_arm : variable.player_arm_height, "
-             "0.0, 1.0); ")
-    eased_main = (arm_h +
-                  "return -10.0 * (1.0 - temp.h * temp.h * (3.0 - 2.0 * temp.h));")
-    eased_off = ("temp.h = math.clamp(context.player_offhand_arm_height, 0.0, 1.0); "
-                 "return -10.0 * (1.0 - temp.h * temp.h * (3.0 - 2.0 * temp.h));")
+    # First person item switch: same movement as vanilla, but the arm comes back up with an
+    # ease-in-out curve instead of a straight line.
+    ease = "temp.h = math.clamp({}, 0.0, 1.0); return {}-10.0 * (1.0 - temp.h * temp.h * (3.0 - 2.0 * temp.h)){};"
+    main, off = "variable.player_arm_height", "context.player_offhand_arm_height"
     swap = anims["animation.player.first_person.swap_item"]["bones"]
-    assert swap["rightarm"]["position"][1] == "-10.0 * (1.0 - variable.player_arm_height)"
-    swap["rightarm"]["position"][1] = eased_main
-    swap["leftarm"]["position"][1] = (
-        "temp.h = math.clamp(context.player_offhand_arm_height, 0.0, 1.0); "
-        "return (query.get_equipped_item_name('off_hand') == 'filled_map' || "
-        "query.get_equipped_item_name('off_hand') == 'shield') ? 0.0 "
-        ": -10.0 * (1.0 - temp.h * temp.h * (3.0 - 2.0 * temp.h));")
+    assert swap["rightarm"]["position"][1] == f"-10.0 * (1.0 - {main})"
+    swap["rightarm"]["position"][1] = ease.format(main, "", "")
+    swap["leftarm"]["position"][1] = ease.format(
+        off, "(query.get_equipped_item_name('off_hand') == 'filled_map' || "
+             "query.get_equipped_item_name('off_hand') == 'shield') ? 0.0 : ", "")
     block = anims["animation.player.first_person.shield_block"]["bones"]
-    block["leftarm"]["position"][1] = eased_off
-    block["rightarm"]["position"][1] = (
-        arm_h +
-        "return query.get_equipped_item_name('off_hand') != 'shield' ? "
-        "-10.0 * (1.0 - temp.h * temp.h * (3.0 - 2.0 * temp.h)) : 0.0;")
+    block["leftarm"]["position"][1] = ease.format(off, "", "")
+    block["rightarm"]["position"][1] = ease.format(
+        main, "query.get_equipped_item_name('off_hand') != 'shield' ? ", " : 0.0")
     save("animations/player_firstperson.animation.json", data)
 
 
@@ -238,12 +195,13 @@ def main():
         shutil.rmtree(RP)
     os.makedirs(RP)
     build_manifest()
-    build_entity()
     build_controllers()
     build_animations()
     build_icon()
     os.makedirs(DIST, exist_ok=True)
     out = os.path.join(DIST, "SmoothAnimations.mcpack")
+    if os.path.exists(out):
+        os.remove(out)
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
         for base, _, files in os.walk(RP):
             for f in sorted(files):
