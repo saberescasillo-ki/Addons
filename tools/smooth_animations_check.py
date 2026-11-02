@@ -432,6 +432,7 @@ def random_world(rng):
     main = rng.choice(list(ITEMS))
     off = rng.choice(["", "", "shield", "torch", "totem_of_undying"])
     armor = [rng.random() < 0.5 for _ in range(4)]
+    elytra = rng.random() < 0.3
     b = lambda p=0.5: float(rng.random() < p)
     q = {
         "is_sneaking": b(), "blocking": b(0.3), "is_sleeping": b(0.1), "is_swimming": b(0.1),
@@ -445,11 +446,12 @@ def random_world(rng):
         "equipped_item_any_tag": lambda slot, *tags: float(
             any(t.replace("minecraft:", "") in ITEMS.get(main, []) for t in tags)),
         "has_armor_slot": lambda i: float(armor[int(i)]),
+        "armor_texture_slot": lambda i: 5.0 if (int(i) == 1 and elytra) else 1.0,
         "all_animations_finished": 1.0,
         "is_moving": b(), "is_emoting": b(0.05),
         "is_pack_setting_enabled": (lambda name, _s={n: float(rng.random() < 0.2) for n in (
             "sa:no_item_switch", "sa:no_fp_ease", "sa:no_armor", "sa:no_shield_guard", "sa:no_fall",
-            "sa:no_glide", "sa:no_idle")}: _s[name]),
+            "sa:no_glide", "sa:no_idle", "sa:no_walk", "sa:no_death")}: _s[name]),
         "get_pack_setting": lambda name: rng.choice([0.0, 10.0, 30.0]),
     }
     v = {"is_holding_right": float(bool(main)), "is_holding_left": float(bool(off)),
@@ -503,6 +505,9 @@ def simulate(n=20000, seed=1):
                         if start[2 + i] == "0" and final[2 + i] == "1" and \
                                 not any(p.startswith(f"equip_{sa.ARMOR_PARTS[i]}_") for p in path):
                             errors.append(f"armor: {sa.ARMOR_PARTS[i]} put on without animation: {path}")
+                        if start[2 + i] == "1" and final[2 + i] == "0" and \
+                                not any(p.startswith(f"remove_{sa.ARMOR_PARTS[i]}_") for p in path):
+                            errors.append(f"armor: {sa.ARMOR_PARTS[i]} taken off without animation: {path}")
                 if short == "item" and start == state[cid] and start.startswith("k_") and \
                         final.startswith("k_") and start.split("_")[1] != final.split("_")[1] and "swap" not in path:
                     errors.append(f"item: changed kind without the switch animation: {path}")
@@ -512,7 +517,7 @@ def simulate(n=20000, seed=1):
             break
     for cid, short in names.items():
         never = {x for x in set(ctrls[cid]["states"]) - seen[cid]
-                 if not x.startswith(("equip_", "init", "swap"))}
+                 if not x.startswith(("equip_", "remove_", "init", "swap"))}
         print(f"simulate {short}: reached {len(seen[cid])}/{len(ctrls[cid]['states'])} states"
               + (f" (never settled in: {sorted(never)[:8]}...)" if never else ""))
     return errors
@@ -599,6 +604,10 @@ def pose(anims, layers, q, v):
             bone = bone.lower()
             if bone not in out:
                 continue
+            if a.get("override_previous_animation") and w > 0:
+                for ch in ("rotation", "position"):
+                    if ch in chans:
+                        out[bone][ch] = [c * (1.0 - w) for c in out[bone][ch]]
             for ch in ("rotation", "position", "scale"):
                 if ch not in chans:
                     continue
@@ -647,8 +656,11 @@ def apply(m, pt):
     return [m[i][0] * x + m[i][1] * y + m[i][2] * z + m[i][3] for i in range(3)]
 
 
-def draw_pose(draw, p, ox, oy, view, scale=3.2, item=None):
+def draw_pose(draw, p, ox, oy, view, scale=3.2, item=None, engine_tilt=0.0):
     mats = world(p)
+    if engine_tilt:  # the engine tips dying mobs onto their left side (+X), around the feet
+        tilt = transform(rot=(0, 0, engine_tilt))
+        mats = {k: mat_mul(tilt, m) for k, m in mats.items()}
     faces = []
     colors = {"head": (230, 190, 150), "body": (60, 150, 210), "rightarm": (230, 190, 150),
               "leftarm": (205, 165, 125), "rightleg": (70, 70, 160), "leftleg": (50, 50, 130)}
@@ -690,11 +702,13 @@ def preview(path):
     anims, _, _ = load_pack()
     base_q = {"target_x_rotation": 0.0, "target_y_rotation": 0.0, "life_time": 1.3, "is_riding": 0.0,
               "is_sneaking": 0.0, "is_item_equipped": 1.0, "item_is_charged": 0.0, "is_swimming": 0.0,
-              "cape_flap_amount": 0.0, "is_sleeping": 0.0, "blocking": 0.0}
+              "cape_flap_amount": 0.0, "is_sleeping": 0.0, "blocking": 0.0, "is_alive": 1.0,
+              "modified_move_speed": 0.0, "ground_speed": 0.0, "frame_alpha": 0.0}
 
     def scene(title, extra, main="", off="", sneaking=False, blocking=False, riding=False, armor=None,
-              t=0.0, vars_=None):
+              t=0.0, vars_=None, q_=None, tilt=0.0):
         q = dict(base_q)
+        q.update(q_ or {})
         q.update(is_sneaking=float(sneaking), blocking=float(blocking), is_riding=float(riding),
                  is_item_name_any=lambda slot, *n: float(("minecraft:" + (main if "mainhand" in slot else off)) in n),
                  get_root_locator_offset=lambda *a: 0.0, get_default_bone_pivot=lambda *a: 0.0,
@@ -712,7 +726,7 @@ def preview(path):
             layers += [("animation.player.look_at_target.inverted", 1, 0)]
         layers += [(a, 1, t) for a in extra]
         layers += [("animation.player.bob", 1, 0)]
-        return title, pose(anims, layers, q, v), main
+        return title, pose(anims, layers, q, v), main, tilt
 
     scenes = [
         scene("Vanilla: de pie", []),
@@ -724,24 +738,37 @@ def preview(path):
         scene("Cambio de objeto\n(0,1 s)", ["animation.player.attack.positions"], main="diamond_sword", t=0.1),
         scene("Ponerse casco", ["animation.player.first_person.attack_rotation_item"], armor=0, t=0.35),
         scene("Ponerse peto", ["animation.player.first_person.attack_rotation_item"], armor=1, t=0.35),
-        scene("Ponerse pantalones", ["animation.player.first_person.attack_rotation_item"], armor=2, t=0.25),
-        scene("Ponerse botas", ["animation.player.first_person.attack_rotation_item"], armor=3, t=0.2),
-        scene("Caída", ["animation.humanoid.fishing_rod"], t=1.0),
+        scene("Ponerse botas\n(toca el pie)", ["animation.player.first_person.attack_rotation_item"], armor=3, t=0.27),
+        scene("Quitarse casco", ["animation.player.first_person.attack_rotation_item"], armor=4, t=0.4),
+        scene("Quitarse peto", ["animation.player.first_person.attack_rotation_item"], armor=5, t=0.45),
+        scene("Quitarse botas", ["animation.player.first_person.attack_rotation_item"], armor=7, t=0.57),
+        scene("Ponerse élitros", ["animation.player.first_person.attack_rotation_item"], armor=8, t=0.4),
+        scene("Caída", ["animation.humanoid.fishing_rod"], t=1.0, q_={"life_time": 1.0}),
         scene("Élitros", ["animation.player.first_person.crossbow_hold"]),
-        scene("Espera (quieto\n12 s)", ["animation.player.holding_heavy_core"], t=12.0),
         scene("Espera (quieto\n14 s)", ["animation.player.holding_heavy_core"], t=14.0),
+        scene("Tridente\n(cargado)", ["animation.humanoid.brandish_spear"], main="trident",
+              vars_={"is_brandishing_spear": 1.0, "charge_amount": 1.0}),
+        scene("Correr\n(sin herramienta)", [], vars_={"tcos0": 45.0},
+              q_={"modified_move_speed": 1.0, "ground_speed": 5.8}),
+        scene("Correr\n(con espada)", [], main="diamond_sword", vars_={"tcos0": 45.0},
+              q_={"modified_move_speed": 1.0, "ground_speed": 5.8,
+                  "equipped_item_any_tag": lambda slot, *t: float("minecraft:is_sword" in t)}),
+        scene("Muerte (0,4 s)\n(el juego inclina\nal jugador; se\ncompensa)", ["animation.player.sleeping"],
+              q_={"is_alive": 0.0, "death_ticks": 8.0, "frame_alpha": 0.0},
+              tilt=90.0 * min(1.0, math.sqrt(max(0.0, (8.0 - 1.0) / 20.0 * 1.6)))),
     ]
-    cols = 5
+    cols = 6
     cw, ch = 230, 250
     rows = (len(scenes) + cols - 1) // cols
     img = Image.new("RGB", (cols * cw, rows * ch), (235, 238, 242))
     d = ImageDraw.Draw(img)
-    for i, (title, p, item) in enumerate(scenes):
+    for i, (title, p, item, tilt) in enumerate(scenes):
         x0, y0 = (i % cols) * cw, (i // cols) * ch
         d.rectangle([x0 + 3, y0 + 3, x0 + cw - 3, y0 + ch - 3], outline=(180, 185, 195))
         d.multiline_text((x0 + 10, y0 + 8), title, fill=(20, 20, 20))
-        draw_pose(d, p, x0 + 62, y0 + 225, "front", item=item if item == "diamond_sword" else None)
-        draw_pose(d, p, x0 + 165, y0 + 225, "side", item=item if item == "diamond_sword" else None)
+        it = item if item in ("diamond_sword", "trident") else None
+        draw_pose(d, p, x0 + 62, y0 + 225, "front", item=it, engine_tilt=tilt)
+        draw_pose(d, p, x0 + 165, y0 + 225, "side", item=it, engine_tilt=tilt)
     d.text((8, rows * ch - 14), "Izquierda: de frente. Derecha: de lado (mirando a la izquierda).", fill=(60, 60, 60))
     img.save(path)
     print("wrote", path)

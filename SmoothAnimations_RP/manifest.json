@@ -62,6 +62,18 @@
       "default": false
     },
     {
+      "type": "toggle",
+      "name": "sa:no_walk",
+      "text": "Quitar caminar y correr mejorados (y con herramienta)",
+      "default": false
+    },
+    {
+      "type": "toggle",
+      "name": "sa:no_death",
+      "text": "Quitar animación de muerte (arrodillarse)",
+      "default": false
+    },
+    {
       "type": "slider",
       "name": "sa:idle_delay",
       "text": "Segundos quieto antes de la animación de espera",

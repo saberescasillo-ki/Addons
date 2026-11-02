@@ -91,16 +91,23 @@
       "bones": {
         "leftarm": {
           "rotation": [
-            0.0,
-            0.0,
+            "-this * ((variable.is_brandishing_spear ?? 0.0) * math.clamp(variable.charge_amount ?? 0.0, 0.0, 1.0)) - 75.0 * ((variable.is_brandishing_spear ?? 0.0) * math.clamp(variable.charge_amount ?? 0.0, 0.0, 1.0))",
+            "18.0 * ((variable.is_brandishing_spear ?? 0.0) * math.clamp(variable.charge_amount ?? 0.0, 0.0, 1.0))",
             "-((math.cos(query.life_time * 103.2) * 2.865) + 2.865)"
           ]
         },
         "rightarm": {
           "rotation": [
-            0.0,
+            "-25.0 * ((variable.is_brandishing_spear ?? 0.0) * math.clamp(variable.charge_amount ?? 0.0, 0.0, 1.0))",
             0.0,
             "(math.cos(query.life_time * 103.2) * 2.865) + 2.865"
+          ]
+        },
+        "head": {
+          "rotation": [
+            "-6.0 * ((variable.is_brandishing_spear ?? 0.0) * math.clamp(variable.charge_amount ?? 0.0, 0.0, 1.0))",
+            0.0,
+            0.0
           ]
         }
       }
@@ -394,16 +401,16 @@
       "bones": {
         "leftarm": {
           "rotation": [
-            "variable.tcos0",
+            "variable.tcos0 * (1.0 + 0.3 * (math.clamp((query.ground_speed - 4.4) / 1.2, 0.0, 1.0) * !query.is_riding * !query.is_gliding * !query.is_swimming * (1.0 - query.is_pack_setting_enabled('sa:no_walk'))) + 0.25 * ((query.equipped_item_any_tag('slot.weapon.mainhand', 'minecraft:is_sword', 'minecraft:is_axe', 'minecraft:is_pickaxe', 'minecraft:is_shovel', 'minecraft:is_hoe', 'minecraft:is_spear') || query.is_item_name_any('slot.weapon.mainhand', 'minecraft:trident', 'minecraft:mace')) * (1.0 - query.is_pack_setting_enabled('sa:no_walk')))) - 6.0 * (math.clamp((query.ground_speed - 4.4) / 1.2, 0.0, 1.0) * !query.is_riding * !query.is_gliding * !query.is_swimming * (1.0 - query.is_pack_setting_enabled('sa:no_walk')))",
             0.0,
-            0.0
+            "-3.0 * (math.clamp(query.modified_move_speed * 2.0, 0.0, 1.0) * !query.is_riding * (1.0 - query.is_pack_setting_enabled('sa:no_walk'))) - 3.0 * (math.clamp((query.ground_speed - 4.4) / 1.2, 0.0, 1.0) * !query.is_riding * !query.is_gliding * !query.is_swimming * (1.0 - query.is_pack_setting_enabled('sa:no_walk')))"
           ]
         },
         "rightarm": {
           "rotation": [
-            "-variable.tcos0",
-            0.0,
-            0.0
+            "-variable.tcos0 * (1.0 + 0.3 * (math.clamp((query.ground_speed - 4.4) / 1.2, 0.0, 1.0) * !query.is_riding * !query.is_gliding * !query.is_swimming * (1.0 - query.is_pack_setting_enabled('sa:no_walk'))) - ((query.equipped_item_any_tag('slot.weapon.mainhand', 'minecraft:is_sword', 'minecraft:is_axe', 'minecraft:is_pickaxe', 'minecraft:is_shovel', 'minecraft:is_hoe', 'minecraft:is_spear') || query.is_item_name_any('slot.weapon.mainhand', 'minecraft:trident', 'minecraft:mace')) * (1.0 - query.is_pack_setting_enabled('sa:no_walk'))) * (0.7 + 0.3 * (math.clamp((query.ground_speed - 4.4) / 1.2, 0.0, 1.0) * !query.is_riding * !query.is_gliding * !query.is_swimming * (1.0 - query.is_pack_setting_enabled('sa:no_walk'))))) - 6.0 * (math.clamp((query.ground_speed - 4.4) / 1.2, 0.0, 1.0) * !query.is_riding * !query.is_gliding * !query.is_swimming * (1.0 - query.is_pack_setting_enabled('sa:no_walk'))) - 22.0 * ((query.equipped_item_any_tag('slot.weapon.mainhand', 'minecraft:is_sword', 'minecraft:is_axe', 'minecraft:is_pickaxe', 'minecraft:is_shovel', 'minecraft:is_hoe', 'minecraft:is_spear') || query.is_item_name_any('slot.weapon.mainhand', 'minecraft:trident', 'minecraft:mace')) * (1.0 - query.is_pack_setting_enabled('sa:no_walk'))) * (math.clamp((query.ground_speed - 4.4) / 1.2, 0.0, 1.0) * !query.is_riding * !query.is_gliding * !query.is_swimming * (1.0 - query.is_pack_setting_enabled('sa:no_walk')))",
+            "8.0 * ((query.equipped_item_any_tag('slot.weapon.mainhand', 'minecraft:is_sword', 'minecraft:is_axe', 'minecraft:is_pickaxe', 'minecraft:is_shovel', 'minecraft:is_hoe', 'minecraft:is_spear') || query.is_item_name_any('slot.weapon.mainhand', 'minecraft:trident', 'minecraft:mace')) * (1.0 - query.is_pack_setting_enabled('sa:no_walk'))) * (math.clamp((query.ground_speed - 4.4) / 1.2, 0.0, 1.0) * !query.is_riding * !query.is_gliding * !query.is_swimming * (1.0 - query.is_pack_setting_enabled('sa:no_walk')))",
+            "3.0 * (math.clamp(query.modified_move_speed * 2.0, 0.0, 1.0) * !query.is_riding * (1.0 - query.is_pack_setting_enabled('sa:no_walk'))) + 3.0 * (math.clamp((query.ground_speed - 4.4) / 1.2, 0.0, 1.0) * !query.is_riding * !query.is_gliding * !query.is_swimming * (1.0 - query.is_pack_setting_enabled('sa:no_walk')))"
           ]
         }
       }
@@ -489,16 +496,23 @@
       "bones": {
         "leftleg": {
           "rotation": [
-            "variable.tcos0 * -1.4",
+            "variable.tcos0 * -1.4 * (1.0 + 0.15 * (math.clamp((query.ground_speed - 4.4) / 1.2, 0.0, 1.0) * !query.is_riding * !query.is_gliding * !query.is_swimming * (1.0 - query.is_pack_setting_enabled('sa:no_walk')))) - 18.0 * ((variable.is_brandishing_spear ?? 0.0) * math.clamp(variable.charge_amount ?? 0.0, 0.0, 1.0))",
             -0.1,
-            -0.1
+            "-0.1 - 4.0 * ((variable.is_brandishing_spear ?? 0.0) * math.clamp(variable.charge_amount ?? 0.0, 0.0, 1.0))"
           ]
         },
         "rightleg": {
           "rotation": [
-            "variable.tcos0 * 1.4",
+            "variable.tcos0 * 1.4 * (1.0 + 0.15 * (math.clamp((query.ground_speed - 4.4) / 1.2, 0.0, 1.0) * !query.is_riding * !query.is_gliding * !query.is_swimming * (1.0 - query.is_pack_setting_enabled('sa:no_walk')))) + 14.0 * ((variable.is_brandishing_spear ?? 0.0) * math.clamp(variable.charge_amount ?? 0.0, 0.0, 1.0))",
             0.1,
-            0.1
+            "0.1 + 4.0 * ((variable.is_brandishing_spear ?? 0.0) * math.clamp(variable.charge_amount ?? 0.0, 0.0, 1.0))"
+          ]
+        },
+        "root": {
+          "rotation": [
+            "7.0 * (math.clamp((query.ground_speed - 4.4) / 1.2, 0.0, 1.0) * !query.is_riding * !query.is_gliding * !query.is_swimming * (1.0 - query.is_pack_setting_enabled('sa:no_walk'))) - 9.0 * ((variable.is_brandishing_spear ?? 0.0) * math.clamp(variable.charge_amount ?? 0.0, 0.0, 1.0))",
+            0.0,
+            0.0
           ]
         }
       }
@@ -735,21 +749,56 @@
       "bones": {
         "head": {
           "rotation": [
-            "30.0 - this",
-            "-this",
-            "-this"
+            "query.is_alive ? (30.0 - this) : (28.0 * (math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.death_ticks / 8.0, 0.0, 1.0))))",
+            "query.is_alive ? (-this) : (0.0)",
+            "query.is_alive ? (-this) : (0.0)"
           ]
         },
         "root": {
           "position": [
-            "24.0 * math.cos(query.body_y_rotation) * math.cos(query.sleep_rotation) - 24.0 * math.sin(query.body_y_rotation) * math.sin(query.sleep_rotation)",
-            0.0,
-            "24.0 * math.cos(query.body_y_rotation) * math.sin(query.sleep_rotation) + 24.0 * math.sin(query.body_y_rotation) * math.cos(query.sleep_rotation)"
+            "query.is_alive ? (24.0 * math.cos(query.body_y_rotation) * math.cos(query.sleep_rotation) - 24.0 * math.sin(query.body_y_rotation) * math.sin(query.sleep_rotation)) : (0.0)",
+            "query.is_alive ? (0.0) : (-7.5 * (math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.death_ticks / 8.0, 0.0, 1.0))))",
+            "query.is_alive ? (24.0 * math.cos(query.body_y_rotation) * math.sin(query.sleep_rotation) + 24.0 * math.sin(query.body_y_rotation) * math.cos(query.sleep_rotation)) : (2.0 * (math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.death_ticks / 8.0, 0.0, 1.0))))"
           ],
           "rotation": [
-            -90.0,
-            "270.0 - query.sleep_rotation - query.body_y_rotation",
-            0.0
+            "query.is_alive ? (-90.0) : (14.0 * (math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.death_ticks / 8.0, 0.0, 1.0))))",
+            "query.is_alive ? (270.0 - query.sleep_rotation - query.body_y_rotation) : (0.0)",
+            "query.is_alive ? (0.0) : (-math.min(1.0, math.sqrt(math.max(0.0, (query.death_ticks + query.frame_alpha - 1.0) / 20.0 * 1.6))) * 90.0)"
+          ]
+        },
+        "body": {
+          "rotation": [
+            "query.is_alive ? (0.0) : (0.0)",
+            "query.is_alive ? (0.0) : (0.0)",
+            "query.is_alive ? (0.0) : (0.0)"
+          ]
+        },
+        "rightleg": {
+          "rotation": [
+            "query.is_alive ? (0.0) : (80.0 * (math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.death_ticks / 8.0, 0.0, 1.0))))",
+            "query.is_alive ? (0.0) : (0.0)",
+            "query.is_alive ? (0.0) : (4.0 * (math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.death_ticks / 8.0, 0.0, 1.0))))"
+          ]
+        },
+        "leftleg": {
+          "rotation": [
+            "query.is_alive ? (0.0) : (-75.0 * (math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.death_ticks / 8.0, 0.0, 1.0))))",
+            "query.is_alive ? (0.0) : (-6.0 * (math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.death_ticks / 8.0, 0.0, 1.0))))",
+            "query.is_alive ? (0.0) : (-4.0 * (math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.death_ticks / 8.0, 0.0, 1.0))))"
+          ]
+        },
+        "rightarm": {
+          "rotation": [
+            "query.is_alive ? (0.0) : (-30.0 * (math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.death_ticks / 8.0, 0.0, 1.0))))",
+            "query.is_alive ? (0.0) : (0.0)",
+            "query.is_alive ? (0.0) : (8.0 * (math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.death_ticks / 8.0, 0.0, 1.0))))"
+          ]
+        },
+        "leftarm": {
+          "rotation": [
+            "query.is_alive ? (0.0) : (-62.0 * (math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.death_ticks / 8.0, 0.0, 1.0))))",
+            "query.is_alive ? (0.0) : (20.0 * (math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * math.clamp(query.death_ticks / 8.0, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.death_ticks / 8.0, 0.0, 1.0))))",
+            "query.is_alive ? (0.0) : (0.0)"
           ]
         }
       }

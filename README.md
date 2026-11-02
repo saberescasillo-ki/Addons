@@ -42,9 +42,13 @@ con aceleración y frenado suaves (misma profundidad que en vanilla).
 | Animación | Qué hace |
 |---|---|
 | **Cambio de objeto** | Cada vez que cambias de *tipo* de objeto (espada, lanza, tridente, hacha, pico/pala/azada, mazo, arco, ballesta, escudo, núcleo denso, comida, mano vacía, otro) el brazo baja y vuelve a subir (0,32 s). El objeto no cambia de tamaño. Entre dos objetos del mismo tipo (dos espadas) no se reproduce. |
-| **Ponerse armadura** | Casco: las dos manos sobre la cabeza. Peto: brazos cruzados ajustándolo. Pantalones: tirones hacia arriba levantando una pierna y la otra. Botas: levanta un pie y luego el otro mirando abajo (0,7 s). Si te pones varias piezas a la vez se reproducen una tras otra. |
+| **Ponerse armadura** | Casco: las dos manos sobre la cabeza. Peto: brazos cruzados ajustándolo. Pantalones: tirones hacia arriba levantando una pierna y la otra. Botas: se arrodilla y se ajusta la bota del pie de delante con las dos manos. **Élitros**: lleva las manos por encima de los hombros hacia la espalda. (0,9 s) |
+| **Quitarse armadura** | Casco: lo levanta por encima de la cabeza. Peto: brazos cruzados que tiran hacia arriba. Pantalones: empuja hacia abajo sacando una pierna y la otra. Botas: se arrodilla y tira de la bota. Élitros: manos a la espalda. Si cambian varias piezas a la vez se reproducen una tras otra. |
 | **Escudo al agacharte** | Con un escudo en cualquier mano, al agacharte el jugador **no se agacha**: se queda de pie en guardia, con el escudo delante y un pie adelantado. El arco, la ballesta y la lanza ya no bajan los brazos como si estuviera agachado. |
-| **Caída** | Al caer desde unos 3 bloques o más: brazos arriba y abiertos, piernas separadas, con un leve movimiento. No se activa al saltar, planear, nadar, levitar ni montar. |
+| **Caída** | Al caer desde unos 3 bloques o más: los brazos suben en 0,4 s y se agitan despacio arriba y hacia fuera, las piernas pedalean un poco, mira hacia abajo y el cuerpo se arquea ligeramente. No se activa al saltar, planear, nadar, levitar ni montar. |
+| **Muerte** | Se arrodilla sobre la rodilla derecha con la mano derecha en el suelo y el brazo izquierdo sobre la rodilla. El juego inclina de lado a los que mueren; el pack lo compensa. |
+| **Caminar y correr** | Correr (según la velocidad, así que entra y sale suave): inclina el cuerpo hacia delante y balancea más los brazos y las piernas. **Con una herramienta o arma** (espada, hacha, pico, pala, azada, lanza, tridente, mazo) el brazo derecho apenas se balancea y al correr la lleva adelantada y levantada; el izquierdo se balancea más. |
+| **Tridente** (siempre activo) | Al apuntar: el cuerpo se inclina hacia atrás, el brazo libre apunta al frente, los pies se separan y el brazo del tridente va más atrás. Crece a medida que se carga. |
 | **Élitros** | Al planear, los brazos se abren muy ligeramente hacia los lados y un poco hacia atrás. |
 | **Espera** | Tras **10 segundos quieto** (en el suelo, sin agacharte, atacar ni usar objetos) el jugador mira a su alrededor, respira y pasa el peso de una pierna a otra. Cualquier movimiento lo corta con fundido. |
 
@@ -53,7 +57,8 @@ con aceleración y frenado suaves (misma profundidad que en vanilla).
 En *Ajustes → Recursos globales*, el **engranaje** del pack abre sus ajustes (Pack Settings de Minecraft):
 
 - Interruptores para **quitar** cada animación: cambio de objeto (3a persona), suavizado del cambio de objeto
-  (1a persona), armadura, guardia con escudo (vuelve a agacharse como en vanilla), caída, élitros y espera.
+  (1a persona), armadura, guardia con escudo (vuelve a agacharse como en vanilla), caída, élitros, espera,
+  caminar/correr mejorados y muerte. La animación del tridente no se puede quitar.
   Todos vienen apagados (todo activado).
 - Deslizador: **segundos quieto antes de la animación de espera** (5 a 60, por defecto 10).
 - Las transiciones suaves (fundidos) no se pueden apagar: el motor no deja leer ajustes en su duración.

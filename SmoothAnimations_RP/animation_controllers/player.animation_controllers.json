@@ -5,6 +5,9 @@
       "initial_state": "init",
       "states": {
         "init": {
+          "on_entry": [
+            "variable.sa_chest_elytra = query.armor_texture_slot(1) == 5;"
+          ],
           "transitions": [
             {
               "w_0000": "!query.has_armor_slot(0) && !query.has_armor_slot(1) && !query.has_armor_slot(2) && !query.has_armor_slot(3)"
@@ -56,24 +59,6 @@
             }
           ]
         },
-        "w_0000": {
-          "transitions": [
-            {
-              "equip_head_0000": "query.has_armor_slot(0)"
-            },
-            {
-              "equip_chest_0000": "query.has_armor_slot(1)"
-            },
-            {
-              "equip_legs_0000": "query.has_armor_slot(2)"
-            },
-            {
-              "equip_feet_0000": "query.has_armor_slot(3)"
-            }
-          ],
-          "blend_transition": 0.15,
-          "blend_via_shortest_path": true
-        },
         "equip_head_0000": {
           "on_entry": [
             "variable.sa_equip_part = 0;"
@@ -91,7 +76,8 @@
         },
         "equip_chest_0000": {
           "on_entry": [
-            "variable.sa_equip_part = 1;"
+            "variable.sa_equip_part = query.armor_texture_slot(1) == 5 ? 8 : 1;",
+            "variable.sa_chest_elytra = query.armor_texture_slot(1) == 5;"
           ],
           "animations": [
             "first_person_attack_rotation_item"
@@ -134,19 +120,19 @@
           "blend_transition": 0.15,
           "blend_via_shortest_path": true
         },
-        "w_0001": {
+        "w_0000": {
           "transitions": [
             {
-              "equip_head_0001": "query.has_armor_slot(0)"
+              "equip_head_0000": "query.has_armor_slot(0)"
             },
             {
-              "equip_chest_0001": "query.has_armor_slot(1)"
+              "equip_chest_0000": "query.has_armor_slot(1)"
             },
             {
-              "equip_legs_0001": "query.has_armor_slot(2)"
+              "equip_legs_0000": "query.has_armor_slot(2)"
             },
             {
-              "w_0000": "!query.has_armor_slot(3)"
+              "equip_feet_0000": "query.has_armor_slot(3)"
             }
           ],
           "blend_transition": 0.15,
@@ -169,7 +155,8 @@
         },
         "equip_chest_0001": {
           "on_entry": [
-            "variable.sa_equip_part = 1;"
+            "variable.sa_equip_part = query.armor_texture_slot(1) == 5 ? 8 : 1;",
+            "variable.sa_chest_elytra = query.armor_texture_slot(1) == 5;"
           ],
           "animations": [
             "first_person_attack_rotation_item"
@@ -197,19 +184,34 @@
           "blend_transition": 0.15,
           "blend_via_shortest_path": true
         },
-        "w_0010": {
+        "remove_feet_0001": {
+          "on_entry": [
+            "variable.sa_equip_part = 7;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
           "transitions": [
             {
-              "equip_head_0010": "query.has_armor_slot(0)"
+              "w_0000": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "w_0001": {
+          "transitions": [
+            {
+              "equip_head_0001": "query.has_armor_slot(0)"
             },
             {
-              "equip_chest_0010": "query.has_armor_slot(1)"
+              "equip_chest_0001": "query.has_armor_slot(1)"
             },
             {
-              "w_0000": "!query.has_armor_slot(2)"
+              "equip_legs_0001": "query.has_armor_slot(2)"
             },
             {
-              "equip_feet_0010": "query.has_armor_slot(3)"
+              "remove_feet_0001": "!query.has_armor_slot(3)"
             }
           ],
           "blend_transition": 0.15,
@@ -232,7 +234,8 @@
         },
         "equip_chest_0010": {
           "on_entry": [
-            "variable.sa_equip_part = 1;"
+            "variable.sa_equip_part = query.armor_texture_slot(1) == 5 ? 8 : 1;",
+            "variable.sa_chest_elytra = query.armor_texture_slot(1) == 5;"
           ],
           "animations": [
             "first_person_attack_rotation_item"
@@ -240,6 +243,21 @@
           "transitions": [
             {
               "w_0110": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "remove_legs_0010": {
+          "on_entry": [
+            "variable.sa_equip_part = 6;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_0000": "query.all_animations_finished"
             }
           ],
           "blend_transition": 0.15,
@@ -260,19 +278,19 @@
           "blend_transition": 0.15,
           "blend_via_shortest_path": true
         },
-        "w_0011": {
+        "w_0010": {
           "transitions": [
             {
-              "equip_head_0011": "query.has_armor_slot(0)"
+              "equip_head_0010": "query.has_armor_slot(0)"
             },
             {
-              "equip_chest_0011": "query.has_armor_slot(1)"
+              "equip_chest_0010": "query.has_armor_slot(1)"
             },
             {
-              "w_0001": "!query.has_armor_slot(2)"
+              "remove_legs_0010": "!query.has_armor_slot(2)"
             },
             {
-              "w_0010": "!query.has_armor_slot(3)"
+              "equip_feet_0010": "query.has_armor_slot(3)"
             }
           ],
           "blend_transition": 0.15,
@@ -295,7 +313,8 @@
         },
         "equip_chest_0011": {
           "on_entry": [
-            "variable.sa_equip_part = 1;"
+            "variable.sa_equip_part = query.armor_texture_slot(1) == 5 ? 8 : 1;",
+            "variable.sa_chest_elytra = query.armor_texture_slot(1) == 5;"
           ],
           "animations": [
             "first_person_attack_rotation_item"
@@ -308,19 +327,49 @@
           "blend_transition": 0.15,
           "blend_via_shortest_path": true
         },
-        "w_0100": {
+        "remove_legs_0011": {
+          "on_entry": [
+            "variable.sa_equip_part = 6;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
           "transitions": [
             {
-              "equip_head_0100": "query.has_armor_slot(0)"
+              "w_0001": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "remove_feet_0011": {
+          "on_entry": [
+            "variable.sa_equip_part = 7;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_0010": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "w_0011": {
+          "transitions": [
+            {
+              "equip_head_0011": "query.has_armor_slot(0)"
             },
             {
-              "w_0000": "!query.has_armor_slot(1)"
+              "equip_chest_0011": "query.has_armor_slot(1)"
             },
             {
-              "equip_legs_0100": "query.has_armor_slot(2)"
+              "remove_legs_0011": "!query.has_armor_slot(2)"
             },
             {
-              "equip_feet_0100": "query.has_armor_slot(3)"
+              "remove_feet_0011": "!query.has_armor_slot(3)"
             }
           ],
           "blend_transition": 0.15,
@@ -336,6 +385,21 @@
           "transitions": [
             {
               "w_1100": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "remove_chest_0100": {
+          "on_entry": [
+            "variable.sa_equip_part = (variable.sa_chest_elytra ?? 0.0) ? 9 : 5;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_0000": "query.all_animations_finished"
             }
           ],
           "blend_transition": 0.15,
@@ -371,19 +435,19 @@
           "blend_transition": 0.15,
           "blend_via_shortest_path": true
         },
-        "w_0101": {
+        "w_0100": {
           "transitions": [
             {
-              "equip_head_0101": "query.has_armor_slot(0)"
+              "equip_head_0100": "query.has_armor_slot(0)"
             },
             {
-              "w_0001": "!query.has_armor_slot(1)"
+              "remove_chest_0100": "!query.has_armor_slot(1)"
             },
             {
-              "equip_legs_0101": "query.has_armor_slot(2)"
+              "equip_legs_0100": "query.has_armor_slot(2)"
             },
             {
-              "w_0100": "!query.has_armor_slot(3)"
+              "equip_feet_0100": "query.has_armor_slot(3)"
             }
           ],
           "blend_transition": 0.15,
@@ -404,6 +468,21 @@
           "blend_transition": 0.15,
           "blend_via_shortest_path": true
         },
+        "remove_chest_0101": {
+          "on_entry": [
+            "variable.sa_equip_part = (variable.sa_chest_elytra ?? 0.0) ? 9 : 5;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_0001": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
         "equip_legs_0101": {
           "on_entry": [
             "variable.sa_equip_part = 2;"
@@ -419,19 +498,34 @@
           "blend_transition": 0.15,
           "blend_via_shortest_path": true
         },
-        "w_0110": {
+        "remove_feet_0101": {
+          "on_entry": [
+            "variable.sa_equip_part = 7;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
           "transitions": [
             {
-              "equip_head_0110": "query.has_armor_slot(0)"
+              "w_0100": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "w_0101": {
+          "transitions": [
+            {
+              "equip_head_0101": "query.has_armor_slot(0)"
             },
             {
-              "w_0010": "!query.has_armor_slot(1)"
+              "remove_chest_0101": "!query.has_armor_slot(1)"
             },
             {
-              "w_0100": "!query.has_armor_slot(2)"
+              "equip_legs_0101": "query.has_armor_slot(2)"
             },
             {
-              "equip_feet_0110": "query.has_armor_slot(3)"
+              "remove_feet_0101": "!query.has_armor_slot(3)"
             }
           ],
           "blend_transition": 0.15,
@@ -452,6 +546,36 @@
           "blend_transition": 0.15,
           "blend_via_shortest_path": true
         },
+        "remove_chest_0110": {
+          "on_entry": [
+            "variable.sa_equip_part = (variable.sa_chest_elytra ?? 0.0) ? 9 : 5;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_0010": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "remove_legs_0110": {
+          "on_entry": [
+            "variable.sa_equip_part = 6;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_0100": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
         "equip_feet_0110": {
           "on_entry": [
             "variable.sa_equip_part = 3;"
@@ -467,19 +591,19 @@
           "blend_transition": 0.15,
           "blend_via_shortest_path": true
         },
-        "w_0111": {
+        "w_0110": {
           "transitions": [
             {
-              "equip_head_0111": "query.has_armor_slot(0)"
+              "equip_head_0110": "query.has_armor_slot(0)"
             },
             {
-              "w_0011": "!query.has_armor_slot(1)"
+              "remove_chest_0110": "!query.has_armor_slot(1)"
             },
             {
-              "w_0101": "!query.has_armor_slot(2)"
+              "remove_legs_0110": "!query.has_armor_slot(2)"
             },
             {
-              "w_0110": "!query.has_armor_slot(3)"
+              "equip_feet_0110": "query.has_armor_slot(3)"
             }
           ],
           "blend_transition": 0.15,
@@ -500,19 +624,79 @@
           "blend_transition": 0.15,
           "blend_via_shortest_path": true
         },
-        "w_1000": {
+        "remove_chest_0111": {
+          "on_entry": [
+            "variable.sa_equip_part = (variable.sa_chest_elytra ?? 0.0) ? 9 : 5;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
           "transitions": [
             {
-              "w_0000": "!query.has_armor_slot(0)"
+              "w_0011": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "remove_legs_0111": {
+          "on_entry": [
+            "variable.sa_equip_part = 6;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_0101": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "remove_feet_0111": {
+          "on_entry": [
+            "variable.sa_equip_part = 7;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_0110": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "w_0111": {
+          "transitions": [
+            {
+              "equip_head_0111": "query.has_armor_slot(0)"
             },
             {
-              "equip_chest_1000": "query.has_armor_slot(1)"
+              "remove_chest_0111": "!query.has_armor_slot(1)"
             },
             {
-              "equip_legs_1000": "query.has_armor_slot(2)"
+              "remove_legs_0111": "!query.has_armor_slot(2)"
             },
             {
-              "equip_feet_1000": "query.has_armor_slot(3)"
+              "remove_feet_0111": "!query.has_armor_slot(3)"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "remove_head_1000": {
+          "on_entry": [
+            "variable.sa_equip_part = 4;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_0000": "query.all_animations_finished"
             }
           ],
           "blend_transition": 0.15,
@@ -520,7 +704,8 @@
         },
         "equip_chest_1000": {
           "on_entry": [
-            "variable.sa_equip_part = 1;"
+            "variable.sa_equip_part = query.armor_texture_slot(1) == 5 ? 8 : 1;",
+            "variable.sa_chest_elytra = query.armor_texture_slot(1) == 5;"
           ],
           "animations": [
             "first_person_attack_rotation_item"
@@ -563,19 +748,34 @@
           "blend_transition": 0.15,
           "blend_via_shortest_path": true
         },
-        "w_1001": {
+        "w_1000": {
           "transitions": [
             {
-              "w_0001": "!query.has_armor_slot(0)"
+              "remove_head_1000": "!query.has_armor_slot(0)"
             },
             {
-              "equip_chest_1001": "query.has_armor_slot(1)"
+              "equip_chest_1000": "query.has_armor_slot(1)"
             },
             {
-              "equip_legs_1001": "query.has_armor_slot(2)"
+              "equip_legs_1000": "query.has_armor_slot(2)"
             },
             {
-              "w_1000": "!query.has_armor_slot(3)"
+              "equip_feet_1000": "query.has_armor_slot(3)"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "remove_head_1001": {
+          "on_entry": [
+            "variable.sa_equip_part = 4;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_0001": "query.all_animations_finished"
             }
           ],
           "blend_transition": 0.15,
@@ -583,7 +783,8 @@
         },
         "equip_chest_1001": {
           "on_entry": [
-            "variable.sa_equip_part = 1;"
+            "variable.sa_equip_part = query.armor_texture_slot(1) == 5 ? 8 : 1;",
+            "variable.sa_chest_elytra = query.armor_texture_slot(1) == 5;"
           ],
           "animations": [
             "first_person_attack_rotation_item"
@@ -611,19 +812,49 @@
           "blend_transition": 0.15,
           "blend_via_shortest_path": true
         },
-        "w_1010": {
+        "remove_feet_1001": {
+          "on_entry": [
+            "variable.sa_equip_part = 7;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
           "transitions": [
             {
-              "w_0010": "!query.has_armor_slot(0)"
+              "w_1000": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "w_1001": {
+          "transitions": [
+            {
+              "remove_head_1001": "!query.has_armor_slot(0)"
             },
             {
-              "equip_chest_1010": "query.has_armor_slot(1)"
+              "equip_chest_1001": "query.has_armor_slot(1)"
             },
             {
-              "w_1000": "!query.has_armor_slot(2)"
+              "equip_legs_1001": "query.has_armor_slot(2)"
             },
             {
-              "equip_feet_1010": "query.has_armor_slot(3)"
+              "remove_feet_1001": "!query.has_armor_slot(3)"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "remove_head_1010": {
+          "on_entry": [
+            "variable.sa_equip_part = 4;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_0010": "query.all_animations_finished"
             }
           ],
           "blend_transition": 0.15,
@@ -631,7 +862,8 @@
         },
         "equip_chest_1010": {
           "on_entry": [
-            "variable.sa_equip_part = 1;"
+            "variable.sa_equip_part = query.armor_texture_slot(1) == 5 ? 8 : 1;",
+            "variable.sa_chest_elytra = query.armor_texture_slot(1) == 5;"
           ],
           "animations": [
             "first_person_attack_rotation_item"
@@ -639,6 +871,21 @@
           "transitions": [
             {
               "w_1110": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "remove_legs_1010": {
+          "on_entry": [
+            "variable.sa_equip_part = 6;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_1000": "query.all_animations_finished"
             }
           ],
           "blend_transition": 0.15,
@@ -659,19 +906,34 @@
           "blend_transition": 0.15,
           "blend_via_shortest_path": true
         },
-        "w_1011": {
+        "w_1010": {
           "transitions": [
             {
-              "w_0011": "!query.has_armor_slot(0)"
+              "remove_head_1010": "!query.has_armor_slot(0)"
             },
             {
-              "equip_chest_1011": "query.has_armor_slot(1)"
+              "equip_chest_1010": "query.has_armor_slot(1)"
             },
             {
-              "w_1001": "!query.has_armor_slot(2)"
+              "remove_legs_1010": "!query.has_armor_slot(2)"
             },
             {
-              "w_1010": "!query.has_armor_slot(3)"
+              "equip_feet_1010": "query.has_armor_slot(3)"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "remove_head_1011": {
+          "on_entry": [
+            "variable.sa_equip_part = 4;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_0011": "query.all_animations_finished"
             }
           ],
           "blend_transition": 0.15,
@@ -679,7 +941,8 @@
         },
         "equip_chest_1011": {
           "on_entry": [
-            "variable.sa_equip_part = 1;"
+            "variable.sa_equip_part = query.armor_texture_slot(1) == 5 ? 8 : 1;",
+            "variable.sa_chest_elytra = query.armor_texture_slot(1) == 5;"
           ],
           "animations": [
             "first_person_attack_rotation_item"
@@ -692,19 +955,79 @@
           "blend_transition": 0.15,
           "blend_via_shortest_path": true
         },
-        "w_1100": {
+        "remove_legs_1011": {
+          "on_entry": [
+            "variable.sa_equip_part = 6;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
           "transitions": [
             {
-              "w_0100": "!query.has_armor_slot(0)"
+              "w_1001": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "remove_feet_1011": {
+          "on_entry": [
+            "variable.sa_equip_part = 7;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_1010": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "w_1011": {
+          "transitions": [
+            {
+              "remove_head_1011": "!query.has_armor_slot(0)"
             },
             {
-              "w_1000": "!query.has_armor_slot(1)"
+              "equip_chest_1011": "query.has_armor_slot(1)"
             },
             {
-              "equip_legs_1100": "query.has_armor_slot(2)"
+              "remove_legs_1011": "!query.has_armor_slot(2)"
             },
             {
-              "equip_feet_1100": "query.has_armor_slot(3)"
+              "remove_feet_1011": "!query.has_armor_slot(3)"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "remove_head_1100": {
+          "on_entry": [
+            "variable.sa_equip_part = 4;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_0100": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "remove_chest_1100": {
+          "on_entry": [
+            "variable.sa_equip_part = (variable.sa_chest_elytra ?? 0.0) ? 9 : 5;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_1000": "query.all_animations_finished"
             }
           ],
           "blend_transition": 0.15,
@@ -740,19 +1063,49 @@
           "blend_transition": 0.15,
           "blend_via_shortest_path": true
         },
-        "w_1101": {
+        "w_1100": {
           "transitions": [
             {
-              "w_0101": "!query.has_armor_slot(0)"
+              "remove_head_1100": "!query.has_armor_slot(0)"
             },
             {
-              "w_1001": "!query.has_armor_slot(1)"
+              "remove_chest_1100": "!query.has_armor_slot(1)"
             },
             {
-              "equip_legs_1101": "query.has_armor_slot(2)"
+              "equip_legs_1100": "query.has_armor_slot(2)"
             },
             {
-              "w_1100": "!query.has_armor_slot(3)"
+              "equip_feet_1100": "query.has_armor_slot(3)"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "remove_head_1101": {
+          "on_entry": [
+            "variable.sa_equip_part = 4;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_0101": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "remove_chest_1101": {
+          "on_entry": [
+            "variable.sa_equip_part = (variable.sa_chest_elytra ?? 0.0) ? 9 : 5;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_1001": "query.all_animations_finished"
             }
           ],
           "blend_transition": 0.15,
@@ -773,19 +1126,79 @@
           "blend_transition": 0.15,
           "blend_via_shortest_path": true
         },
-        "w_1110": {
+        "remove_feet_1101": {
+          "on_entry": [
+            "variable.sa_equip_part = 7;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
           "transitions": [
             {
-              "w_0110": "!query.has_armor_slot(0)"
+              "w_1100": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "w_1101": {
+          "transitions": [
+            {
+              "remove_head_1101": "!query.has_armor_slot(0)"
             },
             {
-              "w_1010": "!query.has_armor_slot(1)"
+              "remove_chest_1101": "!query.has_armor_slot(1)"
             },
             {
-              "w_1100": "!query.has_armor_slot(2)"
+              "equip_legs_1101": "query.has_armor_slot(2)"
             },
             {
-              "equip_feet_1110": "query.has_armor_slot(3)"
+              "remove_feet_1101": "!query.has_armor_slot(3)"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "remove_head_1110": {
+          "on_entry": [
+            "variable.sa_equip_part = 4;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_0110": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "remove_chest_1110": {
+          "on_entry": [
+            "variable.sa_equip_part = (variable.sa_chest_elytra ?? 0.0) ? 9 : 5;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_1010": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "remove_legs_1110": {
+          "on_entry": [
+            "variable.sa_equip_part = 6;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_1100": "query.all_animations_finished"
             }
           ],
           "blend_transition": 0.15,
@@ -806,19 +1219,97 @@
           "blend_transition": 0.15,
           "blend_via_shortest_path": true
         },
+        "w_1110": {
+          "transitions": [
+            {
+              "remove_head_1110": "!query.has_armor_slot(0)"
+            },
+            {
+              "remove_chest_1110": "!query.has_armor_slot(1)"
+            },
+            {
+              "remove_legs_1110": "!query.has_armor_slot(2)"
+            },
+            {
+              "equip_feet_1110": "query.has_armor_slot(3)"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "remove_head_1111": {
+          "on_entry": [
+            "variable.sa_equip_part = 4;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_0111": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "remove_chest_1111": {
+          "on_entry": [
+            "variable.sa_equip_part = (variable.sa_chest_elytra ?? 0.0) ? 9 : 5;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_1011": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "remove_legs_1111": {
+          "on_entry": [
+            "variable.sa_equip_part = 6;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_1101": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "remove_feet_1111": {
+          "on_entry": [
+            "variable.sa_equip_part = 7;"
+          ],
+          "animations": [
+            "first_person_attack_rotation_item"
+          ],
+          "transitions": [
+            {
+              "w_1110": "query.all_animations_finished"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
         "w_1111": {
           "transitions": [
             {
-              "w_0111": "!query.has_armor_slot(0)"
+              "remove_head_1111": "!query.has_armor_slot(0)"
             },
             {
-              "w_1011": "!query.has_armor_slot(1)"
+              "remove_chest_1111": "!query.has_armor_slot(1)"
             },
             {
-              "w_1101": "!query.has_armor_slot(2)"
+              "remove_legs_1111": "!query.has_armor_slot(2)"
             },
             {
-              "w_1110": "!query.has_armor_slot(3)"
+              "remove_feet_1111": "!query.has_armor_slot(3)"
             }
           ],
           "blend_transition": 0.15,
@@ -1324,7 +1815,7 @@
               "use_item_progress": "( variable.use_item_interval_progress > 0.0 ) || ( variable.use_item_startup_progress > 0.0 ) && !variable.is_brandishing_spear && !variable.is_holding_spyglass && !variable.is_tooting_goat_horn && !variable.is_using_brush && !query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow')"
             },
             {
-              "sleeping": "query.is_sleeping && query.is_alive"
+              "sleeping": "(query.is_sleeping && query.is_alive) || (!query.is_alive && !query.is_pack_setting_enabled('sa:no_death'))"
             },
             {
               "attack.rotations": "variable.attack_time >= 0.0 && !variable.melee_spear_equipped"
