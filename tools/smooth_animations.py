@@ -6,17 +6,21 @@ abrupt animation changes and adds a few new ones.
 
 What it does (third person unless noted):
 - Cross-fades (engine "blend_transition") instead of snapping: sneaking, empty
-  hand <-> item, mounting, bow, crossbow, shield, spear states, falling.
+  hand <-> item, mounting, bow, crossbow, shield, spear states, falling,
+  elytra, idle.
 - Item switch: every time the kind of item in the main hand changes (sword,
   spear, axe, tool, mace, bow, crossbow, shield, food, block/other...) the arm
-  dips and the new item grows into the hand. First person: the vanilla dip
-  gets an ease-in-out curve.
+  dips (the item itself is not scaled). First person: the vanilla dip gets an
+  ease-in-out curve.
 - Armor: putting on a helmet, chestplate, leggings or boots plays its own
   short animation.
 - Shield: sneaking with a shield (either hand) keeps the player standing in a
   guard stance instead of crouching.
-- Mace: held with both hands; attacking raises it over the head before the slam.
 - Falling from high up: arms go up and out, legs bend, softly.
+- Elytra: arms slightly spread while gliding.
+- Idle: after standing still for a while (10 s by default) the player looks
+  around, breathes and shifts their weight.
+- Pack settings (gear icon of the pack): every feature can be switched off.
 
 How, without breaking Marketplace / persona skins: entity/player.entity.json is
 NOT replaced (replacing it makes the game show Steve instead of the skin). The
@@ -28,7 +32,8 @@ pack only uses animation names that the vanilla player entity already has:
 - animations listed by the vanilla entity but never played
   (look_at_target.inverted, attack.positions [it only set a 0 rotation],
   first_person.attack_rotation_item, first_person.crossbow_hold,
-  humanoid.fishing_rod).
+  humanoid.fishing_rod) or whose content moved elsewhere (holding_heavy_core,
+  now inside animation.player.holding).
 See SLOTS below. Nothing keeps per-frame state, so it does not jitter.
 
 The source files are the vanilla ones from Minecraft 1.26.60
@@ -49,7 +54,7 @@ SRC = os.path.join(ROOT, "sources", "vanilla_player_1.26.60")
 RP = os.path.join(ROOT, "SmoothAnimations_RP")
 DIST = os.path.join(ROOT, "dist")
 
-VERSION = [1, 2, 0]
+VERSION = [1, 3, 0]
 MIN_ENGINE = [1, 26, 0]
 UUIDS = dict(rp="52ee589c-ac10-4f69-818c-6d27bce78aa0", rp_res="b70c157b-5b10-4813-9a33-ef6bf87622b6")
 
@@ -58,9 +63,9 @@ SLOTS = dict(
     hold_right="look_at_target_inverted",            # animation.player.look_at_target.inverted
     item_swap="attack.positions",                    # animation.player.attack.positions
     armor_equip="first_person_attack_rotation_item",  # animation.player.first_person.attack_rotation_item
-    mace_attack="first_person_crossbow_hold",         # animation.player.first_person.crossbow_hold
+    glide="first_person_crossbow_hold",               # animation.player.first_person.crossbow_hold
     fall="fishing_rod",                              # animation.humanoid.fishing_rod
-    mace_hold="holding_heavy_core",                  # animation.player.holding_heavy_core (also keeps heavy core)
+    idle="holding_heavy_core",                       # animation.player.holding_heavy_core
     pose_ctrl="base_controller",                     # controller.animation.player.base
     gear_ctrl="hudplayer",                           # controller.animation.player.hudplayer
     armor_ctrl="crossbow_controller",                # controller.animation.player.crossbow
@@ -79,8 +84,31 @@ BLEND = 0.15        # seconds of cross-fade between poses
 FALL_SPEED = -9.0   # m/s; a jump never falls this fast, a drop of ~3 blocks does
 SWAP_LEN = 0.32     # third person item switch
 EQUIP_LEN = 0.7     # armor
-MACE_LEN = 0.6      # mace attack
-FP_SWAP_DEPTH = 12.0  # first person: how far the arm goes down when switching items (vanilla 10)
+IDLE_DELAY = 10     # default seconds standing still before the idle animation (pack setting)
+FP_SWAP_DEPTH = 10.0  # first person: how far the arm goes down when switching items (same as vanilla)
+
+# Pack settings (shown with the gear icon of the pack in Settings > Global resources). Toggles are
+# "turn off" switches that default to off, so the features also work if the game ignores settings.
+SETTINGS = [
+    ("label", None, "Animaciones Suaves: activa un interruptor para quitar esa animación."),
+    ("toggle", "sa:no_item_switch", "Quitar animación de cambio de objeto (3a persona)"),
+    ("toggle", "sa:no_fp_ease", "Quitar suavizado del cambio de objeto (1a persona)"),
+    ("toggle", "sa:no_armor", "Quitar animaciones de ponerse armadura"),
+    ("toggle", "sa:no_shield_guard", "Quitar guardia con escudo (agacharse como en vanilla)"),
+    ("toggle", "sa:no_fall", "Quitar animación de caída"),
+    ("toggle", "sa:no_glide", "Quitar brazos abiertos con élitros"),
+    ("toggle", "sa:no_idle", "Quitar animación de espera"),
+    ("slider", "sa:idle_delay", "Segundos quieto antes de la animación de espera"),
+]
+
+
+def off(name):
+    return f"query.is_pack_setting_enabled('sa:no_{name}')"
+
+
+def on_factor(name):
+    return f"(1.0 - {off(name)})"
+
 
 # ---------------------------------------------------------------- conditions
 MAIN = "'slot.weapon.mainhand'"
@@ -99,14 +127,21 @@ MACE = name_in(MAIN, "mace")
 SHIELD_MAIN = name_in(MAIN, "shield")
 SHIELD_OFF = name_in(OFF, "shield")
 SHIELD_ANY = f"({SHIELD_MAIN} || {SHIELD_OFF})"
-GUARD = (f"(query.is_sneaking || query.blocking) && {SHIELD_ANY} && !query.is_sleeping && "
-         "!query.is_swimming && !query.is_crawling")
-SNEAK_POSE = f"(query.is_sneaking && !query.is_sleeping && !{SHIELD_ANY})"
+GUARD_ON = f"!{off('shield_guard')}"
+# Guard stance: sneaking (or blocking) with a shield. Turned off: vanilla (shield up only while blocking).
+GUARD = (f"({GUARD_ON} ? (query.is_sneaking || query.blocking) : query.blocking) && {SHIELD_ANY} && "
+         "!query.is_sleeping && !query.is_swimming && !query.is_crawling")
+SNEAK_POSE = f"(query.is_sneaking && !query.is_sleeping && !({GUARD_ON} && {SHIELD_ANY}))"
 FALL = (f"!query.is_on_ground && query.vertical_speed < {FALL_SPEED} && !query.is_gliding && "
         "!query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && "
-        "!query.is_sleeping && !query.is_spectator")
+        f"!query.is_sleeping && !query.is_spectator && !{off('fall')}")
+GLIDE = f"query.is_gliding && !{off('glide')}"
+IDLE = ("query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && "
+        "!query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && "
+        "!query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && "
+        f"!{off('idle')}")
 CROSSBOW = name_in(MAIN, "crossbow")
-TWO_HANDED_MACE = f"({MACE} && !(variable.is_holding_left ?? 0.0))"
+HEAVY_CORE = name_in(MAIN, "heavy_core")
 
 # Kinds of main hand item; switching between two kinds plays the item switch animation.
 ITEM_KINDS = [
@@ -119,7 +154,7 @@ ITEM_KINDS = [
     ("bow", name_in(MAIN, "bow")),
     ("crossbow", CROSSBOW),
     ("shield", SHIELD_MAIN),
-    ("heavy_core", name_in(MAIN, "heavy_core")),
+    ("heavy_core", HEAVY_CORE),
     ("food", tag_in("is_food")),
     ("empty", "!query.is_item_equipped('main_hand')"),
     ("other", "1.0"),
@@ -197,6 +232,8 @@ def pose_controller():
         flag("hold_r", "variable.is_holding_right", [SLOTS["hold_right"]]),
         flag("sneak", SNEAK_POSE, ["sneaking"]),
         flag("fall", FALL, [SLOTS["fall"]]),
+        flag("glide", GLIDE, [SLOTS["glide"]]),
+        flag("idle", IDLE, [SLOTS["idle"]]),
     ])
 
 
@@ -214,7 +251,7 @@ def gear_controller():
 
 def item_controller():
     """Main hand item kind. Changing kind goes through 'swap' (arm dip). Also runs the vanilla spear
-    states and the mace hold/attack."""
+    states."""
     states = {}
     finished = "query.all_animations_finished"
     kinds = [k for k, _ in ITEM_KINDS]
@@ -244,12 +281,6 @@ def item_controller():
             states["k_spear_attack"] = st(["third_person_melee_spear_attack"], [
                 leave, {"k_spear": "variable.attack_time == 0.0"},
                 {"k_spear_use": "variable.item_use_normalized > 0.0"}])
-        elif k == "mace":
-            states["k_mace"] = st([SLOTS["mace_hold"]], [leave, {"k_mace_attack": "variable.attack_time > 0.0"}])
-            states["k_mace_attack"] = st([SLOTS["mace_hold"], SLOTS["mace_attack"]], [
-                leave, {"k_mace": finished}])
-        elif k == "heavy_core":
-            states["k_heavy_core"] = st([SLOTS["mace_hold"]], [leave])
         else:
             states[f"k_{k}"] = st([], [leave])
     return {"initial_state": "init", "states": states}
@@ -298,6 +329,7 @@ def build_controllers():
     moved = {"riding.root", "riding.arms", "riding.legs", "sneaking", "shield_block_main_hand",
              "shield_block_off_hand", "crossbow_controller", "third_person_bow_equipped",
              "attack.positions", "holding_heavy_core", "third_person_melee_spear_controller"}
+    # holding_heavy_core: its pose moved into animation.player.holding (see build_animations).
     out = []
     for entry in third:
         key = entry if isinstance(entry, str) else next(iter(entry))
@@ -305,9 +337,6 @@ def build_controllers():
             moved.discard(key)
             if key == "riding.root":
                 out.append(SLOTS["gear_ctrl"])        # where the vanilla riding poses were
-            continue
-        if key in ("attack.rotations",):
-            out.append({key: f"({entry[key]}) && !{MACE}"})
             continue
         out.append(entry)
         if key == "holding":
@@ -368,7 +397,7 @@ def armor_equip_animation():
             expr = vals[-1]
             for i in range(len(ARMOR_PARTS) - 2, -1, -1):
                 expr = f"temp.p == {i} ? ({vals[i]}) : ({expr})"
-            rot.append(f"temp.p = variable.sa_equip_part ?? 0.0; return {expr};")
+            rot.append(f"temp.p = variable.sa_equip_part ?? 0.0; return ({expr}) * {on_factor('armor')};")
         bones[bone] = {"rotation": rot}
     return {"loop": False, "animation_length": EQUIP_LEN, "bones": bones}
 
@@ -388,6 +417,36 @@ def fall_animation():
     }
 
 
+def idle_animation():
+    """Plays from the moment the player stands still; does nothing until the delay has passed, then
+    fades in: looking around, breathing and shifting weight."""
+    delay = (f"temp.d = query.get_pack_setting('sa:idle_delay'); temp.d = temp.d > 0.0 ? temp.d : {IDLE_DELAY}.0; "
+             "temp.t = query.anim_time - temp.d; "
+             "temp.r = math.clamp(temp.t / 1.5, 0.0, 1.0); temp.r = temp.r * temp.r * (3.0 - 2.0 * temp.r); ")
+
+    def ch(expr):
+        return f"{delay}return ({expr}) * temp.r;"
+    return {
+        "loop": "hold_on_last_frame", "animation_length": 3600.0,
+        "bones": {
+            # Looks around slowly (two slow waves so it does not look mechanical) and a bit down.
+            "head": {"rotation": [ch("4.0 + 5.0 * math.sin(temp.t * 31.0)"),
+                                  ch("24.0 * math.sin(temp.t * 40.0) + 8.0 * math.sin(temp.t * 97.0)"), 0.0]},
+            # Breathing: arms move away from the body and back.
+            "rightarm": {"rotation": [ch("3.0 * math.sin(temp.t * 53.0)"), 0.0,
+                                      ch("2.0 + 2.0 * math.sin(temp.t * 72.0)")]},
+            "leftarm": {"rotation": [ch("-3.0 * math.sin(temp.t * 53.0)"), 0.0,
+                                     ch("-2.0 - 2.0 * math.sin(temp.t * 72.0)")]},
+            # Weight from one leg to the other.
+            "rightleg": {"rotation": [ch("-4.0 * math.max(math.sin(temp.t * 27.0), 0.0)"), 0.0,
+                                      ch("1.5 * math.sin(temp.t * 27.0)")]},
+            "leftleg": {"rotation": [ch("-4.0 * math.max(-math.sin(temp.t * 27.0), 0.0)"), 0.0,
+                                     ch("1.5 * math.sin(temp.t * 27.0)")]},
+            "body": {"rotation": [0.0, 0.0, ch("1.2 * math.sin(temp.t * 27.0)")]},
+        },
+    }
+
+
 def build_animations():
     data = load("player.animation.json")
     anims = data["animations"]
@@ -397,73 +456,51 @@ def build_animations():
     assert bones["rightarm"]["rotation"][0] == "variable.is_holding_right ? (-this * 0.5 - 18.0) : 0.0"
     del bones["rightarm"]
     anims["animation.player.look_at_target.inverted"] = {
-        "loop": True, "bones": {"rightarm": {"rotation": [f"{MACE} ? 0.0 : (-this * 0.5 - 18.0)", 0.0, 0.0]}}}
+        "loop": True, "bones": {"rightarm": {"rotation": ["-this * 0.5 - 18.0", 0.0, 0.0]}}}
 
-    # Item switch (third person): arm dips and the new item grows into the hand.
-    anims["animation.player.attack.positions"] = {
-        "loop": False, "animation_length": SWAP_LEN,
-        "bones": {
-            "rightarm": {"rotation": keyframes([(0, [0, 0, 0]), (0.1, [26, 0, 6]), (0.2, [14, 0, 3]),
-                                                (SWAP_LEN, [0, 0, 0])])},
-            "rightitem": {"scale": keyframes([(0, [0.85] * 3), (0.1, [0.5] * 3), (0.2, [0.8] * 3),
-                                              (SWAP_LEN, [1.0] * 3)])},
-        },
-    }
-
-    # Mace held with both hands (and the vanilla heavy core pose, which used this animation).
+    # Heavy core pose: vanilla played animation.player.holding_heavy_core while holding one; that
+    # animation name is now the idle animation, so the same pose lives here (holding always plays).
     core = anims["animation.player.holding_heavy_core"]["bones"]["rightItem"]
     assert core == {"scale": 0.7, "position": [-1.0, 0.0, -2.0]}
-    m, m2 = MACE, TWO_HANDED_MACE
-    anims["animation.player.holding_heavy_core"] = {"loop": True, "bones": {
-        "rightItem": {"scale": [f"{m} ? 1.0 : 0.7"] * 3,
-                      "position": [f"{m} ? 0.0 : -1.0", 0.0, f"{m} ? 0.0 : -2.0"],
-                      "rotation": [f"{m} ? -35.0 : 0.0", 0.0, 0.0]},  # mace head up
-        "rightarm": {"rotation": [f"{m} ? (-this * 0.8 - 30.0) : 0.0", f"{m} ? (-this - 16.0) : 0.0",
-                                 f"{m} ? -this : 0.0"]},
-        "leftarm": {"rotation": [f"{m2} ? (-this * 0.8 - 34.0) : 0.0", f"{m2} ? (-this + 52.0) : 0.0",
-                                f"{m2} ? -this : 0.0"]},
-    }}
+    bones["rightItem"] = {"scale": [f"{HEAVY_CORE} ? 0.7 : 1.0"] * 3,
+                          "position": [f"{HEAVY_CORE} ? -1.0 : 0.0", 0.0, f"{HEAVY_CORE} ? -2.0 : 0.0"]}
+    anims["animation.player.holding_heavy_core"] = idle_animation()
 
-    # Mace attack: raise it over the head, then slam down (added on top of the hold pose).
-    # Arms: from the hold (about -30) to over the head (-150), then down in front (-20).
-    arm = keyframes([(0, [0, 0, 0]), (0.2, [-110, 0, 0]), (0.3, [-122, 0, 0]), (0.42, [10, 0, 0]),
-                     (MACE_LEN, [0, 0, 0])])
+    # Item switch (third person): only the arm dips; the item is not scaled.
+    k = on_factor("item_switch")
+    anims["animation.player.attack.positions"] = {
+        "loop": False, "animation_length": SWAP_LEN,
+        "bones": {"rightarm": {"rotation": keyframes([
+            (0, [0, 0, 0]), (0.1, [f"26.0 * {k}", 0, f"6.0 * {k}"]), (0.2, [f"14.0 * {k}", 0, f"3.0 * {k}"]),
+            (SWAP_LEN, [0, 0, 0])])}},
+    }
+
+    # Elytra: arms slightly spread and a little back.
     anims["animation.player.first_person.crossbow_hold"] = {
-        "loop": False, "animation_length": MACE_LEN,
-        "bones": {
-            "rightarm": {"rotation": arm},
-            "leftarm": {"rotation": arm},
-            # Mace head tilted back over the shoulders, then pointing at the ground on the slam.
-            "rightitem": {"rotation": keyframes([(0, [0, 0, 0]), (0.3, [-15, 0, 0]), (0.42, [115, 0, 0]),
-                                                 (MACE_LEN, [0, 0, 0])])},
-            "head": {"rotation": keyframes([(0, [0, 0, 0]), (0.25, [-12, 0, 0]), (0.42, [10, 0, 0]),
-                                            (MACE_LEN, [0, 0, 0])])},
-            "rightleg": {"rotation": keyframes([(0, [0, 0, 0]), (0.3, [-8, 0, 0]), (0.42, [-16, 0, 0]),
-                                                (MACE_LEN, [0, 0, 0])])},
-            "leftleg": {"rotation": keyframes([(0, [0, 0, 0]), (0.42, [10, 0, 0]), (MACE_LEN, [0, 0, 0])])},
-        },
+        "loop": True,
+        "bones": {"rightarm": {"rotation": [6.0, 0.0, 14.0]}, "leftarm": {"rotation": [6.0, 0.0, -14.0]}},
     }
 
     # Shield guard stance (replaces crouching while sneaking with a shield). Arm and shield as in
-    # vanilla blocking; feet apart, one forward (not while riding).
-    still = "(1.0 - query.is_riding)"
-    off = anims["animation.player.shield_block_off_hand"]["bones"]
-    off["leftleg"] = {"rotation": [f"-14.0 * {still}", 0.0, f"-4.0 * {still}"]}
-    off["rightleg"] = {"rotation": [f"12.0 * {still}", 0.0, f"4.0 * {still}"]}
-    off["rightarm"] = {"rotation": ["-8.0", 0.0, 4.0]}
-    main = anims["animation.player.shield_block_main_hand"]["bones"]
-    main["rightleg"] = {"rotation": [f"-14.0 * {still}", 0.0, f"4.0 * {still}"]}
-    main["leftleg"] = {"rotation": [f"12.0 * {still}", 0.0, f"-4.0 * {still}"]}
-    main["leftarm"] = {"rotation": ["-8.0", 0.0, -4.0]}
+    # vanilla blocking; feet apart, one forward (not while riding, not with the guard turned off).
+    still = f"(1.0 - query.is_riding) * {on_factor('shield_guard')}"
+    sb_off = anims["animation.player.shield_block_off_hand"]["bones"]
+    sb_off["leftleg"] = {"rotation": [f"-14.0 * {still}", 0.0, f"-4.0 * {still}"]}
+    sb_off["rightleg"] = {"rotation": [f"12.0 * {still}", 0.0, f"4.0 * {still}"]}
+    sb_off["rightarm"] = {"rotation": [f"-8.0 * {still}", 0.0, f"4.0 * {still}"]}
+    sb_main = anims["animation.player.shield_block_main_hand"]["bones"]
+    sb_main["rightleg"] = {"rotation": [f"-14.0 * {still}", 0.0, f"4.0 * {still}"]}
+    sb_main["leftleg"] = {"rotation": [f"12.0 * {still}", 0.0, f"-4.0 * {still}"]}
+    sb_main["leftarm"] = {"rotation": [f"-8.0 * {still}", 0.0, f"-4.0 * {still}"]}
 
     # Poses that lean the arms because the body is crouched follow the real crouch pose.
     for aid in ("animation.player.bow_equipped", "animation.player.crossbow_hold",
                 "animation.player.melee_spear_attack"):
-        s = json.dumps(anims[aid]).replace("query.is_sneaking", SNEAK_POSE).replace("q.is_sneaking", SNEAK_POSE)
-        anims[aid] = json.loads(s)
+        text = json.dumps(anims[aid]).replace("query.is_sneaking", SNEAK_POSE).replace("q.is_sneaking", SNEAK_POSE)
+        anims[aid] = json.loads(text)
     save("animations/player.animation.json", data)
 
-    # Fall pose (slot never used by the vanilla player).
+    # Slots the vanilla player never plays.
     save("animations/smooth_extra.animation.json", {"format_version": "1.10.0", "animations": {
         "animation.humanoid.fishing_rod": fall_animation(),
         "animation.player.first_person.attack_rotation_item": armor_equip_animation(),
@@ -472,8 +509,8 @@ def build_animations():
     data = load("player_firstperson.animation.json")
     anims = data["animations"]
     # First person item switch: same movement as vanilla, slightly deeper, with an ease-in-out curve.
-    ease = ("temp.h = math.clamp({h}, 0.0, 1.0); return {pre}-{d} * (1.0 - temp.h * temp.h * "
-            "(3.0 - 2.0 * temp.h)){post};")
+    ease = ("temp.h = math.clamp({h}, 0.0, 1.0); temp.h = " + off("fp_ease") + " ? temp.h : "
+            "temp.h * temp.h * (3.0 - 2.0 * temp.h); return {pre}-{d} * (1.0 - temp.h){post};")
     main_h, off_h = "variable.player_arm_height", "context.player_offhand_arm_height"
     d = f"{FP_SWAP_DEPTH:g}.0" if float(FP_SWAP_DEPTH).is_integer() else f"{FP_SWAP_DEPTH}"
     swap = anims["animation.player.first_person.swap_item"]["bones"]
@@ -493,13 +530,24 @@ def build_animations():
 
 
 def build_manifest():
+    settings = []
+    for kind, name, text in SETTINGS:
+        if kind == "label":
+            settings.append({"type": "label", "text": text})
+        elif kind == "toggle":
+            settings.append({"type": "toggle", "name": name, "text": text, "default": False})
+        else:
+            settings.append({"type": "slider", "name": name, "text": text, "min": 5, "max": 60, "step": 5,
+                             "default": IDLE_DELAY})
+    ver = ".".join(map(str, VERSION))
     save("manifest.json", {
-        "format_version": 2,
+        "format_version": 3,
         "header": {"name": "Animaciones Suaves",
-                   "description": "Animaciones del jugador más suaves y nuevas (armadura, mazo, escudo, caída). "
-                                  "Compatible con skins del Marketplace.",
-                   "uuid": UUIDS["rp"], "version": VERSION, "min_engine_version": MIN_ENGINE},
-        "modules": [{"type": "resources", "uuid": UUIDS["rp_res"], "version": VERSION}],
+                   "description": "Animaciones del jugador más suaves y nuevas (armadura, escudo, caída, élitros, "
+                                  "espera). Ajustes en el engranaje del pack. Compatible con skins del Marketplace.",
+                   "uuid": UUIDS["rp"], "version": ver, "min_engine_version": ".".join(map(str, MIN_ENGINE))},
+        "modules": [{"type": "resources", "uuid": UUIDS["rp_res"], "version": ver}],
+        "settings": settings,
     })
 
 

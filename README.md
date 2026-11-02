@@ -23,7 +23,8 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 
 ![Poses nuevas, calculadas con las mismas reglas que el juego](docs/smooth_animations_preview.png)
 
-Pack de recursos (texturas) que **suaviza las animaciones bruscas del jugador** y **añade animaciones nuevas**.
+Pack de recursos (texturas) que **suaviza las animaciones bruscas del jugador**, **añade animaciones nuevas** y
+tiene **ajustes para desactivarlas**.
 Las transiciones usan el fundido entre poses del propio motor (`blend_transition`).
 
 **Cómo activarlo:** abre `dist/SmoothAnimations.mcpack` y actívalo en *Ajustes → Recursos globales* (así funciona
@@ -33,18 +34,29 @@ en todos los mundos). Requiere Minecraft Bedrock **1.26.0** o superior; hecho so
 ### Transiciones suaves (fundido de 0,15 s, 3a persona)
 
 Agacharse / levantarse, mano vacía ↔ objeto, montar / desmontar, tensar el arco, cargar y sostener la ballesta,
-escudo, estados de la lanza y caída. En 1a persona, al cambiar de objeto el brazo baja un poco más que en
-vanilla y sube con aceleración y frenado suaves.
+escudo, estados de la lanza, caída, élitros y espera. En 1a persona, al cambiar de objeto el brazo baja y sube
+con aceleración y frenado suaves (misma profundidad que en vanilla).
 
 ### Animaciones nuevas (3a persona)
 
 | Animación | Qué hace |
 |---|---|
-| **Cambio de objeto** | Cada vez que cambias de *tipo* de objeto (espada, lanza, tridente, hacha, pico/pala/azada, mazo, arco, ballesta, escudo, núcleo denso, comida, mano vacía, otro) el brazo baja y el nuevo objeto "crece" en la mano (0,32 s). Entre dos objetos del mismo tipo (dos espadas) no se reproduce. |
+| **Cambio de objeto** | Cada vez que cambias de *tipo* de objeto (espada, lanza, tridente, hacha, pico/pala/azada, mazo, arco, ballesta, escudo, núcleo denso, comida, mano vacía, otro) el brazo baja y vuelve a subir (0,32 s). El objeto no cambia de tamaño. Entre dos objetos del mismo tipo (dos espadas) no se reproduce. |
 | **Ponerse armadura** | Casco: las dos manos sobre la cabeza. Peto: brazos cruzados ajustándolo. Pantalones: tirones hacia arriba levantando una pierna y la otra. Botas: levanta un pie y luego el otro mirando abajo (0,7 s). Si te pones varias piezas a la vez se reproducen una tras otra. |
 | **Escudo al agacharte** | Con un escudo en cualquier mano, al agacharte el jugador **no se agacha**: se queda de pie en guardia, con el escudo delante y un pie adelantado. El arco, la ballesta y la lanza ya no bajan los brazos como si estuviera agachado. |
-| **Mazo** | Se sostiene **con las dos manos** (si la otra mano está libre) con la cabeza del mazo hacia arriba. Al atacar lo **levanta por encima de la cabeza** y lo deja caer contra el suelo (0,6 s). Si mantienes el ataque, repite el golpe. |
-| **Caída** | Al caer desde unos 3 bloques o más: brazos arriba y abiertos, piernas separadas, con un leve movimiento. Aparece y desaparece con fundido. No se activa al saltar, planear, nadar, levitar ni montar. |
+| **Caída** | Al caer desde unos 3 bloques o más: brazos arriba y abiertos, piernas separadas, con un leve movimiento. No se activa al saltar, planear, nadar, levitar ni montar. |
+| **Élitros** | Al planear, los brazos se abren muy ligeramente hacia los lados y un poco hacia atrás. |
+| **Espera** | Tras **10 segundos quieto** (en el suelo, sin agacharte, atacar ni usar objetos) el jugador mira a su alrededor, respira y pasa el peso de una pierna a otra. Cualquier movimiento lo corta con fundido. |
+
+### Ajustes del pack
+
+En *Ajustes → Recursos globales*, el **engranaje** del pack abre sus ajustes (Pack Settings de Minecraft):
+
+- Interruptores para **quitar** cada animación: cambio de objeto (3a persona), suavizado del cambio de objeto
+  (1a persona), armadura, guardia con escudo (vuelve a agacharse como en vanilla), caída, élitros y espera.
+  Todos vienen apagados (todo activado).
+- Deslizador: **segundos quieto antes de la animación de espera** (5 a 60, por defecto 10).
+- Las transiciones suaves (fundidos) no se pueden apagar: el motor no deja leer ajustes en su duración.
 
 - **Compatible con skins del Marketplace, persona, capas y emotes:** el pack **no sustituye**
   `entity/player.entity.json` (sustituirlo hace que el juego ponga a Steve). Solo usa nombres de animación que el

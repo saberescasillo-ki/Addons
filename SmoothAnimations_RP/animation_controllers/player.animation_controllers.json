@@ -974,31 +974,9 @@
           "blend_via_shortest_path": true
         },
         "k_mace": {
-          "animations": [
-            "holding_heavy_core"
-          ],
           "transitions": [
             {
               "swap": "!(!(query.equipped_item_any_tag('slot.weapon.mainhand', 'minecraft:is_spear')) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:mace')))"
-            },
-            {
-              "k_mace_attack": "variable.attack_time > 0.0"
-            }
-          ],
-          "blend_transition": 0.15,
-          "blend_via_shortest_path": true
-        },
-        "k_mace_attack": {
-          "animations": [
-            "holding_heavy_core",
-            "first_person_crossbow_hold"
-          ],
-          "transitions": [
-            {
-              "swap": "!(!(query.equipped_item_any_tag('slot.weapon.mainhand', 'minecraft:is_spear')) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:mace')))"
-            },
-            {
-              "k_mace": "query.all_animations_finished"
             }
           ],
           "blend_transition": 0.15,
@@ -1068,9 +1046,6 @@
           "blend_via_shortest_path": true
         },
         "k_heavy_core": {
-          "animations": [
-            "holding_heavy_core"
-          ],
           "transitions": [
             {
               "swap": "!(!(query.equipped_item_any_tag('slot.weapon.mainhand', 'minecraft:is_spear')) && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:mace')) && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:trident')) && !(query.equipped_item_any_tag('slot.weapon.mainhand', 'minecraft:is_sword')) && !(query.equipped_item_any_tag('slot.weapon.mainhand', 'minecraft:is_axe')) && !(query.equipped_item_any_tag('slot.weapon.mainhand', 'minecraft:is_pickaxe', 'minecraft:is_shovel', 'minecraft:is_hoe')) && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow')) && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow')) && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield')) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:heavy_core')))"
@@ -1352,7 +1327,7 @@
               "sleeping": "query.is_sleeping && query.is_alive"
             },
             {
-              "attack.rotations": "(variable.attack_time >= 0.0 && !variable.melee_spear_equipped) && !query.is_item_name_any('slot.weapon.mainhand', 'minecraft:mace')"
+              "attack.rotations": "variable.attack_time >= 0.0 && !variable.melee_spear_equipped"
             },
             {
               "tooting_goat_horn": "variable.is_tooting_goat_horn"
@@ -1389,10 +1364,89 @@
               "hold_r": "(variable.is_holding_right)"
             },
             {
-              "sneak": "((query.is_sneaking && !query.is_sleeping && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))))"
+              "sneak": "((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
             },
             {
-              "fall": "(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator)"
+              "fall": "(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "glide": "(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "idle": "(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "idle": {
+          "animations": [
+            "holding_heavy_core"
+          ],
+          "transitions": [
+            {
+              "hold_r_idle": "(variable.is_holding_right)"
+            },
+            {
+              "sneak_idle": "((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
+            },
+            {
+              "fall_idle": "(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "glide_idle": "(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "default": "!(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "glide": {
+          "animations": [
+            "first_person_crossbow_hold"
+          ],
+          "transitions": [
+            {
+              "hold_r_glide": "(variable.is_holding_right)"
+            },
+            {
+              "sneak_glide": "((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
+            },
+            {
+              "fall_glide": "(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "default": "!(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "glide_idle": "(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "glide_idle": {
+          "animations": [
+            "first_person_crossbow_hold",
+            "holding_heavy_core"
+          ],
+          "transitions": [
+            {
+              "hold_r_glide_idle": "(variable.is_holding_right)"
+            },
+            {
+              "sneak_glide_idle": "((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
+            },
+            {
+              "fall_glide_idle": "(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "idle": "!(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "glide": "!(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
             }
           ],
           "blend_transition": 0.15,
@@ -1407,10 +1461,92 @@
               "hold_r_fall": "(variable.is_holding_right)"
             },
             {
-              "sneak_fall": "((query.is_sneaking && !query.is_sleeping && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))))"
+              "sneak_fall": "((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
             },
             {
-              "default": "!(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator)"
+              "default": "!(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "fall_glide": "(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "fall_idle": "(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "fall_idle": {
+          "animations": [
+            "fishing_rod",
+            "holding_heavy_core"
+          ],
+          "transitions": [
+            {
+              "hold_r_fall_idle": "(variable.is_holding_right)"
+            },
+            {
+              "sneak_fall_idle": "((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
+            },
+            {
+              "idle": "!(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "fall_glide_idle": "(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "fall": "!(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "fall_glide": {
+          "animations": [
+            "fishing_rod",
+            "first_person_crossbow_hold"
+          ],
+          "transitions": [
+            {
+              "hold_r_fall_glide": "(variable.is_holding_right)"
+            },
+            {
+              "sneak_fall_glide": "((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
+            },
+            {
+              "glide": "!(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "fall": "!(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "fall_glide_idle": "(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "fall_glide_idle": {
+          "animations": [
+            "fishing_rod",
+            "first_person_crossbow_hold",
+            "holding_heavy_core"
+          ],
+          "transitions": [
+            {
+              "hold_r_fall_glide_idle": "(variable.is_holding_right)"
+            },
+            {
+              "sneak_fall_glide_idle": "((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
+            },
+            {
+              "glide_idle": "!(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "fall_idle": "!(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "fall_glide": "!(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
             }
           ],
           "blend_transition": 0.15,
@@ -1425,10 +1561,92 @@
               "hold_r_sneak": "(variable.is_holding_right)"
             },
             {
-              "default": "!((query.is_sneaking && !query.is_sleeping && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))))"
+              "default": "!((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
             },
             {
-              "sneak_fall": "(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator)"
+              "sneak_fall": "(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "sneak_glide": "(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "sneak_idle": "(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "sneak_idle": {
+          "animations": [
+            "sneaking",
+            "holding_heavy_core"
+          ],
+          "transitions": [
+            {
+              "hold_r_sneak_idle": "(variable.is_holding_right)"
+            },
+            {
+              "idle": "!((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
+            },
+            {
+              "sneak_fall_idle": "(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "sneak_glide_idle": "(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "sneak": "!(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "sneak_glide": {
+          "animations": [
+            "sneaking",
+            "first_person_crossbow_hold"
+          ],
+          "transitions": [
+            {
+              "hold_r_sneak_glide": "(variable.is_holding_right)"
+            },
+            {
+              "glide": "!((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
+            },
+            {
+              "sneak_fall_glide": "(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "sneak": "!(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "sneak_glide_idle": "(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "sneak_glide_idle": {
+          "animations": [
+            "sneaking",
+            "first_person_crossbow_hold",
+            "holding_heavy_core"
+          ],
+          "transitions": [
+            {
+              "hold_r_sneak_glide_idle": "(variable.is_holding_right)"
+            },
+            {
+              "glide_idle": "!((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
+            },
+            {
+              "sneak_fall_glide_idle": "(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "sneak_idle": "!(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "sneak_glide": "!(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
             }
           ],
           "blend_transition": 0.15,
@@ -1444,10 +1662,95 @@
               "hold_r_sneak_fall": "(variable.is_holding_right)"
             },
             {
-              "fall": "!((query.is_sneaking && !query.is_sleeping && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))))"
+              "fall": "!((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
             },
             {
-              "sneak": "!(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator)"
+              "sneak": "!(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "sneak_fall_glide": "(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "sneak_fall_idle": "(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "sneak_fall_idle": {
+          "animations": [
+            "sneaking",
+            "fishing_rod",
+            "holding_heavy_core"
+          ],
+          "transitions": [
+            {
+              "hold_r_sneak_fall_idle": "(variable.is_holding_right)"
+            },
+            {
+              "fall_idle": "!((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
+            },
+            {
+              "sneak_idle": "!(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "sneak_fall_glide_idle": "(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "sneak_fall": "!(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "sneak_fall_glide": {
+          "animations": [
+            "sneaking",
+            "fishing_rod",
+            "first_person_crossbow_hold"
+          ],
+          "transitions": [
+            {
+              "hold_r_sneak_fall_glide": "(variable.is_holding_right)"
+            },
+            {
+              "fall_glide": "!((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
+            },
+            {
+              "sneak_glide": "!(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "sneak_fall": "!(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "sneak_fall_glide_idle": "(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "sneak_fall_glide_idle": {
+          "animations": [
+            "sneaking",
+            "fishing_rod",
+            "first_person_crossbow_hold",
+            "holding_heavy_core"
+          ],
+          "transitions": [
+            {
+              "hold_r_sneak_fall_glide_idle": "(variable.is_holding_right)"
+            },
+            {
+              "fall_glide_idle": "!((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
+            },
+            {
+              "sneak_glide_idle": "!(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "sneak_fall_idle": "!(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "sneak_fall_glide": "!(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
             }
           ],
           "blend_transition": 0.15,
@@ -1462,10 +1765,92 @@
               "default": "!(variable.is_holding_right)"
             },
             {
-              "hold_r_sneak": "((query.is_sneaking && !query.is_sleeping && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))))"
+              "hold_r_sneak": "((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
             },
             {
-              "hold_r_fall": "(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator)"
+              "hold_r_fall": "(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "hold_r_glide": "(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "hold_r_idle": "(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "hold_r_idle": {
+          "animations": [
+            "look_at_target_inverted",
+            "holding_heavy_core"
+          ],
+          "transitions": [
+            {
+              "idle": "!(variable.is_holding_right)"
+            },
+            {
+              "hold_r_sneak_idle": "((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
+            },
+            {
+              "hold_r_fall_idle": "(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "hold_r_glide_idle": "(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "hold_r": "!(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "hold_r_glide": {
+          "animations": [
+            "look_at_target_inverted",
+            "first_person_crossbow_hold"
+          ],
+          "transitions": [
+            {
+              "glide": "!(variable.is_holding_right)"
+            },
+            {
+              "hold_r_sneak_glide": "((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
+            },
+            {
+              "hold_r_fall_glide": "(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "hold_r": "!(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "hold_r_glide_idle": "(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "hold_r_glide_idle": {
+          "animations": [
+            "look_at_target_inverted",
+            "first_person_crossbow_hold",
+            "holding_heavy_core"
+          ],
+          "transitions": [
+            {
+              "glide_idle": "!(variable.is_holding_right)"
+            },
+            {
+              "hold_r_sneak_glide_idle": "((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
+            },
+            {
+              "hold_r_fall_glide_idle": "(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "hold_r_idle": "!(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "hold_r_glide": "!(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
             }
           ],
           "blend_transition": 0.15,
@@ -1481,10 +1866,95 @@
               "fall": "!(variable.is_holding_right)"
             },
             {
-              "hold_r_sneak_fall": "((query.is_sneaking && !query.is_sleeping && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))))"
+              "hold_r_sneak_fall": "((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
             },
             {
-              "hold_r": "!(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator)"
+              "hold_r": "!(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "hold_r_fall_glide": "(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "hold_r_fall_idle": "(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "hold_r_fall_idle": {
+          "animations": [
+            "look_at_target_inverted",
+            "fishing_rod",
+            "holding_heavy_core"
+          ],
+          "transitions": [
+            {
+              "fall_idle": "!(variable.is_holding_right)"
+            },
+            {
+              "hold_r_sneak_fall_idle": "((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
+            },
+            {
+              "hold_r_idle": "!(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "hold_r_fall_glide_idle": "(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "hold_r_fall": "!(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "hold_r_fall_glide": {
+          "animations": [
+            "look_at_target_inverted",
+            "fishing_rod",
+            "first_person_crossbow_hold"
+          ],
+          "transitions": [
+            {
+              "fall_glide": "!(variable.is_holding_right)"
+            },
+            {
+              "hold_r_sneak_fall_glide": "((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
+            },
+            {
+              "hold_r_glide": "!(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "hold_r_fall": "!(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "hold_r_fall_glide_idle": "(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "hold_r_fall_glide_idle": {
+          "animations": [
+            "look_at_target_inverted",
+            "fishing_rod",
+            "first_person_crossbow_hold",
+            "holding_heavy_core"
+          ],
+          "transitions": [
+            {
+              "fall_glide_idle": "!(variable.is_holding_right)"
+            },
+            {
+              "hold_r_sneak_fall_glide_idle": "((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
+            },
+            {
+              "hold_r_glide_idle": "!(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "hold_r_fall_idle": "!(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "hold_r_fall_glide": "!(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
             }
           ],
           "blend_transition": 0.15,
@@ -1500,10 +1970,95 @@
               "sneak": "!(variable.is_holding_right)"
             },
             {
-              "hold_r": "!((query.is_sneaking && !query.is_sleeping && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))))"
+              "hold_r": "!((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
             },
             {
-              "hold_r_sneak_fall": "(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator)"
+              "hold_r_sneak_fall": "(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "hold_r_sneak_glide": "(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "hold_r_sneak_idle": "(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "hold_r_sneak_idle": {
+          "animations": [
+            "look_at_target_inverted",
+            "sneaking",
+            "holding_heavy_core"
+          ],
+          "transitions": [
+            {
+              "sneak_idle": "!(variable.is_holding_right)"
+            },
+            {
+              "hold_r_idle": "!((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
+            },
+            {
+              "hold_r_sneak_fall_idle": "(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "hold_r_sneak_glide_idle": "(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "hold_r_sneak": "!(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "hold_r_sneak_glide": {
+          "animations": [
+            "look_at_target_inverted",
+            "sneaking",
+            "first_person_crossbow_hold"
+          ],
+          "transitions": [
+            {
+              "sneak_glide": "!(variable.is_holding_right)"
+            },
+            {
+              "hold_r_glide": "!((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
+            },
+            {
+              "hold_r_sneak_fall_glide": "(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "hold_r_sneak": "!(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "hold_r_sneak_glide_idle": "(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "hold_r_sneak_glide_idle": {
+          "animations": [
+            "look_at_target_inverted",
+            "sneaking",
+            "first_person_crossbow_hold",
+            "holding_heavy_core"
+          ],
+          "transitions": [
+            {
+              "sneak_glide_idle": "!(variable.is_holding_right)"
+            },
+            {
+              "hold_r_glide_idle": "!((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
+            },
+            {
+              "hold_r_sneak_fall_glide_idle": "(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "hold_r_sneak_idle": "!(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "hold_r_sneak_glide": "!(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
             }
           ],
           "blend_transition": 0.15,
@@ -1520,10 +2075,98 @@
               "sneak_fall": "!(variable.is_holding_right)"
             },
             {
-              "hold_r_fall": "!((query.is_sneaking && !query.is_sleeping && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))))"
+              "hold_r_fall": "!((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
             },
             {
-              "hold_r_sneak": "!(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator)"
+              "hold_r_sneak": "!(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "hold_r_sneak_fall_glide": "(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "hold_r_sneak_fall_idle": "(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "hold_r_sneak_fall_idle": {
+          "animations": [
+            "look_at_target_inverted",
+            "sneaking",
+            "fishing_rod",
+            "holding_heavy_core"
+          ],
+          "transitions": [
+            {
+              "sneak_fall_idle": "!(variable.is_holding_right)"
+            },
+            {
+              "hold_r_fall_idle": "!((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
+            },
+            {
+              "hold_r_sneak_idle": "!(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "hold_r_sneak_fall_glide_idle": "(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "hold_r_sneak_fall": "!(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "hold_r_sneak_fall_glide": {
+          "animations": [
+            "look_at_target_inverted",
+            "sneaking",
+            "fishing_rod",
+            "first_person_crossbow_hold"
+          ],
+          "transitions": [
+            {
+              "sneak_fall_glide": "!(variable.is_holding_right)"
+            },
+            {
+              "hold_r_fall_glide": "!((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
+            },
+            {
+              "hold_r_sneak_glide": "!(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "hold_r_sneak_fall": "!(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "hold_r_sneak_fall_glide_idle": "(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
+            }
+          ],
+          "blend_transition": 0.15,
+          "blend_via_shortest_path": true
+        },
+        "hold_r_sneak_fall_glide_idle": {
+          "animations": [
+            "look_at_target_inverted",
+            "sneaking",
+            "fishing_rod",
+            "first_person_crossbow_hold",
+            "holding_heavy_core"
+          ],
+          "transitions": [
+            {
+              "sneak_fall_glide_idle": "!(variable.is_holding_right)"
+            },
+            {
+              "hold_r_fall_glide_idle": "!((query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))))"
+            },
+            {
+              "hold_r_sneak_glide_idle": "!(!query.is_on_ground && query.vertical_speed < -9.0 && !query.is_gliding && !query.is_in_water && !query.is_swimming && !query.is_riding && !query.is_levitating && !query.is_sleeping && !query.is_spectator && !query.is_pack_setting_enabled('sa:no_fall'))"
+            },
+            {
+              "hold_r_sneak_fall_idle": "!(query.is_gliding && !query.is_pack_setting_enabled('sa:no_glide'))"
+            },
+            {
+              "hold_r_sneak_fall_glide": "!(query.is_on_ground && !query.is_moving && !query.is_sneaking && !query.blocking && !query.is_riding && !query.is_sleeping && !query.is_swimming && !query.is_crawling && !query.is_in_water && !query.is_emoting && variable.attack_time <= 0.0 && variable.item_use_normalized <= 0.0 && !query.is_pack_setting_enabled('sa:no_idle'))"
             }
           ],
           "blend_transition": 0.15,
@@ -1549,10 +2192,10 @@
               "xbow_hold": "!(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow') && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_remaining_use_duration > 0.0) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_is_charged)"
             },
             {
-              "guard_off": "((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
+              "guard_off": "((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
             },
             {
-              "guard_main": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "guard_main": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             }
           ],
           "blend_transition": 0.15,
@@ -1576,10 +2219,10 @@
               "xbow_hold_guard_off": "!(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow') && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_remaining_use_duration > 0.0) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_is_charged)"
             },
             {
-              "default": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "default": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             },
             {
-              "guard_main": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "guard_main": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             }
           ],
           "blend_transition": 0.15,
@@ -1603,10 +2246,10 @@
               "xbow_hold_guard_main": "!(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow') && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_remaining_use_duration > 0.0) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_is_charged)"
             },
             {
-              "default": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "default": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             },
             {
-              "guard_off": "((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
+              "guard_off": "((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
             }
           ],
           "blend_transition": 0.15,
@@ -1630,10 +2273,10 @@
               "xbow_hold": "!(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow') && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_remaining_use_duration > 0.0) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_is_charged)"
             },
             {
-              "bow_guard_off": "((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
+              "bow_guard_off": "((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
             },
             {
-              "bow_guard_main": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "bow_guard_main": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             }
           ],
           "blend_transition": 0.15,
@@ -1658,10 +2301,10 @@
               "xbow_hold_guard_off": "!(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow') && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_remaining_use_duration > 0.0) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_is_charged)"
             },
             {
-              "bow": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "bow": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             },
             {
-              "bow_guard_main": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "bow_guard_main": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             }
           ],
           "blend_transition": 0.15,
@@ -1686,10 +2329,10 @@
               "xbow_hold_guard_main": "!(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow') && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_remaining_use_duration > 0.0) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_is_charged)"
             },
             {
-              "bow": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "bow": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             },
             {
-              "bow_guard_off": "((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
+              "bow_guard_off": "((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
             }
           ],
           "blend_transition": 0.15,
@@ -1713,10 +2356,10 @@
               "xbow_hold": "!(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow') && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_remaining_use_duration > 0.0) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_is_charged)"
             },
             {
-              "xbow_charge_guard_off": "((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
+              "xbow_charge_guard_off": "((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
             },
             {
-              "xbow_charge_guard_main": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "xbow_charge_guard_main": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             }
           ],
           "blend_transition": 0.15,
@@ -1741,10 +2384,10 @@
               "xbow_hold_guard_off": "!(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow') && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_remaining_use_duration > 0.0) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_is_charged)"
             },
             {
-              "xbow_charge": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "xbow_charge": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             },
             {
-              "xbow_charge_guard_main": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "xbow_charge_guard_main": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             }
           ],
           "blend_transition": 0.15,
@@ -1769,10 +2412,10 @@
               "xbow_hold_guard_main": "!(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow') && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_remaining_use_duration > 0.0) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_is_charged)"
             },
             {
-              "xbow_charge": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "xbow_charge": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             },
             {
-              "xbow_charge_guard_off": "((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
+              "xbow_charge_guard_off": "((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
             }
           ],
           "blend_transition": 0.15,
@@ -1796,10 +2439,10 @@
               "xbow_charge": "!(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow') && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_remaining_use_duration > 0.0)"
             },
             {
-              "xbow_hold_guard_off": "((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
+              "xbow_hold_guard_off": "((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
             },
             {
-              "xbow_hold_guard_main": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "xbow_hold_guard_main": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             }
           ],
           "blend_transition": 0.15,
@@ -1824,10 +2467,10 @@
               "xbow_charge_guard_off": "!(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow') && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_remaining_use_duration > 0.0)"
             },
             {
-              "xbow_hold": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "xbow_hold": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             },
             {
-              "xbow_hold_guard_main": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "xbow_hold_guard_main": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             }
           ],
           "blend_transition": 0.15,
@@ -1852,10 +2495,10 @@
               "xbow_charge_guard_main": "!(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow') && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_remaining_use_duration > 0.0)"
             },
             {
-              "xbow_hold": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "xbow_hold": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             },
             {
-              "xbow_hold_guard_off": "((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
+              "xbow_hold_guard_off": "((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
             }
           ],
           "blend_transition": 0.15,
@@ -1881,10 +2524,10 @@
               "ride_xbow_hold": "!(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow') && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_remaining_use_duration > 0.0) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_is_charged)"
             },
             {
-              "ride_guard_off": "((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
+              "ride_guard_off": "((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
             },
             {
-              "ride_guard_main": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "ride_guard_main": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             }
           ],
           "blend_transition": 0.15,
@@ -1911,10 +2554,10 @@
               "ride_xbow_hold_guard_off": "!(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow') && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_remaining_use_duration > 0.0) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_is_charged)"
             },
             {
-              "ride": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "ride": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             },
             {
-              "ride_guard_main": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "ride_guard_main": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             }
           ],
           "blend_transition": 0.15,
@@ -1941,10 +2584,10 @@
               "ride_xbow_hold_guard_main": "!(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow') && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_remaining_use_duration > 0.0) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_is_charged)"
             },
             {
-              "ride": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "ride": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             },
             {
-              "ride_guard_off": "((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
+              "ride_guard_off": "((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
             }
           ],
           "blend_transition": 0.15,
@@ -1971,10 +2614,10 @@
               "ride_xbow_hold": "!(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow') && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_remaining_use_duration > 0.0) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_is_charged)"
             },
             {
-              "ride_bow_guard_off": "((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
+              "ride_bow_guard_off": "((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
             },
             {
-              "ride_bow_guard_main": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "ride_bow_guard_main": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             }
           ],
           "blend_transition": 0.15,
@@ -2002,10 +2645,10 @@
               "ride_xbow_hold_guard_off": "!(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow') && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_remaining_use_duration > 0.0) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_is_charged)"
             },
             {
-              "ride_bow": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "ride_bow": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             },
             {
-              "ride_bow_guard_main": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "ride_bow_guard_main": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             }
           ],
           "blend_transition": 0.15,
@@ -2033,10 +2676,10 @@
               "ride_xbow_hold_guard_main": "!(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow') && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_remaining_use_duration > 0.0) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_is_charged)"
             },
             {
-              "ride_bow": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "ride_bow": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             },
             {
-              "ride_bow_guard_off": "((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
+              "ride_bow_guard_off": "((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
             }
           ],
           "blend_transition": 0.15,
@@ -2063,10 +2706,10 @@
               "ride_xbow_hold": "!(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow') && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_remaining_use_duration > 0.0) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_is_charged)"
             },
             {
-              "ride_xbow_charge_guard_off": "((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
+              "ride_xbow_charge_guard_off": "((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
             },
             {
-              "ride_xbow_charge_guard_main": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "ride_xbow_charge_guard_main": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             }
           ],
           "blend_transition": 0.15,
@@ -2094,10 +2737,10 @@
               "ride_xbow_hold_guard_off": "!(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow') && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_remaining_use_duration > 0.0) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_is_charged)"
             },
             {
-              "ride_xbow_charge": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "ride_xbow_charge": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             },
             {
-              "ride_xbow_charge_guard_main": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "ride_xbow_charge_guard_main": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             }
           ],
           "blend_transition": 0.15,
@@ -2125,10 +2768,10 @@
               "ride_xbow_hold_guard_main": "!(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow') && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_remaining_use_duration > 0.0) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_is_charged)"
             },
             {
-              "ride_xbow_charge": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "ride_xbow_charge": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             },
             {
-              "ride_xbow_charge_guard_off": "((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
+              "ride_xbow_charge_guard_off": "((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
             }
           ],
           "blend_transition": 0.15,
@@ -2155,10 +2798,10 @@
               "ride_xbow_charge": "!(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow') && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_remaining_use_duration > 0.0)"
             },
             {
-              "ride_xbow_hold_guard_off": "((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
+              "ride_xbow_hold_guard_off": "((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
             },
             {
-              "ride_xbow_hold_guard_main": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "ride_xbow_hold_guard_main": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             }
           ],
           "blend_transition": 0.15,
@@ -2186,10 +2829,10 @@
               "ride_xbow_charge_guard_off": "!(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow') && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_remaining_use_duration > 0.0)"
             },
             {
-              "ride_xbow_hold": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "ride_xbow_hold": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             },
             {
-              "ride_xbow_hold_guard_main": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "ride_xbow_hold_guard_main": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && ((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             }
           ],
           "blend_transition": 0.15,
@@ -2217,10 +2860,10 @@
               "ride_xbow_charge_guard_main": "!(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:bow') && variable.item_use_normalized > 0.0 && variable.item_use_normalized < 1.0) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:crossbow') && query.item_remaining_use_duration > 0.0)"
             },
             {
-              "ride_xbow_hold": "!((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
+              "ride_xbow_hold": "!((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield'))"
             },
             {
-              "ride_xbow_hold_guard_off": "((query.is_sneaking || query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
+              "ride_xbow_hold_guard_off": "((!query.is_pack_setting_enabled('sa:no_shield_guard') ? (query.is_sneaking || query.blocking) : query.blocking) && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')) && !query.is_sleeping && !query.is_swimming && !query.is_crawling && query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))"
             }
           ],
           "blend_transition": 0.15,

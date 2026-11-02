@@ -446,6 +446,11 @@ def random_world(rng):
             any(t.replace("minecraft:", "") in ITEMS.get(main, []) for t in tags)),
         "has_armor_slot": lambda i: float(armor[int(i)]),
         "all_animations_finished": 1.0,
+        "is_moving": b(), "is_emoting": b(0.05),
+        "is_pack_setting_enabled": (lambda name, _s={n: float(rng.random() < 0.2) for n in (
+            "sa:no_item_switch", "sa:no_fp_ease", "sa:no_armor", "sa:no_shield_guard", "sa:no_fall",
+            "sa:no_glide", "sa:no_idle")}: _s[name]),
+        "get_pack_setting": lambda name: rng.choice([0.0, 10.0, 30.0]),
     }
     v = {"is_holding_right": float(bool(main)), "is_holding_left": float(bool(off)),
          "item_use_normalized": rng.choice([0.0, 0.0, 0.5, 1.0]), "attack_time": rng.choice([0.0, 0.0, 0.4])}
@@ -489,13 +494,8 @@ def simulate(n=20000, seed=1):
                 try:
                     final, path = settle(ctrl, start, q, v)
                 except AssertionError as ex:
-                    # Holding attack with a mace repeats the slam: k_mace <-> k_mace_attack is expected.
-                    loop = str(ex).split(": ", 1)[1].split(" -> ")[-6:]
-                    if short == "item" and expect is None and set(loop) <= {"k_mace", "k_mace_attack"}:
-                        final, path = "k_mace", None
-                    else:
-                        errors.append(f"{short}: {ex}")
-                        continue
+                    errors.append(f"{short}: {ex}")
+                    continue
                 if expect is not None and final != expect:
                     errors.append(f"{short}: expected {expect}, got {final} via {path}")
                 if short == "armor" and start == state[cid] and start.startswith("w_") and final.startswith("w_"):
@@ -503,7 +503,7 @@ def simulate(n=20000, seed=1):
                         if start[2 + i] == "0" and final[2 + i] == "1" and \
                                 not any(p.startswith(f"equip_{sa.ARMOR_PARTS[i]}_") for p in path):
                             errors.append(f"armor: {sa.ARMOR_PARTS[i]} put on without animation: {path}")
-                if short == "item" and path is not None and start == state[cid] and start.startswith("k_") and \
+                if short == "item" and start == state[cid] and start.startswith("k_") and \
                         final.startswith("k_") and start.split("_")[1] != final.split("_")[1] and "swap" not in path:
                     errors.append(f"item: changed kind without the switch animation: {path}")
             state[cid] = final
@@ -512,7 +512,7 @@ def simulate(n=20000, seed=1):
             break
     for cid, short in names.items():
         never = {x for x in set(ctrls[cid]["states"]) - seen[cid]
-                 if not x.startswith(("equip_", "init", "swap", "k_mace_attack"))}
+                 if not x.startswith(("equip_", "init", "swap"))}
         print(f"simulate {short}: reached {len(seen[cid])}/{len(ctrls[cid]['states'])} states"
               + (f" (never settled in: {sorted(never)[:8]}...)" if never else ""))
     return errors
@@ -521,8 +521,8 @@ def simulate(n=20000, seed=1):
 def expected_state(short, q, v, sa):
     e = lambda s: evaluate(s, Env(q, v))
     if short == "base":
-        on = [n for n, c in (("hold_r", "variable.is_holding_right"), ("sneak", sa.SNEAK_POSE), ("fall", sa.FALL))
-              if e(c)]
+        on = [n for n, c in (("hold_r", "variable.is_holding_right"), ("sneak", sa.SNEAK_POSE), ("fall", sa.FALL),
+                             ("glide", sa.GLIDE), ("idle", sa.IDLE)) if e(c)]
         return "_".join(on) or "default"
     if short == "gear":
         on = []
@@ -549,8 +549,6 @@ def expected_state(short, q, v, sa):
                     if v["item_use_normalized"] > 0:
                         return "k_spear_use"
                     return "k_spear_attack" if v["attack_time"] > 0 else "k_spear"
-                if k == "mace" and v["attack_time"] > 0:
-                    return None  # attack state ends when its animation finishes; checked separately
                 return f"k_{k}"
     return None
 
@@ -684,10 +682,6 @@ def draw_pose(draw, p, ox, oy, view, scale=3.2, item=None):
         tip = apply(m, [BONES["rightitem"][1][0], BONES["rightitem"][1][1] + 0.0, BONES["rightitem"][1][2] - 11 * sc])
         a, b = proj(base), proj(tip)
         draw.line([a[:2], b[:2]], fill=(90, 90, 90), width=4)
-        if item == "mace":
-            draw.ellipse([b[0] - 9, b[1] - 9, b[0] + 9, b[1] + 9], fill=(110, 110, 120), outline=(30, 30, 30))
-        if item == "shield":
-            pass
 
 
 def preview(path):
@@ -703,7 +697,8 @@ def preview(path):
         q = dict(base_q)
         q.update(is_sneaking=float(sneaking), blocking=float(blocking), is_riding=float(riding),
                  is_item_name_any=lambda slot, *n: float(("minecraft:" + (main if "mainhand" in slot else off)) in n),
-                 get_root_locator_offset=lambda *a: 0.0, get_default_bone_pivot=lambda *a: 0.0)
+                 get_root_locator_offset=lambda *a: 0.0, get_default_bone_pivot=lambda *a: 0.0,
+                 is_pack_setting_enabled=lambda n: 0.0, get_pack_setting=lambda n: 10.0)
         v = {"tcos0": 0.0, "is_holding_right": float(bool(main)), "is_holding_left": float(bool(off)),
              "attack_time": 0.0, "attack_body_rot_y": 0.0, "sa_equip_part": armor or 0.0, "item_use_normalized": 0.0,
              "is_first_person": 0.0}
@@ -726,17 +721,15 @@ def preview(path):
               off="shield", sneaking=True, blocking=True),
         scene("Escudo (1a mano)\n+ agacharse", ["animation.player.shield_block_main_hand"], main="shield",
               sneaking=True, blocking=True),
-        scene("Mazo: sostener", ["animation.player.holding_heavy_core"], main="mace"),
-        scene("Mazo: levantar\n(0,25 s)", ["animation.player.holding_heavy_core",
-                                          "animation.player.first_person.crossbow_hold"], main="mace", t=0.25),
-        scene("Mazo: golpe\n(0,42 s)", ["animation.player.holding_heavy_core",
-                                       "animation.player.first_person.crossbow_hold"], main="mace", t=0.42),
         scene("Cambio de objeto\n(0,1 s)", ["animation.player.attack.positions"], main="diamond_sword", t=0.1),
         scene("Ponerse casco", ["animation.player.first_person.attack_rotation_item"], armor=0, t=0.35),
         scene("Ponerse peto", ["animation.player.first_person.attack_rotation_item"], armor=1, t=0.35),
         scene("Ponerse pantalones", ["animation.player.first_person.attack_rotation_item"], armor=2, t=0.25),
         scene("Ponerse botas", ["animation.player.first_person.attack_rotation_item"], armor=3, t=0.2),
         scene("Caída", ["animation.humanoid.fishing_rod"], t=1.0),
+        scene("Élitros", ["animation.player.first_person.crossbow_hold"]),
+        scene("Espera (quieto\n12 s)", ["animation.player.holding_heavy_core"], t=12.0),
+        scene("Espera (quieto\n14 s)", ["animation.player.holding_heavy_core"], t=14.0),
     ]
     cols = 5
     cw, ch = 230, 250
@@ -747,8 +740,8 @@ def preview(path):
         x0, y0 = (i % cols) * cw, (i // cols) * ch
         d.rectangle([x0 + 3, y0 + 3, x0 + cw - 3, y0 + ch - 3], outline=(180, 185, 195))
         d.multiline_text((x0 + 10, y0 + 8), title, fill=(20, 20, 20))
-        draw_pose(d, p, x0 + 62, y0 + 225, "front", item=item if item in ("mace", "diamond_sword") else None)
-        draw_pose(d, p, x0 + 165, y0 + 225, "side", item=item if item in ("mace", "diamond_sword") else None)
+        draw_pose(d, p, x0 + 62, y0 + 225, "front", item=item if item == "diamond_sword" else None)
+        draw_pose(d, p, x0 + 165, y0 + 225, "side", item=item if item == "diamond_sword" else None)
     d.text((8, rows * ch - 14), "Izquierda: de frente. Derecha: de lado (mirando a la izquierda).", fill=(60, 60, 60))
     img.save(path)
     print("wrote", path)

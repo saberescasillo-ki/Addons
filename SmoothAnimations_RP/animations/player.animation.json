@@ -17,17 +17,17 @@
             },
             "0.1": {
               "post": [
-                26,
+                "26.0 * (1.0 - query.is_pack_setting_enabled('sa:no_item_switch'))",
                 0,
-                6
+                "6.0 * (1.0 - query.is_pack_setting_enabled('sa:no_item_switch'))"
               ],
               "lerp_mode": "catmullrom"
             },
             "0.2": {
               "post": [
-                14,
+                "14.0 * (1.0 - query.is_pack_setting_enabled('sa:no_item_switch'))",
                 0,
-                3
+                "3.0 * (1.0 - query.is_pack_setting_enabled('sa:no_item_switch'))"
               ],
               "lerp_mode": "catmullrom"
             },
@@ -36,42 +36,6 @@
                 0,
                 0,
                 0
-              ],
-              "lerp_mode": "catmullrom"
-            }
-          }
-        },
-        "rightitem": {
-          "scale": {
-            "0": {
-              "post": [
-                0.85,
-                0.85,
-                0.85
-              ],
-              "lerp_mode": "catmullrom"
-            },
-            "0.1": {
-              "post": [
-                0.5,
-                0.5,
-                0.5
-              ],
-              "lerp_mode": "catmullrom"
-            },
-            "0.2": {
-              "post": [
-                0.8,
-                0.8,
-                0.8
-              ],
-              "lerp_mode": "catmullrom"
-            },
-            "0.32": {
-              "post": [
-                1.0,
-                1.0,
-                1.0
               ],
               "lerp_mode": "catmullrom"
             }
@@ -165,14 +129,14 @@
       "bones": {
         "leftarm": {
           "rotation": [
-            "-90.0 + query.target_x_rotation - (query.is_sneaking && !query.is_sleeping && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))) * 15.0 - this",
+            "-90.0 + query.target_x_rotation - (query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))) * 15.0 - this",
             "27.5 + query.target_y_rotation",
             0.0
           ]
         },
         "rightarm": {
           "rotation": [
-            "-90.0 + query.target_x_rotation - (query.is_sneaking && !query.is_sleeping && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))) * 15.0 - this",
+            "-90.0 + query.target_x_rotation - (query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))) * 15.0 - this",
             "-5.0 + query.target_y_rotation",
             0.0
           ]
@@ -232,14 +196,14 @@
       "bones": {
         "leftarm": {
           "rotation": [
-            "query.is_swimming ? 0.0 : -93.0 + query.target_x_rotation - (query.is_sneaking && !query.is_sleeping && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))) * 27.0 -this",
+            "query.is_swimming ? 0.0 : -93.0 + query.target_x_rotation - (query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))) * 27.0 -this",
             "query.is_swimming ? 0.0 : 42.0 + math.clamp(query.target_y_rotation, -45.0, 5.0) -this",
-            "(query.is_sneaking && !query.is_sleeping && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))) * -15.0"
+            "(query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))) * -15.0"
           ]
         },
         "rightarm": {
           "rotation": [
-            "query.is_swimming ? 0.0 : -93.0 + query.target_x_rotation - (query.is_sneaking && !query.is_sleeping && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))) * 27.0 -this",
+            "query.is_swimming ? 0.0 : -93.0 + query.target_x_rotation - (query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))) * 27.0 -this",
             "query.is_swimming ? 0.0 : math.clamp(query.target_y_rotation, -60.0, 45.0) -this",
             0.0
           ]
@@ -258,7 +222,7 @@
         },
         "rightarm": {
           "rotation": [
-            "v.tp_melee_spear_base_arm_rotation_x + q.target_x_rotation - (query.is_sneaking && !query.is_sleeping && !(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield'))) * 27.0 - this + v.tp_melee_spear_attack_arm_rotation_x",
+            "v.tp_melee_spear_base_arm_rotation_x + q.target_x_rotation - (query.is_sneaking && !query.is_sleeping && !(!query.is_pack_setting_enabled('sa:no_shield_guard') && (query.is_item_name_any('slot.weapon.mainhand', 'minecraft:shield') || query.is_item_name_any('slot.weapon.offhand', 'minecraft:shield')))) * 27.0 - this + v.tp_melee_spear_attack_arm_rotation_x",
             "math.clamp(q.target_y_rotation, -60.0, 45.0) - this - v.attack_body_rot_y",
             0.0
           ]
@@ -319,41 +283,65 @@
             0.0,
             0.0
           ]
+        },
+        "rightItem": {
+          "scale": [
+            "query.is_item_name_any('slot.weapon.mainhand', 'minecraft:heavy_core') ? 0.7 : 1.0",
+            "query.is_item_name_any('slot.weapon.mainhand', 'minecraft:heavy_core') ? 0.7 : 1.0",
+            "query.is_item_name_any('slot.weapon.mainhand', 'minecraft:heavy_core') ? 0.7 : 1.0"
+          ],
+          "position": [
+            "query.is_item_name_any('slot.weapon.mainhand', 'minecraft:heavy_core') ? -1.0 : 0.0",
+            0.0,
+            "query.is_item_name_any('slot.weapon.mainhand', 'minecraft:heavy_core') ? -2.0 : 0.0"
+          ]
         }
       }
     },
     "animation.player.holding_heavy_core": {
-      "loop": true,
+      "loop": "hold_on_last_frame",
+      "animation_length": 3600.0,
       "bones": {
-        "rightItem": {
-          "scale": [
-            "query.is_item_name_any('slot.weapon.mainhand', 'minecraft:mace') ? 1.0 : 0.7",
-            "query.is_item_name_any('slot.weapon.mainhand', 'minecraft:mace') ? 1.0 : 0.7",
-            "query.is_item_name_any('slot.weapon.mainhand', 'minecraft:mace') ? 1.0 : 0.7"
-          ],
-          "position": [
-            "query.is_item_name_any('slot.weapon.mainhand', 'minecraft:mace') ? 0.0 : -1.0",
-            0.0,
-            "query.is_item_name_any('slot.weapon.mainhand', 'minecraft:mace') ? 0.0 : -2.0"
-          ],
+        "head": {
           "rotation": [
-            "query.is_item_name_any('slot.weapon.mainhand', 'minecraft:mace') ? -35.0 : 0.0",
-            0.0,
+            "temp.d = query.get_pack_setting('sa:idle_delay'); temp.d = temp.d > 0.0 ? temp.d : 10.0; temp.t = query.anim_time - temp.d; temp.r = math.clamp(temp.t / 1.5, 0.0, 1.0); temp.r = temp.r * temp.r * (3.0 - 2.0 * temp.r); return (4.0 + 5.0 * math.sin(temp.t * 31.0)) * temp.r;",
+            "temp.d = query.get_pack_setting('sa:idle_delay'); temp.d = temp.d > 0.0 ? temp.d : 10.0; temp.t = query.anim_time - temp.d; temp.r = math.clamp(temp.t / 1.5, 0.0, 1.0); temp.r = temp.r * temp.r * (3.0 - 2.0 * temp.r); return (24.0 * math.sin(temp.t * 40.0) + 8.0 * math.sin(temp.t * 97.0)) * temp.r;",
             0.0
           ]
         },
         "rightarm": {
           "rotation": [
-            "query.is_item_name_any('slot.weapon.mainhand', 'minecraft:mace') ? (-this * 0.8 - 30.0) : 0.0",
-            "query.is_item_name_any('slot.weapon.mainhand', 'minecraft:mace') ? (-this - 16.0) : 0.0",
-            "query.is_item_name_any('slot.weapon.mainhand', 'minecraft:mace') ? -this : 0.0"
+            "temp.d = query.get_pack_setting('sa:idle_delay'); temp.d = temp.d > 0.0 ? temp.d : 10.0; temp.t = query.anim_time - temp.d; temp.r = math.clamp(temp.t / 1.5, 0.0, 1.0); temp.r = temp.r * temp.r * (3.0 - 2.0 * temp.r); return (3.0 * math.sin(temp.t * 53.0)) * temp.r;",
+            0.0,
+            "temp.d = query.get_pack_setting('sa:idle_delay'); temp.d = temp.d > 0.0 ? temp.d : 10.0; temp.t = query.anim_time - temp.d; temp.r = math.clamp(temp.t / 1.5, 0.0, 1.0); temp.r = temp.r * temp.r * (3.0 - 2.0 * temp.r); return (2.0 + 2.0 * math.sin(temp.t * 72.0)) * temp.r;"
           ]
         },
         "leftarm": {
           "rotation": [
-            "(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:mace') && !(variable.is_holding_left ?? 0.0)) ? (-this * 0.8 - 34.0) : 0.0",
-            "(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:mace') && !(variable.is_holding_left ?? 0.0)) ? (-this + 52.0) : 0.0",
-            "(query.is_item_name_any('slot.weapon.mainhand', 'minecraft:mace') && !(variable.is_holding_left ?? 0.0)) ? -this : 0.0"
+            "temp.d = query.get_pack_setting('sa:idle_delay'); temp.d = temp.d > 0.0 ? temp.d : 10.0; temp.t = query.anim_time - temp.d; temp.r = math.clamp(temp.t / 1.5, 0.0, 1.0); temp.r = temp.r * temp.r * (3.0 - 2.0 * temp.r); return (-3.0 * math.sin(temp.t * 53.0)) * temp.r;",
+            0.0,
+            "temp.d = query.get_pack_setting('sa:idle_delay'); temp.d = temp.d > 0.0 ? temp.d : 10.0; temp.t = query.anim_time - temp.d; temp.r = math.clamp(temp.t / 1.5, 0.0, 1.0); temp.r = temp.r * temp.r * (3.0 - 2.0 * temp.r); return (-2.0 - 2.0 * math.sin(temp.t * 72.0)) * temp.r;"
+          ]
+        },
+        "rightleg": {
+          "rotation": [
+            "temp.d = query.get_pack_setting('sa:idle_delay'); temp.d = temp.d > 0.0 ? temp.d : 10.0; temp.t = query.anim_time - temp.d; temp.r = math.clamp(temp.t / 1.5, 0.0, 1.0); temp.r = temp.r * temp.r * (3.0 - 2.0 * temp.r); return (-4.0 * math.max(math.sin(temp.t * 27.0), 0.0)) * temp.r;",
+            0.0,
+            "temp.d = query.get_pack_setting('sa:idle_delay'); temp.d = temp.d > 0.0 ? temp.d : 10.0; temp.t = query.anim_time - temp.d; temp.r = math.clamp(temp.t / 1.5, 0.0, 1.0); temp.r = temp.r * temp.r * (3.0 - 2.0 * temp.r); return (1.5 * math.sin(temp.t * 27.0)) * temp.r;"
+          ]
+        },
+        "leftleg": {
+          "rotation": [
+            "temp.d = query.get_pack_setting('sa:idle_delay'); temp.d = temp.d > 0.0 ? temp.d : 10.0; temp.t = query.anim_time - temp.d; temp.r = math.clamp(temp.t / 1.5, 0.0, 1.0); temp.r = temp.r * temp.r * (3.0 - 2.0 * temp.r); return (-4.0 * math.max(-math.sin(temp.t * 27.0), 0.0)) * temp.r;",
+            0.0,
+            "temp.d = query.get_pack_setting('sa:idle_delay'); temp.d = temp.d > 0.0 ? temp.d : 10.0; temp.t = query.anim_time - temp.d; temp.r = math.clamp(temp.t / 1.5, 0.0, 1.0); temp.r = temp.r * temp.r * (3.0 - 2.0 * temp.r); return (1.5 * math.sin(temp.t * 27.0)) * temp.r;"
+          ]
+        },
+        "body": {
+          "rotation": [
+            0.0,
+            0.0,
+            "temp.d = query.get_pack_setting('sa:idle_delay'); temp.d = temp.d > 0.0 ? temp.d : 10.0; temp.t = query.anim_time - temp.d; temp.r = math.clamp(temp.t / 1.5, 0.0, 1.0); temp.r = temp.r * temp.r * (3.0 - 2.0 * temp.r); return (1.2 * math.sin(temp.t * 27.0)) * temp.r;"
           ]
         }
       }
@@ -382,7 +370,7 @@
       "bones": {
         "rightarm": {
           "rotation": [
-            "query.is_item_name_any('slot.weapon.mainhand', 'minecraft:mace') ? 0.0 : (-this * 0.5 - 18.0)",
+            "-this * 0.5 - 18.0",
             0.0,
             0.0
           ]
@@ -675,23 +663,23 @@
         },
         "rightleg": {
           "rotation": [
-            "-14.0 * (1.0 - query.is_riding)",
+            "-14.0 * (1.0 - query.is_riding) * (1.0 - query.is_pack_setting_enabled('sa:no_shield_guard'))",
             0.0,
-            "4.0 * (1.0 - query.is_riding)"
+            "4.0 * (1.0 - query.is_riding) * (1.0 - query.is_pack_setting_enabled('sa:no_shield_guard'))"
           ]
         },
         "leftleg": {
           "rotation": [
-            "12.0 * (1.0 - query.is_riding)",
+            "12.0 * (1.0 - query.is_riding) * (1.0 - query.is_pack_setting_enabled('sa:no_shield_guard'))",
             0.0,
-            "-4.0 * (1.0 - query.is_riding)"
+            "-4.0 * (1.0 - query.is_riding) * (1.0 - query.is_pack_setting_enabled('sa:no_shield_guard'))"
           ]
         },
         "leftarm": {
           "rotation": [
-            "-8.0",
+            "-8.0 * (1.0 - query.is_riding) * (1.0 - query.is_pack_setting_enabled('sa:no_shield_guard'))",
             0.0,
-            -4.0
+            "-4.0 * (1.0 - query.is_riding) * (1.0 - query.is_pack_setting_enabled('sa:no_shield_guard'))"
           ]
         }
       }
@@ -720,23 +708,23 @@
         },
         "leftleg": {
           "rotation": [
-            "-14.0 * (1.0 - query.is_riding)",
+            "-14.0 * (1.0 - query.is_riding) * (1.0 - query.is_pack_setting_enabled('sa:no_shield_guard'))",
             0.0,
-            "-4.0 * (1.0 - query.is_riding)"
+            "-4.0 * (1.0 - query.is_riding) * (1.0 - query.is_pack_setting_enabled('sa:no_shield_guard'))"
           ]
         },
         "rightleg": {
           "rotation": [
-            "12.0 * (1.0 - query.is_riding)",
+            "12.0 * (1.0 - query.is_riding) * (1.0 - query.is_pack_setting_enabled('sa:no_shield_guard'))",
             0.0,
-            "4.0 * (1.0 - query.is_riding)"
+            "4.0 * (1.0 - query.is_riding) * (1.0 - query.is_pack_setting_enabled('sa:no_shield_guard'))"
           ]
         },
         "rightarm": {
           "rotation": [
-            "-8.0",
+            "-8.0 * (1.0 - query.is_riding) * (1.0 - query.is_pack_setting_enabled('sa:no_shield_guard'))",
             0.0,
-            4.0
+            "4.0 * (1.0 - query.is_riding) * (1.0 - query.is_pack_setting_enabled('sa:no_shield_guard'))"
           ]
         }
       }
@@ -1191,232 +1179,21 @@
       }
     },
     "animation.player.first_person.crossbow_hold": {
-      "loop": false,
-      "animation_length": 0.6,
+      "loop": true,
       "bones": {
         "rightarm": {
-          "rotation": {
-            "0": {
-              "post": [
-                0,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            },
-            "0.2": {
-              "post": [
-                -110,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            },
-            "0.3": {
-              "post": [
-                -122,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            },
-            "0.42": {
-              "post": [
-                10,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            },
-            "0.6": {
-              "post": [
-                0,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            }
-          }
+          "rotation": [
+            6.0,
+            0.0,
+            14.0
+          ]
         },
         "leftarm": {
-          "rotation": {
-            "0": {
-              "post": [
-                0,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            },
-            "0.2": {
-              "post": [
-                -110,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            },
-            "0.3": {
-              "post": [
-                -122,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            },
-            "0.42": {
-              "post": [
-                10,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            },
-            "0.6": {
-              "post": [
-                0,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            }
-          }
-        },
-        "rightitem": {
-          "rotation": {
-            "0": {
-              "post": [
-                0,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            },
-            "0.3": {
-              "post": [
-                -15,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            },
-            "0.42": {
-              "post": [
-                115,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            },
-            "0.6": {
-              "post": [
-                0,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            }
-          }
-        },
-        "head": {
-          "rotation": {
-            "0": {
-              "post": [
-                0,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            },
-            "0.25": {
-              "post": [
-                -12,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            },
-            "0.42": {
-              "post": [
-                10,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            },
-            "0.6": {
-              "post": [
-                0,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            }
-          }
-        },
-        "rightleg": {
-          "rotation": {
-            "0": {
-              "post": [
-                0,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            },
-            "0.3": {
-              "post": [
-                -8,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            },
-            "0.42": {
-              "post": [
-                -16,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            },
-            "0.6": {
-              "post": [
-                0,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            }
-          }
-        },
-        "leftleg": {
-          "rotation": {
-            "0": {
-              "post": [
-                0,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            },
-            "0.42": {
-              "post": [
-                10,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            },
-            "0.6": {
-              "post": [
-                0,
-                0,
-                0
-              ],
-              "lerp_mode": "catmullrom"
-            }
-          }
+          "rotation": [
+            6.0,
+            0.0,
+            -14.0
+          ]
         }
       }
     }
