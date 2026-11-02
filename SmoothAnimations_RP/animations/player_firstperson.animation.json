@@ -18,24 +18,6 @@
         }
       }
     },
-    "animation.player.first_person.attack_rotation_item": {
-      "loop": true,
-      "override_previous_animation": true,
-      "bones": {
-        "rightitem": {
-          "position": [
-            "-math.sin(math.sqrt(variable.attack_time) * Math.Pi * 100) * 10",
-            "math.sin(math.sqrt(variable.attack_time) * Math.Pi * 2 * 60) * 10",
-            "-math.sin(variable.attack_time * Math.Pi * 65) * 2"
-          ],
-          "rotation": [
-            "-math.sin(math.sqrt(variable.attack_time) * Math.Pi * 20) * 25",
-            "-math.sin(math.sqrt(variable.attack_time) * 75.0) * 15.0",
-            "-math.sin(math.sqrt(variable.attack_time) * 25) * 15"
-          ]
-        }
-      }
-    },
     "animation.player.first_person.base_pose": {
       "loop": true,
       "bones": {
@@ -91,18 +73,6 @@
             1.0,
             "1.15 - query.item_remaining_use_duration('main_hand', 1.0) * 0.15",
             1.0
-          ]
-        }
-      }
-    },
-    "animation.player.first_person.crossbow_hold": {
-      "loop": true,
-      "bones": {
-        "rightitem": {
-          "position": [
-            "query.get_equipped_item_name('off_hand') == 'shield' ? -4.0 : 0.0",
-            0.0,
-            0.0
           ]
         }
       }
@@ -318,14 +288,14 @@
         "leftarm": {
           "position": [
             0.0,
-            "temp.h = math.clamp(context.player_offhand_arm_height, 0.0, 1.0); return (query.get_equipped_item_name('off_hand') == 'filled_map' || query.get_equipped_item_name('off_hand') == 'shield') ? 0.0 : -10.0 * (1.0 - temp.h * temp.h * (3.0 - 2.0 * temp.h));",
+            "temp.h = math.clamp(context.player_offhand_arm_height, 0.0, 1.0); return (query.get_equipped_item_name('off_hand') == 'filled_map' || query.get_equipped_item_name('off_hand') == 'shield') ? 0.0 : -12.0 * (1.0 - temp.h * temp.h * (3.0 - 2.0 * temp.h));",
             0.0
           ]
         },
         "rightarm": {
           "position": [
             0.0,
-            "temp.h = math.clamp(variable.player_arm_height, 0.0, 1.0); return -10.0 * (1.0 - temp.h * temp.h * (3.0 - 2.0 * temp.h));",
+            "temp.h = math.clamp(variable.player_arm_height, 0.0, 1.0); return -12.0 * (1.0 - temp.h * temp.h * (3.0 - 2.0 * temp.h));",
             0.0
           ]
         }
@@ -337,14 +307,14 @@
         "leftarm": {
           "position": [
             0.0,
-            "temp.h = math.clamp(context.player_offhand_arm_height, 0.0, 1.0); return -10.0 * (1.0 - temp.h * temp.h * (3.0 - 2.0 * temp.h));",
+            "temp.h = math.clamp(context.player_offhand_arm_height, 0.0, 1.0); return -12.0 * (1.0 - temp.h * temp.h * (3.0 - 2.0 * temp.h));",
             0.0
           ]
         },
         "rightarm": {
           "position": [
             0.0,
-            "temp.h = math.clamp(variable.player_arm_height, 0.0, 1.0); return query.get_equipped_item_name('off_hand') != 'shield' ? -10.0 * (1.0 - temp.h * temp.h * (3.0 - 2.0 * temp.h)) : 0.0;",
+            "temp.h = math.clamp(variable.player_arm_height, 0.0, 1.0); return query.get_equipped_item_name('off_hand') != 'shield' ? -12.0 * (1.0 - temp.h * temp.h * (3.0 - 2.0 * temp.h)) : 0.0;",
             0.0
           ]
         }

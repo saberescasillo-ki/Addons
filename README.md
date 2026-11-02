@@ -21,33 +21,44 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 
 # Animaciones Suaves
 
-Pack de recursos (texturas) que **suaviza las animaciones bruscas del jugador**. En vanilla muchas poses se
-activan de golpe en un solo frame; con este pack el juego hace un fundido entre una pose y otra (la mezcla
-`blend_transition` del propio motor).
+![Poses nuevas, calculadas con las mismas reglas que el juego](docs/smooth_animations_preview.png)
+
+Pack de recursos (texturas) que **suaviza las animaciones bruscas del jugador** y **añade animaciones nuevas**.
+Las transiciones usan el fundido entre poses del propio motor (`blend_transition`).
 
 **Cómo activarlo:** abre `dist/SmoothAnimations.mcpack` y actívalo en *Ajustes → Recursos globales* (así funciona
-en todos los mundos) o solo en los recursos de un mundo. Requiere Minecraft Bedrock **1.26.0** o superior; está
-hecho sobre los archivos vanilla de la **1.26.60**. No necesita experimentos.
+en todos los mundos). Requiere Minecraft Bedrock **1.26.0** o superior; hecho sobre los archivos vanilla de la
+**1.26.60**. No necesita experimentos.
 
-| Animación | Antes | Ahora |
-|---|---|---|
-| Agacharse / levantarse | instantáneo | fundido de 0,15 s |
-| Cambiar de objeto (3a persona, mano vacía ↔ objeto, brazo derecho) | el brazo salta | fundido de 0,15 s |
-| Cambiar de objeto (1a persona) | el brazo sube en línea recta | sube con aceleración y frenado suaves |
-| Montar / desmontar (caballo, barca, vagoneta...) | instantáneo | fundido de 0,15 s |
-| Levantar el escudo, tensar el arco | instantáneo | fundido de 0,15 s |
-| Ballesta y lanza (3a persona) | cambio de estado de golpe | fundido de 0,15 s |
+### Transiciones suaves (fundido de 0,15 s, 3a persona)
 
-- **Compatible con skins del Marketplace, persona (Creador de personajes), capas y emotes:** el pack **no
-  sustituye** `entity/player.entity.json` (sustituirlo hace que el juego ignore las skins del Marketplace y
-  ponga a Steve). Solo cambia el controlador de animaciones y algunas animaciones del jugador, usando los
-  nombres de animación que el jugador vanilla ya tiene.
-- No guarda valores entre frames, así que no tiembla aunque el jugador se dibuje varias veces (HUD, inventario).
-- No cambia nada de jugabilidad; solo lo que se ve. La bajada de la cámara al agacharse la controla el juego.
-- Sustituye `animation_controllers/player.animation_controllers.json` y los archivos de animación del jugador.
-  Si otro pack también los sustituye, gana el que esté más arriba. Cuando Mojang cambie esos archivos habrá que
-  regenerar el pack con los nuevos vanilla (`sources/vanilla_player_1.26.60/`).
-- La duración de los fundidos está en `BASE`, `HUD` y `CONTROLLER_BLEND` en `tools/smooth_animations.py`.
+Agacharse / levantarse, mano vacía ↔ objeto, montar / desmontar, tensar el arco, cargar y sostener la ballesta,
+escudo, estados de la lanza y caída. En 1a persona, al cambiar de objeto el brazo baja un poco más que en
+vanilla y sube con aceleración y frenado suaves.
+
+### Animaciones nuevas (3a persona)
+
+| Animación | Qué hace |
+|---|---|
+| **Cambio de objeto** | Cada vez que cambias de *tipo* de objeto (espada, lanza, tridente, hacha, pico/pala/azada, mazo, arco, ballesta, escudo, núcleo denso, comida, mano vacía, otro) el brazo baja y el nuevo objeto "crece" en la mano (0,32 s). Entre dos objetos del mismo tipo (dos espadas) no se reproduce. |
+| **Ponerse armadura** | Casco: las dos manos sobre la cabeza. Peto: brazos cruzados ajustándolo. Pantalones: tirones hacia arriba levantando una pierna y la otra. Botas: levanta un pie y luego el otro mirando abajo (0,7 s). Si te pones varias piezas a la vez se reproducen una tras otra. |
+| **Escudo al agacharte** | Con un escudo en cualquier mano, al agacharte el jugador **no se agacha**: se queda de pie en guardia, con el escudo delante y un pie adelantado. El arco, la ballesta y la lanza ya no bajan los brazos como si estuviera agachado. |
+| **Mazo** | Se sostiene **con las dos manos** (si la otra mano está libre) con la cabeza del mazo hacia arriba. Al atacar lo **levanta por encima de la cabeza** y lo deja caer contra el suelo (0,6 s). Si mantienes el ataque, repite el golpe. |
+| **Caída** | Al caer desde unos 3 bloques o más: brazos arriba y abiertos, piernas separadas, con un leve movimiento. Aparece y desaparece con fundido. No se activa al saltar, planear, nadar, levitar ni montar. |
+
+- **Compatible con skins del Marketplace, persona, capas y emotes:** el pack **no sustituye**
+  `entity/player.entity.json` (sustituirlo hace que el juego ponga a Steve). Solo usa nombres de animación que el
+  jugador vanilla ya tiene: controladores que el juego lista pero no define (`player.base`, `player.hudplayer`),
+  los de ballesta y lanza (cuyo trabajo hacen ahora los controladores nuevos) y animaciones que el jugador
+  vanilla tiene en la lista pero nunca reproduce. Los estados de 1a persona, mapa e inventario quedan idénticos a
+  vanilla.
+- No guarda valores frame a frame, así que no tiembla.
+- Solo cambia lo que se ve: el escudo bloquea igual, y la cámara y la hitbox bajan al agacharte como siempre.
+- Revisión sin el juego: `python3 tools/smooth_animations_check.py --preview` analiza todas las expresiones
+  Molang con la lista oficial de Mojang, simula los controladores en 20 000 situaciones al azar y dibuja las
+  poses (imagen de arriba).
+- Cuando Mojang cambie los archivos de animación del jugador habrá que regenerar el pack con los nuevos vanilla
+  (`sources/vanilla_player_1.26.60/`). Las duraciones y ángulos están al principio de `tools/smooth_animations.py`.
 
 ---
 

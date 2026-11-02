@@ -1,0 +1,80 @@
+{
+  "format_version": "1.10.0",
+  "animations": {
+    "animation.humanoid.fishing_rod": {
+      "loop": "hold_on_last_frame",
+      "animation_length": 3600.0,
+      "bones": {
+        "rightarm": {
+          "rotation": [
+            "(-this * 0.7 - 40.0 - 10.0 * math.sin(query.life_time * 260.0)) * (math.clamp(query.anim_time / 0.35, 0.0, 1.0) * math.clamp(query.anim_time / 0.35, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.35, 0.0, 1.0)))",
+            0.0,
+            "(55.0 + 10.0 * math.sin(query.life_time * 260.0 + 90.0)) * (math.clamp(query.anim_time / 0.35, 0.0, 1.0) * math.clamp(query.anim_time / 0.35, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.35, 0.0, 1.0)))"
+          ]
+        },
+        "leftarm": {
+          "rotation": [
+            "(-this * 0.7 - 40.0 - 10.0 * math.sin(query.life_time * 260.0 + 90.0)) * (math.clamp(query.anim_time / 0.35, 0.0, 1.0) * math.clamp(query.anim_time / 0.35, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.35, 0.0, 1.0)))",
+            0.0,
+            "(-55.0 - 10.0 * math.sin(query.life_time * 260.0)) * (math.clamp(query.anim_time / 0.35, 0.0, 1.0) * math.clamp(query.anim_time / 0.35, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.35, 0.0, 1.0)))"
+          ]
+        },
+        "rightleg": {
+          "rotation": [
+            "(-this * 0.7 - 24.0 + 8.0 * math.sin(query.life_time * 260.0)) * (math.clamp(query.anim_time / 0.35, 0.0, 1.0) * math.clamp(query.anim_time / 0.35, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.35, 0.0, 1.0)))",
+            0.0,
+            "6.0 * (math.clamp(query.anim_time / 0.35, 0.0, 1.0) * math.clamp(query.anim_time / 0.35, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.35, 0.0, 1.0)))"
+          ]
+        },
+        "leftleg": {
+          "rotation": [
+            "(-this * 0.7 + 8.0 + 8.0 * math.sin(query.life_time * 260.0 + 90.0)) * (math.clamp(query.anim_time / 0.35, 0.0, 1.0) * math.clamp(query.anim_time / 0.35, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.35, 0.0, 1.0)))",
+            0.0,
+            "-6.0 * (math.clamp(query.anim_time / 0.35, 0.0, 1.0) * math.clamp(query.anim_time / 0.35, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.35, 0.0, 1.0)))"
+          ]
+        }
+      }
+    },
+    "animation.player.first_person.attack_rotation_item": {
+      "loop": false,
+      "animation_length": 0.7,
+      "bones": {
+        "head": {
+          "rotation": [
+            "temp.p = variable.sa_equip_part ?? 0.0; return temp.p == 0 ? (10.0 * math.sin(math.clamp((query.anim_time - 0.12) / 0.4, 0.0, 1.0) * 180.0)) : (temp.p == 1 ? (12.0 * ((math.clamp(query.anim_time / 0.2, 0.0, 1.0) * math.clamp(query.anim_time / 0.2, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.2, 0.0, 1.0))) * (1.0 - (math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * (3.0 - 2.0 * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0)))))) : (temp.p == 2 ? (18.0 * ((math.clamp(query.anim_time / 0.2, 0.0, 1.0) * math.clamp(query.anim_time / 0.2, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.2, 0.0, 1.0))) * (1.0 - (math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * (3.0 - 2.0 * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0)))))) : (25.0 * ((math.clamp(query.anim_time / 0.2, 0.0, 1.0) * math.clamp(query.anim_time / 0.2, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.2, 0.0, 1.0))) * (1.0 - (math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * (3.0 - 2.0 * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0))))))));",
+            0.0,
+            0.0
+          ]
+        },
+        "rightarm": {
+          "rotation": [
+            "temp.p = variable.sa_equip_part ?? 0.0; return temp.p == 0 ? (-160.0 * ((math.clamp(query.anim_time / 0.2, 0.0, 1.0) * math.clamp(query.anim_time / 0.2, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.2, 0.0, 1.0))) * (1.0 - (math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * (3.0 - 2.0 * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0))))) + 18.0 * math.sin(math.clamp((query.anim_time - 0.12) / 0.4, 0.0, 1.0) * 180.0)) : (temp.p == 1 ? (-70.0 * ((math.clamp(query.anim_time / 0.2, 0.0, 1.0) * math.clamp(query.anim_time / 0.2, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.2, 0.0, 1.0))) * (1.0 - (math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * (3.0 - 2.0 * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0))))) + 22.0 * math.sin(math.clamp((query.anim_time - 0.12) / 0.4, 0.0, 1.0) * 180.0)) : (temp.p == 2 ? (-12.0 * ((math.clamp(query.anim_time / 0.2, 0.0, 1.0) * math.clamp(query.anim_time / 0.2, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.2, 0.0, 1.0))) * (1.0 - (math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * (3.0 - 2.0 * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0))))) - 14.0 * math.sin(math.clamp((query.anim_time - 0.12) / 0.4, 0.0, 1.0) * 180.0)) : (0.0)));",
+            "temp.p = variable.sa_equip_part ?? 0.0; return temp.p == 0 ? (0.0) : (temp.p == 1 ? (-40.0 * ((math.clamp(query.anim_time / 0.2, 0.0, 1.0) * math.clamp(query.anim_time / 0.2, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.2, 0.0, 1.0))) * (1.0 - (math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * (3.0 - 2.0 * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0)))))) : (temp.p == 2 ? (0.0) : (0.0)));",
+            "temp.p = variable.sa_equip_part ?? 0.0; return temp.p == 0 ? (16.0 * ((math.clamp(query.anim_time / 0.2, 0.0, 1.0) * math.clamp(query.anim_time / 0.2, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.2, 0.0, 1.0))) * (1.0 - (math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * (3.0 - 2.0 * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0)))))) : (temp.p == 1 ? (0.0) : (temp.p == 2 ? (14.0 * ((math.clamp(query.anim_time / 0.2, 0.0, 1.0) * math.clamp(query.anim_time / 0.2, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.2, 0.0, 1.0))) * (1.0 - (math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * (3.0 - 2.0 * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0)))))) : (22.0 * ((math.clamp(query.anim_time / 0.2, 0.0, 1.0) * math.clamp(query.anim_time / 0.2, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.2, 0.0, 1.0))) * (1.0 - (math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * (3.0 - 2.0 * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0))))))));"
+          ]
+        },
+        "leftarm": {
+          "rotation": [
+            "temp.p = variable.sa_equip_part ?? 0.0; return temp.p == 0 ? (-160.0 * ((math.clamp(query.anim_time / 0.2, 0.0, 1.0) * math.clamp(query.anim_time / 0.2, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.2, 0.0, 1.0))) * (1.0 - (math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * (3.0 - 2.0 * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0))))) + 18.0 * math.sin(math.clamp((query.anim_time - 0.12) / 0.4, 0.0, 1.0) * 180.0)) : (temp.p == 1 ? (-70.0 * ((math.clamp(query.anim_time / 0.2, 0.0, 1.0) * math.clamp(query.anim_time / 0.2, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.2, 0.0, 1.0))) * (1.0 - (math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * (3.0 - 2.0 * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0))))) + 22.0 * math.sin(math.clamp((query.anim_time - 0.12) / 0.4, 0.0, 1.0) * 180.0)) : (temp.p == 2 ? (-12.0 * ((math.clamp(query.anim_time / 0.2, 0.0, 1.0) * math.clamp(query.anim_time / 0.2, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.2, 0.0, 1.0))) * (1.0 - (math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * (3.0 - 2.0 * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0))))) - 14.0 * math.sin(math.clamp((query.anim_time - 0.12) / 0.4, 0.0, 1.0) * 180.0)) : (0.0)));",
+            "temp.p = variable.sa_equip_part ?? 0.0; return temp.p == 0 ? (0.0) : (temp.p == 1 ? (40.0 * ((math.clamp(query.anim_time / 0.2, 0.0, 1.0) * math.clamp(query.anim_time / 0.2, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.2, 0.0, 1.0))) * (1.0 - (math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * (3.0 - 2.0 * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0)))))) : (temp.p == 2 ? (0.0) : (0.0)));",
+            "temp.p = variable.sa_equip_part ?? 0.0; return temp.p == 0 ? (-16.0 * ((math.clamp(query.anim_time / 0.2, 0.0, 1.0) * math.clamp(query.anim_time / 0.2, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.2, 0.0, 1.0))) * (1.0 - (math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * (3.0 - 2.0 * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0)))))) : (temp.p == 1 ? (0.0) : (temp.p == 2 ? (-14.0 * ((math.clamp(query.anim_time / 0.2, 0.0, 1.0) * math.clamp(query.anim_time / 0.2, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.2, 0.0, 1.0))) * (1.0 - (math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * (3.0 - 2.0 * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0)))))) : (-22.0 * ((math.clamp(query.anim_time / 0.2, 0.0, 1.0) * math.clamp(query.anim_time / 0.2, 0.0, 1.0) * (3.0 - 2.0 * math.clamp(query.anim_time / 0.2, 0.0, 1.0))) * (1.0 - (math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0) * (3.0 - 2.0 * math.clamp((query.anim_time - 0.45) / 0.25, 0.0, 1.0))))))));"
+          ]
+        },
+        "rightleg": {
+          "rotation": [
+            "temp.p = variable.sa_equip_part ?? 0.0; return temp.p == 0 ? (0.0) : (temp.p == 1 ? (0.0) : (temp.p == 2 ? (-28.0 * math.sin(math.clamp((query.anim_time - 0.05) / 0.3, 0.0, 1.0) * 180.0)) : (-45.0 * math.sin(math.clamp((query.anim_time - 0.05) / 0.3, 0.0, 1.0) * 180.0))));",
+            0.0,
+            0.0
+          ]
+        },
+        "leftleg": {
+          "rotation": [
+            "temp.p = variable.sa_equip_part ?? 0.0; return temp.p == 0 ? (0.0) : (temp.p == 1 ? (0.0) : (temp.p == 2 ? (-28.0 * math.sin(math.clamp((query.anim_time - 0.35) / 0.3, 0.0, 1.0) * 180.0)) : (-45.0 * math.sin(math.clamp((query.anim_time - 0.35) / 0.3, 0.0, 1.0) * 180.0))));",
+            0.0,
+            0.0
+          ]
+        }
+      }
+    }
+  }
+}
