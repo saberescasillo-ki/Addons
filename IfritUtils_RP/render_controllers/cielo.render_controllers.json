@@ -1,0 +1,33 @@
+{
+  "format_version": "1.8.0",
+  "render_controllers": {
+    "controller.render.ifrit.cielo": {
+      "arrays": {
+        "textures": {
+          "Array.cielo": [
+            "Texture.verde_claro",
+            "Texture.hello_frozen",
+            "Texture.lluvia_de_sangre",
+            "Texture.blanco",
+            "Texture.negro"
+          ]
+        }
+      },
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.cielo[q.property('ifrit:color')]"
+      ],
+      "ignore_lighting": true,
+      "part_visibility": [
+        {
+          "*": "q.distance_from_camera < 3"
+        }
+      ]
+    }
+  }
+}

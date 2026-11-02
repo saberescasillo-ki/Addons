@@ -1,0 +1,64 @@
+{
+  "format_version": "1.21.90",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "ifrit:cielo",
+      "is_spawnable": false,
+      "is_summonable": true,
+      "properties": {
+        "ifrit:color": {
+          "type": "int",
+          "range": [
+            0,
+            4
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "ifrit:radio": {
+          "type": "float",
+          "range": [
+            0.5,
+            400
+          ],
+          "default": 50,
+          "client_sync": true
+        }
+      }
+    },
+    "components": {
+      "minecraft:collision_box": {
+        "width": 0.001,
+        "height": 0.001
+      },
+      "minecraft:physics": {
+        "has_gravity": false,
+        "has_collision": false
+      },
+      "minecraft:pushable": {
+        "is_pushable": false,
+        "is_pushable_by_piston": false
+      },
+      "minecraft:damage_sensor": {
+        "triggers": {
+          "cause": "all",
+          "deals_damage": "no"
+        }
+      },
+      "minecraft:knockback_resistance": {
+        "value": 1
+      },
+      "minecraft:fire_immune": true,
+      "minecraft:health": {
+        "value": 1,
+        "max": 1
+      },
+      "minecraft:type_family": {
+        "family": [
+          "ifrit_cielo",
+          "inanimate"
+        ]
+      }
+    }
+  }
+}

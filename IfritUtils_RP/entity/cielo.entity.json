@@ -1,0 +1,27 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "ifrit:cielo",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "verde_claro": "textures/entity/ifrit/cielo_verde_claro",
+        "hello_frozen": "textures/entity/ifrit/cielo_hello_frozen",
+        "lluvia_de_sangre": "textures/entity/ifrit/cielo_lluvia_de_sangre",
+        "blanco": "textures/entity/ifrit/cielo_blanco",
+        "negro": "textures/entity/ifrit/cielo_negro"
+      },
+      "geometry": {
+        "default": "geometry.ifrit.cielo"
+      },
+      "scripts": {
+        "scale": "q.property('ifrit:radio') * 2"
+      },
+      "render_controllers": [
+        "controller.render.ifrit.cielo"
+      ]
+    }
+  }
+}

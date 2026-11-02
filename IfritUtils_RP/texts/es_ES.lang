@@ -4,5 +4,6 @@ item.ifrit:cinematic_creator.name=Cinematic Creator
 item.ifrit:killer_sure.name=Killer Sure
 item.ifrit:time_an_thing.name=Time an Thing
 item.ifrit:effects.name=Effects
+entity.ifrit:cielo.name=Cielo
 pack.name=Útils for Ifrit
 pack.description=Utilidades que se activan con objetos.

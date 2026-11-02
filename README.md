@@ -79,7 +79,7 @@ de los jugadores conectados). Los formularios recuerdan los últimos valores que
 
 | Objeto | ID | Qué hace |
 |---|---|---|
-| Utilidad de Niebla | `ifrit:utilidad_niebla` | Cambia el color de la niebla y del cielo: **Verde claro**, **Hello Frozen** (blanco invierno + celeste frío), **Lluvia de sangre** (rojo + rojo sangre oscuro), **Blanco** y **Negro**. Densidad **1-15** (1: neblina suave hasta 200 bloques; 15: casi no se ve a 3 bloques). Botón *Quitar niebla*. |
+| Utilidad de Niebla | `ifrit:utilidad_niebla` | Cambia el color de la niebla y del cielo: **Verde claro**, **Hello Frozen** (blanco invierno + celeste frío), **Lluvia de sangre** (rojo + rojo sangre oscuro), **Blanco** y **Negro**. Densidad **1-15** (1: neblina suave hasta 96 bloques; 15: casi no se ve a 3 bloques). **El cielo entero** toma el color. Botón *Quitar niebla*. |
 | Camera | `ifrit:camera` | Menú con **Fade**, **Free** y **Shake** (ver abajo). |
 | Cinematic Creator | `ifrit:cinematic_creator` | Editor de cinemáticas. Te lo da *Camera > Free > Crear animación*. |
 | Killer Sure | `ifrit:killer_sure` | Mata al instante, como `/kill`: toca un jugador en el menú, *Elegir varios*, *Todos menos yo* o *Yo*. También mata al jugador que **golpees** con él. |
@@ -96,7 +96,7 @@ de los jugadores conectados). Los formularios recuerdan los últimos valores que
 - **Free**:
   - **Crear animación**: cierra el menú y te da el **Cinematic Creator**.
   - **Ejecutar animación**: la lista de cinemáticas exportadas. Cada una se puede **Ejecutar** (eliges para quién),
-    **Editar** (vuelve al Cinematic Creator) o **Borrar**.
+    **Editar** (vuelve al Cinematic Creator), **Borrar puntos...** (sin pasar por el editor) o **Borrar cinemática**.
   - **Detener cinemáticas en curso**.
 
 ### Cinematic Creator
@@ -107,6 +107,7 @@ de los jugadores conectados). Los formularios recuerdan los últimos valores que
    - **Puntos**: cada punto tiene *duración del movimiento* hasta él, *espera* antes del siguiente, *tipo de
      movimiento* (suave, lineal, acelera, frena, rebote, muelle...) y *camera fade* (llega con un fundido en vez
      de moverse). También: mover el punto a tu posición, ir a él, verlo 2 s, subirlo/bajarlo y borrarlo.
+   - **Borrar último punto** (deshacer) y **Borrar puntos...** (casillas para marcar los que sobran, o todos).
    - **Ajustes**: nombre, los valores para los puntos nuevos (y aplicarlos a todos), tiempos y color del fade,
      fade al empezar y al terminar, y ocultar el HUD.
    - **Previsualizar** (solo para ti), **Exportar** y **Descartar borrador**.
@@ -118,8 +119,14 @@ de los jugadores conectados). Los formularios recuerdan los últimos valores que
 
 ### Notas
 
-- La niebla se aplica con `/fog ... push` (una por color y densidad, 75 en total en `IfritUtils_RP/fogs/`). En Bedrock el
-  cielo se tiñe con el color de la niebla: cuanto más densa, más se nota en el cielo.
+- La niebla se aplica con `/fog ... push` (una por color y densidad, 75 en total en `IfritUtils_RP/fogs/`).
+- **Cielo:** en Bedrock el cielo no es geometría y la niebla no lo cubre, así que cada jugador con niebla lleva una
+  **cúpula de cielo** (`ifrit:cielo`): una caja enorme centrada en su cámara, justo donde termina la niebla. La niebla
+  la pinta de su color, así que todo el cielo (sol, luna, estrellas y nubes incluidos) queda de ese color, más oscuro de
+  noche. Solo la ve su dueño y se mueve con él cada tick.
+  - Necesita una **distancia de renderizado de 7 chunks o más** para la densidad 1 (la cúpula está a ~100 bloques).
+  - En **tercera persona** (F5) la cúpula se oculta, porque la cámara se aleja de ella.
+  - Bajo el agua se quita (allí se usa la niebla del agua) y vuelve al salir.
 - Cualquier jugador que tenga uno de los objetos puede usarlo, así que dáselos solo a quien quieras.
 - Los scripts están en `tools/ifrit_utils/` (uno por objeto) y se copian tal cual; colores y densidad de la niebla en
   `FOGS` de `tools/ifrit_utils.py`. Para regenerar: `python3 tools/ifrit_utils.py`.

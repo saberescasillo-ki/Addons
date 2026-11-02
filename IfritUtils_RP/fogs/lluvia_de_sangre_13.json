@@ -7,13 +7,13 @@
     "distance": {
       "air": {
         "fog_start": 0,
-        "fog_end": 5.5,
+        "fog_end": 4.9,
         "fog_color": "#7a0710",
         "render_distance_type": "fixed"
       },
       "weather": {
         "fog_start": 0,
-        "fog_end": 5.5,
+        "fog_end": 4.9,
         "fog_color": "#7a0710",
         "render_distance_type": "fixed"
       }

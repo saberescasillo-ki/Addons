@@ -265,7 +265,18 @@ async function cineMenu(player, cine) {
       },
     ],
     [
-      "§cBorrar",
+      "Borrar puntos...\n§8Sin pasar por el editor",
+      async () => {
+        const kept = await deletePoints(player, cine.puntos);
+        if (!kept) return;
+        if (!kept.length) return tell(player, "§cUna cinemática necesita al menos un punto: usa «Borrar cinemática»");
+        cine.puntos = kept;
+        saveCine(cine);
+        await cineMenu(player, cine);
+      },
+    ],
+    [
+      "§cBorrar cinemática",
       async () => {
         await menu(player, "§5¿Borrar?", `Se borrará "${cine.nombre}" para siempre.`, [
           ["§cSí, borrar", () => deleteCine(cine.id)],
@@ -306,7 +317,31 @@ export async function creatorMenu(player) {
     "\n§7Agáchate y usa el objeto para guardar un punto sin abrir el menú.";
   await menu(player, `§5${draft.nombre}`, body, [
     ["§aGuardar posición actual\n§8Tu posición y hacia dónde miras", () => addPoint(player)],
-    [`Puntos (${draft.puntos.length})`, () => pointsMenu(player)],
+    [`Puntos (${draft.puntos.length})\n§8Editar, mover o borrar uno`, () => pointsMenu(player)],
+    ...(draft.puntos.length
+      ? [
+          [
+            `§cBorrar último punto\n§8Punto ${draft.puntos.length}`,
+            async () => {
+              draft.puntos.pop();
+              setDraft(player, draft);
+              tell(player, `§ePunto ${draft.puntos.length + 1} borrado`);
+              await creatorMenu(player);
+            },
+          ],
+          [
+            "§cBorrar puntos...\n§8Marca los que quieres borrar",
+            async () => {
+              const kept = await deletePoints(player, draft.puntos);
+              if (kept) {
+                draft.puntos = kept;
+                setDraft(player, draft);
+              }
+              await creatorMenu(player);
+            },
+          ],
+        ]
+      : []),
     [
       "Ajustes de la cinemática",
       async () => {
@@ -320,13 +355,34 @@ export async function creatorMenu(player) {
   ]);
 }
 
+/** Form with a checkbox per point. Returns the points that are kept, or undefined if cancelled. */
+async function deletePoints(player, puntos) {
+  const v = await modal(
+    player,
+    "§5Borrar puntos",
+    [
+      { type: "toggle", label: "§cBorrar TODOS los puntos" },
+      ...puntos.map((p, i) => ({
+        type: "toggle",
+        label: `Punto ${i + 1} §7(${Math.round(p.x)} ${Math.round(p.y)} ${Math.round(p.z)}, ${p.fade ? "fade" : fmt(p.dur) + " s"})`,
+      })),
+    ],
+    "Borrar"
+  );
+  if (!v) return undefined;
+  const kept = v[0] === true ? [] : puntos.filter((p, i) => v[i + 1] !== true);
+  const gone = puntos.length - kept.length;
+  tell(player, gone ? `§e${gone} punto${gone > 1 ? "s" : ""} borrado${gone > 1 ? "s" : ""}` : "§7No se borró nada");
+  return kept;
+}
+
 async function pointsMenu(player) {
   const draft = getDraft(player);
   if (!draft?.puntos.length) return tell(player, "§7No hay puntos todavía");
   await menu(
     player,
     "§5Puntos",
-    "",
+    "§7Toca un punto para editarlo, moverlo o borrarlo.",
     draft.puntos.map((p, i) => [
       `Punto ${i + 1}\n§8${p.fade ? "fade" : fmt(p.dur) + " s"} · espera ${fmt(p.espera)} s · ${Math.round(p.x)} ${Math.round(p.y)} ${Math.round(p.z)}`,
       async () => {

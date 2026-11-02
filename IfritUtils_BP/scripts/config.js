@@ -37,3 +37,8 @@ export const NIEBLAS = [
 ];
 
 export const NIEBLA_DENSIDAD_MAX = 15;
+
+// Fog end (blocks) for each density, 1..15: the sky dome goes just past it.
+export const NIEBLA_FIN = [96.0, 74.9, 58.5, 45.7, 35.7, 27.8, 21.7, 17.0, 13.2, 10.3, 8.1, 6.3, 4.9, 3.8, 3.0];
+
+export const CIELO = "ifrit:cielo";
