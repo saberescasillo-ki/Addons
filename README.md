@@ -7,6 +7,7 @@
 | **Ruleta de Colores** – ruleta en el HUD con comandos de administrador | [`dist/Roulette.mcaddon`](dist/Roulette.mcaddon) | `tools/roulette.py` |
 | **Objetos de Ayuda** – 4 objetos especiales que ayudan al jugador | [`dist/HelperItems.mcaddon`](dist/HelperItems.mcaddon) | `tools/helper_items.py` |
 | **The LITIUS Blind** – nueva dimensión de islas flotantes | [`dist/LitiusBlind.mcaddon`](dist/LitiusBlind.mcaddon) | `tools/litius_blind.py` |
+| **Animaciones Suaves** – pack de texturas que suaviza las animaciones del jugador | [`dist/SmoothAnimations.mcpack`](dist/SmoothAnimations.mcpack) | `tools/smooth_animations.py` |
 
 Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo. No hace falta activar experimentos
 (salvo en The LITIUS Blind, ver abajo).
@@ -15,6 +16,43 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 - Medieval Mobs requiere **1.21.0** o superior.
 - Ruleta de Colores y Objetos de Ayuda requieren **1.21.90** o superior.
 - The LITIUS Blind requiere **26.20** o superior y el experimento **Beta APIs**.
+
+---
+
+# Animaciones Suaves
+
+Pack de recursos (texturas) que **suaviza las animaciones bruscas del jugador**. En vanilla muchas poses se
+activan de golpe en un solo frame; con este pack pasan de una a otra en unas décimas de segundo, con
+aceleración y frenado suaves (curva *smoothstep*), igual a 30, 60 o 144 FPS.
+
+**Cómo activarlo:** abre `dist/SmoothAnimations.mcpack` y actívalo en *Ajustes → Recursos globales* (así funciona
+en todos los mundos) o solo en los recursos de un mundo. Requiere Minecraft Bedrock **1.26.0** o superior; está
+hecho sobre los archivos vanilla de la **1.26.60**. No necesita experimentos.
+
+| Animación | Antes | Ahora |
+|---|---|---|
+| Agacharse / levantarse | instantáneo | 0,16 s |
+| Cambiar de objeto (3a persona, mano vacía ↔ objeto) | el brazo salta | 0,14 s |
+| Cambiar de objeto (1a persona) | el brazo baja de golpe | baja en 0,08 s y sube con frenado suave |
+| Montar / desmontar (caballo, barca, vagoneta...) | instantáneo | 0,25 s |
+| Levantar el escudo | instantáneo | 0,10 s |
+| Tensar el arco, catalejo, cuerno de cabra, pincel, tridente, ataque cargado | instantáneo | 0,12–0,14 s |
+| Ballesta y lanza (3a persona) | cambio de estado de golpe | mezcla de 0,15 s |
+| Inclinación del arco/ballesta/lanza al agacharse | salto de 15–27° | sigue al agacharse suave |
+
+- **Compatible con skins del Marketplace, persona (Creador de personajes), capas y emotes:** el pack no toca la
+  geometría, las texturas ni los render controllers del jugador. Solo cambia el *peso* con el que se mezclan las
+  animaciones vanilla, así que cualquier skin (también las de modelo personalizado) se anima igual que en vanilla,
+  pero suave.
+- Funciona también con los demás jugadores que veas (el suavizado se calcula en tu dispositivo).
+- No cambia nada de jugabilidad: el escudo bloquea, el arco dispara y la hitbox al agacharse funcionan igual que
+  en vanilla; solo cambia lo que se ve. La bajada de la cámara al agacharse la controla el juego y no se puede
+  cambiar desde un pack.
+- Sustituye `entity/player.entity.json` y los archivos de animación del jugador. Si otro pack o un mundo del
+  Marketplace también los sustituye, gana el que esté más arriba en la lista. Cuando Mojang cambie esos archivos
+  en una actualización habrá que regenerar el pack con los nuevos archivos vanilla (se guardan en
+  `sources/vanilla_player_1.26.60/`).
+- Las duraciones están en `DURATIONS` al principio de `tools/smooth_animations.py`.
 
 ---
 
