@@ -1,9 +1,12 @@
 import { world, system, GameMode, EquipmentSlot, EntityDamageCause } from "@minecraft/server";
 import { config } from "./config.js";
 
-// Ignis' script. The add-on shipped with an empty core.js: the altar could not
-// start the fight, Ignis never targeted players (its targeting asks for the
-// ignis:gm_* tags this script gives) and none of the config.js options worked.
+// Ignis' script, rewritten in readable form from the add-on's obfuscated core.js
+// (its mechanics are kept: lunges, the homing leap, stuns, the blazing brand,
+// lifesteal, the fireball shield, the damage cap...). Changes: the floor no longer
+// jumps as physics blocks (it lagged): flames and burning sigils instead; Ignis
+// only hunts players and golems; the great-sigil attack sends 4 rows (8 in the
+// soul phases) and has a scattered-circles variant.
 
 const IGNIS = "ignis:ignis";
 const ALTAR = "ignis:altar_of_fire";
@@ -131,95 +134,460 @@ world.beforeEvents.entityRemove.subscribe(({ removedEntity }) => {
     });
 });
 
-// --- Combat options (config.js) -------------------------------------------------
-function healthOf(entity) {
-    const h = entity.getComponent("minecraft:health");
-    if (!h) return undefined;
-    return { h, frac: Math.max(0, Math.min(1, h.currentValue / h.effectiveMax)) };
-}
 
-function heal(entity, amount) {
-    const hp = healthOf(entity);
-    if (!hp || amount <= 0 || hp.h.currentValue <= 1) return;
-    hp.h.setCurrentValue(Math.min(hp.h.effectiveMax, hp.h.currentValue + amount));
-}
+// --- Helpers ----------------------------------------------------------------------
+const DIMENSIONS = ["overworld", "nether", "the_end"];
+const ALLIES = ["minecraft:iron_golem", "minecraft:snow_golem"]; // besides players, what Ignis fights
 
-function healTag(ignis) {
-    // Attacks mark Ignis with ignis:ignisH_<n>: n health drained per hit.
-    for (const tag of ignis.getTags()) {
-        const m = /^ignis:ignisH_(\d+)$/.exec(tag);
-        if (m) return Number(m[1]);
+function ignisList() {
+    const out = [];
+    for (const id of DIMENSIONS) {
+        try {
+            out.push(...world.getDimension(id).getEntities({ type: IGNIS }));
+        } catch {
+            // dimension not loaded
+        }
     }
-    return 0;
+    return out;
 }
 
-const extraDamage = new Set(); // entity ids hit by the enrage bonus this tick
+function healthOf(entity) {
+    try {
+        return entity.getComponent("minecraft:health");
+    } catch {
+        return undefined;
+    }
+}
 
-world.afterEvents.entityHurt.subscribe(({ hurtEntity, damage, damageSource }) => {
-    if (!isValid(hurtEntity)) return;
-    const attacker = damageSource.damagingEntity;
+/** Sets health, clamped to [1, max] (as the original did: never kills). */
+function setHealth(h, value) {
+    try {
+        h.setCurrentValue(Math.max(1, Math.min(value, h.effectiveMax)));
+    } catch {
+        // entity gone
+    }
+}
 
-    // Ignis hits something
-    if (attacker?.typeId === IGNIS && hurtEntity.typeId !== IGNIS && isValid(attacker)) {
-        lastHit.set(attacker.id, system.currentTick);
-        maybeImpale(attacker);
-        const drain = healTag(attacker) * cfg.ignis_health_changed_multiplier;
-        if (drain > 0) heal(attacker, drain);
-        if (cfg.ignis_enrage_enabled && !extraDamage.has(hurtEntity.id)) {
-            const hp = healthOf(attacker);
-            const bonus = hp ? damage * (1 - hp.frac) : 0; // up to +100% at low health
-            if (bonus >= 0.5) {
-                extraDamage.add(hurtEntity.id);
-                hurtEntity.applyDamage(bonus, { cause: EntityDamageCause.fire });
-                system.run(() => extraDamage.delete(hurtEntity.id));
+function healthFrac(entity) {
+    const h = healthOf(entity);
+    if (!h) return 1;
+    return Math.max(0, Math.min(1, h.currentValue / (h.effectiveMax || 1)));
+}
+
+function variantOf(entity) {
+    try {
+        return entity.getComponent("minecraft:variant")?.value;
+    } catch {
+        return undefined;
+    }
+}
+
+function isFighter(e) {
+    // a valid target: a survival/adventure player, or a golem
+    if (!isValid(e)) return false;
+    if (e.typeId === "minecraft:player") return e.hasTag("ignis:gm_survival") || e.hasTag("ignis:gm_adventure");
+    return ALLIES.includes(e.typeId);
+}
+
+/** Ignis' current target, else the one it locked on to, else the nearest fighter. */
+function targetOf(ignis, useLock = true) {
+    try {
+        const t = ignis.target;
+        if (isFighter(t)) {
+            ignis.setDynamicProperty("ignis:ignisLockTgtId", t.id);
+            return t;
+        }
+    } catch {
+        // no target
+    }
+    const dim = ignis.dimension;
+    if (useLock) {
+        const id = ignis.getDynamicProperty("ignis:ignisLockTgtId");
+        if (id) {
+            const locked = world.getEntity?.(id);
+            if (isFighter(locked) && locked.dimension.id === dim.id) return locked;
+        }
+    }
+    let best, bestD = Infinity;
+    const at = ignis.location;
+    const candidates = [
+        ...dim.getPlayers({ location: at, maxDistance: 48 }),
+        ...ALLIES.flatMap((type) => dim.getEntities({ type, location: at, maxDistance: 48 })),
+    ];
+    for (const c of candidates) {
+        if (!isFighter(c)) continue;
+        const d = Math.hypot(c.location.x - at.x, c.location.y - at.y, c.location.z - at.z);
+        if (d < bestD) {
+            best = c;
+            bestD = d;
+        }
+    }
+    if (best) ignis.setDynamicProperty("ignis:ignisLockTgtId", best.id);
+    return best;
+}
+
+function facing(dx, dy, dz) {
+    const flat = Math.hypot(dx, dz) || 0.0001;
+    return { x: -Math.atan2(dy, flat) * (180 / Math.PI), y: Math.atan2(-dx, dz) * (180 / Math.PI) };
+}
+
+/** Pushes `who` along `by`'s view direction (a lunge). Airborne entities get a third.
+ *  Players cannot take impulses: they get knockback of `kb` (when given) instead. */
+function push(who, by, power, y, groundOnly = true, kb) {
+    try {
+        const v = by.getViewDirection();
+        const up = y || v.y * power;
+        try {
+            who.clearVelocity();
+            if (!groundOnly || who.isOnGround) who.applyImpulse({ x: v.x * power, y: up, z: v.z * power });
+            else who.applyImpulse({ x: (v.x * power) / 3, y: up / 3, z: (v.z * power) / 3 });
+        } catch {
+            if (kb !== undefined) who.applyKnockback({ x: v.x * kb, z: v.z * kb }, up);
+        }
+    } catch {
+        // entity gone or cannot be pushed
+    }
+}
+
+const lunge = (ignis, power, y, groundOnly = true) => push(ignis, ignis, power, y, groundOnly);
+
+/** Highest solid block near (x, y, z) with room above, or y - 1 when none. */
+function groundAt(dim, x, y, z) {
+    const bx = Math.floor(x), bz = Math.floor(z), by = Math.floor(y);
+    for (let yy = by + 3; yy >= by - 5; yy--) {
+        try {
+            const b = dim.getBlock({ x: bx, y: yy, z: bz });
+            if (b && !b.isAir && !b.isLiquid && b.above()?.isAir) return yy;
+        } catch {
+            return by - 1;
+        }
+    }
+    return by - 1;
+}
+
+// --- Distances, healing tags, stuns (every tick) ----------------------------------
+const taggedTargets = new Map(); // non-player entity id -> entity carrying ignis:ignis_target
+
+system.runInterval(() => {
+    const current = new Set();
+    for (const ignis of ignisList()) {
+        try {
+            const t = ignis.target;
+            if (isValid(t)) {
+                // the attack choice (root event) reads these: lxz >= 16 is the leap
+                const dx = ignis.location.x - t.location.x, dz = ignis.location.z - t.location.z;
+                ignis.setProperty("ignis:lxz", Math.min(200, Math.hypot(dx, dz)));
+                ignis.setProperty("ignis:ly", Math.min(200, Math.abs(ignis.location.y - t.location.y)));
+                if (t.typeId !== "minecraft:player") {
+                    t.addTag("ignis:ignis_target"); // the fire orbs aim at this tag
+                    taggedTargets.set(t.id, t);
+                    current.add(t.id);
+                }
+            }
+        } catch {
+            // target gone
+        }
+        const h = healthOf(ignis);
+        if (h && h.currentValue >= 1.5) {
+            for (const tag of ignis.getTags()) {
+                if (!tag.startsWith("ignis:ignisHealth_")) continue;
+                ignis.removeTag(tag);
+                setHealth(h, h.currentValue + 5 * Number(tag.slice("ignis:ignisHealth_".length) || 1));
+                break;
             }
         }
-        return;
     }
-
-    // Something hits Ignis
-    if (hurtEntity.typeId !== IGNIS || !attacker || attacker.typeId === IGNIS) return;
-    const hp = healthOf(hurtEntity);
-    if (!hp || hp.h.currentValue <= 1) return;
-    const low = Math.max(0, Math.min(1, (0.5 - hp.frac) / 0.5)); // 0 at half health, 1 near death
-    if (cfg.ignis_dodge_enabled && hp.frac < 0.5 && Math.random() < 0.05 + 0.55 * low) {
-        heal(hurtEntity, damage);
-        hurtEntity.dimension.playSound("ignis.mob.ignis.sword", hurtEntity.location, { pitch: 1.4 });
-        hurtEntity.dimension.spawnParticle("ignis:ignis_jump", hurtEntity.location);
-        return;
+    for (const [id, e] of taggedTargets) {
+        if (current.has(id)) continue;
+        taggedTargets.delete(id);
+        try {
+            e.removeTag("ignis:ignis_target");
+        } catch {
+            // gone
+        }
     }
-    if (cfg.ignis_reduce_enabled && hp.frac < 0.5) {
-        heal(hurtEntity, damage * (0.01 + 0.79 * low));
+    // Roars and slams tag players with ignis:ignisS_<seconds>: they are stunned.
+    for (const player of world.getAllPlayers()) {
+        for (const tag of player.getTags()) {
+            if (!tag.startsWith("ignis:ignisS_")) continue;
+            player.removeTag(tag);
+            if (player.hasTag("ignis:gm_survival") || player.hasTag("ignis:gm_adventure")) {
+                stun(player, Number(tag.slice("ignis:ignisS_".length)) || 1);
+            }
+            break;
+        }
     }
 });
 
-// --- Impaling thrust ------------------------------------------------------------
-// attack4__ is the sword thrust; when it connects, attack4T lifts the target on the
-// sword (the JSON teleports Ignis' target in front of it while the tags last).
-// Nothing in the JSON triggers attack4T: the original script did, on a hit.
-const lastThrust = new Map(); // Ignis id -> tick of its last thrust
-const lastHit = new Map();    // Ignis id -> tick it last hurt something
-const lastImpale = new Map(); // Ignis id -> tick of its last lift
-
-function maybeImpale(ignis) {
-    const now = system.currentTick;
-    const thrust = lastThrust.get(ignis.id);
-    const hit = lastHit.get(ignis.id);
-    if (thrust === undefined || hit === undefined) return;
-    if (Math.abs(thrust - hit) > 2 || now - thrust > 3) return;
-    if (now - (lastImpale.get(ignis.id) ?? -1000) < 80) return;
-    lastImpale.set(ignis.id, now);
-    system.runTimeout(() => {
-        if (isValid(ignis)) ignis.triggerEvent("attack4T");
-    }, 1);
+function stun(entity, seconds) {
+    const ticks = Math.round(20 * seconds);
+    try {
+        if (entity.typeId === "minecraft:player") {
+            entity.onScreenDisplay.setActionBar({
+                rawtext: [{ text: "§cStunned by " }, { translate: "entity.ignis:ignis.name" },
+                    { text: `§c for ${seconds} seconds - unable to act.` }],
+            });
+            entity.addEffect("slowness", ticks, { amplifier: 5, showParticles: false });
+            entity.runCommand("inputpermission set @s movement disabled");
+            entity.runCommand(`camerashake add @s 0.1 ${seconds} rotational`);
+            system.runTimeout(() => unstun(entity), ticks);
+        } else {
+            entity.addEffect("slowness", ticks, { amplifier: 255, showParticles: false });
+            entity.addEffect("weakness", ticks, { amplifier: 255, showParticles: false });
+        }
+    } catch {
+        // gone
+    }
 }
 
-// --- Fire orbs ------------------------------------------------------------------
+function unstun(player) {
+    try {
+        if (isValid(player)) player.runCommand("inputpermission set @s movement enabled");
+    } catch {
+        // gone
+    }
+}
+
+// --- Blazing brand -----------------------------------------------------------------
+// Ignis' hits brand their victim (up to 5 stacks, for ~12 s): its lifesteal and the
+// fireballs' healing are multiplied by the stacks.
+const BRAND = "ignis:blazing_brand";
+const BRAND_TIME = "ignis:blazing_brand/";
+const branded = new Map();
+
+function brandOf(e) {
+    try {
+        return Number(e.getDynamicProperty(BRAND)) || 0;
+    } catch {
+        return 0;
+    }
+}
+
+function addBrand(e, stacks, seconds) {
+    try {
+        e.setDynamicProperty(BRAND, Math.min(5, brandOf(e) + stacks));
+        if ((Number(e.getDynamicProperty(BRAND_TIME)) || 0) < seconds) e.setDynamicProperty(BRAND_TIME, seconds);
+        branded.set(e.id, e);
+    } catch {
+        // gone
+    }
+}
+
+system.runInterval(() => {
+    for (const [id, e] of branded) {
+        try {
+            if (!isValid(e)) {
+                branded.delete(id);
+                continue;
+            }
+            const left = (Number(e.getDynamicProperty(BRAND_TIME)) || 0) - 1;
+            if (left > 0) {
+                e.setDynamicProperty(BRAND_TIME, left);
+            } else {
+                e.setDynamicProperty(BRAND, 0);
+                e.setDynamicProperty(BRAND_TIME, 0);
+                branded.delete(id);
+            }
+        } catch {
+            branded.delete(id);
+        }
+    }
+}, 20);
+
+world.afterEvents.playerSpawn.subscribe(({ player }) => {
+    unstun(player);
+    try {
+        if (player.getDynamicProperty(BRAND_TIME)) {
+            player.setDynamicProperty(BRAND, 0);
+            player.setDynamicProperty(BRAND_TIME, 0);
+        }
+    } catch {
+        // ignore
+    }
+});
+
+// --- Damage ------------------------------------------------------------------------
+const DODGE_MIN = 0.05, DODGE_MAX = 0.6, REDUCE_MIN = 0.01, REDUCE_MAX = 0.8, ENRAGE = 1;
+const busy = new Set(); // "<id>:<kind>" guards, cleared next tick
+
+function once(key) {
+    if (busy.has(key)) return false;
+    busy.add(key);
+    system.run(() => busy.delete(key));
+    return true;
+}
+
+function percentDamage(victim, damage) {
+    // big mobs (bosses) lose the same share of health a 100-health mob would
+    const h = healthOf(victim);
+    if (h && h.effectiveMax > 100 && once(`${victim.id}:pct`)) {
+        try {
+            victim.applyDamage(h.effectiveMax * (damage / 100) - damage, { cause: EntityDamageCause.override });
+        } catch {
+            // ignore
+        }
+    }
+}
+
+function faceAndThrow(victim, ignisTag, up, seconds) {
+    const rot = victim.getRotation();
+    try {
+        victim.runCommand(`tp ~~~ facing @e[tag=${ignisTag},c=1]`);
+        victim.setRotation({ x: 0, y: victim.getRotation().y });
+    } catch {
+        // cannot be turned
+    }
+    push(victim, victim, -1.4, up, true, -4.5);
+    stun(victim, seconds);
+    try {
+        victim.setRotation(rot);
+    } catch {
+        // ignore
+    }
+}
+
+world.afterEvents.entityHurt.subscribe((ev) => {
+    try {
+        onHurt(ev);
+    } catch {
+        // an entity vanished mid-hit
+    }
+});
+
+function onHurt({ hurtEntity: victim, damage, damageSource }) {
+    if (!isValid(victim)) return;
+    const attacker = isValid(damageSource.damagingEntity) ? damageSource.damagingEntity : undefined;
+    const vh = healthOf(victim);
+
+    // Ignis is hurt: no single hit takes more than 20; low on health it dodges or shrugs.
+    if (victim.typeId === IGNIS && vh && vh.currentValue >= 1.5) {
+        let back = damage > 20 ? damage - 20 : 0;
+        const frac = healthFrac(victim);
+        if (cfg.ignis_dodge_enabled && Math.random() < DODGE_MIN + (DODGE_MAX - DODGE_MIN) * (1 - frac)) {
+            back = damage;
+            try {
+                victim.dimension.spawnParticle("ignis:ignis_jump", victim.location);
+            } catch {
+                // decoration
+            }
+        } else if (cfg.ignis_reduce_enabled) {
+            back = Math.max(back, damage * (REDUCE_MIN + (REDUCE_MAX - REDUCE_MIN) * (1 - frac)));
+        }
+        if (back > 0) setHealth(vh, vh.currentValue + back);
+    }
+
+    // Enrage: everything of Ignis' hits players harder as Ignis loses health.
+    if (cfg.ignis_enrage_enabled && attacker && attacker.typeId.startsWith("ignis:") && victim.typeId === "minecraft:player"
+        && damage > 0 && once(`${victim.id}:enrage`)) {
+        const ignis = attacker.typeId === IGNIS ? attacker
+            : attacker.dimension.getEntities({ type: IGNIS, location: attacker.location, maxDistance: 200, closest: 1 })[0];
+        const bonus = damage * ENRAGE * (1 - (ignis ? healthFrac(ignis) : 1));
+        if (bonus > 0.25) {
+            try {
+                victim.applyDamage(bonus, { cause: EntityDamageCause.override });
+            } catch {
+                // ignore
+            }
+        }
+    }
+
+    if (!attacker) {
+        const proj = damageSource.damagingProjectile;
+        if (proj?.typeId === "ignis:ignis_fireball") addBrand(victim, 1, 10);
+        return;
+    }
+
+    switch (attacker.typeId) {
+        case IGNIS: {
+            if (victim.typeId === IGNIS) return;
+            const variant = variantOf(attacker);
+            const phase = attacker.getProperty("ignis:phase") ?? 1;
+            for (const tag of attacker.getTags()) {
+                if (!tag.startsWith("ignis:ignisH_")) continue;
+                if (variant !== 5 && variant !== 6) {
+                    try {
+                        victim.setOnFire(2.5, true);
+                    } catch {
+                        // fire immune
+                    }
+                }
+                if (variant === 5) {
+                    if (phase >= 2) addBrand(victim, 1, 12);
+                } else {
+                    addBrand(victim, phase >= 2 && (variant === 10 || variant === 13) ? 2 : 1, 12);
+                }
+                const ah = healthOf(attacker);
+                if (ah && ah.currentValue >= 1.5) {
+                    const drain = Number(tag.slice("ignis:ignisH_".length)) || 0;
+                    setHealth(ah, ah.currentValue + drain * (brandOf(victim) || 1) * cfg.ignis_health_changed_multiplier);
+                }
+                break;
+            }
+            if (attacker.hasTag("ignis:ignisA2")) {
+                // the grab: the victim is turned to Ignis, pulled in and stunned
+                if (once(`${attacker.id}:a2sound`)) attacker.dimension.playSound("ignis.mob.ignis.attack2", victim.location, { volume: 2 });
+                faceAndThrow(victim, "ignis:ignisA2", 0.5, 3);
+            } else if (attacker.hasTag("ignis:ignisA6c")) {
+                if (once(`${attacker.id}:a6sound`)) attacker.dimension.playSound("ignis.mob.ignis.attack2", victim.location, { volume: 2 });
+                faceAndThrow(victim, "ignis:ignisA6c", 1.25, 2);
+            } else if (attacker.hasTag("ignis:ignisA10")) {
+                push(victim, victim, 0, 0.75, true, 0); // the spin throws its victims up
+            }
+            percentDamage(victim, damage);
+            if (once(`${attacker.id}:combo`)) {
+                // the thrust lifts what it pierces; the first sweep chains into the second
+                if (variant === 5 && (healthOf(victim)?.currentValue ?? 0) > 0) attacker.triggerEvent("attack4T");
+                if (variant === 15) attacker.triggerEvent("attack8..");
+            }
+            return;
+        }
+        case "ignis:ignis_strike":
+        case "ignis:ignis_strike_soul":
+            try {
+                victim.setOnFire(2.5, true);
+            } catch {
+                // fire immune
+            }
+            addBrand(victim, 1, 10);
+            if (variantOf(attacker) === 1) percentDamage(victim, damage);
+            return;
+        case "ignis:ignis_fire":
+        case "ignis:ignis_fireball":
+            addBrand(victim, 1, 10);
+            percentDamage(victim, damage);
+            return;
+        default:
+            if (damageSource.damagingProjectile?.typeId === "ignis:ignis_fireball") addBrand(victim, 1, 10);
+    }
+}
+
+// Below 30 % in the soul phases, every 10 % lost rings out.
+world.afterEvents.entityHealthChanged.subscribe(({ entity, oldValue, newValue }) => {
+    try {
+        if ((entity.getProperty("ignis:phase") ?? 1) < 2) return;
+        const step = (healthOf(entity)?.effectiveMax ?? 0) / 10;
+        if (!step) return;
+        for (let i = 1; i <= 3; i++) {
+            if (oldValue / step >= i && newValue / step < i) entity.runCommand("playsound ignis.mob.ignis.impact @a ~~~");
+        }
+    } catch {
+        // ignore
+    }
+}, { entityTypes: [IGNIS] });
+
+// --- Fire orbs and fireballs ----------------------------------------------------------
 // The orbs (ignis:ignis_fire) aim with a shooter whose projectile is "x" (none)
 // and burst 0.05 s later: the fireball comes from here, at the orb's target, in
 // the orb's colour (skin 0 fire, 1 soul, 2 abyss).
-function nearestTarget(dimension, location) {
-    return dimension.getPlayers({ location, maxDistance: 64, tags: ["ignis:ignis_target"], closest: 1 })[0];
+function orbTarget(orb) {
+    try {
+        if (isFighter(orb.target)) return orb.target;
+    } catch {
+        // none
+    }
+    const dim = orb.dimension, at = orb.location;
+    const tagged = dim.getEntities({ tags: ["ignis:ignis_target"], location: at, maxDistance: 64, closest: 1 })[0];
+    return isFighter(tagged) ? tagged : undefined;
 }
 
 function launchFireball(orb) {
@@ -228,11 +596,10 @@ function launchFireball(orb) {
         from = { ...orb.location };
         dimension = orb.dimension;
         skin = orb.getComponent("minecraft:skin_id")?.value ?? 0;
-        target = orb.target;
+        target = orbTarget(orb);
     } catch {
         return;
     }
-    if (!isValid(target)) target = nearestTarget(dimension, from);
     if (!target) return;
     const to = { x: target.location.x, y: target.location.y + 1, z: target.location.z };
     const dx = to.x - from.x, dy = to.y - from.y, dz = to.z - from.z;
@@ -248,23 +615,31 @@ function launchFireball(orb) {
     projectile.shoot({ x: (dx / len) * speed, y: (dy / len) * speed, z: (dz / len) * speed });
 }
 
-world.afterEvents.dataDrivenEntityTrigger.subscribe(({ entity, eventId }) => {
-    if (entity.typeId === IGNIS && eventId === "attack4__") {
-        lastThrust.set(entity.id, system.currentTick);
-        maybeImpale(entity);
-    } else if (entity.typeId === "ignis:ignis_fire" && (eventId === "a" || eventId === "c")) {
-        launchFireball(entity);
+world.afterEvents.projectileHitEntity.subscribe((ev) => {
+    if (ev.projectile?.typeId !== "ignis:ignis_fireball") return;
+    try {
+        const hit = ev.getEntityHit()?.entity;
+        if (!isValid(hit) || hit.typeId.startsWith("ignis:ignis_fire")) return;
+        const source = ev.source;
+        if (source && hit.id === source.id) return;
+        if (!source || source.typeId.startsWith("ignis:")) {
+            // Ignis' fireball found its mark: Ignis drinks from it
+            if (hit.typeId.startsWith("ignis:")) return;
+            const ignis = hit.dimension.getEntities({ type: IGNIS, location: hit.location, maxDistance: 96, closest: 1 })[0];
+            const h = ignis && healthOf(ignis);
+            if (h && h.currentValue >= 1.5) setHealth(h, h.currentValue + 5 * (brandOf(hit) || 1));
+        } else if (hit.typeId === IGNIS) {
+            // a fireball sent back by a player cracks Ignis' shield
+            const h = healthOf(source);
+            if (h) setHealth(h, h.currentValue + 5 * (brandOf(source) || 1) * cfg.ignis_health_changed_multiplier);
+            hit.triggerEvent("shield");
+        }
+    } catch {
+        // gone
     }
 });
 
-// --- Ground hits burn the floor (ignis_breaks_all_blocks: burning sigils) -------
-const airborne = new Map(); // Ignis id -> lowest vertical speed while in the air
-
-/**
- * Where the floor used to jump (it needed physics entities and lagged): flames,
- * and every few spots a burning sigil (ignis:ignis_strike: area fire damage),
- * removed after 2.5 s.
- */
+// --- Burning sigils where the floor used to jump ----------------------------------
 let markerCount = 0;
 const SIGIL_EVERY = 6;      // one sigil per this many shock-wave markers
 const SIGIL_TICKS = 50;
@@ -291,7 +666,7 @@ function burnAt(dim, x, y, z, sigil) {
     }, SIGIL_TICKS);
 }
 
-// Ground hits summon rings of ignis:ignis_bl markers (the shock wave).
+// Ground hits summon ignis:ignis_bl / ignis_bla markers (the shock wave).
 world.afterEvents.entitySpawn.subscribe(({ entity }) => {
     if (entity.typeId !== "ignis:ignis_bl" && entity.typeId !== "ignis:ignis_bla") return;
     let loc;
@@ -303,6 +678,255 @@ world.afterEvents.entitySpawn.subscribe(({ entity }) => {
     markerCount = (markerCount + 1) % SIGIL_EVERY;
     burnAt(entity.dimension, Math.floor(loc.x), Math.floor(loc.y) - 1, Math.floor(loc.z), markerCount === 0);
 });
+
+/** Burns the floor at offsets (right, forward) from Ignis, like ^r^^f. */
+function burnPattern(ignis, offsets) {
+    const v = ignis.getViewDirection();
+    const len = Math.hypot(v.x, v.z) || 1;
+    const f = { x: v.x / len, z: v.z / len }, r = { x: -f.z, z: f.x };
+    const at = ignis.location, dim = ignis.dimension;
+    for (const [side, ahead] of offsets) {
+        const x = at.x + f.x * ahead + r.x * side, z = at.z + f.z * ahead + r.z * side;
+        markerCount = (markerCount + 1) % SIGIL_EVERY;
+        burnAt(dim, Math.floor(x), groundAt(dim, x, at.y, z), Math.floor(z), markerCount === 0);
+    }
+}
+
+// attack6S: the sword splits the floor ahead in three waves
+const SPLIT_WAVES = [
+    [[2, 2], [2, 3], [1, 3], [1, 4], [-2, 2], [-2, 3], [-1, 3], [-1, 4]],
+    [[0, 5], [1, 5], [2, 5], [3, 5], [3, 4], [4, 5], [1, 6], [2, 6], [-1, 5], [-2, 5], [-3, 5], [-3, 4], [-4, 5], [-1, 6], [-2, 6]],
+    [[0, 7], [0, 8], [1, 7], [2, 7], [3, 7], [4, 7], [3, 6], [4, 6], [5, 6], [1, 8], [2, 8], [-1, 7], [-2, 7], [-3, 7], [-4, 7],
+        [-3, 6], [-4, 6], [-5, 6], [-1, 8], [-2, 8]],
+];
+
+function splitFloor(ignis) {
+    SPLIT_WAVES.forEach((wave, i) => system.runTimeout(() => {
+        if (!isValid(ignis)) return;
+        ignis.dimension.playSound("ignis.mob.ignis.attack1", ignis.location, { volume: 2 });
+        burnPattern(ignis, wave.map(([s, a]) => [s * SIZE, a * SIZE]));
+    }, 2 * (i + 1)));
+}
+
+// --- The great sigil (attack11) ------------------------------------------------------
+// A rune burns under Ignis, then its sword strikes the ground: rows of sigils run out
+// in 4 directions (8 in the soul phases), or, the scattered variant, circles erupt
+// all around. Sigils never hurt Ignis (their damage skips its family).
+const SIZE = 1.154;                     // Ignis' scale (ignis_fix.py)
+const ROW = [8.5, 12.75, 17, 21.25, 25.5, 29.75, 34, 38.25].map((d) => d * SIZE);
+
+function sigil(dim, x, y, z, step) {
+    try {
+        const gy = groundAt(dim, x, y, z) + 1;
+        dim.spawnEntity("ignis:ignis_strike", { x, y: gy, z }, { spawnEvent: `ignis${step}` });
+    } catch {
+        // unloaded or blocked
+    }
+}
+
+function sigilRows(ignis) {
+    const v = ignis.getViewDirection();
+    const len = Math.hypot(v.x, v.z) || 1;
+    const f = { x: v.x / len, z: v.z / len };
+    const dirs = (ignis.getProperty("ignis:phase") ?? 1) >= 2 ? 8 : 4;
+    const at = { ...ignis.location }, dim = ignis.dimension;
+    const ways = [];
+    for (let i = 0; i < dirs; i++) {
+        const a = (i * 2 * Math.PI) / dirs;
+        ways.push({ x: f.x * Math.cos(a) - f.z * Math.sin(a), z: f.x * Math.sin(a) + f.z * Math.cos(a) });
+    }
+    ROW.forEach((dist, step) => system.runTimeout(() => {
+        for (const w of ways) sigil(dim, at.x + w.x * dist, at.y, at.z + w.z * dist, step + 1);
+    }, step));
+}
+
+function scatteredCircles(ignis) {
+    const soul = (ignis.getProperty("ignis:phase") ?? 1) >= 2;
+    const count = soul ? 40 : 28;
+    const at = { ...ignis.location }, dim = ignis.dimension;
+    const spots = [];
+    for (let tries = 0; spots.length < count && tries < count * 12; tries++) {
+        const a = Math.random() * 2 * Math.PI;
+        const d = 4 + Math.sqrt(Math.random()) * (soul ? 24 : 20); // even spread over the disc
+        const p = { x: at.x + Math.cos(a) * d, z: at.z + Math.sin(a) * d };
+        if (spots.every((q) => Math.hypot(q.x - p.x, q.z - p.z) >= 3.2)) spots.push(p);
+    }
+    spots.forEach((p, i) => system.runTimeout(() => {
+        sigil(dim, p.x, at.y, p.z, 1 + Math.floor(Math.random() * 8));
+    }, Math.floor(i / 2)));
+}
+
+// --- Leaps -----------------------------------------------------------------------------
+/** attack9 / attack10: a ballistic leap at the target... */
+function leap(ignis, up) {
+    const t = targetOf(ignis);
+    if (!t) return;
+    const dx = t.location.x - ignis.location.x, dz = t.location.z - ignis.location.z;
+    const flat = Math.max(0.1, Math.hypot(dx, dz));
+    const speed = Math.min(32, flat) / ((2 * up) / 0.08); // lands on the target
+    const rot = facing(dx, up, dz);
+    try {
+        ignis.setRotation(rot);
+        ignis.setDynamicProperty("ignis:ignisLockYaw", rot.y);
+        ignis.setDynamicProperty("ignis:ignisLockPitch", rot.x);
+        ignis.clearVelocity();
+        ignis.applyImpulse({ x: (dx / flat) * speed, y: up, z: (dz / flat) * speed });
+    } catch {
+        // gone
+    }
+}
+
+/** ...steering towards its target while airborne. */
+function home(ignis, n = 0) {
+    try {
+        if (!isValid(ignis)) return;
+        const v = variantOf(ignis);
+        if ((v !== 18 && v !== 20) || (n >= 3 && ignis.isOnGround)) {
+            ignis.setDynamicProperty("ignis:ignisLockYaw", undefined);
+            return;
+        }
+        const yaw = ignis.getDynamicProperty("ignis:ignisLockYaw");
+        const pitch = ignis.getDynamicProperty("ignis:ignisLockPitch");
+        if (typeof yaw === "number") {
+            ignis.setRotation({ x: typeof pitch === "number" ? pitch : ignis.getRotation().x, y: yaw });
+        }
+        const t = targetOf(ignis);
+        if (t) {
+            const dx = t.location.x - ignis.location.x, dz = t.location.z - ignis.location.z;
+            const d = Math.hypot(dx, dz);
+            if (d > 0.5) {
+                const p = Math.min(0.18, d * 0.03);
+                ignis.applyImpulse({ x: (dx / d) * p, y: 0, z: (dz / d) * p });
+            }
+        }
+        system.runTimeout(() => home(ignis, n + 1), 2);
+    } catch {
+        // gone
+    }
+}
+
+/** Stuck inside blocks (damage_sensor's "break", only with mobGriefing): clear room. */
+function enclosed(ignis) {
+    const dim = ignis.dimension;
+    const bx = Math.floor(ignis.location.x), by = Math.floor(ignis.location.y), bz = Math.floor(ignis.location.z);
+    const solid = (dx, dy, dz) => {
+        try {
+            const b = dim.getBlock({ x: bx + dx, y: by + dy, z: bz + dz });
+            return !!b && !b.isAir && !b.isLiquid;
+        } catch {
+            return false;
+        }
+    };
+    const sides = [[1, 0], [-1, 0], [0, 1], [0, -1]].filter(([dx, dz]) => solid(dx, 0, dz) && solid(dx, 1, dz)).length;
+    return sides >= 4 && solid(0, 2, 0) && solid(0, 3, 0);
+}
+
+// --- Ignis' events ---------------------------------------------------------------------
+// The attack timelines fire these JSON events (most are empty in the JSON: the
+// script gives them their movement).
+function thrustPower(lxz) {
+    // the impaling thrust's lunge: reaches the target, and at least 1.725
+    const reach = lxz <= 5 ? 3.5 : lxz < 12 ? lxz / 2 - 1.5 : 4.5;
+    return Math.max(1.725, reach);
+}
+
+world.afterEvents.dataDrivenEntityTrigger.subscribe(({ entity, eventId }) => {
+    if (entity.typeId === "ignis:ignis_fire") {
+        if (eventId === "a" || eventId === "c") launchFireball(entity);
+        return;
+    }
+    if (entity.typeId !== IGNIS || !isValid(entity)) return;
+    const ignis = entity;
+    let lxz = 2.3;
+    try {
+        const t = ignis.target;
+        if (isValid(t)) {
+            lxz = Math.min(200, Math.hypot(ignis.location.x - t.location.x, ignis.location.z - t.location.z));
+            ignis.setProperty("ignis:lxz", lxz);
+            ignis.setProperty("ignis:ly", Math.min(200, Math.abs(ignis.location.y - t.location.y)));
+        } else {
+            lxz = ignis.getProperty("ignis:lxz") ?? 2.3;
+        }
+    } catch {
+        // keep the default
+    }
+    switch (eventId) {
+        case "break":
+            if (enclosed(ignis)) ignis.runCommand("fill ~1 ~ ~1 ~-1 ~4 ~-1 air");
+            break;
+        case "move_3":
+            if (lxz >= 2.25) lunge(ignis, 1.5);
+            break;
+        case "move2":
+            if (lxz >= 2.25) lunge(ignis, 1);
+            break;
+        case "move3":
+            if (lxz >= 2.25) lunge(ignis, lxz < 3.25 ? 1 : 1.5);
+            break;
+        case "attack2_":
+            if (lxz > 1) lunge(ignis, Math.min(lxz, 3.5) / 2 - 0.5);
+            break;
+        case "attack4_":
+            lunge(ignis, thrustPower(lxz));
+            break;
+        case "attack6C_":
+            lunge(ignis, Math.min(lxz, 15) / 3.5);
+            break;
+        case "attack6S_":
+            splitFloor(ignis);
+            break;
+        case "attack7_":
+            if (lxz > 1.5) lunge(ignis, Math.min(lxz, 6.5) / 3 - 0.5);
+            break;
+        case "attack9_":
+            leap(ignis, 1.6);
+            home(ignis, 0);
+            break;
+        case "attack11_":
+            if (ignis.getProperty("ignis:scatter")) scatteredCircles(ignis);
+            else sigilRows(ignis);
+            break;
+        case "attack12T_":
+            lunge(ignis, Math.min(lxz, 24) / 3.5);
+            break;
+        case "variant":
+        case "ignisDeath":
+            for (const tag of ignis.getTags()) if (tag.startsWith("ignis:ignis")) ignis.removeTag(tag);
+            break;
+        default:
+            break;
+    }
+});
+
+// --- Short dashes ------------------------------------------------------------------------
+// Slashes with no lunge of their own call "/scriptevent ignis:dash slash" a moment
+// before the hit: if the target is a little out of reach, Ignis steps in.
+system.afterEvents.scriptEventReceive.subscribe(({ id, sourceEntity: ignis }) => {
+    if (id !== "ignis:dash" || ignis?.typeId !== IGNIS || !isValid(ignis)) return;
+    let dir, dist = 0;
+    try {
+        const t = ignis.target;
+        if (isValid(t) && t.dimension.id === ignis.dimension.id) {
+            const dx = t.location.x - ignis.location.x, dz = t.location.z - ignis.location.z;
+            dist = Math.hypot(dx, dz);
+            if (dist < 16) dir = { x: dx, z: dz };
+        }
+    } catch {
+        dir = undefined;
+    }
+    if (dir && dist < 2.5) return; // already in reach
+    if (!dir) {
+        const v = ignis.getViewDirection();
+        dir = { x: v.x, z: v.z };
+    }
+    const len = Math.hypot(dir.x, dir.z);
+    if (len < 0.01) return;
+    const power = 0.6;
+    ignis.applyImpulse({ x: (dir.x / len) * power, y: 0.08, z: (dir.z / len) * power });
+});
+
+// --- Landings burn the floor -----------------------------------------------------------
+const airborne = new Map(); // Ignis id -> lowest vertical speed while in the air
 
 function slam(ignis) {
     const dim = ignis.dimension;
@@ -316,51 +940,16 @@ function slam(ignis) {
     }
 }
 
-// --- Dashes ----------------------------------------------------------------------
-// The attack timelines call "/scriptevent ignis:dash slash|thrust" a moment before
-// each hit: Ignis lunges towards its target (or straight ahead) to reach it.
-const DASH = { slash: 0.6, thrust: 1.15 };
-
-system.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceEntity: ignis }) => {
-    if (id !== "ignis:dash" || ignis?.typeId !== IGNIS || !isValid(ignis)) return;
-    let dir;
-    try {
-        const target = ignis.target;
-        if (isValid(target) && target.dimension.id === ignis.dimension.id) {
-            const dx = target.location.x - ignis.location.x, dz = target.location.z - ignis.location.z;
-            if (Math.hypot(dx, dz) < 16) dir = { x: dx, z: dz };
-        }
-    } catch {
-        dir = undefined;
-    }
-    if (!dir) {
-        const v = ignis.getViewDirection();
-        dir = { x: v.x, z: v.z };
-    }
-    const len = Math.hypot(dir.x, dir.z);
-    if (len < 0.01) return;
-    const power = DASH[message] ?? DASH.slash;
-    ignis.applyImpulse({ x: (dir.x / len) * power, y: 0.08, z: (dir.z / len) * power });
-});
-
 system.runInterval(() => {
-    for (const dimId of ["overworld", "nether", "the_end"]) {
-        let list;
-        try {
-            list = world.getDimension(dimId).getEntities({ type: IGNIS });
-        } catch {
-            continue;
-        }
-        for (const ignis of list) {
-            if (!isValid(ignis)) continue;
-            const vy = ignis.getVelocity().y;
-            if (!ignis.isOnGround) {
-                airborne.set(ignis.id, Math.min(airborne.get(ignis.id) ?? 0, vy));
-            } else if (airborne.has(ignis.id)) {
-                const fall = airborne.get(ignis.id);
-                airborne.delete(ignis.id);
-                if (fall < -0.6) slam(ignis);
-            }
+    for (const ignis of ignisList()) {
+        if (!isValid(ignis)) continue;
+        const vy = ignis.getVelocity().y;
+        if (!ignis.isOnGround) {
+            airborne.set(ignis.id, Math.min(airborne.get(ignis.id) ?? 0, vy));
+        } else if (airborne.has(ignis.id)) {
+            const fall = airborne.get(ignis.id);
+            airborne.delete(ignis.id);
+            if (fall < -0.6) slam(ignis);
         }
     }
 }, 2);

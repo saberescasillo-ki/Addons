@@ -4,9 +4,14 @@ the output goes to the git-ignored private/ folder.
     python3 tools/ignis_fix.py path/to/Ignis.zip
 
 Fixes:
-  * scripts/core.js was empty: rewritten (tools/ignis/core.js). The Altar of
-    Fire works with Burning Ashes, Ignis targets players (it needs the
-    ignis:gm_* tags the script gives), and config.js does something again;
+  * scripts/core.js (obfuscated) is replaced by a readable rewrite
+    (tools/ignis/core.js) with the same mechanics: the altar, the lunges, the
+    homing leap, stuns, the blazing brand, lifesteal and the config.js options;
+Changes: Ignis is half a block bigger, attacks 5 % faster, the floor burns
+instead of jumping as physics blocks, Ignis only fights players and golems,
+the great sigil (attack11) sends 4 rows (8 in the soul phases) in every phase
+and has a scattered-circles variant (both 10 % faster), and the leap's big
+slashes hit a wider area.
   * boss health bar: the boss names used formatting codes that do not exist
     (§F§O§R§M) and the bar only showed if a variable trick in the UI worked;
     now valid hidden codes and the binding pattern the game supports;
@@ -38,7 +43,7 @@ OUT = os.path.join(ROOT, "private")
 BP = os.path.join(OUT, "Ignis_BP")
 RP = os.path.join(OUT, "Ignis_RP")
 MCADDON = os.path.join(OUT, "Ignis.mcaddon")
-VERSION = [1, 2, 0]
+VERSION = [1, 3, 0]
 
 # Boss bar names: a leading colour code only (trailing codes may be trimmed by the
 # game, and then the HUD no longer recognises the name).
@@ -192,7 +197,10 @@ SPEED = 1.05              # attacks 5 % faster
 DASH_LEAD = 0.15          # the dash starts this many seconds before the hit
 SLASH_EVENTS = {"attack1_", "attack2__", "attack3_", "attack3_.", "attack6C__", "attack8_", "attack8__", "attack9S_",
                 "attack10__", "attack10Sa", "attack10Sb", "attack12T__", "attack13T__"}
-THRUST_COMMAND = "/event entity @s attack4__"   # the impaling thrust's hit window
+# Events the script turns into lunges (scaled to the target's distance): those
+# animations get no extra dash. The impaling thrust's lunge is attack4_.
+LUNGE_EVENTS = {"attack2_", "attack4_", "attack6C_", "attack7_", "move2", "move_3", "move3", "attack12T_"}
+SIGIL_ANIMS = {"animation.ignis.ignis.attack11"}
 CARET = re.compile(r"(positioned |tp @s |summon ignis:ignis_(?:b|p|ba|bb|fire) )\^([-0-9.]*)\^([-0-9.]*)\^([-0-9.]*)")
 
 
@@ -235,25 +243,128 @@ def _timeline_add(tl, time, cmd):
         tl[key] = (cur if isinstance(cur, list) else [cur]) + [cmd]
 
 
-def four_rows():
-    """attack11 (blue sigil, then a row of burning sigils ahead): four rows,
-    ahead, behind, left and right."""
-    def f(d):
+SIGIL_SPEED = 1.10        # the great-sigil attacks run another 10 % faster
+ROW_SUMMON = re.compile(r"^/summon ignis:ignis_strike \^")
+
+
+def sigil_attacks():
+    """attack11 (a rune under Ignis, then the sword strikes the ground): the rows of
+    sigils now come from the script (4 directions, 8 in the soul phases), and a
+    scattered-circles variant shares its animation. Both in every phase."""
+    def anim(d):
         tl = d["animations"]["animation.ignis.ignis.attack11"]["timeline"]
-        row = re.compile(r"^/summon ignis:ignis_strike \^\^\^([0-9.]+)(~~ .*)$")
-        added = 0
-        for key, cmds in list(tl.items()):
-            for c in list(cmds if isinstance(cmds, list) else [cmds]):
-                m = row.match(c)
-                if not m:
+        removed = 0
+        for key in list(tl):
+            cmds = tl[key] if isinstance(tl[key], list) else [tl[key]]
+            keep = [c for c in cmds if not ROW_SUMMON.match(c)]
+            removed += len(cmds) - len(keep)
+            if not keep:
+                del tl[key]
+            else:
+                tl[key] = keep if len(keep) > 1 else keep[0]
+        if removed != 8:
+            sys.exit(f"attack11: esperaba 8 sigilos en la fila, encontré {removed}")
+    edit(os.path.join(BP, "animations", "ignis.json"), anim)
+
+    def rune(d):  # the rune under Ignis bursts with the faster sword strike
+        t = d["minecraft:entity"]["component_groups"]["ignis"]["minecraft:timer"]
+        t["time"] = round(t["time"] / (SPEED * SIGIL_SPEED), 3)
+    edit(os.path.join(BP, "entities", "ignis_strike_soul.json"), rune)
+
+    def ent(d):
+        e = d["minecraft:entity"]
+        props = e["description"]["properties"]
+        props["ignis:scatter"] = {"type": "bool", "default": False}
+        props["ignis:timerh"] = {"type": "float", "range": [0.0, 40.0], "default": 20.0}
+        props["ignis:timerf"]["default"] = 8.0   # first great sigil soon after the fight starts
+        found = {"timers": 0, "attack11": 0}
+
+        def walk(node):
+            if not isinstance(node, dict):
+                return
+            sp = node.get("set_property", {})
+            if "ignis:timera" in sp and "ignis:timerg" in sp:
+                sp["ignis:timerh"] = "q.property('ignis:timerh') > 0 ? q.property('ignis:timerh') - 0.15 : 0"
+                found["timers"] += 1
+            for k in ("sequence", "randomize"):
+                if k not in node:
                     continue
-                dist, rest = m.group(1), m.group(2)
-                for pos in (f"^^^-{dist}", f"^{dist}^^", f"^-{dist}^^"):
-                    _timeline_add(tl, float(key), f"/summon ignis:ignis_strike {pos}{rest}")
-                    added += 1
-        if added != 24:
-            sys.exit(f"attack11: esperaba 8 sigilos por fila, añadí {added // 3}")
-    edit(os.path.join(BP, "animations", "ignis.json"), f)
+                out = []
+                for child in node[k]:
+                    walk(child)
+                    out.append(child)
+                    groups = child.get("add", {}).get("component_groups", [])
+                    if k == "randomize" and "attack11" in groups:
+                        found["attack11"] += 1
+                        # any phase, shield or not (was: phase 3 without shield)
+                        child["filters"] = {"test": "float_property", "domain": "ignis:timerf",
+                                            "operator": "<=", "value": 0}
+                        child["set_property"] = {"ignis:timerf": 45, "ignis:scatter": False}
+                        out.append({"filters": {"test": "float_property", "domain": "ignis:timerh",
+                                                "operator": "<=", "value": 0},
+                                    "weight": child.get("weight", 100),
+                                    "add": {"component_groups": list(groups)},
+                                    "set_property": {"ignis:timerh": 35, "ignis:scatter": True}})
+                node[k] = out
+        walk(e["events"]["root"])
+        if found != {"timers": 1, "attack11": 2}:
+            sys.exit(f"root: estructura inesperada {found}")
+    edit(os.path.join(BP, "entities", "ignis.json"), ent)
+
+
+FIGHTERS = {"any_of": [{"test": "is_family", "subject": "other", "value": "irongolem"},
+                       {"test": "is_family", "subject": "other", "value": "snowgolem"}]}
+PLAYER_IN_PLAY = {"all_of": [{"test": "is_family", "subject": "other", "value": "player"},
+                             {"any_of": [{"test": "has_tag", "subject": "other", "value": "ignis:gm_survival"},
+                                         {"test": "has_tag", "subject": "other", "value": "ignis:gm_adventure"}]}]}
+
+
+def hostility():
+    """Ignis (and its fire orbs) only fight players and golems, not every mob."""
+    def ignis(d):
+        start = d["minecraft:entity"]["component_groups"]["start"]
+        types = start["minecraft:behavior.nearest_attackable_target"]["entity_types"]
+        if len(types) != 2:
+            sys.exit("ignis: nearest_attackable_target inesperado")
+        types[1]["filters"] = {"all_of": [{"test": "has_target", "value": False},
+                                          {"test": "is_variant", "operator": "!=", "value": 6}, FIGHTERS]}
+        hurt = start["minecraft:behavior.hurt_by_target"]["entity_types"]
+        hurt["filters"] = {"all_of": [{"test": "has_target", "value": False},
+                                      {"test": "is_variant", "operator": "!=", "value": 6},
+                                      {"any_of": [PLAYER_IN_PLAY, FIGHTERS]}]}
+    edit(os.path.join(BP, "entities", "ignis.json"), ignis)
+
+    def orb(d):
+        types = d["minecraft:entity"]["components"]["minecraft:behavior.nearest_prioritized_attackable_target"]["entity_types"]
+        types[1]["filters"] = {"any_of": [PLAYER_IN_PLAY, FIGHTERS]}
+    edit(os.path.join(BP, "entities", "ignis_fire.json"), orb)
+
+
+BIG_SLASH = {  # the leap's two fiery slashes (attack10S): wider and further ahead
+    "x=~1,y=~3,z=~1,dx=-3,dy=-7,dz=-3": "x=~2.5,y=~3.5,z=~2.5,dx=-6,dy=-8,dz=-6",
+    "x=~3,y=~3,z=~3,dx=-7,dy=-7,dz=-7": "x=~4.5,y=~3.5,z=~4.5,dx=-10,dy=-8,dz=-10",
+}
+AHEAD = re.compile(r"(execute positioned \^[-0-9.]*\^[-0-9.]*\^)([-0-9.]+)")
+
+
+def big_slash():
+    def f(d):
+        events = d["minecraft:entity"]["events"]
+        n = 0
+
+        def fix(text):
+            nonlocal n
+            for old, new in BIG_SLASH.items():
+                if old in text:
+                    n += 1
+                    text = AHEAD.sub(lambda m: f"{m.group(1)}{round(float(m.group(2)) * 1.4, 4):g}",
+                                     text.replace(old, new))
+            return text
+        for name in ("attack10Sa", "attack10Sb"):
+            events[name] = _map_strings(events[name], fix)
+        if n < 5:
+            sys.exit(f"attack10S: solo {n} áreas de daño ampliadas")
+    edit(os.path.join(BP, "entities", "ignis.json"), f)
 
 
 def timing():
@@ -263,16 +374,17 @@ def timing():
             if "attack" not in name and "BTS" not in name:
                 continue
             tl = anim.get("timeline", {})
+            flat = [c for cmds in tl.values() for c in (cmds if isinstance(cmds, list) else [cmds])]
+            lunges = any(c.startswith("@s ") and c[3:] in LUNGE_EVENTS for c in flat)
             for key, cmds in list(tl.items()):
                 for c in (cmds if isinstance(cmds, list) else [cmds]):
                     ev = c[3:] if c.startswith("@s ") else None
-                    if ev in SLASH_EVENTS:
+                    if ev in SLASH_EVENTS and not lunges:
                         _timeline_add(tl, float(key) - DASH_LEAD, "/scriptevent ignis:dash slash")
-                    elif c == THRUST_COMMAND:
-                        _timeline_add(tl, float(key) - DASH_LEAD, "/scriptevent ignis:dash thrust")
+            speed = SPEED * (SIGIL_SPEED if name in SIGIL_ANIMS else 1)
             new = {}
             for key, cmds in tl.items():
-                k = f"{round(float(key) / SPEED, 3):g}"
+                k = f"{round(float(key) / speed, 3):g}"
                 if k in new:
                     a, b = new[k], cmds
                     new[k] = (a if isinstance(a, list) else [a]) + (b if isinstance(b, list) else [b])
@@ -280,7 +392,7 @@ def timing():
                     new[k] = cmds
             anim["timeline"] = new
             if "animation_length" in anim:
-                anim["animation_length"] = round(anim["animation_length"] / SPEED, 3)
+                anim["animation_length"] = round(anim["animation_length"] / speed, 3)
     edit(os.path.join(BP, "animations", "ignis.json"), f)
     for name in os.listdir(os.path.join(RP, "animations")):
         path = os.path.join(RP, "animations", name)
@@ -288,7 +400,8 @@ def timing():
         changed = False
         for ident, anim in data.get("animations", {}).items():
             if (".attack" in ident or ".BTS" in ident) and "anim_time_update" not in anim:
-                anim["anim_time_update"] = f"q.anim_time + q.delta_time * {SPEED}"
+                speed = round(SPEED * (SIGIL_SPEED if ident in SIGIL_ANIMS else 1), 4)
+                anim["anim_time_update"] = f"q.anim_time + q.delta_time * {speed}"
                 changed = True
         if changed:
             dump(path, data)
@@ -391,7 +504,9 @@ def build(src):
     fix_lang()
     fix_boss_bar()
     bigger()
-    four_rows()
+    sigil_attacks()
+    hostility()
+    big_slash()
     timing()
     fix_projectiles()
     add_temple()
