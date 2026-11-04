@@ -17,7 +17,11 @@ Changes asked for:
   * the Trapped Soul Energy item is gone (item, drops and script);
   * the Soul Fortress (tools/netherens/fortress.py) generates only in soul
     sand valleys; its Soul Altar starts the fight with a Wither Skeleton Skull;
-  * the Nether Lord has 3600 health (was 1350): a fight for three players.
+  * the Nether Lord has 3600 health (was 1350): a fight for three players;
+  * Soul Knights (tools/netherens/extras.py, minions.js): smaller copies of the
+    Lord that it calls during the fight, immune to its attacks;
+  * the Lord's walk works (its stride divided by an undefined variable) and
+    is livelier, and it flinches when hurt.
 Lighter: sounds re-encoded (music stays stereo), JSON minified, PNG optimised.
 """
 import json
@@ -33,6 +37,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "netherens"))
 import fortress  # noqa: E402
+import extras  # noqa: E402
 from dungeons_mobs import load, dump, mentions, RPIndex, rp_closure, texture_files  # noqa: E402
 
 ROOT = os.path.dirname(HERE)
@@ -40,7 +45,7 @@ OUT = os.path.join(ROOT, "private")
 BP = os.path.join(OUT, "Netherens_BP")
 RP = os.path.join(OUT, "Netherens_RP")
 MCADDON = os.path.join(OUT, "Netherens.mcaddon")
-VERSION = [1, 2, 1]
+VERSION = [1, 3, 0]
 NEW_RP_MODULE_UUID = "3b1f6a52-8c4d-4e9a-b7f2-6d0c5e8a9f13"
 BOSS_HEALTH = 3600
 UNUSED_CLIENT = ["low:npc", "low:nb_npc", "low:lord_ghost", "low:scarred_ghast", "low:secondphase"]
@@ -192,9 +197,10 @@ def fix_scripts():
     dimension.spawnItem(new ItemStack("minecraft:netherite_scrap", Math.floor(Math.random() * 6) + 2), location)
     try {""", "    try {", "index.js")
     t = replace_once(t, "world.afterEvents.entityHealthChanged.subscribe(", "const lastBossPos = new Map()\n\nworld.afterEvents.entityHealthChanged.subscribe(", "index.js")
-    t = "import './soul_altar.js';\n" + t
+    t = "import './soul_altar.js';\nimport './minions.js';\n" + t
     write(path, t)
     shutil.copyfile(os.path.join(HERE, "netherens", "soul_altar.js"), os.path.join(BP, "scripts", "soul_altar.js"))
+    shutil.copyfile(os.path.join(HERE, "netherens", "minions.js"), os.path.join(BP, "scripts", "minions.js"))
     fpath = os.path.join(BP, "functions", "netherBossSkullTracking.mcfunction")
     lines = [l for l in read(fpath).splitlines() if not l.startswith("scoreboard objectives add")]
     write(fpath, "\n".join(lines) + "\n")
@@ -604,6 +610,8 @@ def build(src):
     fix_sound_effects()
     fix_molten_animations()
     fix_sound_definitions()
+    extras.animations(RP)
+    extras.add_knights(BP, RP)
     removed = prune_rp()
     compress()
     with zipfile.ZipFile(MCADDON, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
