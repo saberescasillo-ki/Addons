@@ -643,6 +643,13 @@ def build(src_dir):
     # every block a script mentions: those belong to features left out).
     blocks = {b for b in src.blocks if b in closure.place_words or (b in BLOCK_REWARDS and b in closure.words)}
 
+    # Loot tables named by the kept blocks (e.g. the Void Fluid's empty drop).
+    for b in blocks:
+        for w in mentions(read(src.bp_path(src.blocks[b]))):
+            lp = loot_path(src, w) if w.startswith("loot_tables/") else None
+            if lp:
+                closure.loot.add(lp)
+
     # --- write BP
     for ident in sorted(closure.entities):
         copy(src_bp, BP, src.entities[ident])

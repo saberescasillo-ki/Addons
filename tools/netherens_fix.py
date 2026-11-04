@@ -40,7 +40,7 @@ OUT = os.path.join(ROOT, "private")
 BP = os.path.join(OUT, "Netherens_BP")
 RP = os.path.join(OUT, "Netherens_RP")
 MCADDON = os.path.join(OUT, "Netherens.mcaddon")
-VERSION = [1, 2, 0]
+VERSION = [1, 2, 1]
 NEW_RP_MODULE_UUID = "3b1f6a52-8c4d-4e9a-b7f2-6d0c5e8a9f13"
 BOSS_HEALTH = 3600
 UNUSED_CLIENT = ["low:npc", "low:nb_npc", "low:lord_ghost", "low:scarred_ghast", "low:secondphase"]
@@ -151,12 +151,99 @@ def fix_scripts():
     # The skull scores need the objective (created once by soul_altar.js).
     t = replace_once(t, '      world.scoreboard.getObjective("NetherBossDistance").setScore(',
                      '      world.scoreboard.getObjective("NetherBossDistance")?.setScore(', "index.js")
+    # The boss was teleported to y=-64 before dying, so its drops fell into the
+    # void and its last words reached nobody; and both handlers threw when the
+    # chunk was not loaded. Remember where it fell and guard the calls.
+    t = replace_once(t, """      event.entity.runCommandAsync("teleport @s ~ -64 ~")""",
+                     """      if (lastBossPos.has(event.entity.id)) return  // already dying
+      lastBossPos.set(event.entity.id, { ...event.entity.location })
+      event.entity.runCommandAsync("teleport @s ~ -64 ~")""", "index.js")
+    t = replace_once(t, """      let e = event.entity.dimension.spawnEntity("low:netherboss_death", event.entity.location)
+      e.setRotation(event.entity.getRotation())
+      e.triggerEvent("explode")""", """      try {
+        let e = event.entity.dimension.spawnEntity("low:netherboss_death", lastBossPos.get(event.entity.id))
+        e.setRotation(event.entity.getRotation())
+        e.triggerEvent("explode")
+      } catch (error) {
+        if (!(error instanceof LocationInUnloadedChunkError)) console.error(error)
+      }""", "index.js")
+    t = replace_once(t, """  let dimension = event.deadEntity.dimension
+  let location = event.deadEntity.location
+""", """  let dimension = event.deadEntity.dimension
+  let location = lastBossPos.get(event.deadEntity.id) ?? event.deadEntity.location
+  lastBossPos.delete(event.deadEntity.id)
+  try {
+""", "index.js")
+    t = replace_once(t, """  event.deadEntity.dimension.runCommand(`execute positioned ${event.deadEntity.location.x} ${event.deadEntity.location.y} ${event.deadEntity.location.z} run tellraw""",
+                     """  dimension.runCommand(`execute positioned ${location.x} ${location.y} ${location.z} run tellraw""", "index.js")
+    t = replace_once(t, """    dimension.spawnItem(new ItemStack("nxmberscib:throwing_tnt"), location)
+  }, 42)
+})""", """    try {
+      dimension.spawnItem(new ItemStack("minecraft:gold_ingot", Math.floor(Math.random() * 10) + 4), location)
+      dimension.spawnItem(new ItemStack("minecraft:netherite_scrap", Math.floor(Math.random() * 6) + 2), location)
+      dimension.spawnItem(new ItemStack("nxmberscib:throwing_tnt"), location)
+    } catch { }
+  }, 42)
+  } catch (error) {
+    if (!(error instanceof LocationInUnloadedChunkError)) console.error(error)
+  }
+})""", "index.js")
+    t = replace_once(t, """    dimension.spawnItem(new ItemStack("minecraft:gold_ingot", Math.floor(Math.random() * 10) + 4), location)
+    dimension.spawnItem(new ItemStack("minecraft:netherite_scrap", Math.floor(Math.random() * 6) + 2), location)
+    try {""", "    try {", "index.js")
+    t = replace_once(t, "world.afterEvents.entityHealthChanged.subscribe(", "const lastBossPos = new Map()\n\nworld.afterEvents.entityHealthChanged.subscribe(", "index.js")
     t = "import './soul_altar.js';\n" + t
     write(path, t)
     shutil.copyfile(os.path.join(HERE, "netherens", "soul_altar.js"), os.path.join(BP, "scripts", "soul_altar.js"))
     fpath = os.path.join(BP, "functions", "netherBossSkullTracking.mcfunction")
     lines = [l for l in read(fpath).splitlines() if not l.startswith("scoreboard objectives add")]
     write(fpath, "\n".join(lines) + "\n")
+
+
+SKULLS = {0: "minecraft:skeleton_skull", 1: "minecraft:wither_skeleton_skull", 2: "minecraft:zombie_head",
+          3: "minecraft:player_head", 4: "minecraft:creeper_head", 5: "minecraft:dragon_head", 6: "minecraft:piglin_head"}
+
+
+def fix_loot():
+    """Drops of the removed Trapped Soul Energy, and 'minecraft:skull' + data,
+    an item id that no longer exists (skulls have their own ids now)."""
+    for dirpath, _, files in os.walk(os.path.join(BP, "loot_tables")):
+        for name in files:
+            path = os.path.join(dirpath, name)
+            data = load(path)
+            pools = []
+            for pool in data.get("pools", []):
+                entries = []
+                for e in pool.get("entries", []):
+                    if e.get("name") == "codegeek:soul_energy":
+                        continue
+                    if e.get("name") == "minecraft:skull":
+                        fns = e.get("functions", [])
+                        d = next((f.get("data", 0) for f in fns if f.get("function") == "set_data"), 0)
+                        e["name"] = SKULLS.get(d, "minecraft:skeleton_skull")
+                        e["functions"] = [f for f in fns if f.get("function") != "set_data"]
+                        if not e["functions"]:
+                            del e["functions"]
+                    entries.append(e)
+                if entries:
+                    pools.append(dict(pool, entries=entries))
+            data["pools"] = pools
+            dump(path, data)
+
+
+def fix_molten_animations():
+    """Molten uses the vanilla drowned/zombie controllers, which ask for short
+    names its client entity did not define ("can't find animation ...")."""
+    path = os.path.join(RP, "entity", "molten2.entity.json")
+
+    def f(d):
+        anims = d["minecraft:client_entity"]["description"]["animations"]
+        for k, v in {"attack_rotations": "animation.drowned.attack.rotations",
+                     "baby_attack_rotations": "animation.drowned.attack.baby_rotations",
+                     "riding.body": "animation.humanoid.riding.body",
+                     "baby_zombie_attack_bare_hand": "animation.zombie.baby_attack_bare_hand"}.items():
+            anims.setdefault(k, v)
+    edit(path, f)
 
 
 def remove_soul_energy():
@@ -507,6 +594,7 @@ def build(src):
     fix_manifests()
     fix_scripts()
     remove_soul_energy()
+    fix_loot()
     fix_wolf()
     fix_boss()
     add_altar_block()
@@ -514,6 +602,7 @@ def build(src):
     fix_lang()
     remove_unused_clients()
     fix_sound_effects()
+    fix_molten_animations()
     fix_sound_definitions()
     removed = prune_rp()
     compress()

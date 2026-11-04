@@ -161,6 +161,8 @@ world.afterEvents.entityHurt.subscribe(({ hurtEntity, damage, damageSource }) =>
 
     // Ignis hits something
     if (attacker?.typeId === IGNIS && hurtEntity.typeId !== IGNIS && isValid(attacker)) {
+        lastHit.set(attacker.id, system.currentTick);
+        maybeImpale(attacker);
         const drain = healTag(attacker) * cfg.ignis_health_changed_multiplier;
         if (drain > 0) heal(attacker, drain);
         if (cfg.ignis_enrage_enabled && !extraDamage.has(hurtEntity.id)) {
@@ -191,6 +193,70 @@ world.afterEvents.entityHurt.subscribe(({ hurtEntity, damage, damageSource }) =>
     }
 });
 
+// --- Impaling thrust ------------------------------------------------------------
+// attack4__ is the sword thrust; when it connects, attack4T lifts the target on the
+// sword (the JSON teleports Ignis' target in front of it while the tags last).
+// Nothing in the JSON triggers attack4T: the original script did, on a hit.
+const lastThrust = new Map(); // Ignis id -> tick of its last thrust
+const lastHit = new Map();    // Ignis id -> tick it last hurt something
+const lastImpale = new Map(); // Ignis id -> tick of its last lift
+
+function maybeImpale(ignis) {
+    const now = system.currentTick;
+    const thrust = lastThrust.get(ignis.id);
+    const hit = lastHit.get(ignis.id);
+    if (thrust === undefined || hit === undefined) return;
+    if (Math.abs(thrust - hit) > 2 || now - thrust > 3) return;
+    if (now - (lastImpale.get(ignis.id) ?? -1000) < 80) return;
+    lastImpale.set(ignis.id, now);
+    system.runTimeout(() => {
+        if (isValid(ignis)) ignis.triggerEvent("attack4T");
+    }, 1);
+}
+
+// --- Fire orbs ------------------------------------------------------------------
+// The orbs (ignis:ignis_fire) aim with a shooter whose projectile is "x" (none)
+// and burst 0.05 s later: the fireball comes from here, at the orb's target, in
+// the orb's colour (skin 0 fire, 1 soul, 2 abyss).
+function nearestTarget(dimension, location) {
+    return dimension.getPlayers({ location, maxDistance: 64, tags: ["ignis:ignis_target"], closest: 1 })[0];
+}
+
+function launchFireball(orb) {
+    let from, dimension, skin, target;
+    try {
+        from = { ...orb.location };
+        dimension = orb.dimension;
+        skin = orb.getComponent("minecraft:skin_id")?.value ?? 0;
+        target = orb.target;
+    } catch {
+        return;
+    }
+    if (!isValid(target)) target = nearestTarget(dimension, from);
+    if (!target) return;
+    const to = { x: target.location.x, y: target.location.y + 1, z: target.location.z };
+    const dx = to.x - from.x, dy = to.y - from.y, dz = to.z - from.z;
+    const len = Math.hypot(dx, dy, dz) || 1;
+    const ball = dimension.spawnEntity("ignis:ignis_fireball", from);
+    if (skin === 1) ball.triggerEvent("soul");
+    else if (skin === 2) ball.triggerEvent("abyss");
+    const projectile = ball.getComponent("minecraft:projectile");
+    if (!projectile) return;
+    const owner = dimension.getEntities({ type: IGNIS, location: from, maxDistance: 48, closest: 1 })[0];
+    if (owner) projectile.owner = owner;
+    const speed = skin === 2 ? 1.5 : 1.25;
+    projectile.shoot({ x: (dx / len) * speed, y: (dy / len) * speed, z: (dz / len) * speed });
+}
+
+world.afterEvents.dataDrivenEntityTrigger.subscribe(({ entity, eventId }) => {
+    if (entity.typeId === IGNIS && eventId === "attack4__") {
+        lastThrust.set(entity.id, system.currentTick);
+        maybeImpale(entity);
+    } else if (entity.typeId === "ignis:ignis_fire" && (eventId === "a" || eventId === "c")) {
+        launchFireball(entity);
+    }
+});
+
 // --- Ground slams break the floor for a moment (ignis_breaks_all_blocks) --------
 const KEEP = new Set([
     "minecraft:bedrock", "minecraft:barrier", "minecraft:command_block", "minecraft:chain_command_block",
@@ -207,41 +273,81 @@ function breakable(block) {
     return !/sign|banner|bed$|skull|head|shulker|spawner|lectern|beehive|bee_nest|campfire|chest/.test(block.typeId);
 }
 
-function slam(ignis) {
-    const dim = ignis.dimension;
-    const base = { x: Math.floor(ignis.location.x), y: Math.floor(ignis.location.y) - 1, z: Math.floor(ignis.location.z) };
-    const removed = [];
-    for (let dx = -3; dx <= 3; dx++) {
-        for (let dz = -3; dz <= 3; dz++) {
-            const d = Math.hypot(dx, dz);
-            if (d > 3.2 || d < 1 || Math.random() < 0.35) continue;
-            let block;
-            try {
-                block = dim.getBlock({ x: base.x + dx, y: base.y, z: base.z + dz });
-            } catch {
-                continue;
-            }
-            if (!breakable(block) || !block.above()?.isAir) continue;
-            removed.push({ loc: block.location, perm: block.permutation });
-            block.setType("minecraft:air");
-            dim.spawnEntity("ignis:ignis_block", { x: block.location.x + 0.5, y: block.location.y, z: block.location.z + 0.5 });
-        }
+/**
+ * A block jumps out of the floor: ignis:ignis_block shows it (its client entity
+ * draws the item it holds, scaled up and bouncing), the real block is gone for
+ * three seconds (if ignis_breaks_all_blocks and mobGriefing), and it burns.
+ */
+function liftBlock(dim, x, y, z) {
+    let block;
+    try {
+        block = dim.getBlock({ x, y, z });
+    } catch {
+        return;
     }
-    if (!removed.length) return;
+    const center = { x: x + 0.5, y: y + 1.05, z: z + 0.5 };
+    if (!block || block.isAir || block.isLiquid || !block.above()?.isAir) {
+        return;
+    }
+    try {
+        dim.spawnParticle("minecraft:basic_flame_particle", center);
+        if (Math.random() < 0.3) dim.spawnParticle("minecraft:lava_particle", center);
+    } catch {
+        // particles are only decoration
+    }
+    let item;
+    try {
+        item = block.getItemStack(1)?.typeId;
+    } catch {
+        item = undefined;
+    }
+    if (!item) return;
+    const shown = dim.spawnEntity("ignis:ignis_block", { x: x + 0.5, y, z: z + 0.5 });
+    try {
+        shown.runCommand(`replaceitem entity @s slot.weapon.mainhand 0 ${item}`);
+    } catch {
+        shown.remove(); // a block with no item form: just the flames
+        return;
+    }
+    if (!cfg.ignis_breaks_all_blocks || !world.gameRules.mobGriefing || !breakable(block)) return;
+    const perm = block.permutation;
+    block.setType("minecraft:air");
     system.runTimeout(() => {
-        for (const { loc, perm } of removed) {
-            try {
-                const block = dim.getBlock(loc);
-                if (block?.isAir) block.setPermutation(perm);
-            } catch {
-                // unloaded
-            }
+        try {
+            const again = dim.getBlock({ x, y, z });
+            if (again?.isAir) again.setPermutation(perm);
+        } catch {
+            // unloaded: it stays open
         }
     }, 60);
 }
 
+// Ground hits summon rings of ignis:ignis_bl markers (the shock wave): the block
+// under each marker jumps.
+world.afterEvents.entitySpawn.subscribe(({ entity }) => {
+    if (entity.typeId !== "ignis:ignis_bl" && entity.typeId !== "ignis:ignis_bla") return;
+    let loc;
+    try {
+        loc = entity.location;
+    } catch {
+        return;
+    }
+    liftBlock(entity.dimension, Math.floor(loc.x), Math.floor(loc.y) - 1, Math.floor(loc.z));
+});
+
+function slam(ignis) {
+    const dim = ignis.dimension;
+    const bx = Math.floor(ignis.location.x), by = Math.floor(ignis.location.y) - 1, bz = Math.floor(ignis.location.z);
+    for (let dx = -3; dx <= 3; dx++) {
+        for (let dz = -3; dz <= 3; dz++) {
+            const d = Math.hypot(dx, dz);
+            if (d > 3.2 || d < 1 || Math.random() < 0.35) continue;
+            liftBlock(dim, bx + dx, by, bz + dz);
+        }
+    }
+}
+
 system.runInterval(() => {
-    if (!cfg.ignis_breaks_all_blocks || !world.gameRules.mobGriefing) return;
     for (const dimId of ["overworld", "nether", "the_end"]) {
         let list;
         try {

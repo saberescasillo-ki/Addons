@@ -61,6 +61,8 @@ class Temple:
 
     # --- primitives
     def put(self, x, y, z, name, states=None, **kw):
+        if name == LAVA and not states:
+            states = {"liquid_depth": 0}  # a source block (the state is required)
         self.s.set(x, y, z, name, states, **kw)
 
     def brick(self, x, y, z, cracked=0.12):

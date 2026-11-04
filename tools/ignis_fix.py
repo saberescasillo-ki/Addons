@@ -37,7 +37,7 @@ OUT = os.path.join(ROOT, "private")
 BP = os.path.join(OUT, "Ignis_BP")
 RP = os.path.join(OUT, "Ignis_RP")
 MCADDON = os.path.join(OUT, "Ignis.mcaddon")
-VERSION = [1, 1, 0]
+VERSION = [1, 1, 1]
 
 BOSS_NAME = "§6Ignis§r§i§r"        # §i / §j: material colour codes, invisible with no text after them
 BOSS_NAME_SOUL = "§bIgnis§r§j§r"
@@ -71,7 +71,8 @@ def fix_manifests():
         for d in m.get("dependencies", []):
             if "uuid" in d:
                 d["version"] = VERSION
-        m["header"]["description"] = "Ignis 1.1.0 (corregido + Templo de Ignis)"
+        m["header"]["description"] = "Ignis 1.1.1 (corregido + Templo de Ignis)"
+        m["header"]["min_engine_version"] = [1, 21, 90]  # data-driven structure (/place)
     edit(os.path.join(BP, "manifest.json"), bump)
     edit(os.path.join(RP, "manifest.json"), bump)
 
@@ -194,6 +195,29 @@ def add_temple():
                 f"structure load ignis:temple ~-{half} ~-{temple.F} ~-{half}\n"
                 "tellraw @s {\"rawtext\":[{\"text\":\"§6The Temple of Ignis rises. Offer Burning Ashes to the "
                 "Altar of Fire.\"}]}\n")
+    # /place structure ignis:temple: a jigsaw structure with a single piece and no
+    # structure set (so it never generates by itself). The surface heightmap puts
+    # the courtyard floor at ground level.
+    wg = os.path.join(BP, "worldgen")
+    dump(os.path.join(wg, "processors", "temple.json"), {
+        "format_version": "1.21.20",
+        "minecraft:processor_list": {"description": {"identifier": "ignis:temple"}, "processors": []}})
+    dump(os.path.join(wg, "template_pools", "temple.json"), {
+        "format_version": "1.21.20",
+        "minecraft:template_pool": {"description": {"identifier": "ignis:temple"}, "elements": [{
+            "element": {"element_type": "minecraft:single_pool_element", "location": "ignis/temple",
+                        "processors": "ignis:temple"}, "weight": 1}]}})
+    dump(os.path.join(wg, "structures", "temple.json"), {
+        "format_version": "1.21.20",
+        "minecraft:jigsaw": {
+            "description": {"identifier": "ignis:temple"},
+            "biome_filters": [{"test": "has_biome_tag", "operator": "!=", "value": "ignis_never"}],  # always true
+            "heightmap_projection": "world_surface",
+            "max_depth": 1,
+            "start_height": {"type": "constant", "value": {"absolute": -temple.F}},
+            "start_pool": "ignis:temple",
+            "step": "surface_structures",
+            "terrain_adaptation": "beard_thin"}})
     dump(os.path.join(BP, "loot_tables", "ignis", "chests", "temple.json"), {"pools": [
         {"rolls": 1, "entries": [{"type": "item", "name": "ignis:burning_ashes", "weight": 1,
                                   "functions": [{"function": "set_count", "count": {"min": 1, "max": 2}}]}]},

@@ -26,7 +26,7 @@ dm.BP = os.path.join(dm.OUT, "DungeonsEnd_BP")
 dm.RP = os.path.join(dm.OUT, "DungeonsEnd_RP")
 dm.MCADDON = os.path.join(dm.OUT, "DungeonsEnd.mcaddon")
 dm.NAME = "Dungeons End"
-dm.VERSION = [1, 0, 1]  # 1.0.1: content-log fixes; a new version so Minecraft imports the update
+dm.VERSION = [1, 0, 2]  # 1.0.1: content-log fixes; a new version so Minecraft imports the update
 dm.UUIDS = dict(bp="e2a7c41b-9d35-4f08-b6e1-3c5a8f0d27b9", bp_data="5d0b8e63-a1f4-4c92-8e37-b9c2d6a4f015",
                 bp_script="9f3c6a28-e71d-4b05-a4c8-0d2e5b7f9163", rp="c6e19b74-3f2a-4d58-9b0c-a7e4d1f8326e",
                 rp_res="0a8d5f32-b6c9-4e17-8d4a-f2b7c9e1a650")
@@ -120,7 +120,8 @@ def prune_loot():
                    for pool in data.get("pools", []) for e in pool.get("entries", []))
     while True:
         tables = {os.path.relpath(os.path.join(r, f), dm.BP) for r, _, fs in os.walk(root) for f in fs}
-        empty = {t for t in tables if not useful(dm.load(os.path.join(dm.BP, t)))
+        empty = {t for t in tables if not t.startswith("loot_tables/blocks/")  # blocks name them on purpose
+                 and not useful(dm.load(os.path.join(dm.BP, t)))
                  and not any(e.get("type") == "loot_table" for pool in dm.load(os.path.join(dm.BP, t)).get("pools", [])
                              for e in pool.get("entries", []))}
         for t in empty:
