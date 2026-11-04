@@ -86,10 +86,11 @@ function applyScalingToEntity(entity) {
 
 world.afterEvents.entityHurt.subscribe(event => {
     const target = event.hurtEntity;
+    if (!target?.isValid()) return;
     const source = event.damageSource?.damagingEntity;
 
     // === 💢 DAMAGE BOOST SYSTEM (attacker) ===
-    if (source) {
+    if (source?.isValid()) {
         const typeFamily = source.getComponent("minecraft:type_family");
 
         if (typeFamily?.hasTypeFamily("terradraconis_animal")) {
@@ -101,7 +102,7 @@ world.afterEvents.entityHurt.subscribe(event => {
             const extraDamage = finalDamage - baseDamage;
 
             if (extraDamage > 0) {
-                target.applyDamage(extraDamage);
+                if (target.isValid()) target.applyDamage(extraDamage);
             }
         }
     }

@@ -2,6 +2,7 @@ import { world } from "@minecraft/server";
 
 world.afterEvents.entityHurt.subscribe(event => {
     const target = event.hurtEntity;
+    if (!target?.isValid()) return;
     const targetType = target.getComponent("minecraft:type_family");
     if (!targetType?.hasTypeFamily("terradraconis")) return;
 

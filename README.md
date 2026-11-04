@@ -82,6 +82,9 @@ craftear**: en el original se fabricaban en la herrería y con los engramas, que
 - No se incluye el *Lapari* (NPC a medio hacer, con 1 de vida y mensajes de prueba en el chat) ni el cebo de herbívoros.
 - Usa los mismos IDs `terradraconis:` que el original, así que **no se puede activar junto a TerraDraconis Beta**.
 - Requiere Minecraft Bedrock **1.21.80** o superior.
+- Corrige errores del original que salían en el registro de contenido: `InvalidEntityError` al dañar o domar un mob
+  que ya no existe, y los errores de Molang `rider_head_x_rotation`/`rider_body_y_rotation` de los dragones sin jinete.
+- Pesa 14 MB (el pack instalado, 22 MB): los JSON van sin espacios y los sonidos en mono. Las texturas no se tocan.
 - Se regenera desde el zip original con `python3 tools/terradraconis_mobs.py ruta/al/TerraDraconis.zip` (añade
   `--preview` para rehacer la imagen de colores). Los colores se definen en `COLORS` y su probabilidad en
   `tools/terradraconis_mobs/colors.js`.

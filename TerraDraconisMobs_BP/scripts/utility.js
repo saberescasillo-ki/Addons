@@ -24,7 +24,6 @@ function raycastFromPlayer(player, maxDistance = 128) {
 
         for (const entity of hitEntities) {
             if (entity.typeId.includes("crimson")) return entity;
-            console.warn(entity.nameTag)
         }
     }
     return null;

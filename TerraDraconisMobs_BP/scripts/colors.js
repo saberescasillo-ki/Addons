@@ -42,6 +42,9 @@ function getColor(entity) {
 }
 
 function setColor(entity, color) {
+    // A shield horn can change into its other form the same tick it spawns:
+    // the first entity is already gone and the new one gets its own colour.
+    if (!entity.isValid()) return;
     try {
         entity.setProperty(PROP, color);
     } catch (e) {
@@ -102,6 +105,7 @@ function colorOfParent(entity, family) {
 }
 
 world.afterEvents.entitySpawn.subscribe(({ entity, cause }) => {
+    if (!entity.isValid()) return;
     const family = FAMILY[entity.typeId];
     if (!family) return;
 

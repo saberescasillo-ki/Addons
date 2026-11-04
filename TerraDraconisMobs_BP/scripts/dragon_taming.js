@@ -149,15 +149,16 @@ function handleTamingSuccess(entity) {
 
   newEntity.runCommandAsync("/event entity @s adult");
   system.runTimeout(() => {
+    if (!newEntity.isValid()) return;
     newEntity.runCommandAsync("/playanimation @s wake");
     let level = newEntity.getDynamicProperty("level") ?? 10;
     const effectLevel = Math.min(Math.floor(level / 10), 100);
     if (effectLevel > 0) {
-      entity.addEffect("health_boost", 999999, {
+      newEntity.addEffect("health_boost", 999999, {
           amplifier: effectLevel - 1,
           showParticles: false
       });
-      entity.addEffect("instant_health", 20, {
+      newEntity.addEffect("instant_health", 20, {
           amplifier: 255,
           showParticles: false
       });
@@ -167,6 +168,7 @@ function handleTamingSuccess(entity) {
   entity.remove();
 
   // Prompt naming if owner is nearby
+  if (!owner) return;
   const dx = owner.location.x - location.x;
   const dy = owner.location.y - location.y;
   const dz = owner.location.z - location.z;
@@ -233,7 +235,7 @@ world.afterEvents.projectileHitEntity.subscribe((event) => {
 
     const target = hitInfo.entity;
     const projectile = event.projectile;
-    if (!target || !projectile) return;
+    if (!target?.isValid() || !projectile?.isValid()) return;
 
     const typeFamilyComp = projectile.getComponent("minecraft:type_family");
     if (!typeFamilyComp || !typeFamilyComp.hasTypeFamily("tranq")) return;

@@ -252,7 +252,7 @@ world.afterEvents.projectileHitEntity.subscribe((event) => {
 
     const target = hitInfo.entity;
     const projectile = event.projectile;
-    if (!target || !projectile) return;
+    if (!target?.isValid() || !projectile?.isValid()) return;
     const typeFamilyComp = projectile.getComponent("minecraft:type_family");
     if (!typeFamilyComp || !typeFamilyComp.hasTypeFamily("tranq")) return;
     
@@ -347,10 +347,11 @@ function shootChargedArrow(player, arrowType, chargeRatio, power, powerMul) {
 
 world.afterEvents.entityHurt.subscribe(event => {
     const target = event.hurtEntity;
+    if (!target?.isValid()) return;
     const source = event.damageSource?.damagingEntity;
 
     // === 💢 DAMAGE BOOST SYSTEM (attacker) ===
-    if (source) {
+    if (source?.isValid()) {
         if (source.getComponent("minecraft:projectile")) {
             if (source.getDynamicProperty("power")) {
                 const baseDamage = event.damage;
@@ -361,7 +362,7 @@ world.afterEvents.entityHurt.subscribe(event => {
                 const extraDamage = finalDamage - baseDamage;
 
                 if (extraDamage > 0) {
-                    target.applyDamage(extraDamage);
+                    if (target.isValid()) target.applyDamage(extraDamage);
                 }
             }
         }
@@ -443,6 +444,6 @@ function powerScale(damage, target, power) {
     const extraDamage = finalDamage - baseDamage;
 
     if (extraDamage > 0) {
-        target.applyDamage(extraDamage);
+        if (target.isValid()) target.applyDamage(extraDamage);
     }
 }

@@ -38,7 +38,6 @@ world.afterEvents.playerSpawn.subscribe((event) => {
         const existing = world.getDynamicProperty(key);
         if (existing === undefined) {
             world.setDynamicProperty(key, value);
-            console.warn(`[Init] Set default ${key} to ${value}`);
         }
     }
 });

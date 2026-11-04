@@ -20,6 +20,10 @@ What is left out: terrain generation, custom blocks, tools, armour, the other
 items, recipes, workbench/engram systems, the unfinished "lapari" NPC and the
 herbivore bait.
 
+Fixed here: InvalidEntityError and Molang rider-index errors of the original
+scripts and animations (harden_scripts, guard_rider_queries). Smaller: the
+JSON is minified and the sounds re-encoded in mono (needs ffmpeg).
+
     python3 tools/terradraconis_mobs.py path/to/TerraDraconis.zip
     python3 tools/terradraconis_mobs.py path/to/extracted_folder
     python3 tools/terradraconis_mobs.py path/to/TerraDraconis.zip --preview  # also docs/terradraconis_colors.png
@@ -28,6 +32,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import sys
 import tempfile
 import zipfile
@@ -292,10 +297,131 @@ def trim_config(text):
 
 def patch_taming(text):
     # The tamed dragon is a new entity: it keeps the wild one's colour.
-    return replace_once(text, "  if (!newEntity) return;\n",
+    text = replace_once(text, "  if (!newEntity) return;\n",
                         "  if (!newEntity) return;\n"
                         f'  newEntity.setProperty("{COLOR_PROP}", entity.getProperty("{COLOR_PROP}") ?? 0);\n',
                         "dragon_taming.js")
+    # Original bugs: the health boost went to the wild dragon, already removed
+    # by then, and the naming prompt read owner.location without an owner.
+    wake = '    newEntity.runCommandAsync("/playanimation @s wake");\n'
+    text = replace_once(text, wake, "    if (!newEntity.isValid()) return;\n" + wake, "dragon_taming.js")
+    for effect in ("health_boost", "instant_health"):
+        text = replace_once(text, f'      entity.addEffect("{effect}"', f'      newEntity.addEffect("{effect}"',
+                            "dragon_taming.js")
+    naming = "  // Prompt naming if owner is nearby\n"
+    return replace_once(text, naming, naming + "  if (!owner) return;\n", "dragon_taming.js")
+
+
+# Entities can be gone by the time an after-event runs (killed, despawned,
+# transformed). The original scripts then call applyDamage/getComponent on
+# them and the content log shows InvalidEntityError.
+HARDEN = [
+    (re.compile(r"^(\s*)const target = event\.hurtEntity;\n", re.M), r"\g<0>\1if (!target?.isValid()) return;\n"),
+    (re.compile(r"if \(source\) \{"), "if (source?.isValid()) {"),
+    (re.compile(r"target\.applyDamage\(extraDamage\);"), "if (target.isValid()) target.applyDamage(extraDamage);"),
+    (re.compile(r"if \(!target \|\| !projectile\) return;"),
+     "if (!target?.isValid() || !projectile?.isValid()) return;"),
+]
+# Debug output of the original that only fills the content log.
+DEBUG_LINES = ["            console.warn(entity.nameTag)\n",
+               "            console.warn(`[Init] Set default ${key} to ${value}`);\n"]
+
+
+def harden_scripts():
+    for name in sorted(os.listdir(os.path.join(BP, "scripts"))):
+        if name == "colors.js":
+            continue
+        path = os.path.join(BP, "scripts", name)
+        with open(path, encoding="utf-8") as f:
+            text = f.read()
+        for pattern, repl in HARDEN:
+            text = pattern.sub(repl, text)
+        for line in DEBUG_LINES:
+            text = text.replace(line, "")
+        write(path, text)
+
+
+# Molang: query.rider_*_rotation(0) logs an error every frame while the dragon
+# has no rider (original bug). Only ask for it when there is one.
+RIDER_QUERIES = [
+    ("query.rider_head_x_rotation(0)", "(query.has_rider ? query.rider_head_x_rotation(0) : 0)"),
+    ("query.rider_body_y_rotation(0)", "(query.has_rider ? query.rider_body_y_rotation(0) : query.body_y_rotation)"),
+]
+
+
+def guard_rider_queries():
+    for pack in (BP, RP):
+        for dirpath, _, files in os.walk(pack):
+            for name in files:
+                if not name.endswith(".json") or name.endswith(".geo.json"):
+                    continue
+                path = os.path.join(dirpath, name)
+                with open(path, encoding="utf-8-sig") as f:
+                    text = f.read()
+                new = text
+                for query, guarded in RIDER_QUERIES:
+                    new = new.replace(query, guarded)
+                if new != text:
+                    write(path, new)
+
+
+# --- Size ---------------------------------------------------------------------
+def _no_duplicate_keys(pairs):
+    keys = [k for k, _ in pairs]
+    if len(keys) != len(set(keys)):
+        raise ValueError("duplicate keys")
+    return dict(pairs)
+
+
+def _round_floats(obj):
+    if isinstance(obj, float):
+        r = round(obj, 5)
+        return int(r) if r == int(r) else r
+    if isinstance(obj, list):
+        return [_round_floats(x) for x in obj]
+    if isinstance(obj, dict):
+        return {k: _round_floats(v) for k, v in obj.items()}
+    return obj
+
+
+def minify_json():
+    """Writes every JSON file without indentation (the models were ~40 % spaces).
+    Numbers keep 5 decimals, as many as the original models use."""
+    for pack in (BP, RP):
+        for dirpath, _, files in os.walk(pack):
+            for name in files:
+                if not name.endswith(".json"):
+                    continue
+                path = os.path.join(dirpath, name)
+                with open(path, encoding="utf-8-sig") as f:
+                    text = re.sub(r"^\s*//.*$", "", f.read(), flags=re.M)
+                try:
+                    data = json.loads(text, object_pairs_hook=_no_duplicate_keys)
+                except ValueError:
+                    continue  # files with duplicate keys stay exactly as they are
+                with open(path, "w", encoding="utf-8", newline="\n") as f:
+                    json.dump(_round_floats(data), f, separators=(",", ":"), ensure_ascii=False)
+
+
+def compress_sounds():
+    """Re-encodes the sounds as mono Vorbis q5: they were stereo at maximum
+    quality (~500 kbps), and positional mob sounds play in mono anyway."""
+    if not shutil.which("ffmpeg"):
+        print("Aviso: sin ffmpeg los sonidos se copian sin comprimir.")
+        return
+    for dirpath, _, files in os.walk(os.path.join(RP, "sounds")):
+        for name in files:
+            if not name.endswith(".ogg"):
+                continue
+            path = os.path.join(dirpath, name)
+            tmp = path + ".tmp.ogg"
+            subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", path, "-map_metadata", "-1", "-ac", "1",
+                            "-c:a", "libvorbis", "-q:a", "5", "-fflags", "+bitexact", "-flags:a", "+bitexact", tmp],
+                           check=True)
+            if os.path.getsize(tmp) < os.path.getsize(path):
+                os.replace(tmp, path)
+            else:
+                os.remove(tmp)
 
 
 def trim_utility(text):
@@ -541,14 +667,24 @@ def build(src, with_preview=False):
     write(os.path.join(RP, "texts/es_MX.lang"), lang("es"))
     write(os.path.join(RP, "manifest.json"), manifest("rp"))
 
+    harden_scripts()
+    guard_rider_queries()
+    compress_sounds()
+    minify_json()
+
     os.makedirs(DIST, exist_ok=True)
     out = os.path.join(DIST, "TerraDraconisMobs.mcaddon")
-    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         for pack in (BP, RP):
-            for dirpath, _, files in os.walk(pack):
+            for dirpath, dirs, files in os.walk(pack):
+                dirs.sort()
                 for name in sorted(files):
                     full = os.path.join(dirpath, name)
-                    z.write(full, os.path.relpath(full, ROOT))
+                    # Fixed date: the same packs give the same .mcaddon.
+                    info = zipfile.ZipInfo(os.path.relpath(full, ROOT), date_time=(2025, 1, 1, 0, 0, 0))
+                    info.compress_type = zipfile.ZIP_DEFLATED
+                    with open(full, "rb") as f:
+                        z.writestr(info, f.read(), compresslevel=9)
     print("OK ->", os.path.relpath(out, ROOT))
     if with_preview:
         preview(src_rp, os.path.join(ROOT, "docs", "terradraconis_colors.png"))
