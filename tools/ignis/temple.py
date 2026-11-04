@@ -5,7 +5,7 @@ Layout, from the outside in: a three-step plinth, a curtain wall with
 buttresses, cornices and battlements, four octagonal towers with stepped
 roofs and fire braziers, a south gate, a cloister of 16 columns, a lava moat
 with four bridges, the arena, and the stepped dais with the altar in the
-middle. A shrine against the north wall keeps two chests (Burning Ashes).
+middle. A shrine against the north wall keeps four relic chests (Burning Ashes).
 """
 import math
 import random
@@ -46,7 +46,7 @@ LANTERN = "minecraft:lantern"
 BARS = "minecraft:iron_bars"
 FIRE = "minecraft:fire"
 ALTAR = "ignis:altar_of_fire"
-CHEST = "minecraft:chest"
+CHEST = "ignis:relic_chest"
 
 # Direction of a stair's tall back side -> weirdo_direction (Bedrock).
 BACK = {"E": 0, "W": 1, "S": 2, "N": 3}
@@ -438,7 +438,7 @@ class Temple:
                     self.stair(x, F + 8, z, "N", upside=True)
                     self.slab(x, F + 9, z, name=P_SLAB)
         self.lantern(C, F + 7, z0 + 3, chain=2)
-        for x in (C - 3, C + 3):
+        for x in (C - 3, C - 1, C + 1, C + 3):
             self.chest(x, F + 1, z0 + 2)
         for x in (C - 5, C + 5):
             self.put(x, F + 1, z0 + 3, GILDED)
@@ -447,10 +447,9 @@ class Temple:
         self.put(C, F + 2, z0 + 1, GOLD)
 
     def chest(self, x, y, z):
-        be = {"id": "Chest", "isMovable": byte(1), "Findable": byte(0),
-              "LootTable": "loot_tables/ignis/chests/temple.json", "LootTableSeed": int_(0),
-              "Items": Tag(LIST, (COMPOUND, [])), "x": int_(x), "y": int_(y), "z": int_(z)}
-        self.put(x, y, z, CHEST, {"minecraft:cardinal_direction": "south"}, block_entity=be)
+        # Relic Chest of Ignis: bursts open with its loot (the script); its front faces
+        # south ("north" is the way the placing player looked)
+        self.put(x, y, z, CHEST, {"ignis:open": byte(0), "minecraft:cardinal_direction": "north"})
 
     def pedestals(self):
         """Braziers on the six magma rays that do not lead to the gate or the shrine."""

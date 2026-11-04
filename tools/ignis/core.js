@@ -13,6 +13,8 @@ const ALTAR = "ignis:altar_of_fire";
 const ASHES = "ignis:burning_ashes";
 const RITUAL_TICKS = 120; // ignis_spawn's fuse (6 s): Ignis appears when the sigil bursts
 const ALTAR_PROPERTY = "ignis:altar";
+const MINION = "ignis:ignis_minion";
+const RELIC_CHEST = "ignis:relic_chest";
 
 const cfg = Object.assign({
     ignis_breaks_all_blocks: true,
@@ -76,7 +78,49 @@ function startRitual(block, player) {
     }, RITUAL_TICKS);
 }
 
+// --- Relic chests (Temple of Ignis) ---------------------------------------------------
+// They burst open once and throw out their loot; breaking a closed one spills it too.
+const RELIC_LOOT = "ignis/chests/temple";
+
+function spillRelic(dimension, at) {
+    const c = { x: at.x + 0.5, y: at.y + 1, z: at.z + 0.5 };
+    dimension.runCommand(`loot spawn ${c.x} ${c.y} ${c.z} loot "${RELIC_LOOT}"`);
+    dimension.playSound("random.chestopen", c, { pitch: 0.7 });
+    dimension.playSound("ignis.mob.ignis.burst", c, { volume: 0.6, pitch: 1.4 });
+    for (let i = 0; i < 6; i++) {
+        dimension.spawnParticle("minecraft:lava_particle", { x: c.x + (Math.random() - 0.5) * 0.8, y: c.y, z: c.z + (Math.random() - 0.5) * 0.8 });
+    }
+    dimension.spawnParticle("minecraft:basic_flame_particle", c);
+}
+
 system.beforeEvents.startup.subscribe(({ blockComponentRegistry }) => {
+    blockComponentRegistry.registerCustomComponent("ignis:relic_chest", {
+        onPlayerInteract({ block, dimension }) {
+            if (!block || block.permutation.getState("ignis:open")) return;
+            const at = { ...block.location };
+            system.run(() => {
+                try {
+                    const b = dimension.getBlock(at);
+                    if (b?.typeId !== RELIC_CHEST || b.permutation.getState("ignis:open")) return;
+                    b.setPermutation(b.permutation.withState("ignis:open", true));
+                    spillRelic(dimension, at);
+                } catch {
+                    // unloaded
+                }
+            });
+        },
+        onPlayerBreak({ block, brokenBlockPermutation, dimension }) {
+            if (brokenBlockPermutation?.getState("ignis:open")) return;
+            const at = { ...block.location };
+            system.run(() => {
+                try {
+                    spillRelic(dimension, at);
+                } catch {
+                    // unloaded
+                }
+            });
+        },
+    });
     blockComponentRegistry.registerCustomComponent("ignis:altar_of_fire_interact", {
         onPlayerInteract({ block, player }) {
             if (!player || !block) return;
@@ -138,6 +182,7 @@ world.beforeEvents.entityRemove.subscribe(({ removedEntity }) => {
 // --- Helpers ----------------------------------------------------------------------
 const DIMENSIONS = ["overworld", "nether", "the_end"];
 const ALLIES = ["minecraft:iron_golem", "minecraft:snow_golem"]; // besides players, what Ignis fights
+const DETECT = 64; // 4 chunks: how far Ignis and its orbs find a target
 
 function ignisList() {
     const out = [];
@@ -211,8 +256,8 @@ function targetOf(ignis, useLock = true) {
     let best, bestD = Infinity;
     const at = ignis.location;
     const candidates = [
-        ...dim.getPlayers({ location: at, maxDistance: 48 }),
-        ...ALLIES.flatMap((type) => dim.getEntities({ type, location: at, maxDistance: 48 })),
+        ...dim.getPlayers({ location: at, maxDistance: DETECT }),
+        ...ALLIES.flatMap((type) => dim.getEntities({ type, location: at, maxDistance: DETECT })),
     ];
     for (const c of candidates) {
         if (!isFighter(c)) continue;
@@ -407,7 +452,7 @@ world.afterEvents.playerSpawn.subscribe(({ player }) => {
 });
 
 // --- Damage ------------------------------------------------------------------------
-const DODGE_MIN = 0.05, DODGE_MAX = 0.6, REDUCE_MIN = 0.01, REDUCE_MAX = 0.8, ENRAGE = 1;
+const DODGE_MIN = 0.03, DODGE_MAX = 0.25, REDUCE_MIN = 0.01, REDUCE_MAX = 0.8, ENRAGE = 1;
 const busy = new Set(); // "<id>:<kind>" guards, cleared next tick
 
 function once(key) {
@@ -453,6 +498,10 @@ world.afterEvents.entityHurt.subscribe((ev) => {
         // an entity vanished mid-hit
     }
 });
+
+// Lifesteal (nerfed): only sword hits heal, half the tag's value, and the blazing
+// brand adds 25 % per stack instead of multiplying.
+const LIFESTEAL = 0.5, BRAND_BONUS = 0.25;
 
 function onHurt({ hurtEntity: victim, damage, damageSource }) {
     if (!isValid(victim)) return;
@@ -517,9 +566,10 @@ function onHurt({ hurtEntity: victim, damage, damageSource }) {
                     addBrand(victim, phase >= 2 && (variant === 10 || variant === 13) ? 2 : 1, 12);
                 }
                 const ah = healthOf(attacker);
-                if (ah && ah.currentValue >= 1.5) {
-                    const drain = Number(tag.slice("ignis:ignisH_".length)) || 0;
-                    setHealth(ah, ah.currentValue + drain * (brandOf(victim) || 1) * cfg.ignis_health_changed_multiplier);
+                if (ah && ah.currentValue >= 1.5 && damageSource.cause === "entityAttack") {
+                    const drain = (Number(tag.slice("ignis:ignisH_".length)) || 0) * LIFESTEAL
+                        * (1 + BRAND_BONUS * Math.max(0, brandOf(victim) - 1));
+                    setHealth(ah, ah.currentValue + drain * cfg.ignis_health_changed_multiplier);
                 }
                 break;
             }
@@ -550,6 +600,13 @@ function onHurt({ hurtEntity: victim, damage, damageSource }) {
             }
             addBrand(victim, 1, 10);
             if (variantOf(attacker) === 1) percentDamage(victim, damage);
+            return;
+        case MINION:
+            try {
+                victim.setOnFire(2, true);
+            } catch {
+                // fire immune
+            }
             return;
         case "ignis:ignis_fire":
         case "ignis:ignis_fireball":
@@ -623,11 +680,8 @@ world.afterEvents.projectileHitEntity.subscribe((ev) => {
         const source = ev.source;
         if (source && hit.id === source.id) return;
         if (!source || source.typeId.startsWith("ignis:")) {
-            // Ignis' fireball found its mark: Ignis drinks from it
-            if (hit.typeId.startsWith("ignis:")) return;
-            const ignis = hit.dimension.getEntities({ type: IGNIS, location: hit.location, maxDistance: 96, closest: 1 })[0];
-            const h = ignis && healthOf(ignis);
-            if (h && h.currentValue >= 1.5) setHealth(h, h.currentValue + 5 * (brandOf(hit) || 1));
+            // Ignis' own fireball: it no longer heals Ignis (only its sword does)
+            return;
         } else if (hit.typeId === IGNIS) {
             // a fireball sent back by a player cracks Ignis' shield
             const h = healthOf(source);
@@ -644,7 +698,30 @@ let markerCount = 0;
 const SIGIL_EVERY = 6;      // one sigil per this many shock-wave markers
 const SIGIL_TICKS = 50;
 
-function burnAt(dim, x, y, z, sigil) {
+const isSoul = (ignis) => {
+    try {
+        return (ignis?.getProperty("ignis:phase") ?? 1) >= 2;
+    } catch {
+        return false;
+    }
+};
+
+/** A damaging fire circle; in the soul phases it burns in soul-sand blue. */
+function spawnStrike(dim, at, soul, spawnEvent) {
+    const mark = dim.spawnEntity("ignis:ignis_strike", at, spawnEvent ? { spawnEvent } : undefined);
+    if (soul) mark.triggerEvent("soul");
+    return mark;
+}
+
+function nearestIgnis(dim, location, radius = 48) {
+    try {
+        return dim.getEntities({ type: IGNIS, location, maxDistance: radius, closest: 1 })[0];
+    } catch {
+        return undefined;
+    }
+}
+
+function burnAt(dim, x, y, z, sigil, soul = false) {
     let block;
     try {
         block = dim.getBlock({ x, y, z });
@@ -660,7 +737,7 @@ function burnAt(dim, x, y, z, sigil) {
         // decoration only
     }
     if (!sigil || !cfg.ignis_breaks_all_blocks) return;
-    const mark = dim.spawnEntity("ignis:ignis_strike", { x: x + 0.5, y: y + 1, z: z + 0.5 });
+    const mark = spawnStrike(dim, { x: x + 0.5, y: y + 1, z: z + 0.5 }, soul);
     system.runTimeout(() => {
         if (isValid(mark)) mark.remove();
     }, SIGIL_TICKS);
@@ -676,7 +753,9 @@ world.afterEvents.entitySpawn.subscribe(({ entity }) => {
         return;
     }
     markerCount = (markerCount + 1) % SIGIL_EVERY;
-    burnAt(entity.dimension, Math.floor(loc.x), Math.floor(loc.y) - 1, Math.floor(loc.z), markerCount === 0);
+    const sigil = markerCount === 0;
+    const soul = sigil && isSoul(nearestIgnis(entity.dimension, loc));
+    burnAt(entity.dimension, Math.floor(loc.x), Math.floor(loc.y) - 1, Math.floor(loc.z), sigil, soul);
 });
 
 /** Burns the floor at offsets (right, forward) from Ignis, like ^r^^f. */
@@ -684,11 +763,11 @@ function burnPattern(ignis, offsets) {
     const v = ignis.getViewDirection();
     const len = Math.hypot(v.x, v.z) || 1;
     const f = { x: v.x / len, z: v.z / len }, r = { x: -f.z, z: f.x };
-    const at = ignis.location, dim = ignis.dimension;
+    const at = ignis.location, dim = ignis.dimension, soul = isSoul(ignis);
     for (const [side, ahead] of offsets) {
         const x = at.x + f.x * ahead + r.x * side, z = at.z + f.z * ahead + r.z * side;
         markerCount = (markerCount + 1) % SIGIL_EVERY;
-        burnAt(dim, Math.floor(x), groundAt(dim, x, at.y, z), Math.floor(z), markerCount === 0);
+        burnAt(dim, Math.floor(x), groundAt(dim, x, at.y, z), Math.floor(z), markerCount === 0, soul);
     }
 }
 
@@ -715,10 +794,10 @@ function splitFloor(ignis) {
 const SIZE = 1.154;                     // Ignis' scale (ignis_fix.py)
 const ROW = [8.5, 12.75, 17, 21.25, 25.5, 29.75, 34, 38.25].map((d) => d * SIZE);
 
-function sigil(dim, x, y, z, step) {
+function sigil(dim, x, y, z, step, soul) {
     try {
         const gy = groundAt(dim, x, y, z) + 1;
-        dim.spawnEntity("ignis:ignis_strike", { x, y: gy, z }, { spawnEvent: `ignis${step}` });
+        spawnStrike(dim, { x, y: gy, z }, soul, `ignis${step}`);
     } catch {
         // unloaded or blocked
     }
@@ -729,20 +808,20 @@ function sigilRows(ignis) {
     const len = Math.hypot(v.x, v.z) || 1;
     const f = { x: v.x / len, z: v.z / len };
     const dirs = (ignis.getProperty("ignis:phase") ?? 1) >= 2 ? 8 : 4;
-    const at = { ...ignis.location }, dim = ignis.dimension;
+    const at = { ...ignis.location }, dim = ignis.dimension, soul = isSoul(ignis);
     const ways = [];
     for (let i = 0; i < dirs; i++) {
         const a = (i * 2 * Math.PI) / dirs;
         ways.push({ x: f.x * Math.cos(a) - f.z * Math.sin(a), z: f.x * Math.sin(a) + f.z * Math.cos(a) });
     }
     ROW.forEach((dist, step) => system.runTimeout(() => {
-        for (const w of ways) sigil(dim, at.x + w.x * dist, at.y, at.z + w.z * dist, step + 1);
+        for (const w of ways) sigil(dim, at.x + w.x * dist, at.y, at.z + w.z * dist, step + 1, soul);
     }, step));
 }
 
 function scatteredCircles(ignis) {
-    const soul = (ignis.getProperty("ignis:phase") ?? 1) >= 2;
-    const count = soul ? 40 : 28;
+    const soul = isSoul(ignis);
+    const count = soul ? 27 : 19;
     const at = { ...ignis.location }, dim = ignis.dimension;
     const spots = [];
     for (let tries = 0; spots.length < count && tries < count * 12; tries++) {
@@ -752,7 +831,7 @@ function scatteredCircles(ignis) {
         if (spots.every((q) => Math.hypot(q.x - p.x, q.z - p.z) >= 3.2)) spots.push(p);
     }
     spots.forEach((p, i) => system.runTimeout(() => {
-        sigil(dim, p.x, at.y, p.z, 1 + Math.floor(Math.random() * 8));
+        sigil(dim, p.x, at.y, p.z, 1 + Math.floor(Math.random() * 8), soul);
     }, Math.floor(i / 2)));
 }
 
@@ -889,8 +968,10 @@ world.afterEvents.dataDrivenEntityTrigger.subscribe(({ entity, eventId }) => {
         case "attack12T_":
             lunge(ignis, Math.min(lxz, 24) / 3.5);
             break;
-        case "variant":
         case "ignisDeath":
+            deathScene(ignis);
+        // falls through: the attack tags go too
+        case "variant":
             for (const tag of ignis.getTags()) if (tag.startsWith("ignis:ignis")) ignis.removeTag(tag);
             break;
         default:
@@ -929,13 +1010,13 @@ system.afterEvents.scriptEventReceive.subscribe(({ id, sourceEntity: ignis }) =>
 const airborne = new Map(); // Ignis id -> lowest vertical speed while in the air
 
 function slam(ignis) {
-    const dim = ignis.dimension;
+    const dim = ignis.dimension, soul = isSoul(ignis);
     const bx = Math.floor(ignis.location.x), by = Math.floor(ignis.location.y) - 1, bz = Math.floor(ignis.location.z);
     for (let dx = -3; dx <= 3; dx++) {
         for (let dz = -3; dz <= 3; dz++) {
             const d = Math.hypot(dx, dz);
             if (d > 3.2 || d < 1 || Math.random() < 0.4) continue;
-            burnAt(dim, bx + dx, by, bz + dz, (dx === 3 || dx === -3 || dz === 3 || dz === -3) && (dx === 0 || dz === 0));
+            burnAt(dim, bx + dx, by, bz + dz, (dx === 3 || dx === -3 || dz === 3 || dz === -3) && (dx === 0 || dz === 0), soul);
         }
     }
 }
@@ -953,3 +1034,154 @@ system.runInterval(() => {
         }
     }
 }, 2);
+
+// --- Minions: Blackstone Squires -------------------------------------------------------------
+// Now and then Ignis calls squires out of the floor: up to 3 (4 in the soul phases),
+// glowing fire or soul like Ignis. None of Ignis' attacks hurt them (family ignis:ignis).
+// They crumble when their Ignis dies or leaves.
+const OWNER = "ignis:owner";
+const SUMMON_FIRST = 20 * 20, SUMMON_MIN = 20 * 24, SUMMON_MAX = 20 * 36;
+const nextSummon = new Map(); // Ignis id -> tick
+
+function minionsOf(ignis) {
+    try {
+        return ignis.dimension.getEntities({ type: MINION, location: ignis.location, maxDistance: 96 })
+            .filter((m) => m.getDynamicProperty(OWNER) === ignis.id);
+    } catch {
+        return [];
+    }
+}
+
+function crumble(minion) {
+    try {
+        const at = minion.location;
+        minion.dimension.spawnParticle("minecraft:large_explosion", { x: at.x, y: at.y + 0.8, z: at.z });
+        minion.dimension.spawnParticle("minecraft:basic_flame_particle", { x: at.x, y: at.y + 1, z: at.z });
+        minion.remove();
+    } catch {
+        // gone
+    }
+}
+
+function summonSquires(ignis) {
+    const soul = isSoul(ignis);
+    const room = (soul ? 4 : 3) - minionsOf(ignis).length;
+    if (room <= 0) return;
+    const dim = ignis.dimension, at = { ...ignis.location };
+    dim.playSound("ignis.mob.ignis.summon", at, { volume: 2, pitch: 1.3 });
+    for (let i = 0; i < Math.min(2, room); i++) {
+        const a = Math.random() * 2 * Math.PI, d = 3 + Math.random() * 2.5;
+        const x = at.x + Math.cos(a) * d, z = at.z + Math.sin(a) * d;
+        const y = groundAt(dim, x, at.y, z) + 1;
+        try {
+            dim.spawnParticle("ignis:ignis_phase", { x, y, z });
+            spawnStrike(dim, { x, y, z }, soul).addTag("ignis:summon_rune"); // the rune they rise from
+        } catch {
+            // decoration only
+        }
+        system.runTimeout(() => {
+            if (!isValid(ignis)) return;
+            try {
+                const m = dim.spawnEntity(MINION, { x, y, z }, soul ? { spawnEvent: "soul" } : undefined);
+                m.setDynamicProperty(OWNER, ignis.id);
+                const t = targetOf(ignis);
+                if (t) m.applyImpulse({ x: 0, y: 0.35, z: 0 });
+            } catch {
+                // blocked
+            }
+        }, 25);
+    }
+}
+
+// summon runes vanish quickly (they still burn whoever stands on them)
+world.afterEvents.entitySpawn.subscribe(({ entity }) => {
+    if (entity.typeId !== "ignis:ignis_strike") return;
+    system.runTimeout(() => {
+        try {
+            if (isValid(entity) && entity.hasTag("ignis:summon_rune")) entity.remove();
+        } catch {
+            // gone
+        }
+    }, 40);
+});
+
+system.runInterval(() => {
+    const now = system.currentTick;
+    const alive = new Set();
+    for (const ignis of ignisList()) {
+        alive.add(ignis.id);
+        if (!isValid(ignis) || variantOf(ignis) === 100) continue;
+        let fighting = false;
+        try {
+            fighting = isFighter(ignis.target);
+        } catch {
+            fighting = false;
+        }
+        if (!fighting) {
+            nextSummon.delete(ignis.id);
+            continue;
+        }
+        if (!nextSummon.has(ignis.id)) nextSummon.set(ignis.id, now + SUMMON_FIRST);
+        if (now < nextSummon.get(ignis.id)) continue;
+        nextSummon.set(ignis.id, now + SUMMON_MIN + Math.floor(Math.random() * (SUMMON_MAX - SUMMON_MIN)));
+        summonSquires(ignis);
+    }
+    // orphans crumble
+    for (const id of DIMENSIONS) {
+        let list = [];
+        try {
+            list = world.getDimension(id).getEntities({ type: MINION });
+        } catch {
+            continue;
+        }
+        for (const m of list) {
+            const owner = m.getDynamicProperty(OWNER);
+            if (owner && !alive.has(owner)) crumble(m);
+        }
+    }
+    for (const id of nextSummon.keys()) if (!alive.has(id)) nextSummon.delete(id);
+}, 20);
+
+// --- Death scene ------------------------------------------------------------------------------
+// The JSON plays the kneel and the last stab; then Ignis sinks into the ground in
+// flames (RP animation) and bursts when it is gone (it vanishes at 5 s).
+function deathScene(ignis) {
+    const dim = ignis.dimension;
+    const at = { ...ignis.location };
+    const soul = isSoul(ignis);
+    for (const m of minionsOf(ignis)) crumble(m);
+    const flame = soul ? "minecraft:blue_flame_particle" : "minecraft:basic_flame_particle";
+    for (let t = 48; t < 100; t += 3) {
+        system.runTimeout(() => {
+            try {
+                for (let i = 0; i < 6; i++) {
+                    const a = Math.random() * 2 * Math.PI, r = Math.random() * 1.6;
+                    dim.spawnParticle(flame, { x: at.x + Math.cos(a) * r, y: at.y + Math.random() * 3, z: at.z + Math.sin(a) * r });
+                }
+                dim.spawnParticle("minecraft:lava_particle", { x: at.x, y: at.y + 0.5, z: at.z });
+            } catch {
+                // unloaded
+            }
+        }, t);
+    }
+    system.runTimeout(() => {
+        try {
+            dim.runCommand(`camerashake add @a[x=${at.x},y=${at.y},z=${at.z},r=32] 0.4 2 rotational`);
+        } catch {
+            // ignore
+        }
+    }, 50);
+    system.runTimeout(() => {
+        try {
+            dim.playSound("ignis.mob.ignis.burst", at, { volume: 4 });
+            dim.spawnParticle("minecraft:huge_explosion_emitter", { x: at.x, y: at.y + 1, z: at.z });
+            dim.spawnParticle("ignis:ignis_phase", { x: at.x, y: at.y + 2, z: at.z });
+            for (let i = 0; i < 16; i++) {
+                const a = (i / 16) * 2 * Math.PI;
+                dim.spawnParticle(flame, { x: at.x + Math.cos(a) * 3, y: at.y + 0.3, z: at.z + Math.sin(a) * 3 });
+            }
+        } catch {
+            // unloaded
+        }
+    }, 99);
+}

@@ -36,6 +36,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "ignis"))
 import temple  # noqa: E402
+import extras  # noqa: E402
 from dungeons_mobs import load, dump  # noqa: E402
 
 ROOT = os.path.dirname(HERE)
@@ -43,7 +44,7 @@ OUT = os.path.join(ROOT, "private")
 BP = os.path.join(OUT, "Ignis_BP")
 RP = os.path.join(OUT, "Ignis_RP")
 MCADDON = os.path.join(OUT, "Ignis.mcaddon")
-VERSION = [1, 3, 0]
+VERSION = [1, 4, 0]
 
 # Boss bar names: a leading colour code only (trailing codes may be trimmed by the
 # game, and then the HUD no longer recognises the name).
@@ -509,7 +510,11 @@ def build(src):
     big_slash()
     timing()
     fix_projectiles()
+    extras.add_minion(BP, RP)
+    extras.soul_strikes(BP, RP)
+    extras.death(BP, RP)
     add_temple()
+    extras.relic_chests(BP, RP, "ignis/chests/temple")
     with zipfile.ZipFile(MCADDON, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         for pack in (BP, RP):
             for dirpath, dirs, files in os.walk(pack):
