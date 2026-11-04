@@ -1,0 +1,39 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "TerraDraconis Mobs",
+    "description": "Recursos de los mobs de TerraDraconis Beta.",
+    "uuid": "e91b7a3d-4f25-4c6e-a8d0-7b3c1e5f9a14",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      80
+    ]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "2f6c9d48-b1e3-4a75-9c02-d8e4f7a1b356",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "5b0f3c2e-8d1a-4c47-9e62-3f7a1d2b9c41",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ]
+}

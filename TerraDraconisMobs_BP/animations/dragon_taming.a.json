@@ -1,0 +1,23 @@
+{
+    "format_version": "1.10.0",
+    "animations": {
+        "animation.crimson_racer_taming": {
+            "animation_length": 10,
+            "loop": true,
+            "timeline": {
+                "0.0":[
+                    "/scriptevent terradraconis:dragon_taming"
+                ]
+            }
+        },
+        "animation.crimson_racer_wake": {
+            "animation_length": 5,
+            "loop": true,
+            "timeline": {
+                "0.0":[
+                    "/scriptevent terradraconis:dragon_wake"
+                ]
+            }
+        }
+    }
+}

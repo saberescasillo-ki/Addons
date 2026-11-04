@@ -1,0 +1,20 @@
+{
+    "format_version": "1.10.0",
+    "minecraft:client_entity": {
+        "description": {
+            "identifier": "terradraconis:lootbag",
+            "materials": {
+                "default": "entity_alphatest"
+            },
+            "textures": {
+                "default": "textures/entity/lootbag_texture"
+            },
+            "geometry": {
+                "default": "geometry.lootbag"
+            },
+            "render_controllers": [
+                "controller.render.default"
+            ]
+        }
+    }
+}

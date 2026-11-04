@@ -7,6 +7,7 @@
 | **Ruleta de Colores** – ruleta en el HUD con comandos de administrador | [`dist/Roulette.mcaddon`](dist/Roulette.mcaddon) | `tools/roulette.py` |
 | **Objetos de Ayuda** – 4 objetos especiales que ayudan al jugador | [`dist/HelperItems.mcaddon`](dist/HelperItems.mcaddon) | `tools/helper_items.py` |
 | **The LITIUS Blind** – nueva dimensión de islas flotantes | [`dist/LitiusBlind.mcaddon`](dist/LitiusBlind.mcaddon) | `tools/litius_blind.py` |
+| **TerraDraconis Mobs** – solo los mobs de TerraDraconis Beta (dragones y animales) | [`dist/TerraDraconisMobs.mcaddon`](dist/TerraDraconisMobs.mcaddon) | `tools/terradraconis_mobs.py` |
 
 Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo. No hace falta activar experimentos
 (salvo en The LITIUS Blind, ver abajo).
@@ -15,6 +16,38 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 - Medieval Mobs requiere **1.21.0** o superior.
 - Ruleta de Colores y Objetos de Ayuda requieren **1.21.90** o superior.
 - The LITIUS Blind requiere **26.20** o superior y el experimento **Beta APIs**.
+- TerraDraconis Mobs requiere **1.21.80** o superior.
+
+---
+
+# TerraDraconis Mobs
+
+Los **mobs** del addon *TerraDraconis Beta*, separados del resto (terreno, bloques, objetos, armas y armaduras).
+
+| Mob | ID | Aparece |
+|---|---|---|
+| Corredor Carmesí salvaje | `terradraconis:wild_crimson_racer` | sobre hierba en biomas de animales, cuando el mundo lleva al menos 5 minutos (6000 ticks) |
+| Corredor Carmesí Salvaje (savage) | `terradraconis:savage_crimson_racer` | solo con su huevo de generación o `/summon` |
+| Corredor Carmesí domado | `terradraconis:crimson_racer` | al eclosionar un huevo o al domar uno salvaje |
+| Huevo de Corredor Carmesí | `terradraconis:crimson_racer_egg` | solo con `/summon`; eclosiona en una cría |
+| Cuerno Escudo (macho, hembra, cría) | `terradraconis:male_shield_horn`, `female_shield_horn`, `baby_shield_horn` | sobre hierba en biomas de animales y en **nidos** en llanuras |
+| Nido de Cuerno Escudo | `terradraconis:shield_horn_nest` | se genera en llanuras y suelta 4 Cuernos Escudo |
+| Mosca Centelleante | `terradraconis:shimmer_fly` | en grupos de 10–20 sobre hierba |
+
+Se conservan también las entidades auxiliares que necesitan: el aliento de fuego del dragón y la bolsa de botín que
+aparece al domarlo. Y los scripts de los mobs: niveles y mutaciones, vuelo y estamina al montar el dragón,
+domesticación, menú de estadísticas, daño y resistencia por nivel, nidos, huida de los Cuernos Escudo y experiencia al morir.
+
+- **Catalejo** apuntando a un dragón: muestra sus estadísticas. **Brújula**: ajustes del nivel máximo y de las mutaciones.
+- Para tener un dragón propio: `/summon terradraconis:crimson_racer_egg`, esperar a que eclosione y darle una
+  **chuleta de cerdo** cruda a la cría.
+- **Qué no se puede hacer sin el resto del addon:** dejar inconsciente a un dragón salvaje para domarlo (hacían falta
+  las flechas y balas tranquilizantes y el narcótico) ni subirle de nivel con el *Dragon Orb*.
+  Esos objetos no están en este pack.
+- No se incluye el *Lapari* (NPC a medio hacer, con 1 de vida y mensajes de prueba en el chat) ni el cebo de herbívoros.
+- Usa los mismos IDs `terradraconis:` que el original, así que **no se puede activar junto a TerraDraconis Beta**.
+- Requiere Minecraft Bedrock **1.21.80** o superior.
+- Se regenera desde el zip original con `python3 tools/terradraconis_mobs.py ruta/al/TerraDraconis.zip`.
 
 ---
 

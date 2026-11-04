@@ -1,0 +1,70 @@
+{
+    "format_version": "1.20.41",
+    "minecraft:entity": {
+        "description": {
+            "identifier": "terradraconis:lootbag",
+            "is_spawnable": true,
+            "is_summonable": true,
+            "is_experimental": false
+        },
+        "component_groups": {
+            "des":{
+                "minecraft:instant_despawn": {
+                    "remove_child_entities": false
+                }
+            }
+        },
+        "components": {
+            "minecraft:health": {
+                "value": 100,
+                "max": 100
+            },
+            "minecraft:damage_sensor": {
+                "triggers": [
+                    {
+                        "cause": "all",
+                        "deals_damage": false
+                    }
+                ]
+            },
+            "minecraft:fire_immune": {},
+            "minecraft:timer": {
+                "time": 120,
+                "looping": true,
+                "time_down_event": {
+                    "event": "des",
+                    "target": "self"
+                }
+            },
+            "minecraft:inventory": {
+                "additional_slots_per_strength": 0,
+                "can_be_siphoned_from": false,
+                "container_type": "container",
+                "inventory_size": 27,
+                "private": false,
+                "restrict_to_owner": false
+            },
+            "minecraft:physics": {
+                "has_collision": true,
+                "has_gravity": true
+            },
+            "minecraft:collision_box": {
+                "height": 0.5,
+                "width": 0.5
+            },
+            "minecraft:pushable": {
+                "is_pushable": true,
+                "is_pushable_by_piston": true
+            }
+        },
+        "events": {
+            "des":{
+                "add": {
+                    "component_groups": [
+                        "des"
+                    ]
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,69 @@
+{
+    "entity_sounds": {
+        "entities": {
+            "terradraconis:wild_crimson_racer":{
+                "events": {
+                    "ambient":{
+                        "sound": "crimson_racer_ambient",
+                        "pitch":[0.8,1.2],
+                        "volume":1
+                    },
+                    "hurt":{
+                        "sound": "crimson_racer_hurt",
+                        "pitch":[0.8,1.2],
+                        "volume":1
+                    },
+                    "death":{
+                        "pitch":[0.8,1.2],
+                        "sound": "crimson_racer_death",
+                        "volume":1
+                    }
+                },
+                "pitch":[0.8,1.2],
+                "volume":1
+            },
+            "terradraconis:crimson_racer":{
+                "events": {
+                    "ambient":{
+                        "sound": "crimson_racer_ambient",
+                        "pitch":[0.8,1.2],
+                        "volume":1
+                    },
+                    "hurt":{
+                        "sound": "crimson_racer_hurt",
+                        "pitch":[0.8,1.2],
+                        "volume":1
+                    },
+                    "death":{
+                        "pitch":[0.8,1.2],
+                        "sound": "crimson_racer_death",
+                        "volume":1
+                    }
+                },
+                "pitch":[0.8,1.2],
+                "volume":1
+            },
+            "terradraconis:savage_crimson_racer":{
+                "events": {
+                    "ambient":{
+                        "sound": "savage_crimson_racer_ambient",
+                        "pitch":[0.8,1.2],
+                        "volume":1
+                    },
+                    "hurt":{
+                        "sound": "savage_crimson_racer_hurt",
+                        "pitch":[0.8,1.2],
+                        "volume":1
+                    },
+                    "death":{
+                        "pitch":[0.8,1.2],
+                        "sound": "savage_crimson_racer_death",
+                        "volume":1
+                    }
+                },
+                "pitch":[0.5,0.8],
+                "volume":1
+            }
+        }
+    }
+}

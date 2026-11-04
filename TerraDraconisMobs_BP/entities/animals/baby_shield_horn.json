@@ -1,0 +1,247 @@
+{
+    "format_version": "1.20.41",
+    "minecraft:entity": {
+        "description": {
+            "identifier": "terradraconis:baby_shield_horn",
+            "is_spawnable": true,
+            "is_summonable": true,
+            "is_experimental": false
+        },
+        "component_groups": {
+            "male_grown":{
+                "minecraft:transformation": {
+                    "into": "terradraconis:male_shield_horn",
+                    "delay":{
+                        "value": 0
+                    }
+                }
+            },
+            "female_grown":{
+                "minecraft:transformation": {
+                    "into": "terradraconis:female_shield_horn",
+                    "delay":{
+                        "value": 0
+                    }
+                }
+            },
+            "male":{
+                "minecraft:variant": {
+                    "value": 0
+                },
+                "minecraft:ageable": {
+                    "duration": 1200,
+                    "feed_items":"minecraft:wheat",
+                    "grow_up": {
+                        "event": "male_grow_up",
+                        "target": "self"
+                    }
+                }
+            },
+            "female":{
+                "minecraft:variant": {
+                    "value": 1
+                },
+                "minecraft:ageable": {
+                    "duration": 1200,
+                    "feed_items":"minecraft:wheat",
+                    "grow_up": {
+                        "event": "female_grow_up",
+                        "target": "self"
+                    }
+                }
+            },
+            "baby":{
+                "minecraft:is_baby": {},
+                "minecraft:behavior.follow_parent": {},
+                "minecraft:scale_by_age": {
+                    "end_scale": 1,
+                    "start_scale": 0.3
+                }
+            }
+        },
+        "components": {
+            "minecraft:despawn": {
+                "despawn_from_inactivity": true,
+                "min_range_inactivity_timer": 30,
+                "min_range_random_chance": 800,
+                "despawn_from_distance": {
+                    "min_distance": 64,
+                    "max_distance": 128
+                },
+                "remove_child_entities": false
+            },
+            "minecraft:pushable": {
+                "is_pushable": true,
+                "is_pushable_by_piston": true
+            },
+            "minecraft:health": {
+                "value": 10,
+                "max": 10
+            },
+            "minecraft:physics": {
+                "has_collision": true,
+                "has_gravity": true
+            },
+            "minecraft:collision_box": {
+                "height": 2,
+                "width": 1.5
+            },
+            "minecraft:movement": {
+                "value": 0.2,
+                "max": 0.2
+            },
+            "minecraft:movement.basic": {
+                "max_turn": 30
+            },
+            "minecraft:navigation.walk": {
+                "avoid_damage_blocks": false,
+                "can_pass_doors": true,
+                "can_jump": true
+            },
+            "minecraft:jump.static": {
+                "jump_power": 0.42
+            },
+            "minecraft:variable_max_auto_step": {
+                "base_value": 1.5625,
+                "controlled_value": 1.5625,
+                "jump_prevented_value": 1.5625
+            },
+            "minecraft:behavior.float": {
+                "priority": 0
+            },
+            "minecraft:behavior.random_stroll": {
+                "speed_multiplier": 1,
+                "priority": 3,
+                "interval": 120,
+                "xz_dist": 30,
+                "y_dist": 7
+            },
+            "minecraft:behavior.look_at_target": {
+                "look_distance": 16,
+                "probability": 1,
+                "look_time": [
+                    20,
+                    40
+                ],
+                "priority": 4,
+                "angle_of_view_vertical": 360,
+                "angle_of_view_horizontal": 360
+            },
+            "minecraft:behavior.random_look_around": {
+                "priority": 5,
+                "look_distance": 16,
+                "probability": 0.02,
+                "look_time": [
+                    2,
+                    4
+                ],
+                "angle_of_view_vertical": 60,
+                "angle_of_view_horizontal": 60
+            },
+            "minecraft:behavior.look_at_player": {
+                "angle_of_view_vertical": 60,
+                "angle_of_view_horizontal": 60,
+                "look_distance": 8,
+                "probability": 0.02,
+                "look_time": [
+                    2,
+                    4
+                ],
+                "target_distance": 6,
+                "priority": 6
+            },
+            "minecraft:behavior.look_at_entity": {
+                "angle_of_view_vertical": 60,
+                "angle_of_view_horizontal": 60,
+                "look_distance": 8,
+                "probability": 0.02,
+                "look_time": [
+                    2,
+                    4
+                ],
+                "priority": 7
+            },
+            "minecraft:knockback_resistance": {
+                "value": 0.2,
+                "max": 0.2
+            },
+            "minecraft:type_family": {
+                "family": [
+                    "animal",
+                    "mob",
+                    "shield_horn",
+                    "terradraconis"
+                ]
+            }
+        },
+        "events": {
+            "male_grow_up":{
+                "add": {
+                    "component_groups": [
+                        "male_grown"
+                    ]
+                }
+            },
+            "female_grow_up":{
+                "add": {
+                    "component_groups": [
+                        "female_grown"
+                    ]
+                }
+            },
+            "gender_random":{
+                "randomize": [
+                    {
+                        "add": {
+                            "component_groups": [
+                                "male"
+                            ]
+                        },
+                        "weight": 1
+                    },
+                    {
+                        "add": {
+                            "component_groups": [
+                                "female"
+                            ]
+                        },
+                        "weight": 1
+                    }
+                ]
+            },
+            "minecraft:entity_spawned": {
+                "add": {
+                    "component_groups": [
+                        "baby"
+                    ]
+                },
+                "trigger": {
+                    "target": "self",
+                    "event": "gender_random"
+                }
+            },
+            "minecraft:entity_transformed": {
+                "add": {
+                    "component_groups": [
+                        "baby"
+                    ]
+                },
+                "trigger": {
+                    "target": "self",
+                    "event": "gender_random"
+                }
+            },
+            "minecraft:entity_born": {
+                "add": {
+                    "component_groups": [
+                        "baby"
+                    ]
+                },
+                "trigger": {
+                    "target": "self",
+                    "event": "gender_random"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,116 @@
+{
+    "format_version": "1.10.0",
+    "minecraft:client_entity": {
+        "description": {
+            "identifier": "terradraconis:wild_crimson_racer",
+            "materials": {
+                "default": "entity_emissive_alpha"
+            },
+            "textures": {
+                "default": "textures/entity/crimson_racer_texture"
+            },
+            "animations": {
+                "swim_sound":"animation.crimson_racer.swim_sound",
+                "swim":"animation.crimson_racer.swim",
+                "start_faint":"animation.crimson_racer.start_faint",
+                "faint":"animation.crimson_racer.faint",
+                "wake":"animation.crimson_racer.wake",
+                "faint_eat":"animation.crimson_racer.faint_eat",
+                "phase_aura":"animation.crimson_racer.phase_aura",
+                "idle": "animation.crimson_racer.idle",
+                "wind_sound":"animation.crimson_racer.wind_sound",
+                "wing_sound":"animation.crimson_racer.wing_sound",
+                "idle_var1":"animation.crimson_racer.idle_var1",
+                "idle_var2":"animation.crimson_racer.idle_var2",
+                "idle_var3":"animation.crimson_racer.idle_var3",
+                "idle_var4":"animation.crimson_racer.idle_var4",
+                "idle_var5":"animation.crimson_racer.idle_var5",
+                "cooldown":"animation.cooldown_timers",
+                "walk": "animation.crimson_racer.rework_walk",
+                "run": "animation.crimson_racer.rework_run",
+                "fly":"animation.crimson_racer.fly2",
+                "glide":"animation.crimson_racer.fly3",
+                "dive":"animation.crimson_racer.fly4",
+                "bite":"animation.crimson_racer.bite_attack",
+                "bite2":"animation.crimson_racer.bite_attack2",
+                "bite3":"animation.crimson_racer.bite_attack3",
+                "bite4":"animation.crimson_racer.bite_attack4",
+                "bite5":"animation.crimson_racer.bite_attack5",
+                "bite6":"animation.crimson_racer.bite_attack6",
+                "bite7":"animation.crimson_racer.bite_attack7",
+                "look_at_target":"animation.crimson_racer.look_at_target",
+                "look_at_target_has_rider":"animation.crimson_racer.look_at_target_has_rider",
+                "controller": "controller.animation.wyverns",
+                "idle_var_controller":"controller.animation.wyverns_idle_var",
+                "attack_controller":"controller.animation.wyverns_attack",
+                "fire_breath":"animation.crimson_racer.fire_breath",
+                "phase_aura_controller":"controller.animation.crimson_racer.phase_aura",
+                "wind_sound_controller":"controller.animation.wind_sound",
+                "faint_controller":"controller.animation.crimson_racer.faint"
+            },
+            "scripts": {
+                "initialize": [
+                    "variable.x_lerp=query.target_x_rotation;",
+                    "variable.y_lerp=query.target_y_rotation;",
+                    "variable.y_rotation_lerp = 0;",
+                    "variable.x_lerp_dive = query.rider_head_x_rotation(0);",
+                    "variable.idle_var = 0;",
+                    "variable.melee_var = 0;"
+                ],
+                "pre_animation": [
+                    "variable.x_lerp = math.lerp(variable.x_lerp, query.target_x_rotation, 0.05);",
+                    "variable.y_lerp = math.lerp(variable.y_lerp, query.target_y_rotation, 0.05);",
+
+                    "variable.target_delta_y = query.rider_body_y_rotation(0) - query.body_y_rotation;",
+                    "variable.target_delta_y = variable.target_delta_y > 180 ? variable.target_delta_y - 360 : variable.target_delta_y;",
+                    "variable.target_delta_y = variable.target_delta_y < -180 ? variable.target_delta_y + 360 : variable.target_delta_y;",
+                    "variable.target_delta_y = math.clamp(variable.target_delta_y, -45, 45);",
+                    "variable.y_rotation_lerp = math.lerp(variable.y_rotation_lerp, variable.target_delta_y, 0.05);",
+                    "variable.x_lerp_dive = math.lerp(variable.x_lerp_dive, query.rider_head_x_rotation(0), 0.05);",
+                    "variable.idle_var = math.random_integer(0, 8);",
+                    "variable.melee_var = math.random_integer(0, 4);"
+                ],
+                "animate": [
+                    {
+                        "look_at_target":"!query.has_rider"
+                    },
+                    {
+                        "look_at_target_has_rider":"query.has_rider"
+                    },
+                    "faint_controller",
+                    "wind_sound_controller",
+                    "controller",
+                    "attack_controller",
+                    "idle_var_controller",
+                    "phase_aura_controller"
+                ]
+            },
+            "spawn_egg": {
+                "base_color": "#9e0000",
+                "overlay_color": "#000000"
+            },
+            "sound_effects": {
+                "eat":"crimson_racer_eat",
+                "wind_sound":"wind_sound",
+                "wing_open_sound":"crimson_racer_wing_open_sound",
+                "crimson_racer_roar":"crimson_racer_roar",
+                "wing_sound":"crimson_racer_wing_sound",
+                "bite":"crimson_racer_bite",
+                "stomp":"crimson_racer_stomp",
+                "swim_sound":"crimson_racer_swim",
+                "fire_breath":"crimson_racer_fire_breath",
+                "impact":"crimson_racer_impact"
+            },
+            "particle_effects": {
+                "phase_aura":"terradraconis_pa:phase_aura",
+                "eye_aura":"terradraconis_pa:eye_aura"
+            },
+            "geometry": {
+                "default": "geometry.crimson_racer"
+            },
+            "render_controllers": [
+                "controller.render.default"
+            ]
+        }
+    }
+}

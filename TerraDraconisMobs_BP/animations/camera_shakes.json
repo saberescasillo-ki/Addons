@@ -1,0 +1,52 @@
+{
+    "format_version": "1.10.0",
+    "animations": {
+        "animation.crimson_racer_bite_shake": {
+            "animation_length": 1,
+            "loop": false,
+            "timeline": {
+                "0.5":[
+                    "/camerashake add @a[r=9] 0.5 0.2 positional"
+                ]
+            }
+        },
+        "animation.crimson_racer_walk_shake": {
+            "animation_length": 1,
+            "loop": true,
+            "timeline": {
+                "0.5":[
+                    "/camerashake add @a[r=24] 0.1 0.3 positional",
+                    "/camerashake add @a[r=16] 0.05 0.3 positional"
+                ],
+                "1.0":[
+                    "/camerashake add @a[r=24] 0.1 0.3 positional",
+                    "/camerashake add @a[r=16] 0.05 0.3 positional"
+                ]
+            }
+        },
+
+        "animation.savage_crimson_racer_bite_shake": {
+            "animation_length": 1,
+            "loop": false,
+            "timeline": {
+                "0.5":[
+                    "/camerashake add @a[r=13] 0.6 0.2 positional"
+                ]
+            }
+        },
+        "animation.savage_crimson_racer_walk_shake": {
+            "animation_length": 1,
+            "loop": true,
+            "timeline": {
+                "0.5":[
+                    "/camerashake add @a[r=32] 0.2 0.3 positional",
+                    "/camerashake add @a[r=24] 0.1 0.3 positional"
+                ],
+                "1.0":[
+                    "/camerashake add @a[r=32] 0.2 0.3 positional",
+                    "/camerashake add @a[r=24] 0.1 0.3 positional"
+                ]
+            }
+        }
+    }
+}

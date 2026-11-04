@@ -1,0 +1,30 @@
+{
+    "format_version": "1.10.0",
+    "minecraft:client_entity": {
+        "description": {
+            "identifier": "terradraconis:crimson_racer_egg",
+            "materials": {
+                "default": "entity_alphatest"
+            },
+            "textures": {
+                "default": "textures/entity/crimson_racer_egg_texture"
+            },
+            "geometry": {
+                "default": "geometry.crimson_racer_egg"
+            },
+            "animations": {
+                "hatch": "animation.crimson_racer_egg.hatch"
+            },
+            "scripts": {
+                "animate": [
+                    {
+                        "hatch":"query.is_transforming"
+                    }
+                ]
+            },
+            "render_controllers": [
+                "controller.render.default"
+            ]
+        }
+    }
+}

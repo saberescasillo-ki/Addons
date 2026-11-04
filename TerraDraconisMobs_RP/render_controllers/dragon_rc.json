@@ -1,0 +1,24 @@
+{
+    "format_version": "1.10.0",
+    "render_controllers": {
+        "controller.render.crimson_racer": {
+             "arrays": {
+                "textures": {
+                    "Array.coats":[
+                        "texture.unsaddle",
+                        "texture.saddled"
+                    ]
+                }
+            },
+            "geometry": "Geometry.default",
+            "materials": [
+                {
+                    "*": "Material.default"
+                }
+            ],
+            "textures": [
+                "Array.coats[query.variant]"
+            ]
+        }
+    }
+}

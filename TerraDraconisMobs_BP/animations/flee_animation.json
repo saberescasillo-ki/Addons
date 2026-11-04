@@ -1,0 +1,14 @@
+{
+    "format_version": "1.10.0",
+    "animations": {
+        "animation.flee_animation": {
+            "animation_length": 0.1,
+            "loop": true,
+            "timeline": {
+                "0.0":[
+                    "/scriptevent terradraconis:flee"
+                ]
+            }
+        }
+    }
+}

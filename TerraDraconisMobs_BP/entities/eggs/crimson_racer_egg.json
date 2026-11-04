@@ -1,0 +1,136 @@
+{
+    "format_version": "1.20.41",
+    "minecraft:entity": {
+        "description": {
+            "identifier": "terradraconis:crimson_racer_egg",
+            "is_spawnable": false,
+            "is_summonable": true,
+            "is_experimental": false
+        },
+        "component_groups": {
+            "hatching":{
+                "minecraft:timer": {
+                    "time": 10,
+                    "looping": true,
+                    "time_down_event": {
+                        "event": "hatched",
+                        "target": "self"
+                    }
+                }
+            },
+            "hatched":{
+                "minecraft:transformation": {
+                    "into": "terradraconis:crimson_racer",
+                    "delay":{
+                        "value": 10
+                    }
+                }
+            }
+        },
+        "components": {
+            "minecraft:health": {
+                "value": 50,
+                "max": 50
+            },
+            "minecraft:knockback_resistance": {
+                "value": 1,
+                "max": 1
+            },
+            "minecraft:pushable": {
+                "is_pushable": true,
+                "is_pushable_by_piston": true
+            },
+            "minecraft:collision_box": {
+                "height": 0.5,
+                "width": 0.5
+            },
+            "minecraft:physics": {
+                "has_collision": true,
+                "has_gravity": true
+            },
+            "minecraft:fire_immune": {},
+            "minecraft:environment_sensor": {
+                "triggers": [
+                    {
+                        "event": "hatch",
+                        "target": "self",
+                        "filters": {
+                            "all_of":[
+                                {
+                                    "test": "in_block",
+                                    "operator": "==",
+                                    "subject": "self",
+                                    "value": "minecraft:fire"
+                                },
+                                {
+                                    "test": "has_component",
+                                    "operator": "!=",
+                                    "subject": "self",
+                                    "value": "minecraft:timer"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "event": "unhatch",
+                        "target": "self",
+                        "filters": {
+                            "all_of":[
+                                {
+                                    "test": "in_block",
+                                    "operator": "!=",
+                                    "subject": "self",
+                                    "value": "minecraft:fire"
+                                },
+                                {
+                                    "test": "has_component",
+                                    "operator": "==",
+                                    "subject": "self",
+                                    "value": "minecraft:timer"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "events": {
+            "hatch":{
+                "queue_command": {
+                    "command":[
+                        "effect @s resistance 10 2"
+                    ]
+                },
+                "add": {
+                    "component_groups": [
+                        "hatching"
+                    ]
+                }
+            },
+            "unhatch":{
+                "queue_command": {
+                    "command":[
+                        "effect @s clear resistance"
+                    ]
+                },
+                "remove": {
+                    "component_groups": [
+                        "hatching"
+                    ]
+                }
+            },
+            "hatched":{
+                "add": {
+                    "component_groups": [
+                        "hatched"
+                    ]
+                },
+                "remove": {
+                    "component_groups": [
+                        "hatching"
+                    ]
+                }
+            }
+        }
+    }
+}

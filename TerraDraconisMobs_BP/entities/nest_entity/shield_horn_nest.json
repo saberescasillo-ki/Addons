@@ -1,0 +1,83 @@
+{
+    "format_version": "1.20.41",
+    "minecraft:entity": {
+        "description": {
+            "identifier": "terradraconis:shield_horn_nest",
+            "is_spawnable": true,
+            "is_summonable": true,
+            "is_experimental": false
+        },
+        "component_groups": {
+            "summon_timer":{
+                "minecraft:timer": {
+                    "time": [2400, 3600],
+                    "looping": true,
+                    "time_down_event": {
+                        "event": "summon",
+                        "target": "self"
+                    }
+                }
+            }
+        },
+        "components": {
+            "minecraft:health": {
+                "value": 99999,
+                "max": 99999
+            },
+            "minecraft:scale": {
+                "value": 2
+            },
+            "minecraft:damage_sensor": {
+                "triggers": [
+                    {
+                        "cause": "all",
+                        "deals_damage": false
+                    }
+                ]
+            },
+            "minecraft:knockback_resistance": {
+                "value": 1,
+                "max": 1
+            },
+            "minecraft:type_family": {
+                "family": [
+                    "nest"
+                ]
+            },
+            "minecraft:fire_immune": {},
+            "minecraft:physics": {
+                "has_collision": true,
+                "has_gravity": true
+            },
+            "minecraft:collision_box": {
+                "height": 0.2,
+                "width": 0.5
+            }
+        },
+        "events": {
+            "minecraft:entity_spawned": {
+                "add": {
+                    "component_groups": [
+                        "summon_timer"
+                    ]
+                },
+                "queue_command": {
+                    "command":[
+                        "fill ~~~ ~~-1~ minecraft:air"
+                    ]
+                },
+                "trigger": {
+                    "target": "self",
+                    "event": "summon"
+                }
+            },
+            "summon":{
+                "queue_command": {
+                    "command":[
+                        "scriptevent terradraconis:nest_summon"
+                    ]
+                }
+            }
+        }
+    }
+}

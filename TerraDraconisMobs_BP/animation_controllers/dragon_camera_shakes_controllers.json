@@ -1,0 +1,49 @@
+{
+    "format_version": "1.10.0",
+    "animation_controllers": {
+        "controller.animation.crimson_racer_attack":{
+            "initial_state": "setup",
+            "states": {
+                "setup":{
+                    "transitions": [
+                        {
+                            "bite": "query.is_delayed_attacking"
+                        }
+                    ]
+                },
+                "bite":{
+                    "animations": [
+                        "bite_shake"
+                    ],
+                    "transitions": [
+                        {
+                            "setup": "query.any_animation_finished"
+                        }
+                    ]
+                }
+            }
+        },
+        "controller.animation.crimson_racer_walk":{
+            "initial_state": "setup",
+            "states": {
+                "setup":{
+                    "transitions": [
+                        {
+                            "walk": "query.ground_speed > 0.1"
+                        }
+                    ]
+                },
+                "walk":{
+                    "animations": [
+                        "walk_shake"
+                    ],
+                    "transitions": [
+                        {
+                            "setup": "query.ground_speed <= 0.1"
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}

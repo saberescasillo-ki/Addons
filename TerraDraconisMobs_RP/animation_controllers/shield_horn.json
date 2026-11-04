@@ -1,0 +1,134 @@
+{
+    "format_version": "1.10.0",
+    "animation_controllers": {
+        "controller.animation.shield_horn":{
+            "initial_state": "default",
+            "states": {
+                "default":{
+                    "animations": [
+                        "idle"
+                    ],
+                    "blend_transition":0.2,
+                    "transitions": [
+                        {
+                            "walk": "query.ground_speed > 0 && query.ground_speed < 5"
+                        },
+                        {
+                            "run": "query.ground_speed > 5"
+                        }
+                    ]
+                },
+                "walk":{
+                    "animations": [
+                        "walk"
+                    ],
+                    "blend_transition":0.2,
+                    "transitions": [
+                        {
+                            "default": "query.ground_speed <= 0"
+                        },
+                        {
+                            "run": "query.ground_speed > 5"
+                        }
+                    ]
+                },
+                "run":{
+                    "animations": [
+                        "run"
+                    ],
+                    "blend_transition":0.2,
+                    "transitions": [
+                        {
+                            "default": "query.ground_speed <= 0"
+                        },
+                        {
+                            "walk": "query.ground_speed > 0 && query.ground_speed < 5"
+                        }
+                    ]
+                }
+            }
+        },
+         "controller.animation.shield_horn_idle_var":{
+            "initial_state": "setup",
+            "states": {
+                "setup":{
+                    "blend_transition":0.1,
+                    "transitions": [
+                        {
+                            "var1": "query.anim_time > 5 && variable.idle_var == 1 && query.ground_speed <= 0"
+                        },
+                        {
+                            "var2": "query.anim_time > 5 && variable.idle_var == 2 && query.ground_speed <= 0"
+                        },
+                        {
+                            "var3": "query.anim_time > 5 && variable.idle_var == 3 && query.ground_speed <= 0"
+                        }
+                    ]
+                },
+                "var1":{
+                    "animations": [
+                        "idle_var1"
+                    ],
+                    "transitions": [
+                        {
+                            "cooldown": "query.any_animation_finished"
+                        }
+                    ]
+                },
+                "var2":{
+                    "animations": [
+                        "idle_var2"
+                    ],
+                    "transitions": [
+                        {
+                            "cooldown": "query.any_animation_finished"
+                        }
+                    ]
+                },
+                "var3":{
+                    "animations": [
+                        "idle_var3"
+                    ],
+                    "transitions": [
+                        {
+                            "cooldown": "query.any_animation_finished"
+                        }
+                    ]
+                },
+                "cooldown":{
+                    "animations": [
+                        "cooldown"
+                    ],
+                    "transitions": [
+                        {
+                            "setup": "query.any_animation_finished"
+                        }
+                    ]
+                }
+            }
+        },
+         "controller.animation.shield_horn_attack":{
+            "initial_state": "setup",
+            "states": {
+                "setup":{
+                    "blend_transition":0.1,
+                    "transitions": [
+                        {
+                            "attack": "query.is_delayed_attacking"
+                        }
+                    ]
+                },
+                "attack":{
+                    "animations": [
+                        "attack"
+                    ],
+                    "transitions": [
+                        {
+                            "setup": "query.any_animation_finished"
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}

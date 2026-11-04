@@ -1,0 +1,58 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "TerraDraconis Mobs",
+    "description": "Solo los mobs de TerraDraconis Beta: dragones y animales.",
+    "uuid": "5b0f3c2e-8d1a-4c47-9e62-3f7a1d2b9c41",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      80
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "a7e4d915-2c3b-4f80-b6d1-0e9c5a7f3b22",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "c3d8e1f0-6a4b-4d29-8f17-b5e2a9c04d63",
+      "version": [
+        1,
+        0,
+        0
+      ],
+      "entry": "scripts/main.js"
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "e91b7a3d-4f25-4c6e-a8d0-7b3c1e5f9a14",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "1.18.0"
+    },
+    {
+      "module_name": "@minecraft/server-ui",
+      "version": "1.3.0"
+    }
+  ]
+}

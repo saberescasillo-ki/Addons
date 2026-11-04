@@ -1,0 +1,54 @@
+{
+    "format_version": "1.10.0",
+    "minecraft:client_entity": {
+        "description": {
+            "identifier": "terradraconis:baby_shield_horn",
+            "materials": {
+                "default": "entity_emissive_alpha"
+            },
+            "textures": {
+                "male": "textures/entity/male_baby_shield_horn_texture",
+                "female": "textures/entity/female_baby_shield_horn_texture"
+            },
+            "geometry": {
+                "default": "geometry.shield_horn"
+            },
+            "animations": {
+                "idle": "animation.shield_horn.idle",
+                "walk":"animation.shield_horn.walk",
+                "run":"animation.shield_horn.run",
+                "attack":"animation.shield_horn.attack",
+                "idle_var1":"animation.shield_horn.idle_var1",
+                "idle_var2":"animation.shield_horn.idle_var2",
+                "idle_var3":"animation.shield_horn.idle_var3",
+                "controller":"controller.animation.shield_horn",
+                "look_at_target":"animation.shield_horn.look_at_target",
+                "cooldown":"animation.cooldown_timers",
+                "attack_controller":"controller.animation.shield_horn_attack",
+                "idle_var_controller":"controller.animation.shield_horn_idle_var"
+            },
+            "scripts": {
+                "initialize": [
+                    "variable.x_lerp=query.target_x_rotation;",
+                    "variable.y_lerp=query.target_y_rotation;",
+                    "variable.idle_var = 0;"
+                ],
+                "pre_animation": [
+                    "variable.x_lerp = math.lerp(variable.x_lerp, query.target_x_rotation, 0.05);",
+                    "variable.y_lerp = math.lerp(variable.y_lerp, query.target_y_rotation, 0.05);",
+
+                    "variable.idle_var = math.random_integer(0, 5);"
+                ],
+                "animate": [
+                    "look_at_target",
+                    "controller",
+                    "attack_controller",
+                    "idle_var_controller"
+                ]
+            },
+            "render_controllers": [
+                "controller.render.gender"
+            ]
+        }
+    }
+}

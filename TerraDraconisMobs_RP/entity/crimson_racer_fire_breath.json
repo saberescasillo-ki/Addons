@@ -1,0 +1,22 @@
+{
+    "format_version": "1.10.0",
+    "minecraft:client_entity": {
+        "description": {
+            "identifier": "terradraconis:crimson_racer_fire_breath",
+            "materials": {
+                "default": "entity_alphatest"
+            },
+            "animations": {
+                "basic": "animation.dragon.fire_breath" 
+            },
+            "particle_effects": {
+                "effect":"terradraconis_pa:fire_breath"
+            },
+            "scripts": {
+                "animate": [
+                    "basic"
+                ]
+            }
+        }
+    }
+}

@@ -1,0 +1,20 @@
+{
+	"format_version": "1.13.0",
+	"minecraft:structure_template_feature": {
+		"description": {
+			"identifier": "terradraconis:shield_horn_nest"
+		},
+		"structure_name": "mystructure:shield_horn_nest",
+		"adjustment_radius": 16,
+		"facing_direction": "random",
+		"constraints": {
+			"unburied": {},
+			"grounded": {},
+			"block_intersection": {
+				"block_allowlist": [
+					"minecraft:air"
+				]
+			}
+		}
+	}
+}
