@@ -743,7 +743,8 @@ def build(src_dir):
                     sound_files.add(name + ext)
     skip = {"textures/item_texture.json", "textures/terrain_texture.json", "textures/flipbook_textures.json",
             "blocks.json", "sounds.json", "sounds/sound_definitions.json"}
-    for rel in sorted((rp_files - skip) | atlas_textures | sound_files):
+    textures = (rp_files - skip) | atlas_textures
+    for rel in sorted(textures | texture_sets(src_rp, textures) | sound_files):
         copy(src_rp, RP, rel)
     for name in os.listdir(os.path.join(src_rp, "texts")):
         copy(src_rp, RP, "texts/" + name)
@@ -753,6 +754,27 @@ def build(src_dir):
     minify_json()
     write_mcaddon()
     report(closure, items, gear, blocks, structures)
+
+
+def texture_sets(src_rp, files):
+    """PBR texture sets of the kept textures (x.texture_set.json and the layers it
+    names, like x_mer.png): without them Vibrant Visuals draws those textures
+    without their glow and roughness (the Void Fluid looked wrong)."""
+    out = set()
+    for rel in files:
+        base, ext = os.path.splitext(rel)
+        if ext not in TEXTURE_EXTS:
+            continue
+        ts = base + ".texture_set.json"
+        if not os.path.isfile(os.path.join(src_rp, ts)):
+            continue
+        out.add(ts)
+        folder = os.path.dirname(rel)
+        for layer in _walk_strings(load(os.path.join(src_rp, ts)).get("minecraft:texture_set", {})):
+            if layer.startswith("#"):  # a colour, not a file
+                continue
+            out.update(texture_files(src_rp, os.path.join(folder, layer)))
+    return out
 
 
 def _walk_strings(obj):

@@ -102,6 +102,14 @@ git ignora, a partir del zip original:
 python3 tools/dungeons_mobs.py ruta/a/AlylicasDungeons.zip
 ```
 
+`tools/dungeons_end.py` hace una versión reducida, **Dungeons End**: solo el Endersent (minijefe del End, que aquí
+suelta un Ojo de Ender Encantado al morir) y el Vengeful Heart of Ender con su Ciudadela Rota, su portal (6 ojos) y su
+cofre (se abre con la Llave del Vacío). Misma salida en `private/`:
+
+```
+python3 tools/dungeons_end.py ruta/a/AlylicasDungeons.zip
+```
+
 ---
 
 # The LITIUS Blind
