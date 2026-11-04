@@ -1,9 +1,10 @@
 import { world, system, GameMode } from "@minecraft/server";
 import { ModalFormData } from "@minecraft/server-ui";
-import { SCREENS } from "./screens.js";
+import { SCREENS, TIPS, tipsFor } from "./screens.js";
 
-// Artificial loading screens: an image over 80 % of the screen, "Loading" in the
-// middle and a boss tip at the bottom. They do nothing else (for now).
+// Artificial loading screens: an image over 80 % of the screen (the rest dims),
+// "Loading" in the middle and a boss tip at the bottom. While one is up (and 5 s
+// more) the player has Resistance 255.
 //
 //   * the Loading Screen Remote (ldscr:loading_remote) opens a form for admins:
 //     which screen, how many seconds and for whom;
@@ -14,13 +15,27 @@ const ITEM = "ldscr:loading_remote";
 const showing = new Map(); // player id -> token of the screen on show
 
 const isValid = (e) => !!e && (typeof e.isValid === "function" ? e.isValid() : e.isValid);
-const randomTip = (screen) => screen.tips[Math.floor(Math.random() * screen.tips.length)];
+const AFTER = 5 * 20; // Resistance lasts this long after the screen
+const randomTip = (screen) => {
+    const tips = tipsFor(screen);
+    return tips[Math.floor(Math.random() * tips.length)];
+};
+
+function resist(player, ticks) {
+    try {
+        player.removeEffect("resistance");
+        player.addEffect("resistance", ticks, { amplifier: 255, showParticles: false });
+    } catch {
+        // left the game
+    }
+}
 
 export function showLoading(player, screen, seconds, tip) {
     const ticks = Math.max(1, Math.round(seconds * 20));
     player.onScreenDisplay.setTitle(screen.marker, {
         fadeInDuration: 0, stayDuration: ticks, fadeOutDuration: 0, subtitle: tip ?? randomTip(screen),
     });
+    resist(player, ticks + AFTER);
     const token = {};
     showing.set(player.id, token);
     system.runTimeout(() => {
@@ -30,9 +45,15 @@ export function showLoading(player, screen, seconds, tip) {
 }
 
 export function hideLoading(player) {
+    const early = showing.has(player.id);
     showing.delete(player.id);
     try {
-        if (isValid(player)) player.onScreenDisplay.clearTitle();
+        if (!isValid(player)) return;
+        // The HUD keeps the last title's text after it clears, and the screen is
+        // drawn while that text holds its marker: replace it with a blank title.
+        player.onScreenDisplay.setTitle(" ", { fadeInDuration: 0, stayDuration: 1, fadeOutDuration: 0, subtitle: " " });
+        player.onScreenDisplay.clearTitle();
+        if (early) resist(player, AFTER);
     } catch {
         // left the game
     }
@@ -72,13 +93,13 @@ async function openRemote(admin) {
         return;
     }
     const names = world.getAllPlayers().map((p) => p.name);
-    const tips = SCREENS[0].tips;
+    const tips = TIPS.map(([boss, t]) => `[${boss}] ${t}`);
     const form = new ModalFormData()
         .title("Pantallas de carga")
         .dropdown("Pantalla", SCREENS.map((s) => s.name), { defaultValueIndex: 0 })
         .slider("Duración (segundos)", 1, 60, { valueStep: 1, defaultValue: 5 })
         .dropdown("Para", [...WHO, ...names], { defaultValueIndex: 0 })
-        .dropdown("Consejo", ["Al azar", ...tips], { defaultValueIndex: 0 })
+        .dropdown("Consejo", ["Al azar (del jefe de la pantalla)", ...tips], { defaultValueIndex: 0 })
         .toggle("Quitar las pantallas activas en vez de mostrar", { defaultValue: false });
     const res = await form.show(admin);
     if (res.canceled || !res.formValues) return;
@@ -90,7 +111,7 @@ async function openRemote(admin) {
         admin.sendMessage(`§7Pantallas de carga quitadas a ${list.length} jugador(es).`);
         return;
     }
-    const tip = tipIndex > 0 ? screen.tips[tipIndex - 1] : undefined;
+    const tip = tipIndex > 0 ? TIPS[tipIndex - 1][1] : undefined;
     for (const p of list) showLoading(p, screen, seconds, tip ?? randomTip(screen));
     admin.sendMessage(`§7"${screen.name}" mostrada a ${list.length} jugador(es) durante ${seconds} s.`);
 }

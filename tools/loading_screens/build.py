@@ -2,8 +2,10 @@
 
     python3 tools/loading_screens/build.py
 
-A screen covers the middle 80 % of the screen, over the rest of the HUD: its
-picture, "Loading" in the middle and a boss tip at the bottom. Admins show them
+A screen covers the middle 80 % of the screen, over the rest of the HUD (which
+dims): its picture, "Loading" in the middle and a boss tip at the bottom; the
+player gets Resistance 255 meanwhile (and 5 s more). The pictures: Ignis drawn
+in code (art.py) and the owner's own images in private/loading_sources/. Admins show them
 with the Loading Screen Remote (which screen, how many seconds, to whom) or with
 /scriptevent ldscr:show <screen> <seconds>. They have no other effect for now.
 """
@@ -27,7 +29,9 @@ NAME = "LoadingScreens"
 BP = os.path.join(OUT, f"{NAME}_BP")
 RP = os.path.join(OUT, f"{NAME}_RP")
 MCADDON = os.path.join(OUT, f"{NAME}.mcaddon")
-VERSION = [1, 0, 0]
+SOURCES = os.path.join(OUT, "loading_sources")  # the owner's pictures (not in git)
+MAX_W = 1024
+VERSION = [1, 1, 0]
 ITEM = "ldscr:loading_remote"
 
 
@@ -77,21 +81,45 @@ def manifests():
         "dependencies": [{"uuid": uid("bp"), "version": VERSION}]})
 
 
+def trim_black(img):
+    """Drops the black bars along the top and bottom of a picture."""
+    rgb = img.convert("RGB")
+    w, h = rgb.size
+    px = rgb.load()
+
+    def black(y):
+        return sum(1 for x in range(0, w, 4) if sum(px[x, y]) < 60) / len(range(0, w, 4)) > 0.97
+    top, bottom = 0, h - 1
+    while top < bottom and black(top):
+        top += 1
+    while bottom > top and black(bottom):
+        bottom -= 1
+    return rgb.crop((0, top, w, bottom + 1))
+
+
+def picture_file(sid):
+    for ext in (".png", ".jpg", ".jpeg"):
+        path = os.path.join(SOURCES, sid + ext)
+        if os.path.exists(path):
+            return path
+    return None
+
+
 def textures(picture):
     tex = os.path.join(RP, "textures", "ldscr")
     os.makedirs(tex, exist_ok=True)
     picture.convert("RGB").save(os.path.join(tex, "ignis.png"), optimize=True)
+    for sid, _ in screens():
+        if sid == "ignis":
+            continue
+        path = picture_file(sid)
+        if not path:
+            sys.exit(f"falta la imagen de la pantalla '{sid}' en {SOURCES}")
+        img = trim_black(Image.open(path))
+        if img.width > MAX_W:
+            img = img.resize((MAX_W, round(img.height * MAX_W / img.width)), Image.LANCZOS)
+        img.save(os.path.join(tex, f"{sid}.png"), optimize=True)
     Image.new("RGBA", (4, 4), (0, 0, 0, 255)).save(os.path.join(tex, "shade.png"))
-    # gold frame, 9-sliced
-    frame = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
-    d = ImageDraw.Draw(frame)
-    d.rectangle((0, 0, 15, 15), outline=(40, 22, 10, 255))
-    d.rectangle((1, 1, 14, 14), outline=(214, 160, 40, 255))
-    d.rectangle((2, 2, 13, 13), outline=(120, 72, 16, 255))
-    for x, y in ((1, 1), (14, 1), (1, 14), (14, 14)):
-        d.point((x, y), fill=(255, 230, 120, 255))
-    frame.save(os.path.join(tex, "frame.png"))
-    dump(os.path.join(tex, "frame.json"), {"nineslice_size": 3, "base_size": [16, 16]})
     # pack icons: Ignis' head and the burning core
     small = picture.resize((art.W, art.H), Image.NEAREST)
     icon = small.crop((128, 0, 128 + 80, 80)).resize((256, 256), Image.NEAREST)
@@ -133,71 +161,49 @@ def scripts():
 
 
 # --- UI ---------------------------------------------------------------------------------
-def anims():
-    """'Loading' breathes; the three dots light up one after the other."""
-    a = {
-        "breathe_out": {"anim_type": "alpha", "easing": "in_out_sine", "duration": 0.9, "from": 1, "to": 0.55,
-                        "next": "@ldscr.breathe_in"},
-        "breathe_in": {"anim_type": "alpha", "easing": "in_out_sine", "duration": 0.9, "from": 0.55, "to": 1,
-                       "next": "@ldscr.breathe_out"},
-        "dot_off": {"anim_type": "alpha", "easing": "linear", "duration": 0.45, "from": 1, "to": 0.1,
-                    "next": "@ldscr.dot_on"},
-        "dot_on": {"anim_type": "alpha", "easing": "linear", "duration": 0.45, "from": 0.1, "to": 1,
-                   "next": "@ldscr.dot_off"},
-    }
-    for i in range(3):
-        a[f"dot_wait{i}"] = {"anim_type": "wait", "duration": 0.001 + 0.3 * i, "next": "@ldscr.dot_off"}
-    return a
-
-
 def label(text, scale, color, layer, **kw):
     return {"type": "label", "text": text, "font_type": "MinecraftTen", "font_scale_factor": scale,
             "color": color, "shadow": True, "layer": layer, **kw}
 
 
 def screen(marker, picture):
+    """Full screen: a slight dimming of the game, and in the middle 80 % the
+    picture (its proportions kept, no frame), "Loading" and the tip."""
     visible = f"(not ((#hud_title_text_string - '{marker}') = #hud_title_text_string))"
-    loading = {"type": "stack_panel", "orientation": "horizontal", "size": ["100%c", "100%c"],
-               "anchor_from": "center", "anchor_to": "center", "layer": 8,
-               "controls": [{"word": label("Loading", 2.4, [1.0, 0.86, 0.45], 8, size=["default", "default"],
-                                           anims=["@ldscr.breathe_out"])}]
-               + [{f"dot{i}": label(".", 2.4, [1.0, 0.7, 0.3], 8, size=["default", "default"],
-                                    anims=[f"@ldscr.dot_wait{i}"])} for i in range(3)]}
-    tip = {"type": "panel", "size": ["100%", "22%"], "anchor_from": "bottom_middle", "anchor_to": "bottom_middle",
-           "layer": 5, "controls": [
+    tip = {"type": "panel", "size": ["60%", "20%"], "anchor_from": "bottom_middle", "anchor_to": "bottom_middle",
+           "offset": [0, -4], "layer": 5, "controls": [
                {"shade": {"type": "image", "texture": "textures/ldscr/shade", "size": ["100%", "100%"],
-                          "alpha": 0.72, "layer": 5}},
-               {"tip_stack": {"type": "stack_panel", "orientation": "vertical", "size": ["92%", "100%c"],
+                          "alpha": 0.7, "layer": 5}},
+               {"tip_stack": {"type": "stack_panel", "orientation": "vertical", "size": ["94%", "100%c"],
                               "anchor_from": "center", "anchor_to": "center", "layer": 6, "controls": [
                                   {"heading": {"type": "label", "text": "Consejo del jefe", "color": [1.0, 0.72, 0.25],
                                                "shadow": True, "size": ["100%", "default"], "text_alignment": "center",
-                                               "font_scale_factor": 1.0, "layer": 7}},
+                                               "layer": 7}},
                                   {"gap": {"type": "panel", "size": ["100%", 3]}},
                                   {"text": {"type": "label", "text": "#tip", "color": [1, 1, 1], "shadow": True,
-                                            "size": ["100%", "default"], "text_alignment": "center",
-                                            "font_scale_factor": 1.0, "layer": 7,
+                                            "size": ["100%", "default"], "text_alignment": "center", "layer": 7,
                                             "bindings": [{"binding_name": "#hud_subtitle_text_string",
                                                           "binding_name_override": "#tip"}]}}]}}]}
     return {
-        "type": "panel", "size": ["80%", "80%"], "anchor_from": "center", "anchor_to": "center", "layer": 1,
+        "type": "panel", "size": ["100%", "100%"], "layer": 1,
         "bindings": [{"binding_name": "#hud_title_text_string"},
                      {"binding_type": "view", "source_property_name": visible, "target_property_name": "#visible"}],
         "controls": [
-            {"back": {"type": "image", "texture": "textures/ldscr/shade", "size": ["100%", "100%"], "layer": 1}},
-            {"art": {"type": "image", "texture": f"textures/ldscr/{picture}", "size": ["100%", "100%"],
-                     "keep_ratio": True, "bilinear": False, "layer": 2}},
-            {"band": {"type": "image", "texture": "textures/ldscr/shade", "size": ["100%", "15%"], "alpha": 0.35,
-                      "anchor_from": "center", "anchor_to": "center", "layer": 4}},
-            {"loading": loading},
-            {"tip": tip},
-            {"frame": {"type": "image", "texture": "textures/ldscr/frame", "size": ["100% + 4px", "100% + 4px"],
-                       "layer": 12}},
+            {"dim": {"type": "image", "texture": "textures/ldscr/shade", "size": ["100%", "100%"], "alpha": 0.4,
+                     "layer": 1}},
+            {"content": {"type": "panel", "size": ["80%", "80%"], "anchor_from": "center", "anchor_to": "center",
+                         "layer": 2, "controls": [
+                             {"art": {"type": "image", "texture": f"textures/ldscr/{picture}", "size": ["100%", "100%"],
+                                      "keep_ratio": True, "bilinear": picture != "ignis", "layer": 2}},
+                             {"loading": label("Loading", 2.4, [1.0, 0.86, 0.45], 8, size=["default", "default"],
+                                               anchor_from="center", anchor_to="center")},
+                             {"tip": tip}]}},
         ]}
 
 
 def ui():
     found = screens()
-    doc = {"namespace": "ldscr", **anims(),
+    doc = {"namespace": "ldscr",
            "overlay": {"type": "panel", "size": ["100%", "100%"], "layer": 90,
                        "controls": [{f"{sid}@ldscr.{sid}_screen": {}} for sid, _ in found]}}
     for sid, marker in found:
