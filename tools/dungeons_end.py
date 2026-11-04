@@ -26,6 +26,7 @@ dm.BP = os.path.join(dm.OUT, "DungeonsEnd_BP")
 dm.RP = os.path.join(dm.OUT, "DungeonsEnd_RP")
 dm.MCADDON = os.path.join(dm.OUT, "DungeonsEnd.mcaddon")
 dm.NAME = "Dungeons End"
+dm.VERSION = [1, 0, 1]  # 1.0.1: content-log fixes; a new version so Minecraft imports the update
 dm.UUIDS = dict(bp="e2a7c41b-9d35-4f08-b6e1-3c5a8f0d27b9", bp_data="5d0b8e63-a1f4-4c92-8e37-b9c2d6a4f015",
                 bp_script="9f3c6a28-e71d-4b05-a4c8-0d2e5b7f9163", rp="c6e19b74-3f2a-4d58-9b0c-a7e4d1f8326e",
                 rp_res="0a8d5f32-b6c9-4e17-8d4a-f2b7c9e1a650")
@@ -158,6 +159,25 @@ def patch_watchling():
     dm.dump(path, data)
 
 
+def fix_original_bugs():
+    """Two content-log errors of the original add-on."""
+    # The death animation entity fires 'dungeons:damaged', which only exists as
+    # a component group: the event that adds it was missing.
+    path = os.path.join(dm.BP, "entities/new/boss/vengeful_heart_of_ender/vhoe_death.json")
+    data = dm.load(path)
+    ent = data["minecraft:entity"]
+    if "dungeons:damaged" in ent["component_groups"] and "dungeons:damaged" not in ent["events"]:
+        ent["events"]["dungeons:damaged"] = {"add": {"component_groups": ["dungeons:damaged"]}}
+        dm.dump(path, data)
+    # The Endersent's teleport animation plays the sound effect 'teleport',
+    # which its client entity did not define.
+    path = os.path.join(dm.RP, "entity/new/endersent.entity.json")
+    data = dm.load(path)
+    effects = data["minecraft:client_entity"]["description"].setdefault("sound_effects", {})
+    effects.setdefault("teleport", "mob.endermen.portal")
+    dm.dump(path, data)
+
+
 def endersent_loot():
     """One Enchanted Eye of Ender per Endersent (6 open the portal). The Endersent
     uses one of two tables: the usual one (a blueprint, which is not in this
@@ -185,6 +205,7 @@ def main():
     dm.main()
     prune_chest()
     patch_watchling()
+    fix_original_bugs()
     endersent_loot()
     prune_loot()
     write_mcaddon()

@@ -102,6 +102,16 @@ git ignora, a partir del zip original:
 python3 tools/dungeons_mobs.py ruta/a/AlylicasDungeons.zip
 ```
 
+Otros arreglos de addons ajenos, con la misma salida en `private/` (no se suben):
+
+- `tools/ignis_fix.py ruta/a/Ignis.zip`: reescribe el `core.js` vacío del original (altar, objetivo de Ignis,
+  opciones de `config.js`), arregla la barra de vida y añade el **Templo de Ignis** (`tools/ignis/temple.py`):
+  `/function ignis/temple`.
+- `tools/netherens_fix.py ruta/a/Netherens_V4.zip`: corrige errores, reduce el peso y cambia la invocación del
+  Señor del Nether por la **Fortaleza de Almas** (`tools/netherens/fortress.py`), que solo aparece en el valle de
+  arena de almas; su altar se activa con un cráneo de esqueleto wither.
+- `tools/addon_lint.py BP RP` revisa un addon; `tools/render_structure.py` dibuja una vista de una estructura.
+
 `tools/dungeons_end.py` hace una versión reducida, **Dungeons End**: solo el Endersent (minijefe del End, que aquí
 suelta un Ojo de Ender Encantado al morir) y el Vengeful Heart of Ender con su Ciudadela Rota, su portal (6 ojos) y su
 cofre (se abre con la Llave del Vacío). Misma salida en `private/`:

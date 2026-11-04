@@ -1,0 +1,264 @@
+import { world, system, GameMode, EquipmentSlot, EntityDamageCause } from "@minecraft/server";
+import { config } from "./config.js";
+
+// Ignis' script. The add-on shipped with an empty core.js: the altar could not
+// start the fight, Ignis never targeted players (its targeting asks for the
+// ignis:gm_* tags this script gives) and none of the config.js options worked.
+
+const IGNIS = "ignis:ignis";
+const ALTAR = "ignis:altar_of_fire";
+const ASHES = "ignis:burning_ashes";
+const RITUAL_TICKS = 120; // ignis_spawn's fuse (6 s): Ignis appears when the sigil bursts
+const ALTAR_PROPERTY = "ignis:altar";
+
+const cfg = Object.assign({
+    ignis_breaks_all_blocks: true,
+    ignis_health_changed_multiplier: 1,
+    ignis_enrage_enabled: true,
+    ignis_dodge_enabled: true,
+    ignis_reduce_enabled: false,
+}, config);
+
+const isValid = (e) => !!e && (typeof e.isValid === "function" ? e.isValid() : e.isValid);
+
+// --- Players Ignis can target ------------------------------------------------
+function syncTags(player) {
+    if (!isValid(player)) return;
+    const mode = player.getGameMode();
+    const survival = mode === GameMode.Survival || mode === GameMode.survival;
+    const adventure = mode === GameMode.Adventure || mode === GameMode.adventure;
+    const toggle = (tag, on) => (on ? player.addTag(tag) : player.removeTag(tag));
+    toggle("ignis:gm_survival", survival);
+    toggle("ignis:gm_adventure", adventure);
+    toggle("ignis:ignis_target", survival || adventure);
+}
+
+system.runInterval(() => {
+    for (const player of world.getAllPlayers()) syncTags(player);
+}, 20);
+world.afterEvents.playerSpawn.subscribe(({ player }) => syncTags(player));
+world.afterEvents.playerGameModeChange?.subscribe(({ player }) => syncTags(player));
+
+// --- Altar of Fire -------------------------------------------------------------
+function ignisNear(dimension, location, radius) {
+    return dimension.getEntities({ type: IGNIS, location, maxDistance: radius }).length > 0;
+}
+
+function startRitual(block, player) {
+    const dimension = block.dimension;
+    const at = block.location;
+    const center = { x: at.x + 0.5, y: at.y, z: at.z + 0.5 };
+    block.setPermutation(block.permutation.withState("ignis:start", true));
+    const ring = dimension.spawnEntity("ignis:altar_ring", { x: center.x, y: center.y + 1, z: center.z });
+    dimension.spawnEntity("ignis:ignis_spawn", { x: center.x, y: center.y + 0.5, z: center.z });
+    dimension.playSound("ignis.mob.ignis.summon", center, { volume: 3 });
+    dimension.runCommand(`camerashake add @a[x=${center.x},y=${center.y},z=${center.z},r=32] 0.2 6 positional`);
+    for (const p of dimension.getPlayers({ location: center, maxDistance: 48 })) {
+        p.onScreenDisplay.setActionBar("§6The Altar of Fire awakens...");
+    }
+
+    system.runTimeout(() => {
+        if (isValid(ring)) ring.remove();
+        let altar;
+        try {
+            altar = dimension.getBlock(at);
+        } catch {
+            return; // the chunk unloaded: the altar is reset when it is used again
+        }
+        if (!altar || altar.typeId !== ALTAR) return;
+        const ignis = dimension.spawnEntity(IGNIS, { x: center.x, y: center.y + 1, z: center.z });
+        ignis.setDynamicProperty(ALTAR_PROPERTY, JSON.stringify({ d: dimension.id, ...at }));
+        dimension.runCommand(`camerashake add @a[x=${center.x},y=${center.y},z=${center.z},r=48] 0.6 1.5 positional`);
+        dimension.playSound("ignis.mob.ignis.burst", center, { volume: 3 });
+    }, RITUAL_TICKS);
+}
+
+system.beforeEvents.startup.subscribe(({ blockComponentRegistry }) => {
+    blockComponentRegistry.registerCustomComponent("ignis:altar_of_fire_interact", {
+        onPlayerInteract({ block, player }) {
+            if (!player || !block) return;
+            const lit = block.permutation.getState("ignis:start");
+            const center = block.center();
+            if (lit) {
+                // Lit but nobody is fighting (the world was closed mid-fight): put it out.
+                if (!ignisNear(block.dimension, center, 96)) {
+                    system.run(() => block.setPermutation(block.permutation.withState("ignis:start", false)));
+                } else {
+                    player.onScreenDisplay.setActionBar("§cIgnis is already awake.");
+                }
+                return;
+            }
+            const equipment = player.getComponent("minecraft:equippable");
+            const hand = equipment?.getEquipment(EquipmentSlot.Mainhand);
+            if (hand?.typeId !== ASHES) {
+                player.onScreenDisplay.setActionBar("§6Offer §cBurning Ashes§6 to the Altar of Fire.");
+                return;
+            }
+            if (ignisNear(block.dimension, center, 96)) {
+                player.onScreenDisplay.setActionBar("§cIgnis is already awake.");
+                return;
+            }
+            const creative = player.getGameMode() === GameMode.Creative || player.getGameMode() === GameMode.creative;
+            // World changes outside the callback, which may run in a restricted context.
+            system.run(() => {
+                if (!creative) {
+                    if (hand.amount > 1) {
+                        hand.amount -= 1;
+                        equipment.setEquipment(EquipmentSlot.Mainhand, hand);
+                    } else {
+                        equipment.setEquipment(EquipmentSlot.Mainhand, undefined);
+                    }
+                }
+                startRitual(block, player);
+            });
+        },
+    });
+});
+
+// When Ignis is gone (dead, killed, unloaded), its altar can be used again.
+world.beforeEvents.entityRemove.subscribe(({ removedEntity }) => {
+    if (removedEntity.typeId !== IGNIS) return;
+    const raw = removedEntity.getDynamicProperty(ALTAR_PROPERTY);
+    if (typeof raw !== "string") return;
+    system.run(() => {
+        try {
+            const a = JSON.parse(raw);
+            const block = world.getDimension(a.d).getBlock({ x: a.x, y: a.y, z: a.z });
+            if (block?.typeId === ALTAR) block.setPermutation(block.permutation.withState("ignis:start", false));
+        } catch {
+            // unloaded chunk: the altar notices when someone uses it
+        }
+    });
+});
+
+// --- Combat options (config.js) -------------------------------------------------
+function healthOf(entity) {
+    const h = entity.getComponent("minecraft:health");
+    if (!h) return undefined;
+    return { h, frac: Math.max(0, Math.min(1, h.currentValue / h.effectiveMax)) };
+}
+
+function heal(entity, amount) {
+    const hp = healthOf(entity);
+    if (!hp || amount <= 0 || hp.h.currentValue <= 1) return;
+    hp.h.setCurrentValue(Math.min(hp.h.effectiveMax, hp.h.currentValue + amount));
+}
+
+function healTag(ignis) {
+    // Attacks mark Ignis with ignis:ignisH_<n>: n health drained per hit.
+    for (const tag of ignis.getTags()) {
+        const m = /^ignis:ignisH_(\d+)$/.exec(tag);
+        if (m) return Number(m[1]);
+    }
+    return 0;
+}
+
+const extraDamage = new Set(); // entity ids hit by the enrage bonus this tick
+
+world.afterEvents.entityHurt.subscribe(({ hurtEntity, damage, damageSource }) => {
+    if (!isValid(hurtEntity)) return;
+    const attacker = damageSource.damagingEntity;
+
+    // Ignis hits something
+    if (attacker?.typeId === IGNIS && hurtEntity.typeId !== IGNIS && isValid(attacker)) {
+        const drain = healTag(attacker) * cfg.ignis_health_changed_multiplier;
+        if (drain > 0) heal(attacker, drain);
+        if (cfg.ignis_enrage_enabled && !extraDamage.has(hurtEntity.id)) {
+            const hp = healthOf(attacker);
+            const bonus = hp ? damage * (1 - hp.frac) : 0; // up to +100% at low health
+            if (bonus >= 0.5) {
+                extraDamage.add(hurtEntity.id);
+                hurtEntity.applyDamage(bonus, { cause: EntityDamageCause.fire });
+                system.run(() => extraDamage.delete(hurtEntity.id));
+            }
+        }
+        return;
+    }
+
+    // Something hits Ignis
+    if (hurtEntity.typeId !== IGNIS || !attacker || attacker.typeId === IGNIS) return;
+    const hp = healthOf(hurtEntity);
+    if (!hp || hp.h.currentValue <= 1) return;
+    const low = Math.max(0, Math.min(1, (0.5 - hp.frac) / 0.5)); // 0 at half health, 1 near death
+    if (cfg.ignis_dodge_enabled && hp.frac < 0.5 && Math.random() < 0.05 + 0.55 * low) {
+        heal(hurtEntity, damage);
+        hurtEntity.dimension.playSound("ignis.mob.ignis.sword", hurtEntity.location, { pitch: 1.4 });
+        hurtEntity.dimension.spawnParticle("ignis:ignis_jump", hurtEntity.location);
+        return;
+    }
+    if (cfg.ignis_reduce_enabled && hp.frac < 0.5) {
+        heal(hurtEntity, damage * (0.01 + 0.79 * low));
+    }
+});
+
+// --- Ground slams break the floor for a moment (ignis_breaks_all_blocks) --------
+const KEEP = new Set([
+    "minecraft:bedrock", "minecraft:barrier", "minecraft:command_block", "minecraft:chain_command_block",
+    "minecraft:repeating_command_block", "minecraft:structure_block", "minecraft:jigsaw", "minecraft:end_portal",
+    "minecraft:end_portal_frame", "minecraft:end_gateway", "minecraft:portal", "minecraft:reinforced_deepslate",
+    "minecraft:light_block", "minecraft:deny", "minecraft:allow", "minecraft:border_block", ALTAR,
+]);
+const airborne = new Map(); // Ignis id -> lowest vertical speed while in the air
+
+function breakable(block) {
+    if (!block || block.isAir || block.isLiquid) return false;
+    if (KEEP.has(block.typeId) || block.typeId.endsWith("_portal")) return false;
+    if (block.getComponent("minecraft:inventory")) return false; // chests and the like keep their items
+    return !/sign|banner|bed$|skull|head|shulker|spawner|lectern|beehive|bee_nest|campfire|chest/.test(block.typeId);
+}
+
+function slam(ignis) {
+    const dim = ignis.dimension;
+    const base = { x: Math.floor(ignis.location.x), y: Math.floor(ignis.location.y) - 1, z: Math.floor(ignis.location.z) };
+    const removed = [];
+    for (let dx = -3; dx <= 3; dx++) {
+        for (let dz = -3; dz <= 3; dz++) {
+            const d = Math.hypot(dx, dz);
+            if (d > 3.2 || d < 1 || Math.random() < 0.35) continue;
+            let block;
+            try {
+                block = dim.getBlock({ x: base.x + dx, y: base.y, z: base.z + dz });
+            } catch {
+                continue;
+            }
+            if (!breakable(block) || !block.above()?.isAir) continue;
+            removed.push({ loc: block.location, perm: block.permutation });
+            block.setType("minecraft:air");
+            dim.spawnEntity("ignis:ignis_block", { x: block.location.x + 0.5, y: block.location.y, z: block.location.z + 0.5 });
+        }
+    }
+    if (!removed.length) return;
+    system.runTimeout(() => {
+        for (const { loc, perm } of removed) {
+            try {
+                const block = dim.getBlock(loc);
+                if (block?.isAir) block.setPermutation(perm);
+            } catch {
+                // unloaded
+            }
+        }
+    }, 60);
+}
+
+system.runInterval(() => {
+    if (!cfg.ignis_breaks_all_blocks || !world.gameRules.mobGriefing) return;
+    for (const dimId of ["overworld", "nether", "the_end"]) {
+        let list;
+        try {
+            list = world.getDimension(dimId).getEntities({ type: IGNIS });
+        } catch {
+            continue;
+        }
+        for (const ignis of list) {
+            if (!isValid(ignis)) continue;
+            const vy = ignis.getVelocity().y;
+            if (!ignis.isOnGround) {
+                airborne.set(ignis.id, Math.min(airborne.get(ignis.id) ?? 0, vy));
+            } else if (airborne.has(ignis.id)) {
+                const fall = airborne.get(ignis.id);
+                airborne.delete(ignis.id);
+                if (fall < -0.6) slam(ignis);
+            }
+        }
+    }
+}, 2);
