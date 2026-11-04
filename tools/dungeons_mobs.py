@@ -584,15 +584,19 @@ def find_packs(src):
 def manifests(src_bp, src_rp):
     obp, orp = load(os.path.join(src_bp, "manifest.json")), load(os.path.join(src_rp, "manifest.json"))
     deps = [d for d in obp["dependencies"] if "module_name" in d]
+    # format_version 3 only takes versions as "x.y.z" strings: with lists
+    # Minecraft rejects the behaviour pack ("invalid string") on import.
+    v = ".".join(map(str, VERSION))
     bp = {
         "format_version": 3,
         "header": {"name": NAME, "description": "Enemigos, minijefes, 3 jefes y armaduras de Alylica's Dungeons "
-                   "(uso personal).", "uuid": UUIDS["bp"], "version": VERSION,
+                   "(uso personal).", "uuid": UUIDS["bp"], "version": v,
                    "min_engine_version": obp["header"]["min_engine_version"]},
-        "modules": [{"type": "data", "uuid": UUIDS["bp_data"], "version": VERSION},
-                    {"type": "script", "language": "javascript", "uuid": UUIDS["bp_script"], "version": VERSION,
+        "modules": [{"type": "data", "uuid": UUIDS["bp_data"], "version": v},
+                    {"type": "script", "language": "javascript", "uuid": UUIDS["bp_script"], "version": v,
                      "entry": "scripts/main.js"}],
-        "dependencies": [{"uuid": UUIDS["rp"], "version": VERSION}] + deps,
+        "dependencies": [{"uuid": UUIDS["rp"], "version": v}] + deps,
+        "metadata": {"product_type": "addon"},
     }
     rp = {
         "format_version": 2,
