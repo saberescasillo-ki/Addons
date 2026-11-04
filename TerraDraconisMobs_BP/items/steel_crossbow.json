@@ -1,0 +1,36 @@
+{
+    "format_version": "1.21.40",
+    "minecraft:item": {
+        "description": {
+            "identifier": "steel_crossbow:bow",
+            "menu_category": {
+                "category": "equipment"
+            }
+        },
+        "components": {
+            "minecraft:icon": "steel_crossbow",
+            "minecraft:custom_components": [
+                "terradraconis:steel_crossbow_shoot"
+            ],
+            "minecraft:use_modifiers": {
+                "use_duration": 9999,
+                "movement_modifier": 0.35
+            },
+            "minecraft:display_name": {
+                "value": "Steel Crossbow"
+            },
+            "minecraft:durability": {
+                "max_durability": 150
+            },
+            "minecraft:hand_equipped": true,
+            "minecraft:max_stack_size": 1,
+            "minecraft:tags": {
+                "tags": ["hollow:steel_crossbow"]
+            },
+             "minecraft:cooldown": {
+                "category": "steel_crossbow",
+                "duration": 1.9
+            }
+        }
+    }
+}

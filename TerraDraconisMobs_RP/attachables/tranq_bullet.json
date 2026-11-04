@@ -1,0 +1,35 @@
+{
+    "format_version": "1.10.0",
+    "minecraft:attachable": {
+        "description": {
+            "identifier": "terradraconis:tranq_bullet_it",
+            "materials": {
+                "default": "entity_custom"
+            },
+            "textures": {
+                "default": "textures/attachables/tranq_bullet_texture"
+            },
+            "animations": {
+                "1st":"animation.steel_bullet.1st",
+                "3st":"animation.steel_bullet.3st"
+            },
+            "scripts": {
+                "animate": [
+                    {
+                        "1st":"c.is_first_person"
+                    },
+                    {
+                        "3st":"!c.is_first_person"
+                    }
+                ]
+            },
+            "enable_attachables": true,
+            "geometry": {
+                "default": "geometry.steel_bullet"
+            },
+            "render_controllers": [
+                "controller.render.default"
+            ]
+        }
+    }
+}

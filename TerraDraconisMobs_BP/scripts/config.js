@@ -44,3 +44,16 @@ world.afterEvents.playerSpawn.subscribe((event) => {
 });
 
 export const mutationTypes = [ "speed", "damage", "resistance", "stamina" ];
+
+//Weapon And Workbench Setup || Can change and update this session
+export const chargableItem = {
+  "steel_long_bow:bow": {
+    chargeTime: 1.2,
+    power: 5
+  },
+};
+
+export const ShootableItem = {
+  "steel_crossbow:bow": 7,
+  "long_neck_rifle:bow": 12
+};

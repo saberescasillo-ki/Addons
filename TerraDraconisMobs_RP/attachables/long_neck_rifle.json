@@ -1,0 +1,49 @@
+{
+    "format_version": "1.10.0",
+    "minecraft:attachable": {
+        "description": {
+            "identifier": "long_neck_rifle:bow",
+            "materials": {
+                "default": "entity_custom"
+            },
+            "textures": {
+                "default": "textures/attachables/long_neck_rifle_texture"
+            },
+            "animations": {
+                "1st":"animation.long_neck_rifle.1st",
+                "1st_shoot":"animation.long_neck_rifle.shoot_1st",
+                "3st_shoot":"animation.long_neck_rifle.shoot_3st",
+                "1st_shoot_aim":"animation.long_neck_rifle.shoot_aim_1st",
+                "1st_start_aim":"animation.long_neck_rifle.1st_start_aim",
+                "1st_aim":"animation.long_neck_rifle.1st_aim",
+                "1st_un_aim":"animation.long_neck_rifle.1st_un_aim",
+                "3st":"animation.long_neck_rifle.3st",
+                "crossbow_controller_3st":"controller.animation.steel_crossbow_3st",
+                "crossbow_controller_1st":"controller.animation.steel_crossbow_1st"
+            },
+            "scripts": {
+                "initialize": [
+                    "variable.arrow = false;"
+                ],
+                "pre_animation": [
+                    "variable.arrow = (query.is_item_name_any('slot.hotbar', 0, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.hotbar', 1, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.hotbar', 2, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.hotbar', 3, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.hotbar', 4, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.hotbar', 5, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.hotbar', 6, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.hotbar', 7, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.hotbar', 8, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 0, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 1, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 2, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 3, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 4, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 5, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 6, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 7, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 8, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 9, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 10, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 11, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 12, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 13, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 14, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 15, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 16, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 17, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 18, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 19, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 20, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 21, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 22, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 23, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 24, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 25, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 26, 'terradraconis:steel_bullet_it') || query.is_item_name_any('slot.inventory', 27, 'terradraconis:steel_bullet_it')) || (query.is_item_name_any('slot.hotbar', 0, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.hotbar', 1, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.hotbar', 2, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.hotbar', 3, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.hotbar', 4, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.hotbar', 5, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.hotbar', 6, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.hotbar', 7, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.hotbar', 8, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 0, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 1, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 2, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 3, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 4, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 5, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 6, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 7, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 8, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 9, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 10, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 11, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 12, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 13, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 14, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 15, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 16, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 17, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 18, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 19, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 20, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 21, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 22, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 23, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 24, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 25, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 26, 'terradraconis:tranq_bullet_it') || query.is_item_name_any('slot.inventory', 27, 'terradraconis:tranq_bullet_it'));"
+                ],
+                "animate": [
+                    {
+                        "crossbow_controller_1st": "c.is_first_person"
+                    },
+                    {
+                        "crossbow_controller_3st": "!c.is_first_person"
+                    }
+                ]
+            },
+            "enable_attachables": true,
+            "geometry": {
+                "default": "geometry.long_neck_rifle"
+            },
+            "render_controllers": [
+                "controller.render.default"
+            ]
+        }
+    }
+}

@@ -1,0 +1,47 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.steel_axe.tool_1st": {
+			"loop": true,
+			"bones": {
+				"bone": {
+					"rotation": [98.18786, 71.18677, -42.93509],
+					"position": [0.55733, 25.91993, 2.2015]
+				}
+			}
+		},
+		"animation.steel_axe.tool_use_1st": {
+			"loop": true,
+			"animation_length": 0.5,
+			"bones": {
+				"bone": {
+					"rotation": {
+						"0.0": [98.18786, 71.18677, -42.93509],
+						"0.25": [273.18786, 71.18677, -42.93509],
+						"0.5": [98.18786, 71.18677, -42.93509]
+					},
+					"position": [0.55733, 25.91993, 2.2015]
+				}
+			}
+		},
+		"animation.steel_axe.sword_1st": {
+			"loop": true,
+			"bones": {
+				"bone": {
+					"rotation": [110.68786, 71.18677, -42.93509],
+					"position": [0.55733, 25.91993, 2.2015]
+				}
+			}
+		},
+		"animation.steel_axe.tool_3st": {
+			"loop": true,
+			"bones": {
+				"bone": {
+					"rotation": [90, 0, 0],
+					"position": [0, 22, -2],
+					"scale": 0.8
+				}
+			}
+		}
+	}
+}

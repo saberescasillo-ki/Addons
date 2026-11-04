@@ -7,7 +7,7 @@
 | **Ruleta de Colores** – ruleta en el HUD con comandos de administrador | [`dist/Roulette.mcaddon`](dist/Roulette.mcaddon) | `tools/roulette.py` |
 | **Objetos de Ayuda** – 4 objetos especiales que ayudan al jugador | [`dist/HelperItems.mcaddon`](dist/HelperItems.mcaddon) | `tools/helper_items.py` |
 | **The LITIUS Blind** – nueva dimensión de islas flotantes | [`dist/LitiusBlind.mcaddon`](dist/LitiusBlind.mcaddon) | `tools/litius_blind.py` |
-| **TerraDraconis Mobs** – solo los mobs de TerraDraconis Beta (dragones y animales) | [`dist/TerraDraconisMobs.mcaddon`](dist/TerraDraconisMobs.mcaddon) | `tools/terradraconis_mobs.py` |
+| **TerraDraconis Mobs** – los mobs y las armas de TerraDraconis Beta, con variantes de color | [`dist/TerraDraconisMobs.mcaddon`](dist/TerraDraconisMobs.mcaddon) | `tools/terradraconis_mobs.py` |
 
 Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo. No hace falta activar experimentos
 (salvo en The LITIUS Blind, ver abajo).
@@ -22,7 +22,10 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 
 # TerraDraconis Mobs
 
-Los **mobs** del addon *TerraDraconis Beta*, separados del resto (terreno, bloques, objetos, armas y armaduras).
+Los **mobs** y las **armas** del addon *TerraDraconis Beta*, separados del resto (terreno, bloques, herramientas,
+armaduras y demás objetos), con **variantes de color** nuevas para los dragones y los Cuernos Escudo.
+
+![Variantes de color: dragones arriba, Cuernos Escudo abajo](docs/terradraconis_colors.png)
 
 | Mob | ID | Aparece |
 |---|---|---|
@@ -38,16 +41,50 @@ Se conservan también las entidades auxiliares que necesitan: el aliento de fueg
 aparece al domarlo. Y los scripts de los mobs: niveles y mutaciones, vuelo y estamina al montar el dragón,
 domesticación, menú de estadísticas, daño y resistencia por nivel, nidos, huida de los Cuernos Escudo y experiencia al morir.
 
+## Variantes de color
+
+| Mob | Colores (probabilidad) |
+|---|---|
+| Corredor Carmesí (salvaje, savage y domado) | Carmesí original 30 %, Zafiro 15 %, Esmeralda 15 %, Obsidiana 15 %, Amatista 10 %, Dorado 8 %, Escarcha 7 % |
+| Cuerno Escudo (macho, hembra y cría) | Original 35 %, Arena 20 %, Óxido 15 %, Musgo 12 %, Marfil 10 %, Ónice 8 % |
+
+- Cada mob recibe su color al aparecer y lo **conserva**: cuando la cría crece, cuando el dragón se doma y en las
+  partidas guardadas. Las crías de Cuerno Escudo heredan el color de uno de sus padres. El huevo de dragón no tiene
+  color: el dragón que sale lo elige al eclosionar.
+- Solo cambian las escamas o la piel; los cuernos, los ojos, los dientes y la montura mantienen su color.
+- Los mobs que ya estaban en un mundo con la versión anterior reciben un color al cargarse.
+
+## Armas
+
+| Arma | ID | Munición |
+|---|---|---|
+| Ballesta de acero | `steel_crossbow:bow` | flecha de acero o tranquilizante |
+| Arco largo de acero | `steel_long_bow:bow` | flecha de acero o tranquilizante (se carga manteniendo pulsado) |
+| Rifle de cuello largo | `long_neck_rifle:bow` | bala de acero o tranquilizante |
+| Espada de acero | `terradraconis:steel_sword` | – |
+
+Munición: `terradraconis:steel_arrow_it`, `tranq_steel_arrow_it`, `steel_bullet_it` y `tranq_bullet_it`.
+Las armas y la munición están en el inventario creativo (*Equipamiento* y *Objetos*) o con `/give`. **No se pueden
+craftear**: en el original se fabricaban en la herrería y con los engramas, que no están en este pack.
+
+## Domar un dragón
+
+- **Salvaje:** dispárale flechas o balas tranquilizantes hasta que caiga inconsciente, dale una **chuleta de cerdo**
+  cruda para abrir su inventario y mete ahí carne; se la va comiendo hasta quedar domado. Mientras tanto se va
+  despertando: sigue disparándole tranquilizantes para que no despierte (el narcótico del original no está).
+- **Desde un huevo:** `/summon terradraconis:crimson_racer_egg`, esperar a que eclosione y darle una chuleta de cerdo
+  cruda a la cría.
+
+## Más
+
 - **Catalejo** apuntando a un dragón: muestra sus estadísticas. **Brújula**: ajustes del nivel máximo y de las mutaciones.
-- Para tener un dragón propio: `/summon terradraconis:crimson_racer_egg`, esperar a que eclosione y darle una
-  **chuleta de cerdo** cruda a la cría.
-- **Qué no se puede hacer sin el resto del addon:** dejar inconsciente a un dragón salvaje para domarlo (hacían falta
-  las flechas y balas tranquilizantes y el narcótico) ni subirle de nivel con el *Dragon Orb*.
-  Esos objetos no están en este pack.
+- No se puede subir de nivel a un dragón: se hacía con el *Dragon Orb*, que no está en este pack.
 - No se incluye el *Lapari* (NPC a medio hacer, con 1 de vida y mensajes de prueba en el chat) ni el cebo de herbívoros.
 - Usa los mismos IDs `terradraconis:` que el original, así que **no se puede activar junto a TerraDraconis Beta**.
 - Requiere Minecraft Bedrock **1.21.80** o superior.
-- Se regenera desde el zip original con `python3 tools/terradraconis_mobs.py ruta/al/TerraDraconis.zip`.
+- Se regenera desde el zip original con `python3 tools/terradraconis_mobs.py ruta/al/TerraDraconis.zip` (añade
+  `--preview` para rehacer la imagen de colores). Los colores se definen en `COLORS` y su probabilidad en
+  `tools/terradraconis_mobs/colors.js`.
 
 ---
 

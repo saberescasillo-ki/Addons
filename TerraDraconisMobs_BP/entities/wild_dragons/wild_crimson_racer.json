@@ -7,13 +7,13 @@
             "is_summonable": true,
             "is_experimental": false,
             "animations": {
-                "bite_shake":"animation.crimson_racer_bite_shake",
-                "walk_shake":"animation.crimson_racer_walk_shake",
-                "attack_shake_controller":"controller.animation.crimson_racer_attack",
-                "walk_shake_controller":"controller.animation.crimson_racer_walk",
-                "taming":"animation.crimson_racer_taming",
-                "wake":"animation.crimson_racer_wake",
-                "dragon_taming_controller":"controller.animation.dragon_taming_controllers"
+                "bite_shake": "animation.crimson_racer_bite_shake",
+                "walk_shake": "animation.crimson_racer_walk_shake",
+                "attack_shake_controller": "controller.animation.crimson_racer_attack",
+                "walk_shake_controller": "controller.animation.crimson_racer_walk",
+                "taming": "animation.crimson_racer_taming",
+                "wake": "animation.crimson_racer_wake",
+                "dragon_taming_controller": "controller.animation.dragon_taming_controllers"
             },
             "scripts": {
                 "animate": [
@@ -24,20 +24,29 @@
                 ]
             },
             "properties": {
-                "flying:property":{
+                "flying:property": {
                     "client_sync": true,
                     "type": "bool",
                     "default": false
                 },
-                "faint:property":{
+                "faint:property": {
                     "client_sync": true,
                     "type": "bool",
                     "default": false
+                },
+                "terradraconis:color": {
+                    "type": "int",
+                    "range": [
+                        0,
+                        7
+                    ],
+                    "default": 0,
+                    "client_sync": true
                 }
             }
         },
         "component_groups": {
-            "look":{
+            "look": {
                 "minecraft:behavior.look_at_target": {
                     "look_distance": 32,
                     "probability": 1,
@@ -58,13 +67,13 @@
                     ],
                     "priority": 5,
                     "angle_of_view_vertical": 180,
-                    "angle_of_view_horizontal":60
+                    "angle_of_view_horizontal": 60
                 }
             },
-            "fainting":{
+            "fainting": {
                 "minecraft:tameable": {
                     "probability": 1,
-                    "tame_items":[
+                    "tame_items": [
                         "minecraft:porkchop"
                     ],
                     "tame_event": {
@@ -73,7 +82,7 @@
                     }
                 }
             },
-            "inventory":{
+            "inventory": {
                 "minecraft:inventory": {
                     "additional_slots_per_strength": 0,
                     "can_be_siphoned_from": false,
@@ -83,7 +92,7 @@
                     "restrict_to_owner": false
                 }
             },
-            "cooldown_timer":{
+            "cooldown_timer": {
                 "minecraft:timer": {
                     "time": 20,
                     "looping": false,
@@ -93,7 +102,7 @@
                     }
                 }
             },
-            "melee":{
+            "melee": {
                 "minecraft:attack": {
                     "damage": 20
                 },
@@ -127,7 +136,7 @@
                     "event": "regen"
                 }
             },
-            "range":{
+            "range": {
                 "minecraft:timer": {
                     "time": 8,
                     "looping": false,
@@ -149,7 +158,7 @@
                     "def": "terradraconis:crimson_racer_fire_breath"
                 }
             },
-            "phase1":{
+            "phase1": {
                 "minecraft:behavior.nearest_attackable_target": {
                     "priority": 2,
                     "must_see": true,
@@ -162,24 +171,84 @@
                                 "all_of": [
                                     {
                                         "any_of": [
-                                            { "test": "is_family", "subject": "other", "value": "monster", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "player", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "animal", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "cow", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "sheep", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "pig", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "chicken", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "villager", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "pillager", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "irongolem", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "snowgolem", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "wandering_trader", "operator": "==" }
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "monster",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "player",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "animal",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "cow",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "sheep",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "pig",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "chicken",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "villager",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "pillager",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "irongolem",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "snowgolem",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "wandering_trader",
+                                                "operator": "=="
+                                            }
                                         ]
                                     },
                                     {
                                         "test": "is_missing_health",
                                         "subject": "self",
-                                        "value":true
+                                        "value": true
                                     }
                                 ]
                             },
@@ -191,18 +260,78 @@
                                 "all_of": [
                                     {
                                         "any_of": [
-                                            { "test": "is_family", "subject": "other", "value": "monster", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "player", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "animal", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "cow", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "sheep", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "pig", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "chicken", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "villager", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "pillager", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "irongolem", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "snowgolem", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "wandering_trader", "operator": "==" }
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "monster",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "player",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "animal",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "cow",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "sheep",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "pig",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "chicken",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "villager",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "pillager",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "irongolem",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "snowgolem",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "wandering_trader",
+                                                "operator": "=="
+                                            }
                                         ]
                                     }
                                 ]
@@ -246,7 +375,7 @@
                     "event": "roar"
                 }
             },
-            "phase2":{
+            "phase2": {
                 "minecraft:behavior.nearest_attackable_target": {
                     "priority": 2,
                     "must_see": true,
@@ -259,18 +388,78 @@
                                 "all_of": [
                                     {
                                         "any_of": [
-                                            { "test": "is_family", "subject": "other", "value": "player", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "animal", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "cow", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "sheep", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "pig", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "chicken", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "villager", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "pillager", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "irongolem", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "snowgolem", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "wandering_trader", "operator": "==" },
-                                            { "test": "is_family", "subject": "other", "value": "monster", "operator": "==" }
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "player",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "animal",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "cow",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "sheep",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "pig",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "chicken",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "villager",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "pillager",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "irongolem",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "snowgolem",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "wandering_trader",
+                                                "operator": "=="
+                                            },
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "monster",
+                                                "operator": "=="
+                                            }
                                         ]
                                     }
                                 ]
@@ -352,7 +541,6 @@
                     "minecraft:birch_log",
                     "minecraft:pale_oak_log",
                     "minecraft:mangrove_log",
-
                     "minecraft:glass",
                     "minecraft:glass_pane",
                     "minecraft:black_stained_glass",
@@ -521,19 +709,19 @@
             }
         },
         "events": {
-            "tame_inventory":{
+            "tame_inventory": {
                 "add": {
                     "component_groups": [
                         "inventory"
                     ]
                 }
             },
-            "start_faint":{
+            "start_faint": {
                 "set_property": {
                     "faint:property": true
                 },
                 "queue_command": {
-                    "command":[
+                    "command": [
                         "effect @s slowness 9999 255 true"
                     ]
                 },
@@ -551,7 +739,7 @@
                     ]
                 }
             },
-            "wake_tame":{
+            "wake_tame": {
                 "set_property": {
                     "faint:property": false
                 },
@@ -562,13 +750,13 @@
                     ]
                 },
                 "queue_command": {
-                    "command":[
+                    "command": [
                         "effect @s instant_health 5 10 true",
                         "effect @s clear slowness"
                     ]
                 }
             },
-            "wake":{
+            "wake": {
                 "set_property": {
                     "faint:property": false
                 },
@@ -586,13 +774,13 @@
                     ]
                 },
                 "queue_command": {
-                    "command":[
+                    "command": [
                         "effect @s instant_health 5 10 true",
                         "effect @s clear slowness"
                     ]
                 }
             },
-            "phase1":{
+            "phase1": {
                 "remove": {
                     "component_groups": [
                         "phase2"
@@ -604,28 +792,28 @@
                     ]
                 },
                 "queue_command": {
-                    "command":[
+                    "command": [
                         "effect @s clear resistance",
                         "effect @s clear strength",
                         "effect @s clear speed"
                     ]
                 }
             },
-            "regen":{
+            "regen": {
                 "queue_command": {
-                    "command":[
+                    "command": [
                         "effect @s regeneration 1 5"
                     ]
                 }
             },
-            "charged":{
+            "charged": {
                 "remove": {
                     "component_groups": [
                         "cooldown_timer"
                     ]
                 }
             },
-            "cooldown":{
+            "cooldown": {
                 "add": {
                     "component_groups": [
                         "cooldown_timer",
@@ -638,7 +826,7 @@
                     ]
                 }
             },
-            "ranged_attack":{
+            "ranged_attack": {
                 "remove": {
                     "component_groups": [
                         "melee"
@@ -650,14 +838,14 @@
                     ]
                 }
             },
-            "roar":{
+            "roar": {
                 "add": {
                     "component_groups": [
                         "phase2"
                     ]
                 },
                 "queue_command": {
-                    "command":[
+                    "command": [
                         "effect @s slowness 5 255 true",
                         "effect @s strength 120 1 false",
                         "effect @s resistance 120 1 false",
@@ -680,13 +868,13 @@
                     "event": "landed"
                 }
             },
-            "fly":{
-                "set_property":{
+            "fly": {
+                "set_property": {
                     "flying:property": true
                 }
             },
-            "landed":{
-                "set_property":{
+            "landed": {
+                "set_property": {
                     "flying:property": false
                 }
             }

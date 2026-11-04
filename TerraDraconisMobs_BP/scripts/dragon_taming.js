@@ -124,6 +124,7 @@ function handleTamingSuccess(entity) {
 
   const newEntity = dimension.spawnEntity("terradraconis:crimson_racer", location);
   if (!newEntity) return;
+  newEntity.setProperty("terradraconis:color", entity.getProperty("terradraconis:color") ?? 0);
 
   newEntity.setDynamicProperty("skip_autoscale", true);
   for (const [key, value] of Object.entries(transferredProps)) {

@@ -7,10 +7,10 @@
             "is_summonable": true,
             "is_experimental": false,
             "animations": {
-                "bite_shake":"animation.savage_crimson_racer_bite_shake",
-                "walk_shake":"animation.savage_crimson_racer_walk_shake",
-                "attack_shake_controller":"controller.animation.crimson_racer_attack",
-                "walk_shake_controller":"controller.animation.crimson_racer_walk"
+                "bite_shake": "animation.savage_crimson_racer_bite_shake",
+                "walk_shake": "animation.savage_crimson_racer_walk_shake",
+                "attack_shake_controller": "controller.animation.crimson_racer_attack",
+                "walk_shake_controller": "controller.animation.crimson_racer_walk"
             },
             "scripts": {
                 "animate": [
@@ -19,15 +19,24 @@
                 ]
             },
             "properties": {
-                "flying:property":{
+                "flying:property": {
                     "client_sync": true,
                     "type": "bool",
                     "default": false
+                },
+                "terradraconis:color": {
+                    "type": "int",
+                    "range": [
+                        0,
+                        7
+                    ],
+                    "default": 0,
+                    "client_sync": true
                 }
             }
         },
         "component_groups": {
-            "cooldown_timer":{
+            "cooldown_timer": {
                 "minecraft:timer": {
                     "time": 20,
                     "looping": false,
@@ -37,9 +46,12 @@
                     }
                 }
             },
-            "melee":{
+            "melee": {
                 "minecraft:attack": {
-                    "damage": [20,40]
+                    "damage": [
+                        20,
+                        40
+                    ]
                 },
                 "minecraft:behavior.delayed_attack": {
                     "attack_duration": 3,
@@ -71,7 +83,7 @@
                     "event": "regen"
                 }
             },
-            "range":{
+            "range": {
                 "minecraft:timer": {
                     "time": 15,
                     "looping": false,
@@ -93,7 +105,7 @@
                     "def": "terradraconis:crimson_racer_fire_breath"
                 }
             },
-            "phase1":{
+            "phase1": {
                 "minecraft:behavior.nearest_attackable_target": {
                     "priority": 2,
                     "must_see": true,
@@ -106,7 +118,12 @@
                                 "all_of": [
                                     {
                                         "any_of": [
-                                            { "test": "is_family", "subject": "other", "value": "savage", "operator": "!=" }
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "savage",
+                                                "operator": "!="
+                                            }
                                         ]
                                     }
                                 ]
@@ -150,7 +167,7 @@
                     "event": "roar"
                 }
             },
-            "phase2":{
+            "phase2": {
                 "minecraft:behavior.nearest_attackable_target": {
                     "priority": 2,
                     "must_see": true,
@@ -163,7 +180,12 @@
                                 "all_of": [
                                     {
                                         "any_of": [
-                                            { "test": "is_family", "subject": "other", "value": "savage", "operator": "!=" }
+                                            {
+                                                "test": "is_family",
+                                                "subject": "other",
+                                                "value": "savage",
+                                                "operator": "!="
+                                            }
                                         ]
                                     }
                                 ]
@@ -245,7 +267,6 @@
                     "minecraft:birch_log",
                     "minecraft:pale_oak_log",
                     "minecraft:mangrove_log",
-
                     "minecraft:glass",
                     "minecraft:glass_pane",
                     "minecraft:black_stained_glass",
@@ -432,11 +453,11 @@
                 ],
                 "priority": 5,
                 "angle_of_view_vertical": 180,
-                "angle_of_view_horizontal":60
+                "angle_of_view_horizontal": 60
             }
         },
         "events": {
-            "phase1":{
+            "phase1": {
                 "remove": {
                     "component_groups": [
                         "phase2"
@@ -448,28 +469,28 @@
                     ]
                 },
                 "queue_command": {
-                    "command":[
+                    "command": [
                         "effect @s clear resistance",
                         "effect @s clear strength",
                         "effect @s clear speed"
                     ]
                 }
             },
-            "regen":{
+            "regen": {
                 "queue_command": {
-                    "command":[
+                    "command": [
                         "effect @s regeneration 3 5"
                     ]
                 }
             },
-            "charged":{
+            "charged": {
                 "remove": {
                     "component_groups": [
                         "cooldown_timer"
                     ]
                 }
             },
-            "cooldown":{
+            "cooldown": {
                 "add": {
                     "component_groups": [
                         "cooldown_timer",
@@ -482,7 +503,7 @@
                     ]
                 }
             },
-            "ranged_attack":{
+            "ranged_attack": {
                 "remove": {
                     "component_groups": [
                         "melee"
@@ -494,14 +515,14 @@
                     ]
                 }
             },
-            "roar":{
+            "roar": {
                 "add": {
                     "component_groups": [
                         "phase2"
                     ]
                 },
                 "queue_command": {
-                    "command":[
+                    "command": [
                         "effect @s slowness 5 255 true",
                         "effect @s strength 120 1 false",
                         "effect @s resistance 120 2 false",
@@ -523,13 +544,13 @@
                     "event": "landed"
                 }
             },
-            "fly":{
-                "set_property":{
+            "fly": {
+                "set_property": {
                     "flying:property": true
                 }
             },
-            "landed":{
-                "set_property":{
+            "landed": {
+                "set_property": {
                     "flying:property": false
                 }
             }

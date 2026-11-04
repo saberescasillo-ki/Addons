@@ -1,0 +1,33 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.steel_arrow.fly": {
+			"loop": true,
+			"bones": {
+				"main_arrow": {
+					"rotation": ["-q.target_x_rotation", "-q.body_y_rotation", 0]
+				},
+				"arrow": {
+					"rotation": [0, 0, "query.is_on_ground ? -q.body_y_rotation : -query.anim_time * 1200"]
+				}
+			}
+		},
+		"animation.steel_arrow.1st": {
+			"loop": true,
+			"bones": {
+				"arrow": {
+					"rotation": [16.42693, 41.24491, -32.64333],
+					"position": [10.15158, 19.27728, -6.50628]
+				}
+			}
+		},
+		"animation.steel_arrow.3st": {
+			"loop": true,
+			"bones": {
+				"arrow": {
+					"position": [1.5, 21, -10]
+				}
+			}
+		}
+	}
+}

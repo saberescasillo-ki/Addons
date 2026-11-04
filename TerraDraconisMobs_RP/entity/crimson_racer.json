@@ -7,44 +7,56 @@
                 "default": "entity_emissive_alpha"
             },
             "textures": {
-                "unsaddle": "textures/entity/crimson_racer_texture",
-                "saddled": "textures/entity/crimson_racer_saddled_texture"
+                "crimson_0": "textures/entity/crimson_racer_texture",
+                "crimson_1": "textures/entity/crimson_racer_saddled_texture",
+                "sapphire_0": "textures/entity/colors/crimson_racer_texture_sapphire",
+                "sapphire_1": "textures/entity/colors/crimson_racer_saddled_texture_sapphire",
+                "emerald_0": "textures/entity/colors/crimson_racer_texture_emerald",
+                "emerald_1": "textures/entity/colors/crimson_racer_saddled_texture_emerald",
+                "obsidian_0": "textures/entity/colors/crimson_racer_texture_obsidian",
+                "obsidian_1": "textures/entity/colors/crimson_racer_saddled_texture_obsidian",
+                "amethyst_0": "textures/entity/colors/crimson_racer_texture_amethyst",
+                "amethyst_1": "textures/entity/colors/crimson_racer_saddled_texture_amethyst",
+                "gold_0": "textures/entity/colors/crimson_racer_texture_gold",
+                "gold_1": "textures/entity/colors/crimson_racer_saddled_texture_gold",
+                "frost_0": "textures/entity/colors/crimson_racer_texture_frost",
+                "frost_1": "textures/entity/colors/crimson_racer_saddled_texture_frost"
             },
             "animations": {
-                "swim_sound":"animation.crimson_racer.swim_sound",
-                "swim":"animation.crimson_racer.swim",
-                "start_faint":"animation.crimson_racer.start_faint",
-                "faint":"animation.crimson_racer.faint",
-                "wake":"animation.crimson_racer.wake",
+                "swim_sound": "animation.crimson_racer.swim_sound",
+                "swim": "animation.crimson_racer.swim",
+                "start_faint": "animation.crimson_racer.start_faint",
+                "faint": "animation.crimson_racer.faint",
+                "wake": "animation.crimson_racer.wake",
                 "idle": "animation.crimson_racer.idle",
-                "wind_sound":"animation.crimson_racer.wind_sound",
-                "wing_sound":"animation.crimson_racer.wing_sound",
-                "idle_var1":"animation.crimson_racer.idle_var1",
-                "idle_var2":"animation.crimson_racer.idle_var2",
-                "idle_var3":"animation.crimson_racer.idle_var3",
-                "idle_var4":"animation.crimson_racer.idle_var4",
-                "idle_var5":"animation.crimson_racer.idle_var5",
-                "cooldown":"animation.cooldown_timers",
+                "wind_sound": "animation.crimson_racer.wind_sound",
+                "wing_sound": "animation.crimson_racer.wing_sound",
+                "idle_var1": "animation.crimson_racer.idle_var1",
+                "idle_var2": "animation.crimson_racer.idle_var2",
+                "idle_var3": "animation.crimson_racer.idle_var3",
+                "idle_var4": "animation.crimson_racer.idle_var4",
+                "idle_var5": "animation.crimson_racer.idle_var5",
+                "cooldown": "animation.cooldown_timers",
                 "walk": "animation.crimson_racer.rework_walk",
                 "run": "animation.crimson_racer.rework_run",
-                "fly":"animation.crimson_racer.fly2",
-                "glide":"animation.crimson_racer.fly3",
-                "dive":"animation.crimson_racer.fly4",
-                "bite":"animation.crimson_racer.bite_attack",
-                "bite2":"animation.crimson_racer.bite_attack2",
-                "bite3":"animation.crimson_racer.bite_attack3",
-                "bite4":"animation.crimson_racer.bite_attack4",
-                "bite5":"animation.crimson_racer.bite_attack5",
-                "bite6":"animation.crimson_racer.bite_attack6",
-                "bite7":"animation.crimson_racer.bite_attack7",
-                "look_at_target":"animation.crimson_racer.look_at_target",
-                "look_at_target_has_rider":"animation.crimson_racer.look_at_target_has_rider",
+                "fly": "animation.crimson_racer.fly2",
+                "glide": "animation.crimson_racer.fly3",
+                "dive": "animation.crimson_racer.fly4",
+                "bite": "animation.crimson_racer.bite_attack",
+                "bite2": "animation.crimson_racer.bite_attack2",
+                "bite3": "animation.crimson_racer.bite_attack3",
+                "bite4": "animation.crimson_racer.bite_attack4",
+                "bite5": "animation.crimson_racer.bite_attack5",
+                "bite6": "animation.crimson_racer.bite_attack6",
+                "bite7": "animation.crimson_racer.bite_attack7",
+                "look_at_target": "animation.crimson_racer.look_at_target",
+                "look_at_target_has_rider": "animation.crimson_racer.look_at_target_has_rider",
                 "controller": "controller.animation.wyverns",
-                "idle_var_controller":"controller.animation.wyverns_idle_var",
-                "attack_controller":"controller.animation.wyverns_attack",
-                "fire_breath":"animation.crimson_racer.fire_breath",
-                "wind_sound_controller":"controller.animation.wind_sound",
-                "faint_controller":"controller.animation.crimson_racer.faint"
+                "idle_var_controller": "controller.animation.wyverns_idle_var",
+                "attack_controller": "controller.animation.wyverns_attack",
+                "fire_breath": "animation.crimson_racer.fire_breath",
+                "wind_sound_controller": "controller.animation.wind_sound",
+                "faint_controller": "controller.animation.crimson_racer.faint"
             },
             "scripts": {
                 "initialize": [
@@ -58,7 +70,6 @@
                 "pre_animation": [
                     "variable.x_lerp = math.lerp(variable.x_lerp, query.target_x_rotation, 0.05);",
                     "variable.y_lerp = math.lerp(variable.y_lerp, query.target_y_rotation, 0.05);",
-
                     "variable.target_delta_y = query.rider_body_y_rotation(0) - query.body_y_rotation;",
                     "variable.target_delta_y = variable.target_delta_y > 180 ? variable.target_delta_y - 360 : variable.target_delta_y;",
                     "variable.target_delta_y = variable.target_delta_y < -180 ? variable.target_delta_y + 360 : variable.target_delta_y;",
@@ -70,10 +81,10 @@
                 ],
                 "animate": [
                     {
-                        "look_at_target":"!query.has_rider"
+                        "look_at_target": "!query.has_rider"
                     },
                     {
-                        "look_at_target_has_rider":"query.has_rider"
+                        "look_at_target_has_rider": "query.has_rider"
                     },
                     "faint_controller",
                     "wind_sound_controller",
@@ -83,22 +94,22 @@
                 ]
             },
             "sound_effects": {
-                "eat":"crimson_racer_eat",
-                "wind_sound":"wind_sound",
-                "wing_open_sound":"crimson_racer_wing_open_sound",
-                "wing_sound":"crimson_racer_wing_sound",
-                "crimson_racer_roar":"crimson_racer_roar",
-                "bite":"crimson_racer_bite",
-                "stomp":"crimson_racer_stomp",
-                "swim_sound":"crimson_racer_swim",
-                "fire_breath":"crimson_racer_fire_breath",
-                "impact":"crimson_racer_impact"
+                "eat": "crimson_racer_eat",
+                "wind_sound": "wind_sound",
+                "wing_open_sound": "crimson_racer_wing_open_sound",
+                "wing_sound": "crimson_racer_wing_sound",
+                "crimson_racer_roar": "crimson_racer_roar",
+                "bite": "crimson_racer_bite",
+                "stomp": "crimson_racer_stomp",
+                "swim_sound": "crimson_racer_swim",
+                "fire_breath": "crimson_racer_fire_breath",
+                "impact": "crimson_racer_impact"
             },
             "geometry": {
                 "default": "geometry.crimson_racer"
             },
             "render_controllers": [
-                "controller.render.crimson_racer"
+                "controller.render.terradraconis_crimson_racer_color"
             ]
         }
     }

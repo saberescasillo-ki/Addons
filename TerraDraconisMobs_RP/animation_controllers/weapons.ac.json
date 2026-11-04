@@ -1,0 +1,174 @@
+{
+    "format_version": "1.10.0",
+    "animation_controllers": {
+        "controller.animation.steel_crossbow_1st": {
+            "initial_state": "default",
+            "states": {
+                "default": {
+                    "blend_transition":0.1,
+                    "animations": [
+                       "1st"
+                    ],
+                    "transitions": [
+                        {
+                            "shoot":"query.cooldown_time_remaining > 1.8 "
+                        },
+                        {
+                            "start_aim": "query.is_sneaking "
+                        }
+                    ]
+                },
+                "start_aim":{
+                    "animations": [
+                        "1st_start_aim"
+                    ],
+                    "transitions": [
+                        {
+                            "aim": "query.any_animation_finished"
+                        }
+                    ]
+                },
+                "aim":{
+                    "animations": [
+                        "1st_aim"
+                    ],
+                    "transitions": [
+                        {
+                            "un_aim": "!query.is_sneaking"
+                        },
+                        {
+                            "shoot_aim":"query.cooldown_time_remaining > 1.8 "
+                        }
+                    ]
+                },
+                "un_aim":{
+                    "animations": [
+                        "1st_un_aim"
+                    ],
+                    "transitions": [
+                        {
+                            "default": "query.any_animation_finished"
+                        }
+                    ]
+                },
+                "shoot":{
+                    "animations": [
+                        "1st_shoot"
+                    ],
+                    "transitions": [
+                        {
+                            "default": "query.any_animation_finished"
+                        }
+                    ]
+                },
+                "shoot_aim":{
+                    "animations": [
+                        "1st_shoot_aim"
+                    ],
+                    "transitions": [
+                        {
+                            "default": "query.anim_time >= 1.9"
+                        }
+                    ]
+                }
+            }
+        },
+        "controller.animation.steel_crossbow_3st": {
+            "initial_state": "default",
+            "states": {
+                "default": {
+                    "blend_transition":0.1,
+                    "animations": [
+                        "3st"
+                    ],
+                    "transitions": [
+                        {
+                            "shoot":"query.is_using_item"
+                        }
+                    ]
+                },
+                "shoot":{
+                    "animations": [
+                        "3st_shoot"
+                    ],
+                    "transitions": [
+                        {
+                            "default": "query.any_animation_finished"
+                        }
+                    ]
+                }
+            }
+        },
+
+        "controller.animation.steel_long_bow": {
+           "initial_state": "default",
+			"states" : {
+				"default" : {
+					"animations" : [
+                        "1st"
+					],
+					"transitions" : [
+						{
+					        "shoot_charge": "(query.main_hand_item_use_duration != 0)"
+						}
+					]
+				},
+				"shoot_charge": {
+					"animations": [
+                        "1st_charge"
+					],
+					"transitions": [
+						{
+					        "shoot": "query.main_hand_item_use_duration == 0"
+						}
+					]
+				},
+                "shoot": {
+					"animations": [
+                        "1st_shoot"
+					],
+					"transitions": [
+						{
+					        "default": "query.any_animation_finished"
+						}
+					]
+				}
+			}
+        },
+        "controller.animation.steel_long_bow2": {
+           "initial_state": "default",
+			"states" : {
+				"default" : {
+					"animations" : [
+                        "3st"
+					],
+					"transitions" : [
+						{
+					        "shoot_charge": "(query.main_hand_item_use_duration != 0)"
+						}
+					]
+				},
+				"shoot_charge": {
+					"animations": [
+                        "3st_charge"
+					],
+					"transitions": [
+						{
+					        "shoot": "query.main_hand_item_use_duration == 0"
+						}
+					]
+				},
+                "shoot": {
+					"animations": [
+                        "3st_shoot"
+					],
+					"transitions": [
+						{
+					        "default": "query.any_animation_finished"
+						}
+					]
+				}
+			}
+        }
+    }
+}

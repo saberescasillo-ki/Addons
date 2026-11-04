@@ -392,6 +392,61 @@
           "pitch": 0.8
         }
       ]
+    },
+    "steel_crossbow_shoot": {
+      "category": "player",
+      "max_distance": 32,
+      "sounds": [
+        {
+          "name": "sounds/weapon_sounds/steel_crossbow/shoot",
+          "volume": 0.8,
+          "pitch": 1
+        }
+      ]
+    },
+    "steel_long_bow_shoot": {
+      "category": "player",
+      "max_distance": 32,
+      "sounds": [
+        {
+          "name": "sounds/weapon_sounds/steel_long_bow/bow_shoot",
+          "volume": 0.3,
+          "pitch": 1
+        }
+      ]
+    },
+    "steel_long_bow_draw": {
+      "category": "player",
+      "max_distance": 32,
+      "sounds": [
+        {
+          "name": "sounds/weapon_sounds/steel_long_bow/bow_draw",
+          "volume": 0.1,
+          "pitch": 1
+        }
+      ]
+    },
+    "long_neck_rifle_shoot": {
+      "category": "player",
+      "max_distance": 32,
+      "sounds": [
+        {
+          "name": "sounds/weapon_sounds/long_neck_rifle/shoot",
+          "volume": 0.3,
+          "pitch": 1
+        }
+      ]
+    },
+    "long_neck_rifle_shoot_tranq": {
+      "category": "player",
+      "max_distance": 32,
+      "sounds": [
+        {
+          "name": "sounds/weapon_sounds/long_neck_rifle/shoot_tranq",
+          "volume": 0.3,
+          "pitch": 1
+        }
+      ]
     }
   }
 }

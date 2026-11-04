@@ -5,52 +5,63 @@
             "identifier": "terradraconis:baby_shield_horn",
             "is_spawnable": true,
             "is_summonable": true,
-            "is_experimental": false
+            "is_experimental": false,
+            "properties": {
+                "terradraconis:color": {
+                    "type": "int",
+                    "range": [
+                        0,
+                        6
+                    ],
+                    "default": 0,
+                    "client_sync": true
+                }
+            }
         },
         "component_groups": {
-            "male_grown":{
+            "male_grown": {
                 "minecraft:transformation": {
                     "into": "terradraconis:male_shield_horn",
-                    "delay":{
+                    "delay": {
                         "value": 0
                     }
                 }
             },
-            "female_grown":{
+            "female_grown": {
                 "minecraft:transformation": {
                     "into": "terradraconis:female_shield_horn",
-                    "delay":{
+                    "delay": {
                         "value": 0
                     }
                 }
             },
-            "male":{
+            "male": {
                 "minecraft:variant": {
                     "value": 0
                 },
                 "minecraft:ageable": {
                     "duration": 1200,
-                    "feed_items":"minecraft:wheat",
+                    "feed_items": "minecraft:wheat",
                     "grow_up": {
                         "event": "male_grow_up",
                         "target": "self"
                     }
                 }
             },
-            "female":{
+            "female": {
                 "minecraft:variant": {
                     "value": 1
                 },
                 "minecraft:ageable": {
                     "duration": 1200,
-                    "feed_items":"minecraft:wheat",
+                    "feed_items": "minecraft:wheat",
                     "grow_up": {
                         "event": "female_grow_up",
                         "target": "self"
                     }
                 }
             },
-            "baby":{
+            "baby": {
                 "minecraft:is_baby": {},
                 "minecraft:behavior.follow_parent": {},
                 "minecraft:scale_by_age": {
@@ -175,21 +186,21 @@
             }
         },
         "events": {
-            "male_grow_up":{
+            "male_grow_up": {
                 "add": {
                     "component_groups": [
                         "male_grown"
                     ]
                 }
             },
-            "female_grow_up":{
+            "female_grow_up": {
                 "add": {
                     "component_groups": [
                         "female_grown"
                     ]
                 }
             },
-            "gender_random":{
+            "gender_random": {
                 "randomize": [
                     {
                         "add": {

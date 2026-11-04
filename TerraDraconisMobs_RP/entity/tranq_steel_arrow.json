@@ -1,0 +1,28 @@
+{
+    "format_version": "1.10.0",
+    "minecraft:client_entity": {
+        "description": {
+            "identifier": "terradraconis:tranq_steel_arrow",
+            "materials": {
+                "default": "entity_alphatest"
+            },
+            "textures": {
+                "default": "textures/attachables/tranq_steel_arrow_texture"
+            },
+            "geometry": {
+                "default": "geometry.steel_arrow"
+            },
+            "animations": {
+                "fly": "animation.steel_arrow.fly"
+            },
+            "scripts": {
+                "animate": [
+                    "fly"
+                ]
+            },
+            "render_controllers": [
+                "controller.render.default"
+            ]
+        }
+    }
+}

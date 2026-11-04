@@ -7,17 +7,26 @@
             "is_summonable": true,
             "is_experimental": false,
             "properties": {
-                "flying:property":{
+                "flying:property": {
                     "client_sync": true,
                     "type": "bool",
                     "default": false
+                },
+                "terradraconis:color": {
+                    "type": "int",
+                    "range": [
+                        0,
+                        7
+                    ],
+                    "default": 0,
+                    "client_sync": true
                 }
             },
             "animations": {
-                "fly_interval":"animation.dragon_flying",
+                "fly_interval": "animation.dragon_flying",
                 "fly_controller": "controller.animation.dragon_flying_controllers",
-                "camera_controller":"controller.animation.dragon_camera_controllers",
-                "dragon_stamina":"animation.dragon_stamina"
+                "camera_controller": "controller.animation.dragon_camera_controllers",
+                "dragon_stamina": "animation.dragon_stamina"
             },
             "scripts": {
                 "animate": [
@@ -28,7 +37,7 @@
             }
         },
         "component_groups": {
-            "cooldown_timer":{
+            "cooldown_timer": {
                 "minecraft:timer": {
                     "time": 20,
                     "looping": false,
@@ -38,7 +47,7 @@
                     }
                 }
             },
-            "melee":{
+            "melee": {
                 "minecraft:attack": {
                     "damage": 20
                 },
@@ -73,7 +82,7 @@
                     "event": "regen"
                 }
             },
-            "range":{
+            "range": {
                 "minecraft:timer": {
                     "time": 8,
                     "looping": false,
@@ -95,7 +104,7 @@
                     "def": "terradraconis:crimson_racer_fire_breath"
                 }
             },
-            "baby_tamed":{
+            "baby_tamed": {
                 "minecraft:behavior.random_stroll": {
                     "interval": 120,
                     "xz_dist": 10,
@@ -120,7 +129,7 @@
                 },
                 "minecraft:is_baby": {}
             },
-            "baby":{
+            "baby": {
                 "minecraft:behavior.random_stroll": {
                     "interval": 120,
                     "xz_dist": 10,
@@ -135,7 +144,7 @@
                         "event": "tamed_baby",
                         "target": "self"
                     },
-                    "tame_items":[
+                    "tame_items": [
                         "minecraft:porkchop"
                     ]
                 },
@@ -147,7 +156,7 @@
                     "max": 100
                 }
             },
-            "adult":{
+            "adult": {
                 "minecraft:break_blocks": {
                     "breakable_blocks": [
                         "minecraft:oak_leaves",
@@ -168,7 +177,6 @@
                         "minecraft:birch_log",
                         "minecraft:pale_oak_log",
                         "minecraft:mangrove_log",
-
                         "minecraft:glass",
                         "minecraft:glass_pane",
                         "minecraft:black_stained_glass",
@@ -212,8 +220,18 @@
                                         "any_of": [
                                             {
                                                 "all_of": [
-                                                    { "test": "is_family", "subject": "other", "value": "monster", "operator": "==" },
-                                                    { "test": "rider_count","operator": "<","subject": "self","value": 1}
+                                                    {
+                                                        "test": "is_family",
+                                                        "subject": "other",
+                                                        "value": "monster",
+                                                        "operator": "=="
+                                                    },
+                                                    {
+                                                        "test": "rider_count",
+                                                        "operator": "<",
+                                                        "subject": "self",
+                                                        "value": 1
+                                                    }
                                                 ]
                                             }
                                         ]
@@ -276,7 +294,7 @@
                             "accepted_items": [
                                 "minecraft:saddle"
                             ],
-                            "item":"minecraft:saddle",
+                            "item": "minecraft:saddle",
                             "interact_text": "Equip",
                             "slot": 0,
                             "on_equip": {
@@ -298,7 +316,7 @@
                 "minecraft:behavior.owner_hurt_target": {},
                 "minecraft:is_tamed": {}
             },
-            "saddled":{
+            "saddled": {
                 "minecraft:rideable": {
                     "crouching_skip_interact": true,
                     "family_types": [
@@ -309,7 +327,7 @@
                     "pull_in_entities": false,
                     "rider_can_interact": false,
                     "seat_count": 2,
-                    "seats":[
+                    "seats": [
                         {
                             "max_rider_count": 0,
                             "min_rider_count": 0,
@@ -331,12 +349,12 @@
                 },
                 "minecraft:input_ground_controlled": {}
             },
-            "saddle_tex":{
+            "saddle_tex": {
                 "minecraft:variant": {
                     "value": 1
                 }
             },
-            "unsaddle_tex":{
+            "unsaddle_tex": {
                 "minecraft:variant": {
                     "value": 0
                 }
@@ -438,14 +456,14 @@
             }
         },
         "events": {
-            "charged":{
+            "charged": {
                 "remove": {
                     "component_groups": [
                         "cooldown_timer"
                     ]
                 }
             },
-            "cooldown":{
+            "cooldown": {
                 "add": {
                     "component_groups": [
                         "cooldown_timer",
@@ -458,7 +476,7 @@
                     ]
                 }
             },
-            "ranged_attack":{
+            "ranged_attack": {
                 "remove": {
                     "component_groups": [
                         "melee"
@@ -470,7 +488,7 @@
                     ]
                 }
             },
-            "melee_attack":{
+            "melee_attack": {
                 "add": {
                     "component_groups": [
                         "melee"
@@ -498,7 +516,7 @@
                     ]
                 }
             },
-            "tamed_baby":{
+            "tamed_baby": {
                 "add": {
                     "component_groups": [
                         "baby_tamed"
@@ -510,7 +528,7 @@
                     ]
                 }
             },
-            "adult":{
+            "adult": {
                 "add": {
                     "component_groups": [
                         "adult"
@@ -522,17 +540,17 @@
                     ]
                 }
             },
-            "fly":{
-                "set_property":{
+            "fly": {
+                "set_property": {
                     "flying:property": true
                 }
             },
-            "landed":{
-                "set_property":{
+            "landed": {
+                "set_property": {
                     "flying:property": false
                 }
             },
-            "saddle":{
+            "saddle": {
                 "add": {
                     "component_groups": [
                         "saddled",
@@ -545,7 +563,7 @@
                     ]
                 }
             },
-            "unsaddle":{
+            "unsaddle": {
                 "add": {
                     "component_groups": [
                         "unsaddle_tex"

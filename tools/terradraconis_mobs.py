@@ -7,25 +7,39 @@ shield horn nest and the loot bag the taming spawns), their spawn rules, loot,
 models, textures, animations, particles and sounds, the shield horn nest world
 generation, and the scripts that drive the mobs (levels, mutations, flying,
 stamina, taming, nests, flee, XP on death, spyglass stats and compass settings).
+Also the weapons: steel crossbow, steel long bow, long neck rifle and steel
+sword, with their steel and tranquilizer arrows and bullets.
 
-What is left out: terrain generation, custom blocks, items, weapons, armour,
-recipes, workbench/engram systems, the unfinished "lapari" NPC and the
+Added here: colour variants for the dragons and the shield horns. The
+textures are recoloured from the originals (COLORS below) and the
+"terradraconis:color" entity property picks one; tools/terradraconis_mobs/
+colors.js chooses it on spawn and keeps it when a baby grows up, an egg
+hatches or a dragon is tamed.
+
+What is left out: terrain generation, custom blocks, tools, armour, the other
+items, recipes, workbench/engram systems, the unfinished "lapari" NPC and the
 herbivore bait.
 
     python3 tools/terradraconis_mobs.py path/to/TerraDraconis.zip
     python3 tools/terradraconis_mobs.py path/to/extracted_folder
+    python3 tools/terradraconis_mobs.py path/to/TerraDraconis.zip --preview  # also docs/terradraconis_colors.png
 """
 import json
 import os
+import re
 import shutil
 import sys
 import tempfile
 import zipfile
 
+import numpy as np
+from PIL import Image, ImageDraw, ImageFont
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BP = os.path.join(ROOT, "TerraDraconisMobs_BP")
 RP = os.path.join(ROOT, "TerraDraconisMobs_RP")
 DIST = os.path.join(ROOT, "dist")
+COLORS_JS = os.path.join(ROOT, "tools", "terradraconis_mobs", "colors.js")
 
 NAME = "TerraDraconis Mobs"
 VERSION = [1, 0, 0]
@@ -76,11 +90,27 @@ BP_FILES = [
     "scripts/shield_horn.js",
     "scripts/nest.js",
     "scripts/death_loot.js",
+    # Weapons and their ammunition.
+    "scripts/weapons.js",
+    "items/steel_crossbow.json",
+    "items/steel_long_bow.json",
+    "items/long_neck_rifle.json",
+    "items/steel_sword.json",
+    "items/steel_arrow.json",
+    "items/tranq_steel_arrow.json",
+    "items/steel_bullet.json",
+    "items/tranq_bullet.json",
+    "entities/projectiles/steel_arrow.json",
+    "entities/projectiles/tranq_steel_arrow.json",
+    "entities/projectiles/steel_bullet.json",
+    "entities/projectiles/tranq_bullet.json",
 ]
 
 RP_ENTITIES = ["crimson_racer", "wild_crimson_racer", "savage_crimson_racer", "crimson_racer_egg",
                "crimson_racer_fire_breath", "male_shield_horn", "female_shield_horn", "baby_shield_horn",
-               "shield_horn_nest", "shimmer_fly", "lootbag"]
+               "shield_horn_nest", "shimmer_fly", "lootbag", "steel_arrow", "tranq_steel_arrow"]
+WEAPONS = ["steel_crossbow", "steel_long_bow", "long_neck_rifle", "steel_sword",
+           "steel_arrow", "tranq_steel_arrow", "steel_bullet", "tranq_bullet"]
 
 RP_FILES = [
     "pack_icon.png",
@@ -100,8 +130,6 @@ RP_FILES = [
     "animations/shimmer_fly.animation.json",
     "animation_controllers/dragons.json",
     "animation_controllers/shield_horn.json",
-    "render_controllers/dragon_rc.json",
-    "render_controllers/gender.rc.json",
     "render_controllers/shimmer_fly.json",
     "particles/eye_aura.json",
     "particles/fire_breath.json",
@@ -122,11 +150,30 @@ RP_FILES = [
     "textures/entity/shimmer_fly_texture4.png",
     "textures/entity/shimmer_fly_texture5.png",
     "textures/entity/lootbag_texture.png",
+    # Weapons: held models, icons and the rifle's muzzle flash.
+    *[f"attachables/{w}.json" for w in WEAPONS],
+    *[f"textures/attachables/{w}_texture.png" for w in WEAPONS],
+    *[f"textures/items/{w}.png" for w in WEAPONS],
+    "models/entity/steel_crossbow.geo.json",
+    "models/entity/steel_long_bow.geo.json",
+    "models/entity/long_neck_rifle.geo.json",
+    "models/entity/steel_sword.geo.json",
+    "models/entity/steel_arrow.geo.json",
+    "models/entity/steel_bullet.geo.json",
+    "animations/steel_crossbow.animation.json",
+    "animations/steel_long_bow.animation.json",
+    "animations/long_neck_rifle.animation.json",
+    "animations/steel_axe.animation.json",  # the sword uses its animations
+    "animations/steel_arrow.animation.json",
+    "animations/steel_bullet.animation.json",
+    "animation_controllers/weapons.ac.json",
+    "render_controllers/steel_crossbow.json",
+    "particles/shoot_effect.json",
 ]
 
-# Sound events used by the mobs (entity sound effects, sounds.json) and by the
-# script forms (ui_*, button). Weapon and level-up sounds are dropped.
-SOUND_PREFIXES = ("crimson_racer_", "savage_crimson_racer_")
+# Sound events used by the mobs (entity sound effects, sounds.json), the
+# weapons and the script forms (ui_*, button). The level-up sound is dropped.
+SOUND_PREFIXES = ("crimson_racer_", "savage_crimson_racer_", "steel_crossbow_", "steel_long_bow_", "long_neck_rifle_")
 SOUND_EXTRA = {"wind_sound", "ui_popup", "ui_exit", "ui_save", "button"}
 
 MAIN_JS = """import 'config'
@@ -140,7 +187,45 @@ import 'non_tameable_scaling'
 import 'shield_horn'
 import 'nest'
 import 'death_loot'
+import 'weapons'
+import 'colors'
 """
+
+# --- Colour variants --------------------------------------------------------
+# Each colour recolours the "body" pixels of the original texture: the red
+# scales of the dragon, the grey/slate hide of the shield horn. Horns, eyes,
+# teeth and the saddle keep their colours. hue = new hue (0-1); sm/sa and
+# vm/va multiply and add to saturation and brightness.
+COLORS = {
+    "dragon": [
+        ("crimson", "Carmesí", None),  # original
+        ("sapphire", "Zafiro", dict(hue=0.60, sm=0.9)),
+        ("emerald", "Esmeralda", dict(hue=0.36, sm=0.9, vm=0.95)),
+        ("obsidian", "Obsidiana", dict(hue=0.70, sm=0.25, vm=0.42)),
+        ("amethyst", "Amatista", dict(hue=0.79, sm=0.9)),
+        ("gold", "Dorado", dict(hue=0.115, vm=1.2, va=0.04)),
+        ("frost", "Escarcha", dict(hue=0.55, sm=0.15, vm=0.5, va=0.45)),
+    ],
+    "shield_horn": [
+        ("slate", "Original", None),
+        ("sand", "Arena", dict(hue=0.10, sm=0.5, sa=0.25, vm=1.45, va=0.10)),
+        ("rust", "Óxido", dict(hue=0.035, sm=0.6, sa=0.38, vm=1.25, va=0.03)),
+        ("moss", "Musgo", dict(hue=0.25, sm=0.5, sa=0.22, vm=1.15, va=0.03)),
+        ("ivory", "Marfil", dict(hue=0.11, sm=0.1, sa=0.06, vm=0.7, va=0.42)),
+        ("onyx", "Ónice", dict(hue=0.65, sm=0.3, vm=0.55)),
+    ],
+}
+# Coloured entities: family, and the texture of each original slot. Entities
+# with two slots pick the slot with query.variant (saddle, baby's gender).
+COLORED = {
+    "wild_crimson_racer": ("dragon", ["crimson_racer_texture"]),
+    "savage_crimson_racer": ("dragon", ["savage_crimson_racer_texture"]),
+    "crimson_racer": ("dragon", ["crimson_racer_texture", "crimson_racer_saddled_texture"]),
+    "male_shield_horn": ("shield_horn", ["shield_horn_texture"]),
+    "female_shield_horn": ("shield_horn", ["female_shield_horn_texture"]),
+    "baby_shield_horn": ("shield_horn", ["male_baby_shield_horn_texture", "female_baby_shield_horn_texture"]),
+}
+COLOR_PROP = "terradraconis:color"
 
 # Entity names: (English, Spanish).
 NAMES = {
@@ -155,6 +240,10 @@ NAMES = {
     "shield_horn_nest": ("Shield Horn Nest", "Nido de Cuerno Escudo"),
     "shimmer_fly": ("Shimmer Fly", "Mosca Centelleante"),
     "lootbag": ("Loot Bag", "Bolsa de botín"),
+    "steel_arrow": ("Steel Arrow", "Flecha de acero"),
+    "tranq_steel_arrow": ("Tranq Steel Arrow", "Flecha tranquilizante"),
+    "steel_bullet": ("Steel Bullet", "Bala de acero"),
+    "tranq_bullet": ("Tranq Bullet", "Bala tranquilizante"),
 }
 SPAWN_EGG = {"en": "Spawn %s", "es": "Generar %s"}
 
@@ -197,8 +286,16 @@ def trim_config(text):
     end = text.index("});", text.index("player.setDynamicProperty(\"spawn\", true);"))
     end = text.index("}", end + 3) + 1  # closing brace of `if (!spawn)`
     text = text[:start].rstrip() + "\n" + text[end:].lstrip("\n")
-    # Weapons and workbench tables are only used by the removed item scripts.
-    return cut_from(text, "//Weapon And Workbench Setup", "config.js")
+    # Reforge and workbench tables are only used by the removed workbench.
+    return cut_from(text, "export const ReforgeItem", "config.js")
+
+
+def patch_taming(text):
+    # The tamed dragon is a new entity: it keeps the wild one's colour.
+    return replace_once(text, "  if (!newEntity) return;\n",
+                        "  if (!newEntity) return;\n"
+                        f'  newEntity.setProperty("{COLOR_PROP}", entity.getProperty("{COLOR_PROP}") ?? 0);\n',
+                        "dragon_taming.js")
 
 
 def trim_utility(text):
@@ -207,6 +304,152 @@ def trim_utility(text):
     text = replace_once(text, 'import { reduceDur } from "./weapons";\n', "", "utility.js")
     # Wood/stone processing with axes and pickaxes is an item mechanic.
     return cut_from(text, "world.afterEvents.entityHitBlock.subscribe", "utility.js")
+
+
+def load_json(path):
+    with open(path, encoding="utf-8-sig") as f:
+        return json.loads(re.sub(r"^\s*//.*$", "", f.read(), flags=re.M))
+
+
+# --- Colour variants --------------------------------------------------------
+def _rgb_to_hsv(rgb):
+    r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+    mx, mn = rgb.max(-1), rgb.min(-1)
+    d = mx - mn
+    h = np.zeros_like(mx)
+    m = d > 1e-6
+    rm = m & (mx == r)
+    gm = m & (mx == g) & ~rm
+    bm = m & ~rm & ~gm
+    h[rm] = ((g - b)[rm] / d[rm]) % 6
+    h[gm] = (b - r)[gm] / d[gm] + 2
+    h[bm] = (r - g)[bm] / d[bm] + 4
+    return h / 6, np.where(mx > 1e-6, d / np.maximum(mx, 1e-6), 0), mx
+
+
+def _hsv_to_rgb(h, s, v):
+    i = np.floor(h * 6) % 6
+    f = h * 6 - np.floor(h * 6)
+    p, q, t = v * (1 - s), v * (1 - f * s), v * (1 - (1 - f) * s)
+    out = np.zeros(h.shape + (3,))
+    for k, chans in enumerate([(v, t, p), (q, v, p), (p, v, t), (p, q, v), (t, p, v), (v, p, q)]):
+        m = i == k
+        for c in range(3):
+            out[..., c][m] = chans[c][m]
+    return out
+
+
+def _hue_offset(h, center):
+    return (h - center + 0.5) % 1 - 0.5
+
+
+def recolor(img, family, p):
+    a = np.asarray(img.convert("RGBA")).astype(np.float64) / 255
+    h, s, v = _rgb_to_hsv(a[..., :3])
+    if family == "dragon":
+        # Red/orange scales; keeps the hue variation a bit (spread).
+        rel = _hue_offset(h, 0.0)
+        mask = (s > 0.2) & (np.abs(rel) < 30 / 360)
+        spread = 0.6
+    else:
+        # Grey (female) or blue-grey slate (male) hide, not the white details.
+        off = _hue_offset(h, 215 / 360)
+        rel = np.where(s >= 0.15, off, 0)
+        mask = ((s < 0.15) | (np.abs(off) < 45 / 360)) & ~((v > 0.88) & (s < 0.12))
+        spread = 0.3
+    mask &= a[..., 3] > 0
+    rgb = _hsv_to_rgb((p["hue"] + rel * spread) % 1,
+                      np.clip(s * p.get("sm", 1) + p.get("sa", 0), 0, 1),
+                      np.clip(v * p.get("vm", 1) + p.get("va", 0), 0, 1))
+    out = a.copy()
+    out[..., :3] = np.where(mask[..., None], rgb, a[..., :3])
+    return Image.fromarray((out * 255 + 0.5).astype(np.uint8), "RGBA")
+
+
+def color_texture_path(base, color_id, index):
+    """Texture path (without .png) of colour `index`; the first is the original."""
+    return f"textures/entity/{base}" if index == 0 else f"textures/entity/colors/{base}_{color_id}"
+
+
+def make_color_textures(src_rp):
+    done = set()
+    for family, bases in COLORED.values():
+        for base in bases:
+            if base in done:
+                continue
+            done.add(base)
+            img = Image.open(os.path.join(src_rp, f"textures/entity/{base}.png"))
+            for i, (cid, _, params) in enumerate(COLORS[family]):
+                if params is None:
+                    continue
+                out = os.path.join(RP, color_texture_path(base, cid, i) + ".png")
+                os.makedirs(os.path.dirname(out), exist_ok=True)
+                recolor(img, family, params).save(out, optimize=True)
+
+
+def add_color_property(bp_entity_path, family):
+    data = load_json(bp_entity_path)
+    desc = data["minecraft:entity"]["description"]
+    desc.setdefault("properties", {})[COLOR_PROP] = {
+        "type": "int", "range": [0, len(COLORS[family])], "default": 0, "client_sync": True}
+    write(bp_entity_path, json.dumps(data, indent=4, ensure_ascii=False) + "\n")
+
+
+def color_render_controller(family, slots):
+    """Array of every colour x slot; property 0 (not chosen yet) shows colour 1."""
+    textures = []
+    for cid, _, _ in [COLORS[family][0]] + COLORS[family]:
+        textures += [f"Texture.{cid}_{s}" for s in range(slots)]
+    index = f"query.property('{COLOR_PROP}')"
+    if slots > 1:
+        index = f"{index} * {slots} + query.variant"
+    return {
+        "arrays": {"textures": {"Array.skins": textures}},
+        "geometry": "Geometry.default",
+        "materials": [{"*": "Material.default"}],
+        "textures": [f"Array.skins[{index}]"],
+    }
+
+
+def apply_colors():
+    """Adds the colour property (BP) and colour textures + render controller (RP)."""
+    controllers = {}
+    bp_paths = {os.path.splitext(os.path.basename(f))[0]: os.path.join(BP, f)
+                for f in BP_FILES if f.startswith("entities/")}
+    for ident, (family, bases) in COLORED.items():
+        add_color_property(bp_paths[ident], family)
+        rc = f"controller.render.terradraconis_{ident}_color"
+        controllers[rc] = color_render_controller(family, len(bases))
+        path = os.path.join(RP, f"entity/{ident}.json")
+        data = load_json(path)
+        desc = data["minecraft:client_entity"]["description"]
+        desc["textures"] = {f"{cid}_{s}": color_texture_path(base, cid, i)
+                            for i, (cid, _, _) in enumerate(COLORS[family])
+                            for s, base in enumerate(bases)}
+        desc["render_controllers"] = [rc]
+        write(path, json.dumps(data, indent=4, ensure_ascii=False) + "\n")
+    write(os.path.join(RP, "render_controllers/terradraconis_colors.json"),
+          {"format_version": "1.10.0", "render_controllers": controllers})
+
+
+def preview(src_rp, out):
+    """Strip of every colour, cut from the textures, for the README."""
+    rows = [("crimson_racer_texture", "dragon", (0, 0, 420, 420)),
+            ("shield_horn_texture", "shield_horn", (0, 0, 260, 260))]
+    cell, label = 150, 22
+    cols = max(len(COLORS[f]) for _, f, _ in rows)
+    img = Image.new("RGBA", (cols * cell, len(rows) * (cell + label)), (255, 255, 255, 255))
+    draw = ImageDraw.Draw(img)
+    try:
+        font = ImageFont.truetype("DejaVuSans.ttf", 14)
+    except OSError:
+        font = ImageFont.load_default()
+    for y, (base, family, box) in enumerate(rows):
+        for x, (cid, name, _) in enumerate(COLORS[family]):
+            tex = Image.open(os.path.join(RP, color_texture_path(base, cid, x) + ".png")).convert("RGBA")
+            img.alpha_composite(tex.crop(box).resize((cell, cell), Image.LANCZOS), (x * cell, y * (cell + label)))
+            draw.text((x * cell + 6, y * (cell + label) + cell + 4), name, fill=(30, 30, 30, 255), font=font)
+    img.save(out)
 
 
 def manifest(kind):
@@ -261,7 +504,7 @@ def copy(src_pack, dst_pack, files):
         shutil.copyfile(src, dst)
 
 
-def build(src):
+def build(src, with_preview=False):
     src_bp, src_rp = find_packs(src)
     for d in (BP, RP):
         shutil.rmtree(d, ignore_errors=True)
@@ -271,6 +514,9 @@ def build(src):
         write(os.path.join(BP, "scripts/config.js"), trim_config(f.read()))
     with open(os.path.join(src_bp, "scripts/utility.js"), encoding="utf-8") as f:
         write(os.path.join(BP, "scripts/utility.js"), trim_utility(f.read()))
+    with open(os.path.join(src_bp, "scripts/dragon_taming.js"), encoding="utf-8") as f:
+        write(os.path.join(BP, "scripts/dragon_taming.js"), patch_taming(f.read()))
+    shutil.copyfile(COLORS_JS, os.path.join(BP, "scripts/colors.js"))
     write(os.path.join(BP, "scripts/main.js"), MAIN_JS)
     write(os.path.join(BP, "manifest.json"), manifest("bp"))
 
@@ -283,6 +529,12 @@ def build(src):
     oggs = sorted({s if isinstance(s, str) else s["name"]
                    for v in sounds["sound_definitions"].values() for s in v["sounds"]})
     copy(src_rp, RP, [s + ".ogg" for s in oggs])
+    items = load_json(os.path.join(src_rp, "textures/item_texture.json"))
+    items["resource_pack_name"] = NAME
+    items["texture_data"] = {k: v for k, v in items["texture_data"].items() if k in WEAPONS}
+    write(os.path.join(RP, "textures/item_texture.json"), items)
+    make_color_textures(src_rp)
+    apply_colors()
     write(os.path.join(RP, "texts/languages.json"), ["en_US", "es_ES", "es_MX"])
     write(os.path.join(RP, "texts/en_US.lang"), lang("en"))
     write(os.path.join(RP, "texts/es_ES.lang"), lang("es"))
@@ -298,19 +550,23 @@ def build(src):
                     full = os.path.join(dirpath, name)
                     z.write(full, os.path.relpath(full, ROOT))
     print("OK ->", os.path.relpath(out, ROOT))
+    if with_preview:
+        preview(src_rp, os.path.join(ROOT, "docs", "terradraconis_colors.png"))
 
 
 def main():
-    if len(sys.argv) != 2:
+    args = [a for a in sys.argv[1:] if a != "--preview"]
+    if len(args) != 1:
         sys.exit(__doc__)
-    src = sys.argv[1]
+    with_preview = "--preview" in sys.argv
+    src = args[0]
     if os.path.isdir(src):
-        build(src)
+        build(src, with_preview)
         return
     with tempfile.TemporaryDirectory() as tmp:
         with zipfile.ZipFile(src) as z:
             z.extractall(tmp)
-        build(tmp)
+        build(tmp, with_preview)
 
 
 if __name__ == "__main__":

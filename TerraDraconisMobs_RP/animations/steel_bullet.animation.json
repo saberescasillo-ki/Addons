@@ -1,0 +1,26 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.steel_bullet.1st": {
+			"loop": true,
+			"bones": {
+				"bone": {
+					"rotation": [78.13103, 57.40687, -50.04484],
+					"position": [1.85134, 19.214, -3.6599]
+				},
+				"bullet": {
+					"rotation": [-85, 0, 0],
+					"scale": 1.2
+				}
+			}
+		},
+		"animation.steel_bullet.3st": {
+			"loop": true,
+			"bones": {
+				"bone": {
+					"position": [1, 18, -4]
+				}
+			}
+		}
+	}
+}

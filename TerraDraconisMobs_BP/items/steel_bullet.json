@@ -1,0 +1,18 @@
+{
+    "format_version": "1.20.41",
+    "minecraft:item": {
+        "description": {
+            "identifier": "terradraconis:steel_bullet_it",
+            "menu_category": {
+                "category": "items"
+            }
+        },
+        "components": {
+            "minecraft:icon": "steel_bullet",
+            "minecraft:display_name": {
+                "value": "Steel Bullet"
+            },
+            "minecraft:max_stack_size": 64
+        }
+    }
+}

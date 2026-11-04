@@ -7,25 +7,36 @@
             "is_summonable": true,
             "is_experimental": false,
             "animations": {
-                "flee":"animation.flee_animation",
-                "flee_controller":"controller.animation.flee_controllers"
+                "flee": "animation.flee_animation",
+                "flee_controller": "controller.animation.flee_controllers"
             },
             "scripts": {
                 "animate": [
                     "flee_controller"
                 ]
+            },
+            "properties": {
+                "terradraconis:color": {
+                    "type": "int",
+                    "range": [
+                        0,
+                        6
+                    ],
+                    "default": 0,
+                    "client_sync": true
+                }
             }
         },
         "component_groups": {
-            "wild_baby":{
+            "wild_baby": {
                 "minecraft:transformation": {
                     "into": "terradraconis:baby_shield_horn",
-                    "delay":{
+                    "delay": {
                         "value": 0
                     }
                 }
             },
-            "wild_male":{
+            "wild_male": {
                 "minecraft:transformation": {
                     "into": "terradraconis:male_shield_horn",
                     "add": {
@@ -33,12 +44,12 @@
                             "wild"
                         ]
                     },
-                    "delay":{
+                    "delay": {
                         "value": 0
                     }
                 }
             },
-            "wild":{
+            "wild": {
                 "minecraft:behavior.hurt_by_target": {
                     "alert_same_type": true,
                     "priority": 1,
@@ -50,12 +61,12 @@
                         "event": "tamed",
                         "target": "self"
                     },
-                    "tame_items":[
+                    "tame_items": [
                         "minecraft:wheat"
                     ]
                 }
             },
-            "tamed":{
+            "tamed": {
                 "minecraft:behavior.tempt": {
                     "can_get_scared": false,
                     "can_tempt_while_ridden": true,
@@ -74,8 +85,8 @@
                     "inherit_tamed": true,
                     "require_full_health": false,
                     "require_tame": false,
-                    "breed_items":"minecraft:wheat",
-                    "breeds_with":{
+                    "breed_items": "minecraft:wheat",
+                    "breeds_with": {
                         "mate_type": "terradraconis:male_shield_horn",
                         "baby_type": "terradraconis:baby_shield_horn"
                     }
@@ -230,8 +241,8 @@
                 "probability_per_strength": 1,
                 "ignore_visibility": false,
                 "priority": 0,
-                "entity_types":{
-                    "filters":{
+                "entity_types": {
+                    "filters": {
                         "all_of": [
                             {
                                 "test": "has_component",
@@ -259,7 +270,7 @@
             }
         },
         "events": {
-            "tamed":{
+            "tamed": {
                 "add": {
                     "component_groups": [
                         "tamed"
