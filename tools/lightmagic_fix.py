@@ -20,6 +20,8 @@ Fixes:
   * the light particle entities pointed to a texture that does not exist;
   * the broken wand's held model needed animations from another add-on;
   * two client entities with no behaviour entity (zk:lightspell, zk:blinder).
+Change asked for: no mana and no cooldowns, every spell can be cast at any time
+(the Mana counter leaves the action bar; Mana Essence stays).
 """
 import json
 import os
@@ -34,7 +36,7 @@ OUT = os.path.join(ROOT, "private")
 BP = os.path.join(OUT, "LightMagic_BP")
 RP = os.path.join(OUT, "LightMagic_RP")
 MCADDON = os.path.join(OUT, "LightMagic.mcaddon")
-VERSION = [1, 0, 1]
+VERSION = [1, 1, 0]
 
 
 def load(path):
@@ -154,6 +156,41 @@ def entities():
         os.remove(path)
 
 
+READY = ["mana", "bscd", "socd", "stcd", "stwcd", "utcd"]  # mana and the spells' cooldown timers
+GET_SCORE = "    return world.scoreboard.getObjective(objectiveName)?.getScore(player.scoreboardIdentity)"
+
+
+def no_mana():
+    """Every spell script asks getScore() for mana and its cooldown: they now
+    always answer "plenty" (the menus' short click guard, fskcd, stays)."""
+    folder = os.path.join(BP, "scripts")
+    patched = 0
+    for dirpath, _, files in os.walk(folder):
+        for name in files:
+            path = os.path.join(dirpath, name)
+            with open(path, encoding="utf-8-sig") as f:
+                text = f.read()
+            if GET_SCORE not in text or not any(f"getScore('{o}'" in text for o in READY):
+                continue
+            text = text.replace(GET_SCORE, f"    // no mana and no cooldowns: every spell is always ready\n"
+                                           f"    if ({json.dumps(READY)}.includes(objectiveName)) return Infinity;\n"
+                                + GET_SCORE)
+            with open(path, "w", encoding="utf-8", newline="\n") as f:
+                f.write(text)
+            patched += 1
+    if patched < 10:
+        sys.exit(f"no_mana: solo {patched} scripts de hechizos")
+    edit(os.path.join(BP, "functions", "tick.json"), lambda d: d.update(values=[v for v in d["values"] if v != "mana"]))
+    path = os.path.join(BP, "functions", "worldloaded.mcfunction")
+    with open(path, encoding="utf-8") as f:
+        text = f.read()
+    old = '{"text":"§3Mana: "},{"score":{"name":"*","objective":"mana"}},{"text":"\\n§3Essence: "}'
+    if old not in text:
+        sys.exit("worldloaded: no encuentro el contador de maná")
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        f.write(text.replace(old, '{"text":"§3Essence: "}'))
+
+
 def build(src):
     src_bp, src_rp = find_packs(src)
     shutil.rmtree(BP, ignore_errors=True)
@@ -165,6 +202,7 @@ def build(src):
     blocks()
     render_controllers()
     entities()
+    no_mana()
     with zipfile.ZipFile(MCADDON, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         for pack in (BP, RP):
             for dirpath, dirs, files in os.walk(pack):
