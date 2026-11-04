@@ -20,6 +20,7 @@ Adds the Temple of Ignis (tools/ignis/temple.py), with the altar in the
 middle and Burning Ashes in its shrine chests: /function ignis/temple
 """
 import json
+import re
 import os
 import shutil
 import sys
@@ -37,10 +38,12 @@ OUT = os.path.join(ROOT, "private")
 BP = os.path.join(OUT, "Ignis_BP")
 RP = os.path.join(OUT, "Ignis_RP")
 MCADDON = os.path.join(OUT, "Ignis.mcaddon")
-VERSION = [1, 1, 1]
+VERSION = [1, 2, 0]
 
-BOSS_NAME = "§6Ignis§r§i§r"        # §i / §j: material colour codes, invisible with no text after them
-BOSS_NAME_SOUL = "§bIgnis§r§j§r"
+# Boss bar names: a leading colour code only (trailing codes may be trimmed by the
+# game, and then the HUD no longer recognises the name).
+BOSS_NAME = "§6Ignis"
+BOSS_NAME_SOUL = "§bIgnis"
 
 
 def find_packs(src):
@@ -155,34 +158,165 @@ def fix_boss_bar():
         groups["soul.bossbar"]["minecraft:boss"]["name"] = BOSS_NAME_SOUL
     edit(os.path.join(BP, "entities", "ignis.json"), f)
 
+    # Same pattern as the Dungeons boss bars (a collection binding whose name is
+    # the comparison), inserted into the vanilla panel without replacing it.
     def bar(name, color, uv_y):
         q = name.replace("'", "\\'")
-        return {
-            "type": "panel", "offset": [0, 10], "size": [188, 9],
-            "anchor_from": "top_middle", "anchor_to": "top_middle",
-            "bindings": [
-                {"binding_name": "#bossName", "binding_type": "collection", "binding_collection_name": "boss_bars"},
-                {"binding_type": "view", "source_property_name": f"(#bossName = '{q}')",
-                 "target_property_name": "#visible"}],
-            "controls": [
-                {"empty@ignis_health_bar.empty": {"$texture": "textures/ignis/ui/empty_progress_bar", "color": color,
-                                                  "size": [182, 5], "layer": 1}},
-                {"filled@ignis_health_bar.filled": {"$texture": "textures/ignis/ui/filled_progress_bar",
-                                                    "color": color, "size": [182, 5], "layer": 2}},
-                {"frame@ignis_health_bar.frame": {"uv": [0, uv_y], "layer": 3}}]}
+        return {"bindings": [{"binding_name": f"(#bossName = '{q}')", "binding_type": "collection",
+                              "binding_collection_name": "boss_bars", "binding_name_override": "#visible"}],
+                "$tint": color, "$frame_uv": [0, uv_y]}
     dump(os.path.join(RP, "ui", "hud_screen.json"), {
         "namespace": "hud",
         "boss_health_panel": {"modifications": [{"array_name": "controls", "operation": "insert_back", "value": [
-            {"ignis_boss_bar": bar(BOSS_NAME, "yellow", 27)},
-            {"ignis_boss_bar_soul": bar(BOSS_NAME_SOUL, "cyan", 36)}]}]}})
+            {"ignis_boss_bar@ignis_health_bar.bar": bar(BOSS_NAME, "yellow", 27)},
+            {"ignis_boss_bar_soul@ignis_health_bar.bar": bar(BOSS_NAME_SOUL, "cyan", 36)}]}]}})
     dump(os.path.join(RP, "ui", "ignis", "health_bar.json"), {
         "namespace": "ignis_health_bar",
-        "filled": {"type": "image", "texture": "$texture", "clip_direction": "left", "clip_pixelperfect": False,
-                   "bindings": [{"binding_name": "#progress_percentage", "binding_type": "collection",
-                                 "binding_collection_name": "boss_bars", "binding_name_override": "#clip_ratio"}]},
-        "empty": {"type": "image", "texture": "$texture"},
+        "bar": {"type": "panel", "offset": [0, 10], "size": [188, 9], "layer": 10,
+                "anchor_from": "top_middle", "anchor_to": "top_middle",
+                "controls": [{"empty@ignis_health_bar.empty": {}}, {"filled@ignis_health_bar.filled": {}},
+                             {"frame@ignis_health_bar.frame": {}}]},
+        "empty": {"type": "image", "texture": "textures/ignis/ui/empty_progress_bar", "color": "$tint",
+                  "size": [182, 5], "layer": 1},
+        "filled": {"type": "image", "texture": "textures/ignis/ui/filled_progress_bar", "color": "$tint",
+                   "size": [182, 5], "layer": 2, "clip_direction": "left", "clip_pixelperfect": True,
+                   "bindings": [{"binding_name": "#progress_percentage", "binding_name_override": "#clip_ratio",
+                                 "binding_type": "collection", "binding_collection_name": "boss_bars"}]},
         "frame": {"type": "image", "texture": "textures/ignis/ui/cataclysm_boss_bar", "size": [188, 9],
-                  "uv_size": [188, 9]}})
+                  "uv": "$frame_uv", "uv_size": [188, 9], "layer": 3}})
+
+
+# --- Combat changes ---------------------------------------------------------------
+SIZE = 3.75 / 3.25        # half a block taller (its hitbox is 3.25 high)
+SPEED = 1.05              # attacks 5 % faster
+DASH_LEAD = 0.15          # the dash starts this many seconds before the hit
+SLASH_EVENTS = {"attack1_", "attack2__", "attack3_", "attack3_.", "attack6C__", "attack8_", "attack8__", "attack9S_",
+                "attack10__", "attack10Sa", "attack10Sb", "attack12T__", "attack13T__"}
+THRUST_COMMAND = "/event entity @s attack4__"   # the impaling thrust's hit window
+CARET = re.compile(r"(positioned |tp @s |summon ignis:ignis_(?:b|p|ba|bb|fire) )\^([-0-9.]*)\^([-0-9.]*)\^([-0-9.]*)")
+
+
+def _scale_carets(text):
+    def num(s):
+        v = float(s) if s not in ("", "-") else 0.0
+        v = round(v * SIZE, 4)
+        return "" if v == 0 else (str(int(v)) if v == int(v) else str(v))
+    return CARET.sub(lambda m: f"{m.group(1)}^{num(m.group(2))}^{num(m.group(3))}^{num(m.group(4))}", text)
+
+
+def _map_strings(obj, fn):
+    if isinstance(obj, str):
+        return fn(obj)
+    if isinstance(obj, list):
+        return [_map_strings(x, fn) for x in obj]
+    if isinstance(obj, dict):
+        return {k: _map_strings(v, fn) for k, v in obj.items()}
+    return obj
+
+
+def bigger():
+    """minecraft:scale for the body and hitbox; the attack hit areas, impact points
+    and the impaled target's position move out with the longer sword."""
+    def f(d):
+        ent = d["minecraft:entity"]
+        ent["components"]["minecraft:scale"] = {"value": round(SIZE, 3)}
+        ent["events"] = _map_strings(ent["events"], _scale_carets)
+    edit(os.path.join(BP, "entities", "ignis.json"), f)
+    edit(os.path.join(BP, "animations", "ignis.json"),
+         lambda d: d.update(animations=_map_strings(d["animations"], _scale_carets)))
+
+
+def _timeline_add(tl, time, cmd):
+    key = f"{max(0.0, round(time, 3)):g}"
+    cur = tl.get(key)
+    if cur is None:
+        tl[key] = cmd
+    else:
+        tl[key] = (cur if isinstance(cur, list) else [cur]) + [cmd]
+
+
+def four_rows():
+    """attack11 (blue sigil, then a row of burning sigils ahead): four rows,
+    ahead, behind, left and right."""
+    def f(d):
+        tl = d["animations"]["animation.ignis.ignis.attack11"]["timeline"]
+        row = re.compile(r"^/summon ignis:ignis_strike \^\^\^([0-9.]+)(~~ .*)$")
+        added = 0
+        for key, cmds in list(tl.items()):
+            for c in list(cmds if isinstance(cmds, list) else [cmds]):
+                m = row.match(c)
+                if not m:
+                    continue
+                dist, rest = m.group(1), m.group(2)
+                for pos in (f"^^^-{dist}", f"^{dist}^^", f"^-{dist}^^"):
+                    _timeline_add(tl, float(key), f"/summon ignis:ignis_strike {pos}{rest}")
+                    added += 1
+        if added != 24:
+            sys.exit(f"attack11: esperaba 8 sigilos por fila, añadí {added // 3}")
+    edit(os.path.join(BP, "animations", "ignis.json"), f)
+
+
+def timing():
+    """Dashes before each slash and the thrust; attacks 5 % faster (logic and visuals)."""
+    def f(d):
+        for name, anim in d["animations"].items():
+            if "attack" not in name and "BTS" not in name:
+                continue
+            tl = anim.get("timeline", {})
+            for key, cmds in list(tl.items()):
+                for c in (cmds if isinstance(cmds, list) else [cmds]):
+                    ev = c[3:] if c.startswith("@s ") else None
+                    if ev in SLASH_EVENTS:
+                        _timeline_add(tl, float(key) - DASH_LEAD, "/scriptevent ignis:dash slash")
+                    elif c == THRUST_COMMAND:
+                        _timeline_add(tl, float(key) - DASH_LEAD, "/scriptevent ignis:dash thrust")
+            new = {}
+            for key, cmds in tl.items():
+                k = f"{round(float(key) / SPEED, 3):g}"
+                if k in new:
+                    a, b = new[k], cmds
+                    new[k] = (a if isinstance(a, list) else [a]) + (b if isinstance(b, list) else [b])
+                else:
+                    new[k] = cmds
+            anim["timeline"] = new
+            if "animation_length" in anim:
+                anim["animation_length"] = round(anim["animation_length"] / SPEED, 3)
+    edit(os.path.join(BP, "animations", "ignis.json"), f)
+    for name in os.listdir(os.path.join(RP, "animations")):
+        path = os.path.join(RP, "animations", name)
+        data = load(path)
+        changed = False
+        for ident, anim in data.get("animations", {}).items():
+            if (".attack" in ident or ".BTS" in ident) and "anim_time_update" not in anim:
+                anim["anim_time_update"] = f"q.anim_time + q.delta_time * {SPEED}"
+                changed = True
+        if changed:
+            dump(path, data)
+
+
+def fix_projectiles():
+    """Fireballs fly straight at a steady speed and break on what they hit; the
+    orbs no longer aim a projectile that does not exist ('x')."""
+    def ball(d):
+        ent = d["minecraft:entity"]
+        ent["description"]["runtime_identifier"] = "minecraft:snowball"  # plain projectile physics
+        for holder in [ent["components"]] + list(ent["component_groups"].values()):
+            p = holder.get("minecraft:projectile")
+            if p:
+                p["inertia"] = 1
+                p["liquid_inertia"] = 1
+                p["gravity"] = 0
+                p.setdefault("on_hit", {})["remove_on_hit"] = {}
+                p["on_hit"]["particle_on_hit"] = {"particle_type": "lava", "num_particles": 1,
+                                                  "on_entity_hit": True, "on_other_hit": True}
+    edit(os.path.join(BP, "entities", "ignis_fireball.json"), ball)
+
+    def orb(d):
+        ent = d["minecraft:entity"]
+        ent["components"]["minecraft:shooter"] = {"def": "ignis:ignis_fireball"}
+        for g in ("a", "c"):
+            ent["component_groups"][g].pop("minecraft:behavior.ranged_attack", None)
+    edit(os.path.join(BP, "entities", "ignis_fire.json"), orb)
 
 
 def add_temple():
@@ -256,6 +390,10 @@ def build(src):
     fix_items()
     fix_lang()
     fix_boss_bar()
+    bigger()
+    four_rows()
+    timing()
+    fix_projectiles()
     add_temple()
     with zipfile.ZipFile(MCADDON, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         for pack in (BP, RP):

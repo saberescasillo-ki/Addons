@@ -257,73 +257,41 @@ world.afterEvents.dataDrivenEntityTrigger.subscribe(({ entity, eventId }) => {
     }
 });
 
-// --- Ground slams break the floor for a moment (ignis_breaks_all_blocks) --------
-const KEEP = new Set([
-    "minecraft:bedrock", "minecraft:barrier", "minecraft:command_block", "minecraft:chain_command_block",
-    "minecraft:repeating_command_block", "minecraft:structure_block", "minecraft:jigsaw", "minecraft:end_portal",
-    "minecraft:end_portal_frame", "minecraft:end_gateway", "minecraft:portal", "minecraft:reinforced_deepslate",
-    "minecraft:light_block", "minecraft:deny", "minecraft:allow", "minecraft:border_block", ALTAR,
-]);
+// --- Ground hits burn the floor (ignis_breaks_all_blocks: burning sigils) -------
 const airborne = new Map(); // Ignis id -> lowest vertical speed while in the air
 
-function breakable(block) {
-    if (!block || block.isAir || block.isLiquid) return false;
-    if (KEEP.has(block.typeId) || block.typeId.endsWith("_portal")) return false;
-    if (block.getComponent("minecraft:inventory")) return false; // chests and the like keep their items
-    return !/sign|banner|bed$|skull|head|shulker|spawner|lectern|beehive|bee_nest|campfire|chest/.test(block.typeId);
-}
-
 /**
- * A block jumps out of the floor: ignis:ignis_block shows it (its client entity
- * draws the item it holds, scaled up and bouncing), the real block is gone for
- * three seconds (if ignis_breaks_all_blocks and mobGriefing), and it burns.
+ * Where the floor used to jump (it needed physics entities and lagged): flames,
+ * and every few spots a burning sigil (ignis:ignis_strike: area fire damage),
+ * removed after 2.5 s.
  */
-function liftBlock(dim, x, y, z) {
+let markerCount = 0;
+const SIGIL_EVERY = 6;      // one sigil per this many shock-wave markers
+const SIGIL_TICKS = 50;
+
+function burnAt(dim, x, y, z, sigil) {
     let block;
     try {
         block = dim.getBlock({ x, y, z });
     } catch {
         return;
     }
-    const center = { x: x + 0.5, y: y + 1.05, z: z + 0.5 };
-    if (!block || block.isAir || block.isLiquid || !block.above()?.isAir) {
-        return;
-    }
+    if (!block || block.isAir || block.isLiquid || !block.above()?.isAir) return;
+    const top = { x: x + 0.5, y: y + 1.05, z: z + 0.5 };
     try {
-        dim.spawnParticle("minecraft:basic_flame_particle", center);
-        if (Math.random() < 0.3) dim.spawnParticle("minecraft:lava_particle", center);
+        dim.spawnParticle("minecraft:basic_flame_particle", top);
+        if (Math.random() < 0.35) dim.spawnParticle("minecraft:lava_particle", top);
     } catch {
-        // particles are only decoration
+        // decoration only
     }
-    let item;
-    try {
-        item = block.getItemStack(1)?.typeId;
-    } catch {
-        item = undefined;
-    }
-    if (!item) return;
-    const shown = dim.spawnEntity("ignis:ignis_block", { x: x + 0.5, y, z: z + 0.5 });
-    try {
-        shown.runCommand(`replaceitem entity @s slot.weapon.mainhand 0 ${item}`);
-    } catch {
-        shown.remove(); // a block with no item form: just the flames
-        return;
-    }
-    if (!cfg.ignis_breaks_all_blocks || !world.gameRules.mobGriefing || !breakable(block)) return;
-    const perm = block.permutation;
-    block.setType("minecraft:air");
+    if (!sigil || !cfg.ignis_breaks_all_blocks) return;
+    const mark = dim.spawnEntity("ignis:ignis_strike", { x: x + 0.5, y: y + 1, z: z + 0.5 });
     system.runTimeout(() => {
-        try {
-            const again = dim.getBlock({ x, y, z });
-            if (again?.isAir) again.setPermutation(perm);
-        } catch {
-            // unloaded: it stays open
-        }
-    }, 60);
+        if (isValid(mark)) mark.remove();
+    }, SIGIL_TICKS);
 }
 
-// Ground hits summon rings of ignis:ignis_bl markers (the shock wave): the block
-// under each marker jumps.
+// Ground hits summon rings of ignis:ignis_bl markers (the shock wave).
 world.afterEvents.entitySpawn.subscribe(({ entity }) => {
     if (entity.typeId !== "ignis:ignis_bl" && entity.typeId !== "ignis:ignis_bla") return;
     let loc;
@@ -332,7 +300,8 @@ world.afterEvents.entitySpawn.subscribe(({ entity }) => {
     } catch {
         return;
     }
-    liftBlock(entity.dimension, Math.floor(loc.x), Math.floor(loc.y) - 1, Math.floor(loc.z));
+    markerCount = (markerCount + 1) % SIGIL_EVERY;
+    burnAt(entity.dimension, Math.floor(loc.x), Math.floor(loc.y) - 1, Math.floor(loc.z), markerCount === 0);
 });
 
 function slam(ignis) {
@@ -341,11 +310,38 @@ function slam(ignis) {
     for (let dx = -3; dx <= 3; dx++) {
         for (let dz = -3; dz <= 3; dz++) {
             const d = Math.hypot(dx, dz);
-            if (d > 3.2 || d < 1 || Math.random() < 0.35) continue;
-            liftBlock(dim, bx + dx, by, bz + dz);
+            if (d > 3.2 || d < 1 || Math.random() < 0.4) continue;
+            burnAt(dim, bx + dx, by, bz + dz, (dx === 3 || dx === -3 || dz === 3 || dz === -3) && (dx === 0 || dz === 0));
         }
     }
 }
+
+// --- Dashes ----------------------------------------------------------------------
+// The attack timelines call "/scriptevent ignis:dash slash|thrust" a moment before
+// each hit: Ignis lunges towards its target (or straight ahead) to reach it.
+const DASH = { slash: 0.6, thrust: 1.15 };
+
+system.afterEvents.scriptEventReceive.subscribe(({ id, message, sourceEntity: ignis }) => {
+    if (id !== "ignis:dash" || ignis?.typeId !== IGNIS || !isValid(ignis)) return;
+    let dir;
+    try {
+        const target = ignis.target;
+        if (isValid(target) && target.dimension.id === ignis.dimension.id) {
+            const dx = target.location.x - ignis.location.x, dz = target.location.z - ignis.location.z;
+            if (Math.hypot(dx, dz) < 16) dir = { x: dx, z: dz };
+        }
+    } catch {
+        dir = undefined;
+    }
+    if (!dir) {
+        const v = ignis.getViewDirection();
+        dir = { x: v.x, z: v.z };
+    }
+    const len = Math.hypot(dir.x, dir.z);
+    if (len < 0.01) return;
+    const power = DASH[message] ?? DASH.slash;
+    ignis.applyImpulse({ x: (dir.x / len) * power, y: 0.08, z: (dir.z / len) * power });
+});
 
 system.runInterval(() => {
     for (const dimId of ["overworld", "nether", "the_end"]) {
