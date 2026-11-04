@@ -91,6 +91,19 @@ craftear**: en el original se fabricaban en la herrería y con los engramas, que
 
 ---
 
+# Dungeons Mobs (uso personal)
+
+`tools/dungeons_mobs.py` extrae de *Alylica's Dungeons* 2.1.4 los enemigos, los minijefes, los mobs encantados, tres
+jefes (Vengeful Heart of Ender, los Ojos del Endersent y Hovering Inferno) con sus estructuras, y las armaduras.
+**El addon no es nuestro**, así que este repositorio no lo incluye: el generador escribe los packs en `private/`, que
+git ignora, a partir del zip original:
+
+```
+python3 tools/dungeons_mobs.py ruta/a/AlylicasDungeons.zip
+```
+
+---
+
 # The LITIUS Blind
 
 ![Simulación de cuatro celdas de 4x4 chunks](docs/litius_blind_preview.png)
