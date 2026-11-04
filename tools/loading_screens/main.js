@@ -142,19 +142,24 @@ async function openRemote(admin) {
         .toggle("Fundido a negro (2 s de entrada, 3 s de salida)", { defaultValue: true })
         .toggle("Ceguera", { defaultValue: false })
         .toggle("Oscuridad", { defaultValue: false })
-        .toggle("Quitar las pantallas activas en vez de mostrar", { defaultValue: false });
+        .toggle("Quitar las pantallas activas en vez de mostrar", { defaultValue: false })
+        .dropdown("Mensaje de confirmación", ["Desactivado", "Solo para mí", "Para todos"], { defaultValueIndex: 1 });
     const res = await form.show(admin);
     if (res.canceled || !res.formValues) return;
-    const [screenIndex, seconds, who, fadeOn, blindness, darkness, remove] = res.formValues;
+    const [screenIndex, seconds, who, fadeOn, blindness, darkness, remove, notice] = res.formValues;
+    const tell = (msg) => {
+        if (notice === 1) admin.sendMessage(msg);
+        else if (notice === 2) world.sendMessage(msg);
+    };
     const screen = SCREENS[screenIndex] ?? SCREENS[0];
     const list = targets(admin, who, names);
     if (remove) {
         for (const p of list) hideLoading(p);
-        admin.sendMessage(`§7Pantallas de carga quitadas a ${list.length} jugador(es).`);
+        tell(`§7Pantallas de carga quitadas a ${list.length} jugador(es).`);
         return;
     }
     for (const p of list) showLoading(p, screen, seconds, { fade: fadeOn, blindness, darkness });
-    admin.sendMessage(`§7"${screen.name}" mostrada a ${list.length} jugador(es) durante ${seconds} s.`);
+    tell(`§7"${screen.name}" mostrada a ${list.length} jugador(es) durante ${seconds} s.`);
 }
 
 world.afterEvents.itemUse.subscribe(({ source, itemStack }) => {

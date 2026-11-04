@@ -31,7 +31,7 @@ RP = os.path.join(OUT, f"{NAME}_RP")
 MCADDON = os.path.join(OUT, f"{NAME}.mcaddon")
 SOURCES = os.path.join(OUT, "loading_sources")  # the owner's pictures (not in git)
 MAX_W = 1024
-VERSION = [1, 2, 0]
+VERSION = [1, 3, 0]
 ITEM = "ldscr:loading_remote"
 
 
@@ -97,6 +97,27 @@ def trim_black(img):
     return rgb.crop((0, top, w, bottom + 1))
 
 
+FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+
+
+def write_loading(img, pixel=False):
+    """Writes "Loading" in the middle of the picture: gold letters, dark outline.
+    pixel: drawn at the picture's own small size without smoothing (pixel art)."""
+    from PIL import ImageFont
+    img = img.convert("RGBA")
+    d = ImageDraw.Draw(img)
+    if pixel:
+        d.fontmode = "1"
+    size = max(10, img.height // (7 if pixel else 8))
+    font = ImageFont.truetype(FONT, size)
+    x0, y0, x1, y1 = d.textbbox((0, 0), "Loading", font=font)
+    x, y = (img.width - (x1 - x0)) / 2 - x0, (img.height - (y1 - y0)) / 2 - y0
+    edge = max(1, size // 14)
+    d.text((x + edge * 2, y + edge * 2), "Loading", font=font, fill=(40, 16, 0, 200))
+    d.text((x, y), "Loading", font=font, fill=(255, 219, 115, 255), stroke_width=edge, stroke_fill=(30, 10, 0, 255))
+    return img
+
+
 def picture_file(sid):
     for ext in (".png", ".jpg", ".jpeg"):
         path = os.path.join(SOURCES, sid + ext)
@@ -108,7 +129,9 @@ def picture_file(sid):
 def textures(picture):
     tex = os.path.join(RP, "textures", "ldscr")
     os.makedirs(tex, exist_ok=True)
-    picture.convert("RGB").save(os.path.join(tex, "ignis.png"), optimize=True)
+    small = picture.resize((art.W, art.H), Image.NEAREST)
+    write_loading(small, pixel=True).resize(picture.size, Image.NEAREST).convert("RGB").save(
+        os.path.join(tex, "ignis.png"), optimize=True)
     for sid, _ in screens():
         if sid == "ignis":
             continue
@@ -118,10 +141,9 @@ def textures(picture):
         img = trim_black(Image.open(path))
         if img.width > MAX_W:
             img = img.resize((MAX_W, round(img.height * MAX_W / img.width)), Image.LANCZOS)
-        img.save(os.path.join(tex, f"{sid}.png"), optimize=True)
+        write_loading(img).convert("RGB").save(os.path.join(tex, f"{sid}.png"), optimize=True)
     # pack icons: Ignis' head and the burning core
-    small = picture.resize((art.W, art.H), Image.NEAREST)
-    icon = small.crop((128, 0, 128 + 80, 80)).resize((256, 256), Image.NEAREST)
+    icon = picture.resize((art.W, art.H), Image.NEAREST).crop((128, 0, 128 + 80, 80)).resize((256, 256), Image.NEAREST)
     icon.save(os.path.join(RP, "pack_icon.png"))
     icon.save(os.path.join(BP, "pack_icon.png"))
     # the remote: a little screen with a flame
