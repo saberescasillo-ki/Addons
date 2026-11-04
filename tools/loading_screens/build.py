@@ -2,9 +2,9 @@
 
     python3 tools/loading_screens/build.py
 
-A screen covers the middle 80 % of the screen, over the rest of the HUD (which
-dims): its picture, "Loading" in the middle and a boss tip at the bottom; the
-player gets Resistance 255 meanwhile (and 5 s more). The pictures: Ignis drawn
+A screen is a picture over the middle 80 % of the screen, above the rest of the
+HUD; the player gets Resistance 255 meanwhile (and 5 s more). Optional fade to
+black, Blindness and Darkness: 2 s in, the screen, 3 s out. The pictures: Ignis drawn
 in code (art.py) and the owner's own images in private/loading_sources/. Admins show them
 with the Loading Screen Remote (which screen, how many seconds, to whom) or with
 /scriptevent ldscr:show <screen> <seconds>. They have no other effect for now.
@@ -31,7 +31,7 @@ RP = os.path.join(OUT, f"{NAME}_RP")
 MCADDON = os.path.join(OUT, f"{NAME}.mcaddon")
 SOURCES = os.path.join(OUT, "loading_sources")  # the owner's pictures (not in git)
 MAX_W = 1024
-VERSION = [1, 1, 0]
+VERSION = [1, 2, 0]
 ITEM = "ldscr:loading_remote"
 
 
@@ -119,7 +119,6 @@ def textures(picture):
         if img.width > MAX_W:
             img = img.resize((MAX_W, round(img.height * MAX_W / img.width)), Image.LANCZOS)
         img.save(os.path.join(tex, f"{sid}.png"), optimize=True)
-    Image.new("RGBA", (4, 4), (0, 0, 0, 255)).save(os.path.join(tex, "shade.png"))
     # pack icons: Ignis' head and the burning core
     small = picture.resize((art.W, art.H), Image.NEAREST)
     icon = small.crop((128, 0, 128 + 80, 80)).resize((256, 256), Image.NEAREST)
@@ -161,44 +160,17 @@ def scripts():
 
 
 # --- UI ---------------------------------------------------------------------------------
-def label(text, scale, color, layer, **kw):
-    return {"type": "label", "text": text, "font_type": "MinecraftTen", "font_scale_factor": scale,
-            "color": color, "shadow": True, "layer": layer, **kw}
-
-
 def screen(marker, picture):
-    """Full screen: a slight dimming of the game, and in the middle 80 % the
-    picture (its proportions kept, no frame), "Loading" and the tip."""
+    """The picture alone, in the middle 80 % of the screen (proportions kept, no
+    frame); the rest of the screen stays as it is."""
     visible = f"(not ((#hud_title_text_string - '{marker}') = #hud_title_text_string))"
-    tip = {"type": "panel", "size": ["60%", "20%"], "anchor_from": "bottom_middle", "anchor_to": "bottom_middle",
-           "offset": [0, -4], "layer": 5, "controls": [
-               {"shade": {"type": "image", "texture": "textures/ldscr/shade", "size": ["100%", "100%"],
-                          "alpha": 0.7, "layer": 5}},
-               {"tip_stack": {"type": "stack_panel", "orientation": "vertical", "size": ["94%", "100%c"],
-                              "anchor_from": "center", "anchor_to": "center", "layer": 6, "controls": [
-                                  {"heading": {"type": "label", "text": "Consejo del jefe", "color": [1.0, 0.72, 0.25],
-                                               "shadow": True, "size": ["100%", "default"], "text_alignment": "center",
-                                               "layer": 7}},
-                                  {"gap": {"type": "panel", "size": ["100%", 3]}},
-                                  {"text": {"type": "label", "text": "#tip", "color": [1, 1, 1], "shadow": True,
-                                            "size": ["100%", "default"], "text_alignment": "center", "layer": 7,
-                                            "bindings": [{"binding_name": "#hud_subtitle_text_string",
-                                                          "binding_name_override": "#tip"}]}}]}}]}
     return {
-        "type": "panel", "size": ["100%", "100%"], "layer": 1,
+        "type": "panel", "size": ["80%", "80%"], "anchor_from": "center", "anchor_to": "center", "layer": 1,
         "bindings": [{"binding_name": "#hud_title_text_string"},
                      {"binding_type": "view", "source_property_name": visible, "target_property_name": "#visible"}],
-        "controls": [
-            {"dim": {"type": "image", "texture": "textures/ldscr/shade", "size": ["100%", "100%"], "alpha": 0.4,
-                     "layer": 1}},
-            {"content": {"type": "panel", "size": ["80%", "80%"], "anchor_from": "center", "anchor_to": "center",
-                         "layer": 2, "controls": [
-                             {"art": {"type": "image", "texture": f"textures/ldscr/{picture}", "size": ["100%", "100%"],
-                                      "keep_ratio": True, "bilinear": picture != "ignis", "layer": 2}},
-                             {"loading": label("Loading", 2.4, [1.0, 0.86, 0.45], 8, size=["default", "default"],
-                                               anchor_from="center", anchor_to="center")},
-                             {"tip": tip}]}},
-        ]}
+        "controls": [{"art": {"type": "image", "texture": f"textures/ldscr/{picture}", "size": ["100%", "100%"],
+                              "keep_ratio": True, "bilinear": picture != "ignis", "layer": 2}}],
+    }
 
 
 def ui():
