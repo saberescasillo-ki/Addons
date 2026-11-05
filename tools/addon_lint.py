@@ -28,7 +28,11 @@ VANILLA = {
     "textures/entity/wolf/wolf_angry", "textures/entity/wolf/wolf_tame", "textures/items/soul_lantern",
 }
 VANILLA_LOOT = re.compile(r"^loot_tables/entities/(wolf|ghast|magma_cube|wither_skeleton|zombie|skeleton|creeper|"
-                          r"blaze|piglin|husk|stray|drowned|spider|witch|enderman)\.json$")
+                          r"blaze|piglin|husk|stray|drowned|spider|witch|enderman|vex_gear|zombie_equipment|iron_golem|fish|dolphin|pillager|pillager_raid|warden|polar_bear)\.json$")
+# More vanilla names (e.g. from Mojang's bedrock-samples): LINT_VANILLA=path/to/list.json
+if os.environ.get("LINT_VANILLA"):
+    with open(os.environ["LINT_VANILLA"], encoding="utf-8") as _f:
+        VANILLA |= set(json.load(_f))
 UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I)
 TEXTURE_EXTS = (".png", ".tga", ".jpg", ".jpeg")
 
@@ -218,6 +222,9 @@ class Lint:
         self.defs = {}
         for folder in ("models", "animations", "animation_controllers", "render_controllers", "particles"):
             for p, d in self.jfiles(self.rp, folder):
+                if not isinstance(d, dict):
+                    self.p("ERROR", self.rel(p), "el archivo no es un objeto JSON")
+                    continue
                 for k in ("animations", "animation_controllers", "render_controllers"):
                     for i in (d.get(k) or {}) if isinstance(d.get(k), dict) else {}:
                         self.defs[i] = p
