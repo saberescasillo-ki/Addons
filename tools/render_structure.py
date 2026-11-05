@@ -11,6 +11,14 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import mcstructure as m  # noqa: E402
 
 COLORS = [  # first match wins
+    ("blue_ice", (120, 170, 240)), ("packed_ice", (150, 190, 235)), ("snow", (240, 245, 250)),
+    ("oxidized", (80, 160, 135)), ("copper", (190, 110, 70)), ("lightning_rod", (200, 120, 80)),
+    ("chiseled_deepslate", (70, 70, 78)), ("deepslate_tile", (45, 45, 52)), ("deepslate", (60, 60, 68)),
+    ("froglight", (240, 220, 160)), ("soul_lantern", (120, 220, 230)), ("soul_campfire", (110, 210, 220)),
+    ("pale_oak", (220, 210, 205)), ("pale_moss", (150, 155, 145)), ("pale_hanging", (160, 165, 155)),
+    ("eyeblossom", (230, 140, 60)), ("resin", (200, 90, 30)), ("tuff", (105, 108, 100)), ("mud_brick", (140, 105, 80)),
+    ("cobweb", (230, 230, 230)), ("candle", (240, 230, 180)), ("iron_bars", (130, 130, 130)), ("lantern", (250, 200, 90)),
+    ("seal", (255, 60, 200)),
     ("lava", (230, 110, 20)), ("fire", (255, 160, 30)), ("magma", (170, 60, 20)), ("shroomlight", (240, 150, 60)),
     ("lantern", (250, 200, 90)), ("gold_block", (240, 200, 60)), ("gilded", (120, 95, 50)),
     ("crying", (70, 30, 120)), ("obsidian", (30, 20, 45)), ("chiseled", (60, 55, 66)),
