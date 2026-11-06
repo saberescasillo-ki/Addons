@@ -344,3 +344,78 @@ def relic_chests(bp, rp, loot_table):
     dump(os.path.join(bp, "loot_tables", "empty.json"), {"pools": []})
     _lang(rp, [f"tile.{CHEST}.name=§6Relic Chest of Ignis§r"])
     return loot_table
+
+
+# --- Lighter sigils ----------------------------------------------------------------------
+# The strike sigils' flames were 128 (fire) and 256 (soul) particles a second, up to
+# 1024 alive per circle: 19-27 circles at once lagged phones. Now a few, a bit bigger.
+SIGIL_FLAMES = {"ignis_strike.particle.json": 18, "ignis_strike_soul.particle.json": 22}
+
+
+def lighter_sigils(rp):
+    for name, rate in SIGIL_FLAMES.items():
+        def f(d, rate=rate):
+            c = d["particle_effect"]["components"]
+            c["minecraft:emitter_rate_steady"] = {"spawn_rate": rate, "max_particles": rate * 2}
+            size = "(0.15 + variable.particle_random_1*0.1) - (0.15 * variable.particle_age)"
+            c["minecraft:particle_appearance_billboard"]["size"] = [size, size]
+        _edit(os.path.join(rp, "particles", name), f)
+
+
+# --- Fire lines ----------------------------------------------------------------------------
+def _soft_dot(path, size=16):
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    px = img.load()
+    c = (size - 1) / 2
+    for y in range(size):
+        for x in range(size):
+            d = ((x - c) ** 2 + (y - c) ** 2) ** 0.5 / (size / 2)
+            if d < 1:
+                px[x, y] = (255, 255, 255, int(255 * min(1, (1 - d) * 1.6)))
+    img.save(path)
+
+
+def _wave(identifier, uv):
+    return {"format_version": "1.10.0", "particle_effect": {
+        "description": {"identifier": identifier, "basic_render_parameters": {
+            "material": "particles_alpha", "texture": "textures/particle/particles"}},
+        "components": {
+            "minecraft:emitter_rate_instant": {"num_particles": 6},
+            "minecraft:emitter_lifetime_once": {"active_time": 0.1},
+            "minecraft:emitter_shape_box": {"half_dimensions": [0.7, 0.1, 0.7], "direction": "outwards"},
+            "minecraft:particle_lifetime_expression": {"max_lifetime": "Math.random(0.35, 0.6)"},
+            "minecraft:particle_initial_speed": "Math.random(0.5, 1.5)",
+            "minecraft:particle_motion_dynamic": {"linear_acceleration": [0, 6, 0], "linear_drag_coefficient": 2},
+            "minecraft:particle_appearance_billboard": {
+                "size": ["0.35 - 0.3 * v.particle_age / v.particle_lifetime",
+                         "0.35 - 0.3 * v.particle_age / v.particle_lifetime"],
+                "facing_camera_mode": "rotate_xyz",
+                "uv": {"texture_width": 128, "texture_height": 128, "uv": uv, "uv_size": [8, 8]}},
+            "minecraft:particle_appearance_lighting": {}}}}
+
+
+def fire_lines(rp):
+    """Particles of the fire-lines attack: the marks on the ground and the waves."""
+    tex = os.path.join(rp, "textures", "ignis", "particle")
+    os.makedirs(tex, exist_ok=True)
+    _soft_dot(os.path.join(tex, "fire_line.png"))
+    dump(os.path.join(rp, "particles", "fire_line.particle.json"), {
+        "format_version": "1.10.0", "particle_effect": {
+            "description": {"identifier": "ignis:fire_line", "basic_render_parameters": {
+                "material": "particles_blend", "texture": "textures/ignis/particle/fire_line"}},
+            "components": {
+                "minecraft:emitter_rate_instant": {"num_particles": 1},
+                "minecraft:emitter_lifetime_once": {"active_time": 0.05},
+                "minecraft:emitter_shape_point": {},
+                "minecraft:particle_lifetime_expression": {"max_lifetime": 1.0},
+                "minecraft:particle_appearance_billboard": {
+                    "size": ["0.42 + 0.08 * v.particle_age", "0.42 + 0.08 * v.particle_age"],
+                    "facing_camera_mode": "emitter_transform_xz",
+                    "uv": {"texture_width": 16, "texture_height": 16, "uv": [0, 0], "uv_size": [16, 16]}},
+                # brightens as the strike nears, then fades
+                "minecraft:particle_appearance_tinting": {"color": [
+                    "variable.color.r", "variable.color.g", "variable.color.b",
+                    "math.min(1, 0.5 + v.particle_age * 0.6) * math.clamp((1 - v.particle_age) / 0.12, 0, 1)"]}}}})
+    # same flames as the sigils (vanilla flame / the soul flame the add-on uses)
+    dump(os.path.join(rp, "particles", "fire_wave.particle.json"), _wave("ignis:fire_wave", [0, 24]))
+    dump(os.path.join(rp, "particles", "fire_wave_soul.particle.json"), _wave("ignis:fire_wave_soul", [16, 24]))

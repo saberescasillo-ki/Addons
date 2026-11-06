@@ -1,4 +1,4 @@
-import { world, system, GameMode, EquipmentSlot, EntityDamageCause } from "@minecraft/server";
+import { world, system, GameMode, EquipmentSlot, EntityDamageCause, MolangVariableMap } from "@minecraft/server";
 import { config } from "./config.js";
 
 // Ignis' script, rewritten in readable form from the add-on's obfuscated core.js
@@ -835,6 +835,128 @@ function scatteredCircles(ignis) {
     }, Math.floor(i / 2)));
 }
 
+// --- Fire lines (attack6S on its own, "ignis:lines") -------------------------------------
+// Ignis marks 3 lines on the ground ahead; about a second later its sword strikes the
+// floor and a wave of fire runs down each line, gone a second later.
+const LINE_ANGLES = [-25, 0, 25].map((a) => (a * Math.PI) / 180);
+const LINE_LENGTH = 18 * SIZE;
+const LINE_START = 1.5;
+const MARK_STEP = 0.75;
+const WAVE_STEPS = 10, WAVE_EVERY = 2; // the wave runs its line in 1 s
+const WAVE_DAMAGE = 10, WAVE_RADIUS = 1.6;
+const lines = new Map(); // Ignis id -> the 3 lines, fixed when they are marked
+
+function linesOn(ignis) {
+    try {
+        return !!ignis.getProperty("ignis:lines");
+    } catch {
+        return false;
+    }
+}
+
+function endLines(ignis) {
+    lines.delete(ignis.id);
+    try {
+        if (linesOn(ignis)) ignis.setProperty("ignis:lines", false);
+    } catch {
+        // gone
+    }
+}
+
+function markLines(ignis) {
+    if (!linesOn(ignis)) return;
+    const v = ignis.getViewDirection();
+    const len = Math.hypot(v.x, v.z) || 1;
+    const f = { x: v.x / len, z: v.z / len };
+    const at = { ...ignis.location }, dim = ignis.dimension, soul = isSoul(ignis);
+    const colour = new MolangVariableMap();
+    colour.setColorRGBA("variable.color", soul ? { red: 0.3, green: 0.85, blue: 1, alpha: 1 }
+        : { red: 1, green: 0.42, blue: 0.08, alpha: 1 });
+    const out = [];
+    for (const a of LINE_ANGLES) {
+        const dir = { x: f.x * Math.cos(a) - f.z * Math.sin(a), z: f.x * Math.sin(a) + f.z * Math.cos(a) };
+        const points = [];
+        let y = at.y;
+        for (let d = LINE_START; d <= LINE_LENGTH; d += MARK_STEP) {
+            const x = at.x + dir.x * d, z = at.z + dir.z * d;
+            y = groundAt(dim, x, y, z) + 1;
+            points.push({ x, y, z });
+            try {
+                dim.spawnParticle("ignis:fire_line", { x, y: y + 0.06, z }, colour);
+            } catch {
+                // unloaded
+            }
+        }
+        out.push({ dir, points });
+    }
+    lines.set(ignis.id, { lines: out, soul, dim, at });
+    try {
+        dim.playSound("fire.ignite", at, { volume: 2, pitch: 0.6 });
+    } catch {
+        // decoration
+    }
+}
+
+function fireWaves(ignis) {
+    const set = lines.get(ignis.id);
+    if (!set || !linesOn(ignis)) return false;
+    endLines(ignis);
+    const { dim, soul } = set;
+    const hit = new Set([ignis.id]);
+    const flame = soul ? "ignis:fire_wave_soul" : "ignis:fire_wave";
+    try {
+        dim.playSound("ignis.mob.ignis.burst", ignis.location, { volume: 2, pitch: 0.9 });
+        dim.runCommand(`camerashake add @a[x=${ignis.location.x},y=${ignis.location.y},z=${ignis.location.z},r=20] 0.3 0.6 positional`);
+    } catch {
+        // decoration
+    }
+    for (let step = 0; step < WAVE_STEPS; step++) {
+        system.runTimeout(() => {
+            for (const { dir, points } of set.lines) {
+                const at = (k) => points[Math.min(points.length - 1, Math.round((k / WAVE_STEPS) * (points.length - 1)))];
+                const p = at(step + 1);
+                try {
+                    dim.spawnParticle(flame, p);
+                    dim.spawnParticle(flame, at(step + 0.5)); // no gaps between two fronts
+                    if (step % 3 === 0) dim.spawnParticle("minecraft:lava_particle", p);
+                } catch {
+                    continue; // unloaded
+                }
+                burnVictims(ignis, dim, p, dir, hit);
+            }
+        }, step * WAVE_EVERY);
+    }
+    return true;
+}
+
+function burnVictims(ignis, dim, p, dir, hit) {
+    let list;
+    try {
+        list = dim.getEntities({ location: p, maxDistance: WAVE_RADIUS + 1,
+            excludeFamilies: ["ignis:ignis", "inanimate"], excludeTypes: ["minecraft:item", "minecraft:xp_orb"] });
+    } catch {
+        return;
+    }
+    for (const e of list) {
+        if (hit.has(e.id) || e.typeId === IGNIS || e.typeId === MINION) continue;
+        if (e.typeId === "minecraft:player" && !isFighter(e)) continue;
+        const dx = e.location.x - p.x, dz = e.location.z - p.z;
+        if (Math.hypot(dx, dz) > WAVE_RADIUS || Math.abs(e.location.y - p.y) > 2.5) continue;
+        hit.add(e.id);
+        try {
+            e.applyDamage(WAVE_DAMAGE, { cause: EntityDamageCause.magic, damagingEntity: isValid(ignis) ? ignis : undefined });
+            e.setOnFire(3, true);
+            e.applyKnockback({ x: dir.x * 0.5, z: dir.z * 0.5 }, 0.35);
+        } catch {
+            // gone or immune
+        }
+    }
+}
+
+system.afterEvents.scriptEventReceive.subscribe(({ id, sourceEntity: ignis }) => {
+    if (id === "ignis:lines" && ignis?.typeId === IGNIS && isValid(ignis)) markLines(ignis);
+});
+
 // --- Leaps -----------------------------------------------------------------------------
 /** attack9 / attack10: a ballistic leap at the target... */
 function leap(ignis, up) {
@@ -903,10 +1025,12 @@ function enclosed(ignis) {
 // --- Ignis' events ---------------------------------------------------------------------
 // The attack timelines fire these JSON events (most are empty in the JSON: the
 // script gives them their movement).
+const THRUST_SCALE = 0.85; // the impaling thrust's dash, 15 % weaker
+
 function thrustPower(lxz) {
     // the impaling thrust's lunge: reaches the target, and at least 1.725
     const reach = lxz <= 5 ? 3.5 : lxz < 12 ? lxz / 2 - 1.5 : 4.5;
-    return Math.max(1.725, reach);
+    return Math.max(1.725, reach) * THRUST_SCALE;
 }
 
 world.afterEvents.dataDrivenEntityTrigger.subscribe(({ entity, eventId }) => {
@@ -952,7 +1076,7 @@ world.afterEvents.dataDrivenEntityTrigger.subscribe(({ entity, eventId }) => {
             lunge(ignis, Math.min(lxz, 15) / 3.5);
             break;
         case "attack6S_":
-            splitFloor(ignis);
+            if (!fireWaves(ignis)) splitFloor(ignis);
             break;
         case "attack7_":
             if (lxz > 1.5) lunge(ignis, Math.min(lxz, 6.5) / 3 - 0.5);
@@ -972,6 +1096,7 @@ world.afterEvents.dataDrivenEntityTrigger.subscribe(({ entity, eventId }) => {
             deathScene(ignis);
         // falls through: the attack tags go too
         case "variant":
+            endLines(ignis);
             for (const tag of ignis.getTags()) if (tag.startsWith("ignis:ignis")) ignis.removeTag(tag);
             break;
         default:

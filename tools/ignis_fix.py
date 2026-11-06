@@ -11,7 +11,9 @@ Changes: Ignis is half a block bigger, attacks 5 % faster, the floor burns
 instead of jumping as physics blocks, Ignis only fights players and golems,
 the great sigil (attack11) sends 4 rows (8 in the soul phases) in every phase
 and has a scattered-circles variant (both 10 % faster), and the leap's big
-slashes hit a wider area.
+slashes hit a wider area. 1.5.0: the sigils' flames use far fewer particles,
+the impaling thrust's dash is 15 % weaker, Ignis walks 10 % faster, and a new
+fire-lines attack (3 lines marked ahead, then fire waves down them).
   * boss health bar: the boss names used formatting codes that do not exist
     (§F§O§R§M) and the bar only showed if a variable trick in the UI worked;
     now valid hidden codes and the binding pattern the game supports;
@@ -44,7 +46,7 @@ OUT = os.path.join(ROOT, "private")
 BP = os.path.join(OUT, "Ignis_BP")
 RP = os.path.join(OUT, "Ignis_RP")
 MCADDON = os.path.join(OUT, "Ignis.mcaddon")
-VERSION = [1, 4, 0]
+VERSION = [1, 5, 0]
 
 # Boss bar names: a leading colour code only (trailing codes may be trimmed by the
 # game, and then the HUD no longer recognises the name).
@@ -408,6 +410,67 @@ def timing():
             dump(path, data)
 
 
+WALK = 1.10              # Ignis walks 10 % faster
+LINES_COOLDOWN = 16       # fire-lines cooldown, in the attack timers' units (the thrust's is 18)
+
+
+def walk_speed():
+    def f(d):
+        n = 0
+        for g in d["minecraft:entity"]["component_groups"].values():
+            m = g.get("minecraft:movement")
+            if m and m.get("value", 0) > 0:
+                m["value"] = round(m["value"] * WALK, 4)
+                n += 1
+        if n != 2:
+            sys.exit(f"ignis: esperaba 2 velocidades de caminata, encontré {n}")
+    edit(os.path.join(BP, "entities", "ignis.json"), f)
+
+
+def fire_lines():
+    """A new attack on attack6S' ground strike: Ignis marks 3 lines ahead, a second
+    later its sword hits the floor and fire waves run down them (the script draws and
+    hurts). Picked on its own (ignis:lines) at close and middle range, in every phase."""
+    def ent(d):
+        e = d["minecraft:entity"]
+        props = e["description"]["properties"]
+        props["ignis:lines"] = {"type": "bool", "default": False}
+        props["ignis:timeri"] = {"type": "float", "range": [0.0, 40.0], "default": 6.0}
+        found = {"timers": 0, "added": 0}
+
+        def walk(node):
+            if not isinstance(node, dict):
+                return
+            sp = node.get("set_property", {})
+            if "ignis:timera" in sp and "ignis:timerh" in sp:
+                sp["ignis:timeri"] = "q.property('ignis:timeri') > 0 ? q.property('ignis:timeri') - 0.15 : 0"
+                found["timers"] += 1
+            for k in ("sequence", "randomize"):
+                for child in node.get(k, []):
+                    walk(child)
+            rnd = node.get("randomize")
+            if rnd:
+                sigil = next((c for c in rnd if "attack11" in c.get("add", {}).get("component_groups", [])), None)
+                if sigil:
+                    r = [g for g in sigil["add"]["component_groups"] if g in ("R1", "R2")]
+                    rnd.append({"weight": 6,
+                                "filters": {"all_of": [
+                                    {"test": "float_property", "domain": "ignis:timeri", "operator": "<=", "value": 0},
+                                    {"test": "float_property", "domain": "ignis:lxz", "operator": "<=", "value": 18}]},
+                                "add": {"component_groups": ["attack6S", "stop"] + r},
+                                "set_property": {"ignis:timeri": LINES_COOLDOWN, "ignis:lines": True}})
+                    found["added"] += 1
+        walk(e["events"]["root"])
+        if found != {"timers": 1, "added": 2}:
+            sys.exit(f"fire_lines: estructura inesperada {found}")
+    edit(os.path.join(BP, "entities", "ignis.json"), ent)
+
+    def anim(d):  # the lines are marked as the strike starts (it lands ~1 s later)
+        _timeline_add(d["animations"]["animation.ignis.ignis.attack6S"]["timeline"], 0, "/scriptevent ignis:lines")
+    edit(os.path.join(BP, "animations", "ignis.json"), anim)
+    extras.fire_lines(RP)
+
+
 def fix_projectiles():
     """Fireballs fly straight at a steady speed and break on what they hit; the
     orbs no longer aim a projectile that does not exist ('x')."""
@@ -509,6 +572,9 @@ def build(src):
     hostility()
     big_slash()
     timing()
+    walk_speed()
+    fire_lines()
+    extras.lighter_sigils(RP)
     fix_projectiles()
     extras.add_minion(BP, RP)
     extras.soul_strikes(BP, RP)
