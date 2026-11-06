@@ -25,7 +25,7 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 # El Eclipse
 
 Un jefe *bullet hell*: una figura con forma de jugador, **completamente negra**, con un halo, una capa y tres
-fragmentos que orbitan a su alrededor. Flota, apunta, alza los brazos al cielo, gira, se arrodilla agotado... cada
+fragmentos que orbitan a su alrededor. Flota, apunta, alza los brazos al cielo, gira, embiste, se ríe a carcajadas... cada
 ataque tiene su animación. Todo el combate se basa en **reconocer patrones y moverse bien**: cada ataque avisa antes
 (postura, sonido y marcas en el suelo) y siempre tiene una salida. Lucha contra **todo** lo que entre en la arena:
 jugadores y mobs.
