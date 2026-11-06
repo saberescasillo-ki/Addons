@@ -1,4 +1,4 @@
-import { C, ring, line, laser, burst, charge, column, sound, shake } from "./fx.js";
+import { C, ring, flatRing, line, laser, burst, charge, column, sound, shake } from "./fx.js";
 import { shoot, ray, zone, wave, effect, laserHits, PLANE } from "./hazards.js";
 
 // The Eclipse's attacks. Each one: a clear warning first (pose, sound, marks on the
@@ -7,7 +7,7 @@ import { shoot, ray, zone, wave, effect, laserHits, PLANE } from "./hazards.js";
 // gold on the floor = jump it or stand in it; red = get out; white = about to hit.
 
 export const ANIM = { idle: 0, point: 1, raise: 2, spin: 3, cross: 4, summon: 5, charge: 6, release: 7,
-    vanish: 8, appear: 9, phase: 10, ultCharge: 11, ultRelease: 12, exhausted: 13, slam: 14, dash: 15 };
+    vanish: 8, appear: 9, phase: 10, ultCharge: 11, ultRelease: 12, exhausted: 13, slam: 14, dash: 15, laugh: 16 };
 
 const DEG = Math.PI / 180;
 const by = (f, list) => list[Math.min(list.length, f.phase) - 1];
@@ -68,7 +68,7 @@ export function rings(f, o = {}) {
                 if (fast) shoot(f, { ...from, angle: a, speed: 2.5, accel: 7, color: C.magenta, dmg: 4, life: 120 });
                 else shoot(f, { ...from, angle: a, speed: speed(f, 6.5), color: C.violet, dmg: 4 });
             }
-            ring(f.dim, ground(f, from.x, from.z), 1.2, C.violet, 0.5, { speed: 9 });
+            flatRing(f.dim, ground(f, from.x, from.z), 1.2, C.violet, 0.5, { speed: 9 });
             sound(f.dim, "mob.shulker.shoot", f.boss.location, 1, 0.9);
         });
     }
@@ -232,7 +232,7 @@ export function constellation(f, o = {}) {
     f.after(out + 1, () => {
         for (let k = 0; k < n; k++) {
             const a = stars[k], b = stars[(k + 1) % n];
-            laser(f.dim, chest(f, a.x, a.z), chest(f, b.x, b.z), C.azure, 0.04, wait / 20, { alpha: 0.7 });
+            laser(f.dim, chest(f, a.x, a.z), chest(f, b.x, b.z), C.azure, 0.05, wait / 20);
         }
         sound(f.dim, "random.orb", f.boss.location, 1, 0.6);
     });
@@ -255,7 +255,7 @@ function wallFrom(f, side, hold) {
     const life = (hold + (2 * R / v) * 20) / 20;
     for (const e of [gap - half, gap + half]) {
         const p0 = { x: start.x + across.x * e, y: a.floor + 0.06, z: start.z + across.z * e };
-        line(f.dim, p0, { x: p0.x + dir.x * 2 * R, y: p0.y, z: p0.z + dir.z * 2 * R }, C.safe, Math.min(life, 4), 0.12);
+        line(f.dim, p0, { x: p0.x + dir.x * 2 * R, y: p0.y, z: p0.z + dir.z * 2 * R }, C.safe, Math.min(life, 4));
     }
     return Math.ceil((2 * R / v) * 20);
 }
@@ -289,11 +289,11 @@ export function cross(f, o = {}) {
     sound(f.dim, "mob.evocation_illager.prepare_attack", f.boss.location, 1.5, 1);
     for (let k = 0; k < arms; k++) {
         const a = base + (k / arms) * 2 * Math.PI;
-        line(f.dim, ground(f, from.x, from.z), ground(f, from.x + Math.cos(a) * 16, from.z + Math.sin(a) * 16), C.gold, warn / 20 + 0.2, 0.1);
+        line(f.dim, ground(f, from.x, from.z), ground(f, from.x + Math.cos(a) * 16, from.z + Math.sin(a) * 16), C.gold, warn / 20 + 0.2);
         if (spin) {
             const b = a + spin * 0.6; // where the arm will be in a moment: the turning direction
             line(f.dim, ground(f, from.x + Math.cos(b) * 6, from.z + Math.sin(b) * 6),
-                ground(f, from.x + Math.cos(b) * 11, from.z + Math.sin(b) * 11), C.white, warn / 20 + 0.2, 0.06);
+                ground(f, from.x + Math.cos(b) * 11, from.z + Math.sin(b) * 11), C.white, warn / 20 + 0.2, 1.5);
         }
     }
     for (let s = 0; s < span; s += 2) {
@@ -320,8 +320,8 @@ export function satellites(f, o = {}) {
         spots.push({ x: a.cx + Math.cos(ang) * (a.R - 2), z: a.cz + Math.sin(ang) * (a.R - 2) });
     }
     for (const s of spots) {
-        column(f.dim, ground(f, s.x, s.z), C.white, dur / 20, 4, 0.35, 0.5);
-        ring(f.dim, ground(f, s.x, s.z), 1.6, C.white, warn / 20, { speed: -1.6 / (warn / 20) });
+        column(f.dim, ground(f, s.x, s.z), C.white, dur / 20, 4, 0.35);
+        flatRing(f.dim, ground(f, s.x, s.z), 1.6, C.white, warn / 20, { speed: -1.6 / (warn / 20) });
         ring(f.dim, ground(f, s.x, s.z, 0.08), 1.1, C.azure, dur / 20);
         sound(f.dim, "block.end_portal_frame.fill", { ...s, y: a.floor + 1 }, 1.5, 1.2);
     }
@@ -395,7 +395,7 @@ export function shock(f, o = {}) {
     return dur;
 }
 
-// 11. Sweeping lasers: low golden lasers turn around the boss over a marked sector:
+// 11. Sweeping lasers: low golden lasers cross the boss and turn over a marked sector:
 // jump them as they pass, or stay out of the sector.
 export function sweep(f, o = {}) {
     const n = by(f, [1, 2, 3]), warn = 26, span = by(f, [60, 64, 70]);
@@ -408,23 +408,30 @@ export function sweep(f, o = {}) {
     const end = (a) => ({ x: p.x + Math.cos(a) * L, y: low, z: p.z + Math.sin(a) * L });
     sound(f.dim, "mob.warden.sonic_charge", f.boss.location, 1.2, 1.6);
     for (let k = 0; k < n; k++) {
-        const a0 = start + (k / n) * 2 * Math.PI, a1 = a0 + w * (span / 20);
-        line(f.dim, ground(f, p.x, p.z), ground(f, end(a0).x, end(a0).z), C.gold, (warn + 6) / 20, 0.16);
-        line(f.dim, ground(f, p.x, p.z), ground(f, end(a1).x, end(a1).z), C.white, (warn + span) / 20, 0.05);
-        for (let s = 0.25; s < 1; s += 0.25) {
-            const am = a0 + (a1 - a0) * s, r = 5 + s * 6;
-            line(f.dim, ground(f, p.x + Math.cos(am) * r, p.z + Math.sin(am) * r),
-                ground(f, p.x + Math.cos(am) * (r + 2), p.z + Math.sin(am) * (r + 2)), C.gold, warn / 20, 0.08);
+        for (const half of [0, Math.PI]) {      // each laser crosses the boss: two arms
+            const a0 = start + (k / n) * Math.PI + half, a1 = a0 + w * (span / 20);
+            line(f.dim, ground(f, p.x, p.z), ground(f, end(a0).x, end(a0).z), C.gold, (warn + 6) / 20);
+            line(f.dim, ground(f, p.x, p.z), ground(f, end(a1).x, end(a1).z), C.white, (warn + span) / 20, 1.2);
+            for (let s2 = 0.25; s2 < 1; s2 += 0.25) {     // arrows of the turning direction
+                const am = a0 + (a1 - a0) * s2, r = 5 + s2 * 6;
+                line(f.dim, ground(f, p.x + Math.cos(am) * r, p.z + Math.sin(am) * r),
+                    ground(f, p.x + Math.cos(am) * (r + 2), p.z + Math.sin(am) * (r + 2)), C.gold, warn / 20, 1.5);
+            }
         }
     }
-    for (let s = 0; s < span; s++) {
-        f.after(warn + s, () => {
-            if (s === 0) sound(f.dim, "beacon.activate", f.boss.location, 2, 1.8);
+    f.after(warn, () => {
+        sound(f.dim, "beacon.activate", f.boss.location, 2, 1.8);
+        for (let k = 0; k < n; k++) {
+            const a = start + (k / n) * Math.PI;
+            // one 3D beam through the boss, turning by itself (degrees per second)
+            laser(f.dim, end(a + Math.PI), end(a), C.gold, 0.24, span / 20, { spin: (w * 180) / Math.PI });
+        }
+    });
+    for (let s2 = 0; s2 < span; s2++) {
+        f.after(warn + s2, () => {
             for (let k = 0; k < n; k++) {
-                const a = start + (k / n) * 2 * Math.PI + w * (s / 20);
-                const from = { x: p.x, y: low, z: p.z };
-                if (s % 2 === 0) laser(f.dim, from, end(a), C.gold, 0.22, 0.12);
-                laserHits(f, from, end(a), 0.25, 5, true);
+                const a = start + (k / n) * Math.PI + w * (s2 / 20);
+                laserHits(f, end(a + Math.PI), end(a), 0.25, 5, true);
             }
         });
     }
@@ -443,17 +450,19 @@ function latticeSet(f, angle, warn, fire) {
         const c = { x: a.cx + nrm.x * s, z: a.cz + nrm.z * s };
         beams.push([chest(f, c.x - dir.x * half, c.z - dir.z * half), chest(f, c.x + dir.x * half, c.z + dir.z * half)]);
     }
-    for (const [p, q] of beams) laser(f.dim, p, q, C.danger, 0.05, warn / 20, { alpha: 0.75 });
     sound(f.dim, "block.end_portal_frame.fill", f.boss.location, 1.5, 1.6);
-    for (let t = 0; t < fire; t++) {
-        f.after(warn + t, () => {
-            for (const [p, q] of beams) {
-                if (t % 2 === 0) laser(f.dim, p, q, t === 0 ? C.white : C.danger, 0.3, 0.12, { shrink: t >= fire - 2 });
-                laserHits(f, p, q, 0.3, 6);
-            }
-            if (t === 0) sound(f.dim, "mob.warden.sonic_boom", f.boss.location, 0.5, 1.8);
-        });
-    }
+    for (const [p, q] of beams) laserLine(f, p, q, warn, fire, 6, C.danger);
+}
+
+/** A laser along p-q: a red wall of light on the floor for `warn` ticks, then a 3D beam
+ *  for `fire` ticks that hurts what it touches. */
+export function laserLine(f, p, q, warn, fire, dmg, color = C.danger) {
+    line(f.dim, ground(f, p.x, p.z), ground(f, q.x, q.z), color, warn / 20 + 0.1);
+    f.after(warn, () => {
+        laser(f.dim, p, q, color, 0.32, fire / 20, { shrink: true });
+        laser(f.dim, p, q, C.white, 0.12, Math.min(0.3, fire / 20));
+    });
+    for (let t = 0; t < fire; t++) f.after(warn + t, () => laserHits(f, p, q, 0.32, dmg));
 }
 
 export function lattice(f, o = {}) {
@@ -482,8 +491,7 @@ export function dash(f, o = {}) {
             while (len < 30 && Math.hypot(p.x + Math.cos(ang) * (len + 1) - a.cx, p.z + Math.sin(ang) * (len + 1) - a.cz) < a.R - 2) len++;
             const q = { x: p.x + Math.cos(ang) * len, z: p.z + Math.sin(ang) * len };
             const tok = f.pose(ANIM.charge);
-            line(f.dim, ground(f, p.x, p.z), ground(f, q.x, q.z), C.danger, warn / 20, 0.7);
-            line(f.dim, ground(f, p.x, p.z, 0.1), ground(f, q.x, q.z, 0.1), C.white, warn / 20, 0.12);
+            line(f.dim, ground(f, p.x, p.z), ground(f, q.x, q.z), C.danger, warn / 20);
             sound(f.dim, "mob.breeze.charge", f.boss.location, 2, 1.2);
             charge(f.dim, hand(f), C.danger, 1.8, warn / 20, 20);
             f.after(warn, () => {
@@ -523,6 +531,74 @@ export function dash(f, o = {}) {
     return t0 + 4;
 }
 
+// 14. Triangle of lasers: three lines around the boss on the floor; a second later
+// lasers burst along them for a second. Later phases: a second triangle, turned.
+export function triLines(f, o = {}) {
+    const a = f.arena, warn = 20, fire = 20;
+    const sets = by(f, [1, 2, 2]);
+    const dur = warn + fire + (sets - 1) * 26 + 6;
+    pose(f, o, ANIM.raise, dur);
+    const p = at(f), base = Math.random() * 2 * Math.PI;
+    sound(f.dim, "mob.evocation_illager.prepare_attack", f.boss.location, 1.5, 0.8);
+    for (let k = 0; k < sets; k++) {
+        f.after(k * 26, () => {
+            const d = k === 0 ? 4 : 8, turn = k * Math.PI / 3;
+            for (let i = 0; i < 3; i++) {
+                const n = base + turn + (i * 2 * Math.PI) / 3;   // the line's normal, from the boss
+                const c = { x: p.x + Math.cos(n) * d, z: p.z + Math.sin(n) * d };
+                const dir = { x: -Math.sin(n), z: Math.cos(n) };
+                // as long as the arena allows, both ways
+                const reach = (sgn) => {
+                    let l = 2;
+                    while (l < 50 && Math.hypot(c.x + dir.x * sgn * (l + 1) - a.cx, c.z + dir.z * sgn * (l + 1) - a.cz) < a.R + 1) l++;
+                    return l;
+                };
+                const l1 = reach(1), l2 = reach(-1);
+                laserLine(f, chest(f, c.x - dir.x * l2, c.z - dir.z * l2), chest(f, c.x + dir.x * l1, c.z + dir.z * l1), warn, fire,
+                    f.phase >= 3 ? 7 : 6, f.phase >= 3 ? C.crimson : C.danger);
+            }
+            f.after(warn, () => sound(f.dim, "mob.warden.sonic_boom", f.boss.location, 0.6, 1.6));
+        });
+    }
+    return dur;
+}
+
+// 15. Summoning grid: a grid of light is drawn around the boss; diamonds appear in
+// its cells, wave after wave, and each one fires at the nearest target.
+export function gridSummon(f, o = {}) {
+    const a = f.arena, n = by(f, [4, 5, 6]), cell = 4, warn = 20;
+    const p = at(f), half = (n * cell) / 2;
+    const x0 = p.x - half, z0 = p.z - half;
+    const waves = 2 * n - 1, every = by(f, [6, 5, 4]);
+    const dur = warn + waves * every + 26;
+    pose(f, o, ANIM.summon, dur);
+    sound(f.dim, "block.end_portal_frame.fill", f.boss.location, 2, 0.8);
+    const life = dur / 20;
+    for (let i = 0; i <= n; i++) {     // the grid: walls of light 2 blocks high
+        line(f.dim, ground(f, x0 + i * cell, z0), ground(f, x0 + i * cell, z0 + n * cell), C.azure, life, 2);
+        line(f.dim, ground(f, x0, z0 + i * cell), ground(f, x0 + n * cell, z0 + i * cell), C.azure, life, 2);
+    }
+    const nearest = (b) => f.nearestTo(b);
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+            const cx = x0 + (i + 0.5) * cell, cz = z0 + (j + 0.5) * cell;
+            if (Math.hypot(cx - p.x, cz - p.z) < cell * 0.8 || !f.inArena(cx, cz)) continue; // not on the boss
+            f.after(warn + (i + j) * every, () => {
+                flatRing(f.dim, ground(f, cx, cz), 1.6, C.azure, 0.9, { speed: -1.6 / 0.9 });
+                // the diamond waits in its cell, then flies at the nearest target
+                shoot(f, { x: cx, z: cz, angle: 0, speed: 0, color: C.azure, size: 0.26, dmg: 4, life: 220,
+                    stop: { at: 1, hold: 18, speed: speed(f, 8.5), aim: nearest } });
+                if (f.phase >= 3 && (i + j) % 2 === 0) {
+                    f.after(19, () => {
+                        for (let k = 0; k < 4; k++) shoot(f, { x: cx, z: cz, angle: (k * Math.PI) / 2, speed: speed(f, 5), color: C.white, dmg: 4 });
+                    });
+                }
+            });
+        }
+    }
+    return dur;
+}
+
 // Close-range answer: a short-fused pulse pushes away whoever stays glued to the boss.
 export function repel(f, o = {}) {
     const fuse = 16;
@@ -545,15 +621,25 @@ export function combo(f, first, second, delay = 10, o2 = {}) {
 }
 
 export const ATTACKS = { volley, rings, raysFollow, raysGrid, raySpiral, homing, spiral, flower, constellation, walls,
-    cross, satellites, nova, trap, shock, sweep, lattice, dash, repel };
+    cross, satellites, nova, trap, shock, sweep, lattice, dash, triLines, gridSummon, repel };
+
+/** What kind of attack each is, and the range it suits (boss.js picks with these). */
+export const KIND = {
+    volley: "shots", rings: "shots", spiral: "shots", flower: "shots", constellation: "shots", walls: "shots",
+    cross: "shots", satellites: "shots", gridSummon: "shots", homing: "seek", dash: "move",
+    raysFollow: "sky", raysGrid: "sky", raySpiral: "sky", nova: "area", trap: "area", shock: "area",
+    sweep: "laser", lattice: "laser", triLines: "laser", repel: "area",
+};
+export const RANGE = { area: "near", laser: "near", seek: "far", move: "far", sky: "far" };
 
 /** Each phase's deck: [attack, weight] or [[first, second, delay, options], weight]. */
 export const DECKS = [
     [["volley", 3], ["rings", 3], ["raysFollow", 2], ["homing", 2], ["nova", 1], ["shock", 1], ["cross", 1],
-        ["sweep", 2], ["constellation", 2], ["flower", 1], ["raySpiral", 1]],
+        ["sweep", 2], ["constellation", 2], ["flower", 1], ["raySpiral", 1], ["triLines", 2], ["gridSummon", 1]],
     [["volley", 2], ["rings", 1], ["raysFollow", 1], ["raysGrid", 2], ["raySpiral", 1], ["homing", 1], ["spiral", 2],
         ["flower", 2], ["constellation", 1], ["walls", 2], ["cross", 1], ["satellites", 2], ["shock", 1], ["trap", 1],
-        ["sweep", 2], ["lattice", 2], ["dash", 2],
+        ["sweep", 2], ["lattice", 2], ["dash", 2], ["triLines", 2], ["gridSummon", 2],
+        [["triLines", "homing", 10, { count: 2 }], 1], [["gridSummon", "raysFollow", 24, { strikes: 2 }], 1],
         [["spiral", "raysFollow", 20, { strikes: 2 }], 2], [["volley", "homing", 12, { count: 2 }], 1],
         [["walls", "raysFollow", 30, { strikes: 2 }], 1], [["sweep", "volley", 20, { bursts: 2 }], 1]],
     [["spiral", 1], ["walls", 1], ["raysGrid", 1], ["satellites", 1], ["nova", 2], ["shock", 1], ["cross", 1], ["trap", 1],
@@ -561,6 +647,7 @@ export const DECKS = [
         [["raysGrid", "rings", 24, { rings: 2 }], 2], [["satellites", "spiral", 16, { span: 40 }], 2],
         [["cross", "homing", 14, { count: 2 }], 1], [["walls", "volley", 30, { bursts: 3 }], 1],
         [["nova", "raysFollow", 6, { strikes: 2 }], 2], [["sweep", "flower", 20], 1], [["lattice", "homing", 10, { count: 3 }], 1],
-        [["constellation", "raySpiral", 14], 1]],
+        [["constellation", "raySpiral", 14], 1], ["triLines", 2], ["gridSummon", 2],
+        [["triLines", "spiral", 8, { span: 40 }], 2], [["gridSummon", "sweep", 20], 1]],
 ];
 

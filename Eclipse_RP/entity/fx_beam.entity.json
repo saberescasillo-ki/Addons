@@ -1,0 +1,37 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "eclipse:fx_beam",
+      "materials": {
+        "default": "entity_beam_additive"
+      },
+      "textures": {
+        "c0": "textures/eclipse/fx/beam_white",
+        "c1": "textures/eclipse/fx/beam_gold",
+        "c2": "textures/eclipse/fx/beam_cyan",
+        "c3": "textures/eclipse/fx/beam_violet",
+        "c4": "textures/eclipse/fx/beam_magenta",
+        "c5": "textures/eclipse/fx/beam_azure",
+        "c6": "textures/eclipse/fx/beam_crimson",
+        "c7": "textures/eclipse/fx/beam_danger",
+        "c8": "textures/eclipse/fx/beam_safe",
+        "c9": "textures/eclipse/fx/beam_jade"
+      },
+      "geometry": {
+        "default": "geometry.eclipse.fx_beam"
+      },
+      "animations": {
+        "shape": "animation.eclipse.fx_beam"
+      },
+      "scripts": {
+        "animate": [
+          "shape"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.eclipse.fx_beam"
+      ]
+    }
+  }
+}

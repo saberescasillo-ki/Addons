@@ -1,0 +1,38 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "eclipse:fx_gem",
+      "materials": {
+        "default": "entity_emissive_alpha",
+        "glow": "entity_beam_additive"
+      },
+      "textures": {
+        "c0": "textures/eclipse/fx/gem_white",
+        "c1": "textures/eclipse/fx/gem_gold",
+        "c2": "textures/eclipse/fx/gem_cyan",
+        "c3": "textures/eclipse/fx/gem_violet",
+        "c4": "textures/eclipse/fx/gem_magenta",
+        "c5": "textures/eclipse/fx/gem_azure",
+        "c6": "textures/eclipse/fx/gem_crimson",
+        "c7": "textures/eclipse/fx/gem_danger",
+        "c8": "textures/eclipse/fx/gem_safe",
+        "c9": "textures/eclipse/fx/gem_jade"
+      },
+      "geometry": {
+        "default": "geometry.eclipse.fx_gem"
+      },
+      "animations": {
+        "shape": "animation.eclipse.fx_gem"
+      },
+      "scripts": {
+        "animate": [
+          "shape"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.eclipse.fx_gem"
+      ]
+    }
+  }
+}

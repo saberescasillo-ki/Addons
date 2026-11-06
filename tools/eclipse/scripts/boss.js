@@ -1,7 +1,7 @@
 import { world, system, EntityDamageCause } from "@minecraft/server";
-import { C, ring, safe as safe_, burst, charge, column, beam, sound, shake, flash } from "./fx.js";
+import { C, ring, safe as safe_, burst, charge, column, beam, sound, shake, flash, setOwner, clearShapes } from "./fx.js";
 import { shoot, clear, arenaPlayers, arenaTargets, arenaMobs, hurt, inPlay } from "./hazards.js";
-import { ATTACKS, DECKS, ANIM, combo } from "./attacks.js";
+import { ATTACKS, DECKS, ANIM, KIND, RANGE, combo } from "./attacks.js";
 import { level } from "./settings.js";
 import { setAltar } from "./altar.js";
 
@@ -18,6 +18,8 @@ const PHASE_AT = [0.66, 0.33];
 const ULT_FIRST = 300, ULT_EVERY = 1200; // ticks (15 s after phase 3 begins, then every 60 s)
 const LEAVE_AFTER = 600;           // 30 s without anyone in the arena: the Eclipse withdraws
 const REST = [24, 18, 14], TP_EVERY = [3, 2, 2];
+// now and then (chance per attack, at least 25 s apart) it laughs: slowness for everyone
+const LAUGH = [0.08, 0.1, 0.12], LAUGH_GAP = 500;
 // chance that the next attack starts in the last quarter of the current one
 const OVERLAP = [0.5, 0.75, 1];
 
@@ -103,6 +105,7 @@ class Fight {
             this.timers.delete(id);
             if (gen === this.gen && isValid(this.boss)) {
                 try {
+                    setOwner(this.id);
                     fn();
                 } catch {
                     // the boss or a target vanished
@@ -114,6 +117,7 @@ class Fight {
 
     cancel() {
         this.gen++;
+        clearShapes(this.id);
         for (const id of this.timers) system.clearRun(id);
         this.timers.clear();
     }
@@ -286,6 +290,10 @@ class Fight {
             this.attacks = 99;
             return this.busy(ATTACKS.repel(this, {}), 6);
         }
+        if (now >= this.freeAt && now >= (this.nextLaugh ?? 0) && Math.random() < by(this, LAUGH)) {
+            this.nextLaugh = now + LAUGH_GAP;
+            return this.busy(laugh(this), 4);
+        }
         if (this.attacks >= by(this, TP_EVERY)) {
             if (now < this.freeAt) return; // never vanish in the middle of an attack
             this.attacks = 0;
@@ -309,19 +317,36 @@ class Fight {
         this.freeAt = system.currentTick + ticks;
     }
 
+    /** The next attack: weighted by the deck, by the range it suits (near / far), and
+     *  away from what it just did (never the same twice, rarely the same kind). */
     draw() {
-        if (!this.bag.length) {
-            for (const [entry, w] of DECKS[this.phase - 1]) for (let i = 0; i < w; i++) this.bag.push(entry);
-            for (let i = this.bag.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [this.bag[i], this.bag[j]] = [this.bag[j], this.bag[i]];
+        const t = this.target();
+        const d = t ? Math.hypot(t.location.x - this.boss.location.x, t.location.z - this.boss.location.z) : 10;
+        const recent = this.recent ?? (this.recent = []);
+        const options = DECKS[this.phase - 1].map(([entry, w]) => {
+            const key = JSON.stringify(entry);
+            const name = Array.isArray(entry) ? entry[0] : entry;
+            const kind = KIND[name];
+            let weight = w;
+            if (recent[0] === key) weight = 0;
+            else if (recent.includes(key)) weight *= 0.3;
+            if (recent.length && KIND[nameOf(recent[0])] === kind) weight *= 0.4;
+            if (RANGE[kind] === "near") weight *= d < 7 ? 1.8 : d > 14 ? 0.5 : 1;
+            if (RANGE[kind] === "far") weight *= d > 13 ? 1.8 : d < 5 ? 0.5 : 1;
+            return { entry, key, weight };
+        });
+        const total = options.reduce((a, o) => a + o.weight, 0);
+        let r = Math.random() * total, pick = options[0];
+        for (const o of options) {
+            r -= o.weight;
+            if (r <= 0) {
+                pick = o;
+                break;
             }
         }
-        let i = this.bag.findIndex((e) => JSON.stringify(e) !== this.last);
-        if (i < 0) i = 0;
-        const entry = this.bag.splice(i, 1)[0];
-        this.last = JSON.stringify(entry);
-        return entry;
+        recent.unshift(pick.key);
+        recent.length = Math.min(recent.length, 4);
+        return pick.entry;
     }
 
     leave() {
@@ -343,6 +368,11 @@ class Fight {
     }
 }
 
+function nameOf(key) {
+    const e = JSON.parse(key);
+    return Array.isArray(e) ? e[0] : e;
+}
+
 function heal(boss, amount) {
     try {
         const h = boss.getComponent("minecraft:health");
@@ -355,6 +385,31 @@ function heal(boss, amount) {
 function resetAltar(f) {
     const a = f.arena;
     if (a.ax !== undefined) setAltar(f.dim, { x: a.ax, y: a.ay, z: a.az }, false);
+}
+
+// --- the laugh --------------------------------------------------------------------------------
+function laugh(f) {
+    const tok = f.pose(ANIM.laugh);
+    const l = f.boss.location;
+    sound(f.dim, "mob.witch.celebrate", l, 2.5, 0.55);
+    f.after(6, () => sound(f.dim, "mob.evocation_illager.celebrate", f.boss.location, 2, 0.6));
+    flatRing_(f, 1.5, C.violet);
+    for (const e of f.targets()) {
+        try {
+            e.addEffect("slowness", 60, { amplifier: 1, showParticles: true });
+            burst(f.dim, { x: e.location.x, y: e.location.y + 1, z: e.location.z }, C.violet, 10, 2);
+            if (e.typeId === "minecraft:player") e.onScreenDisplay.setActionBar("§5El Eclipse se ríe de ti... §7(lentitud)");
+        } catch {
+            // ignore
+        }
+    }
+    f.after(30, () => f.unpose(tok));
+    return 32;
+}
+
+function flatRing_(f, r, color) {
+    const l = f.boss.location;
+    ring(f.dim, f.ground(l.x, l.z), r, color, 0.8, { speed: 30, max: f.arena.R + 2, wall: 0 });
 }
 
 // --- teleport ----------------------------------------------------------------------------
@@ -469,7 +524,9 @@ function transition(f, phase) {
 }
 
 // --- the total eclipse --------------------------------------------------------------------------
-const ULT_CHARGE = 130, ULT_DAMAGE = 18, SAFE_R = 3.2;
+// It rises over the centre and gathers darkness (1.5 s); then six suns of light appear on
+// the floor and there are 2 seconds to reach one before everything else is struck.
+const ULT_GATHER = 30, ULT_WINDOW = 40, ULT_DAMAGE = 18, SAFE_R = 3.4;
 
 function ultimate(f) {
     f.cancel();
@@ -478,49 +535,49 @@ function ultimate(f) {
     f.set("eclipse:shield", true);
     teleport(f, { x: a.cx, z: a.cz }, { warn: 8, quiet: true });
     const base = Math.random() * 2 * Math.PI;
-    const safe = [0, 1, 2].map((k) => {
-        const ang = base + (k / 3) * 2 * Math.PI;
-        return { x: a.cx + Math.cos(ang) * a.R * 0.58, z: a.cz + Math.sin(ang) * a.R * 0.58 };
-    });
-    const start = 22;
+    const safe = [{ x: a.cx, z: a.cz }, ...[0, 1, 2, 3, 4].map((k) => {
+        const ang = base + (k / 5) * 2 * Math.PI;
+        return { x: a.cx + Math.cos(ang) * a.R * 0.6, z: a.cz + Math.sin(ang) * a.R * 0.6 };
+    })];
+    const start = 22, open = start + ULT_GATHER, blast = open + ULT_WINDOW;
     f.after(start, () => {
         f.anim(ANIM.ultCharge);
         f.height = 6;
-        titleAll(f.players(), "§5§l✦ ECLIPSE TOTAL ✦", "§eRefúgiate en los círculos de luz", 70);
+        titleAll(f.players(), "§5§l✦ ECLIPSE TOTAL ✦", "§e¡Corre a la luz!", 50);
         sound(f.dim, "mob.warden.sonic_charge", f.boss.location, 3, 0.5);
         sound(f.dim, "ambient.cave", f.boss.location, 3, 0.6);
     });
-    // safe zones: golden suns and columns of light, shown for the whole charge; the
-    // darkness (a red ring) closes in from the edge
-    f.after(start, () => {
-        const life = ULT_CHARGE / 20 + 0.3;
+    for (let t = start; t < blast; t += 8) {
+        f.after(t, () => {
+            const l = f.boss.location;
+            charge(f.dim, { x: l.x, y: l.y + 1.2, z: l.z }, C.violet, 7, 0.45, 40);
+        });
+    }
+    // the suns of light (golden decals with a wall and a column), and the darkness
+    // closing in from the edge
+    f.after(open, () => {
+        const life = ULT_WINDOW / 20 + 0.2;
         for (const s of safe) {
             const g = f.ground(s.x, s.z);
             safe_(f.dim, g, SAFE_R, C.safe, life);
-            column(f.dim, g, C.safe, life, 10, SAFE_R, 0.22);
-            column(f.dim, g, C.white, life, 14, 0.25, 0.6);
+            column(f.dim, g, C.safe, life, 12, 0.3);
         }
         ring(f.dim, f.ground(a.cx, a.cz), a.R, C.danger, life, { speed: -(a.R * 0.15) / life });
+        sound(f.dim, "beacon.power", f.boss.location, 3, 1.6);
     });
-    for (let t = start; t < start + ULT_CHARGE; t += 10) {
+    for (const [t, s] of [[open, 2], [open + 20, 1]]) {
         f.after(t, () => {
-            const l = f.boss.location;
-            charge(f.dim, { x: l.x, y: l.y + 1.2, z: l.z }, C.violet, 7, 0.55, 40);
-        });
-    }
-    for (let s = 3; s >= 1; s--) {
-        f.after(start + ULT_CHARGE - s * 20, () => {
             for (const p of f.players()) p.onScreenDisplay.setActionBar(`§c§l${s}...  §r§eA la luz`);
-            sound(f.dim, "note.bell", f.boss.location, 3, 0.5 + (3 - s) * 0.2);
+            sound(f.dim, "note.bell", f.boss.location, 3, 0.6 + (2 - s) * 0.3);
         });
     }
-    f.after(start + ULT_CHARGE, () => {
+    f.after(blast, () => {
         f.anim(ANIM.ultRelease);
         const l = f.boss.location;
         sound(f.dim, "mob.warden.sonic_boom", l, 4, 0.6);
         sound(f.dim, "random.explode", l, 3, 0.5);
         shake(f.dim, l, a.R + 20, 0.5, 1.2);
-        ring(f.dim, f.ground(l.x, l.z), 1, C.violet, 1.2, { speed: 26 });
+        ring(f.dim, f.ground(l.x, l.z), 1, C.violet, 1.2, { speed: 26, wall: 0 });
         burst(f.dim, { x: l.x, y: l.y + 1, z: l.z }, C.violet, 80, 12);
         for (let i = 0; i < 14; i++) {
             const ang = Math.random() * 2 * Math.PI, d = 4 + Math.random() * (a.R - 4);
@@ -543,18 +600,13 @@ function ultimate(f) {
             }
         }
     });
-    // spent: it falls to the floor and kneels; the moment to strike
-    f.after(start + ULT_CHARGE + 16, () => {
-        f.height = 0;
-        f.set("eclipse:shield", false);
-        f.anim(ANIM.exhausted);
-        for (const p of f.players()) p.onScreenDisplay.setActionBar("§7El Eclipse está agotado: ¡ataca!");
-    });
-    f.after(start + ULT_CHARGE + 110, () => {
+    // no rest afterwards: it comes down and goes on fighting
+    f.after(blast + 14, () => {
         f.height = HOVER;
+        f.set("eclipse:shield", false);
         f.anim(ANIM.idle);
     });
-    return start + ULT_CHARGE + 116;
+    return blast + 20;
 }
 
 // --- the loop -----------------------------------------------------------------------------------

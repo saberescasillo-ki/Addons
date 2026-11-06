@@ -1,0 +1,75 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.eclipse.fx_gem": {
+      "loop": true,
+      "bones": {
+        "gem": {
+          "rotation": [
+            0,
+            "q.life_time * 220",
+            0
+          ],
+          "scale": [
+            "q.property('eclipse:size') * 6 * math.clamp(q.life_time * 10, 0, 1)",
+            "q.property('eclipse:size') * 9 * math.clamp(q.life_time * 10, 0, 1)",
+            "q.property('eclipse:size') * 6 * math.clamp(q.life_time * 10, 0, 1)"
+          ]
+        }
+      }
+    },
+    "animation.eclipse.fx_beam": {
+      "loop": true,
+      "bones": {
+        "beam": {
+          "rotation": [
+            0,
+            "q.property('eclipse:spin') * q.life_time",
+            0
+          ],
+          "scale": [
+            "q.property('eclipse:w') * 2 * math.clamp(q.life_time * 10, 0, 1) * math.clamp((q.property('eclipse:life') - q.life_time) * 6, 0, 1) * (q.property('eclipse:shrink') ? math.max(0, 1 - q.life_time / math.max(0.05, q.property('eclipse:life'))) : 1)",
+            "q.property('eclipse:w') * 2 * math.clamp(q.life_time * 10, 0, 1) * math.clamp((q.property('eclipse:life') - q.life_time) * 6, 0, 1) * (q.property('eclipse:shrink') ? math.max(0, 1 - q.life_time / math.max(0.05, q.property('eclipse:life'))) : 1)",
+            "q.property('eclipse:len')"
+          ]
+        }
+      }
+    },
+    "animation.eclipse.fx_column": {
+      "loop": true,
+      "bones": {
+        "column": {
+          "scale": [
+            "q.property('eclipse:w') * 2 * math.clamp(q.life_time * 10, 0, 1) * math.clamp((q.property('eclipse:life') - q.life_time) * 6, 0, 1) * (q.property('eclipse:shrink') ? math.max(0, 1 - q.life_time / math.max(0.05, q.property('eclipse:life'))) : 1)",
+            "q.property('eclipse:len') * math.clamp(q.life_time * 8, 0, 1)",
+            "q.property('eclipse:w') * 2 * math.clamp(q.life_time * 10, 0, 1) * math.clamp((q.property('eclipse:life') - q.life_time) * 6, 0, 1) * (q.property('eclipse:shrink') ? math.max(0, 1 - q.life_time / math.max(0.05, q.property('eclipse:life'))) : 1)"
+          ]
+        }
+      }
+    },
+    "animation.eclipse.fx_tube": {
+      "loop": true,
+      "bones": {
+        "tube": {
+          "scale": [
+            "math.clamp(q.property('eclipse:r0') + q.property('eclipse:rate') * q.life_time, 0.01, q.property('eclipse:rmax'))",
+            "q.property('eclipse:h') * math.clamp(q.life_time * 10, 0, 1) * math.clamp((q.property('eclipse:life') - q.life_time) * 6, 0, 1)",
+            "math.clamp(q.property('eclipse:r0') + q.property('eclipse:rate') * q.life_time, 0.01, q.property('eclipse:rmax'))"
+          ]
+        }
+      }
+    },
+    "animation.eclipse.fx_wall": {
+      "loop": true,
+      "bones": {
+        "wall": {
+          "scale": [
+            1,
+            "q.property('eclipse:h') * math.clamp(q.life_time * 10, 0, 1) * math.clamp((q.property('eclipse:life') - q.life_time) * 6, 0, 1)",
+            "q.property('eclipse:len')"
+          ]
+        }
+      }
+    }
+  }
+}

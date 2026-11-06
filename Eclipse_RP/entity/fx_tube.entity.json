@@ -1,0 +1,37 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "eclipse:fx_tube",
+      "materials": {
+        "default": "entity_beam_additive"
+      },
+      "textures": {
+        "c0": "textures/eclipse/fx/wall_white",
+        "c1": "textures/eclipse/fx/wall_gold",
+        "c2": "textures/eclipse/fx/wall_cyan",
+        "c3": "textures/eclipse/fx/wall_violet",
+        "c4": "textures/eclipse/fx/wall_magenta",
+        "c5": "textures/eclipse/fx/wall_azure",
+        "c6": "textures/eclipse/fx/wall_crimson",
+        "c7": "textures/eclipse/fx/wall_danger",
+        "c8": "textures/eclipse/fx/wall_safe",
+        "c9": "textures/eclipse/fx/wall_jade"
+      },
+      "geometry": {
+        "default": "geometry.eclipse.fx_tube"
+      },
+      "animations": {
+        "shape": "animation.eclipse.fx_tube"
+      },
+      "scripts": {
+        "animate": [
+          "shape"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.eclipse.fx_tube"
+      ]
+    }
+  }
+}

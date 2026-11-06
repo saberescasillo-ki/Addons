@@ -23,13 +23,14 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "eclipse"))
 import arena  # noqa: E402
+import shapes  # noqa: E402
 
 NAME = "Eclipse"
 BP = os.path.join(ROOT, f"{NAME}_BP")
 RP = os.path.join(ROOT, f"{NAME}_RP")
 DIST = os.path.join(ROOT, "dist")
 SCRIPTS = os.path.join(HERE, "eclipse", "scripts")
-VERSION = [1, 1, 0]
+VERSION = [1, 2, 0]
 MIN_ENGINE = [1, 21, 90]
 BOSS, REMNANT, ALTAR = "eclipse:eclipse", "eclipse:remnant", "eclipse:altar"
 HEALTH = 500
@@ -387,6 +388,12 @@ def animations():
         "body": {"rotation": [48, 0, 0]}, "head": {"rotation": [-38, 0, 0]},
         "cape": {"rotation": [f"45 + math.sin({t} * 900) * 8", 0, 0]},
         **arms([55, 0, 18]), **legs([38, 0, 4], [30, 0, -4])})
+    A["laugh"] = anim(1.5, {
+        "root": {"position": [0, f"2 + math.abs(math.sin({t} * 700)) * 1.2", 0]},
+        "body": {"rotation": [f"-14 + math.sin({t} * 1400) * 4", 0, 0]},
+        "head": {"rotation": [f"-32 + math.sin({t} * 1400) * 7", f"math.sin({t} * 300) * 10", 0]},
+        **arms([f"-38 + math.sin({t} * 1400) * 6", 0, -28]),
+        **legs([f"12 + math.sin({t} * 700) * 5", 0, 4])})
     A["death"] = anim(3.6, {
         "root": {"position": {"0.0": [0, 0, 0], "3.0": [0, 24, 0]},
                  "rotation": ["math.sin(q.life_time * 1500) * q.anim_time * 1.5", 0,
@@ -405,7 +412,7 @@ def animations():
 
 # the order of eclipse:anim values (tools/eclipse/scripts/attacks.js ANIM)
 POSES = ["idle", "point", "raise", "spin", "cross", "summon", "charge", "release", "vanish", "appear", "phase",
-         "ult_charge", "ult_release", "exhausted", "slam", "dash"]
+         "ult_charge", "ult_release", "exhausted", "slam", "dash", "laugh"]
 
 
 def controllers():
@@ -725,6 +732,7 @@ def build(preview=False):
     controllers()
     particles()
     entities()
+    shapes.build(BP, RP, dump)
     altar()
     loot()
     structure(preview)

@@ -1,5 +1,5 @@
 import { system, EntityDamageCause } from "@minecraft/server";
-import { C, particle, ring, disc, target, waveDecal, beam, burst, sound } from "./fx.js";
+import { C, particle, ring, flatRing, disc, safe, target, waveDecal, beam, burst, sound, gem, unshape, shapeCount } from "./fx.js";
 import { level } from "./settings.js";
 
 // Everything that can hurt: bullets, celestial rays, growing zones, ground waves and
@@ -7,11 +7,12 @@ import { level } from "./settings.js";
 // They hurt everything alive in the arena: players (in survival/adventure) and mobs.
 //
 // Bullets fly on a flat plane 1.1 blocks above the arena floor: dodge them by moving.
-// A straight bullet is drawn with ONE particle that flies by itself; only homing,
-// curving, waiting or stopping bullets are redrawn every few ticks.
+// Each bullet is a 3D diamond (a small model entity) that the script moves; past
+// MAX_GEMS at once, extra bullets are drawn with particles instead.
 
 export const PLANE = 1.1;
 const BODY_R = 0.32, BODY_H = 1.8;
+const MAX_GEMS = 170;
 const HIT_COOLDOWN = 10; // the same kind of hazard hurts a target at most twice a second
 const IGNORE = ["minecraft:item", "minecraft:xp_orb", "minecraft:armor_stand", "minecraft:arrow", "minecraft:snowball",
     "minecraft:egg", "minecraft:ender_pearl", "minecraft:fireball", "minecraft:small_fireball", "minecraft:wind_charge_projectile",
@@ -106,6 +107,7 @@ function ticksLeft(b) {
 }
 
 function draw(b, ticks, still = false) {
+    if (b.e) return;
     const speed = still ? 0 : Math.hypot(b.vx, b.vz);
     const fx = Math.hypot(b.vx, b.vz) > 1e-4 ? b.vx : Math.cos(b.face), fz = Math.hypot(b.vx, b.vz) > 1e-4 ? b.vz : Math.sin(b.face);
     const n = Math.hypot(fx, fz) || 1;
@@ -135,10 +137,33 @@ export function shoot(f, o) {
         age: 0,
     };
     bullets.push(b);
+    if (shapeCount("gem") < MAX_GEMS) {
+        b.e = gem(f.dim, { x: b.x, y: b.y, z: b.z }, b.color, b.size, Math.min(60, (b.life + b.hold) / 20 + 1));
+        sync(b);
+    }
     if (b.hold > 0) draw(b, 6, true);
     else if (dynamic(b)) draw(b, 3);
     else draw(b, ticksLeft(b));
     return b;
+}
+
+/** Moves the bullet's diamond with the simulation: its velocity, and a nudge if it drifts. */
+function sync(b) {
+    const e = b.e;
+    if (!e) return;
+    try {
+        const l = e.location;
+        if (b.age % 10 === 0 && Math.hypot(l.x - b.x, l.z - b.z) > 0.6) e.teleport({ x: b.x, y: b.y, z: b.z });
+        e.clearVelocity();
+        if (b.hold <= 0) e.applyImpulse({ x: b.vx / 20, y: (b.y - l.y) * 0.5, z: b.vz / 20 });
+    } catch {
+        b.e = undefined;
+    }
+}
+
+function drop(b) {
+    if (b.e) unshape(b.e);
+    b.e = undefined;
 }
 
 function steer(b) {
@@ -165,6 +190,12 @@ function rotate(b, by) {
 }
 
 function moveBullet(b) {
+    const keep = stepBullet(b);
+    if (keep) sync(b);
+    return keep;
+}
+
+function stepBullet(b) {
     b.age++;
     if (b.hold > 0) {
         b.hold--;
@@ -240,12 +271,12 @@ export function ray(f, x, z, o = {}) {
     const radius = o.radius ?? 2.3, fuse = o.fuse ?? 24, color = o.color ?? C.gold;
     const at = groundAt(f, x, z);
     target(f.dim, at, radius, color, fuse / 20 + 0.1);
-    ring(f.dim, { ...at, y: at.y + 0.02 }, radius, C.white, fuse / 20, { speed: -radius / (fuse / 20) });
+    flatRing(f.dim, { ...at, y: at.y + 0.02 }, radius, C.white, fuse / 20, { speed: -radius / (fuse / 20) });
     let t = 0;
     hazards.push({ owner: f.id, f, update(now, targets) {
         if (++t < fuse) return true;
         beam(f.dim, at, color, o.light ? 14 : 24, radius * 0.45);
-        ring(f.dim, { ...at, y: at.y + 0.03 }, radius * 0.6, color, 0.3, { speed: 10, max: radius * 1.6 });
+        flatRing(f.dim, { ...at, y: at.y + 0.03 }, radius * 0.6, color, 0.3, { speed: 10, max: radius * 1.6 });
         burst(f.dim, { x, y: at.y + 0.3, z }, color, o.light ? 5 : 12, 4);
         if (!o.quiet) sound(f.dim, "ambient.weather.thunder", at, 0.5, 1.6);
         for (const e of targets) {
@@ -269,8 +300,7 @@ export function zone(f, o) {
     const rate = (o.r1 - o.r0) / (o.grow / 20);
     if (!o.follow) {
         disc(f.dim, groundAt(f, x, z), o.r0, color, total / 20, { speed: rate, max: o.r1 });
-        if (o.inner) particle(f.dim, "eclipse:decal_safe", { ...groundAt(f, x, z), y: f.arena.floor + 0.09 },
-            { radius: o.inner, speed: 0, size: o.inner, life: total / 20, color: C.safe });
+        if (o.inner) safe(f.dim, { ...groundAt(f, x, z), y: f.arena.floor + 0.09 }, o.inner, C.safe, total / 20);
     }
     hazards.push({ owner: f.id, f, update(now, targets) {
         t++;
@@ -281,11 +311,12 @@ export function zone(f, o) {
         const r = o.r0 + (o.r1 - o.r0) * Math.min(1, t / o.grow);
         const at = groundAt(f, x, z);
         if (t < total) {
-            if (o.follow && t % 3 === 1) disc(f.dim, at, r, color, t >= o.grow ? hold / 20 + 0.1 : 0.18);
+            if (o.follow && t % 3 === 1 && t < o.grow) disc(f.dim, at, r, color, 0.18, { wall: 0 });
+            if (o.follow && t === o.grow) disc(f.dim, at, r, color, hold / 20 + 0.1);
             if (t === o.grow) ring(f.dim, { ...at, y: at.y + 0.02 }, r, C.white, hold / 20); // about to blow
             return true;
         }
-        ring(f.dim, { ...at, y: at.y + 0.03 }, r * 0.5, color, 0.4, { speed: r * 2.5, max: r * 1.4 });
+        flatRing(f.dim, { ...at, y: at.y + 0.03 }, r * 0.5, color, 0.4, { speed: r * 2.5, max: r * 1.4 });
         burst(f.dim, { x, y: at.y + 0.5, z }, color, 26, 6);
         for (let i = 0; i < 5; i++) {
             const a = Math.random() * 2 * Math.PI, d = (o.inner ?? 0) + Math.random() * (r - (o.inner ?? 0));
@@ -354,6 +385,7 @@ export function clear(owner, fizzle = true) {
         const b = bullets[i];
         if (b.owner !== owner) continue;
         if (fizzle && shown++ < 30) burst(b.dim, { x: b.x, y: b.y, z: b.z }, C.white, 4, 1.5);
+        drop(b);
         bullets.splice(i, 1);
     }
     for (let i = hazards.length - 1; i >= 0; i--) if (hazards[i].owner === owner) hazards.splice(i, 1);
@@ -379,7 +411,10 @@ system.runInterval(() => {
         } catch {
             keep = false;
         }
-        if (!keep) bullets.splice(i, 1);
+        if (!keep) {
+            drop(b);
+            bullets.splice(i, 1);
+        }
     }
     for (let i = hazards.length - 1; i >= 0; i--) {
         const h = hazards[i];

@@ -1,11 +1,12 @@
-import { MolangVariableMap } from "@minecraft/server";
+import { system, world, MolangVariableMap } from "@minecraft/server";
 
 // Visual and sound helpers. Shapes that are easy to recognise:
-//   * circles, rings and zones are flat textures lying on the floor (one particle each,
-//     that can grow or shrink by itself);
-//   * lasers and rays are cylinders of light (a billboard that turns around its axis);
-//   * bullets are diamonds pointing where they fly.
-// Colour, size, life and motion come from Molang variables.
+//   * circles, rings and zones are flat textures on the floor, with a wall of light
+//     2 blocks high around their edge that fades upwards (they grow or shrink by themselves);
+//   * lines on the floor are walls of light 3 blocks high, fading upwards;
+//   * lasers and rays are 3D cylinders of light; bullets are 3D spinning diamonds.
+// The 3D shapes are small model entities (tools/eclipse/shapes.py): the script spawns
+// them with their sizes and removes them; the client animates growth and fading.
 
 export const C = {
     white: [1, 1, 1],
@@ -20,6 +21,8 @@ export const C = {
     jade: [0.35, 1, 0.65],
 };
 
+const ORDER = ["white", "gold", "cyan", "violet", "magenta", "azure", "crimson", "danger", "safe", "jade"];
+export const colorIndex = (c) => Math.max(0, ORDER.findIndex((k) => C[k] === c));
 const ZERO = { x: 0, y: 0, z: 0 };
 const UP = { x: 0, y: 1, z: 0 };
 
@@ -51,15 +54,89 @@ export function sound(dim, id, at, volume = 1, pitch = 1) {
     }
 }
 
+// --- 3D shapes ---------------------------------------------------------------------------------
+const RANGE = { w: [0, 8], len: [0, 96], spin: [-360, 360], r0: [0, 64], rate: [-64, 64], rmax: [0, 64], h: [0, 8],
+    size: [0, 3], life: [0, 60] };
+const live = new Map(); // entity id -> {e, until, owner}
+let owner = null;
+export const setOwner = (id) => {
+    owner = id;
+};
+const isValid = (e) => !!e && (typeof e.isValid === "function" ? e.isValid() : e.isValid);
+export const yawOf = (dx, dz) => Math.atan2(-dx, dz) * (180 / Math.PI);
+
+/** Spawns a shape (gem, beam, column, tube, wall) for `life` seconds, turned to `yaw`. */
+export function shape(dim, kind, at, props, color, life, yaw = 0) {
+    let e;
+    try {
+        e = dim.spawnEntity(`eclipse:fx_${kind}`, at, { initialRotation: yaw });
+        try {
+            e.setRotation({ x: 0, y: yaw });
+        } catch {
+            // ignore
+        }
+        e.setProperty("eclipse:color", colorIndex(color));
+        e.setProperty("eclipse:life", Math.min(60, life));
+        for (const [k, v] of Object.entries(props)) {
+            if (typeof v === "boolean") e.setProperty(`eclipse:${k}`, v);
+            else e.setProperty(`eclipse:${k}`, Math.max(RANGE[k][0], Math.min(RANGE[k][1], v)));
+        }
+    } catch {
+        return undefined;
+    }
+    live.set(e.id, { e, until: system.currentTick + Math.ceil(life * 20) + 2, owner });
+    return e;
+}
+
+export function unshape(e) {
+    if (!e) return;
+    live.delete(e.id);
+    try {
+        if (isValid(e)) e.remove();
+    } catch {
+        // gone
+    }
+}
+
+export function clearShapes(id) {
+    for (const [k, v] of live) if (v.owner === id) unshape(v.e);
+}
+
+export const shapeCount = (kind) => [...live.values()].filter((v) => !kind || v.e.typeId === `eclipse:fx_${kind}`).length;
+
+system.runInterval(() => {
+    const now = system.currentTick;
+    for (const [id, v] of live) if (now >= v.until) unshape(v.e);
+}, 1);
+
+// leftovers (a world closed mid-fight): remove shapes nobody is tracking
+system.runInterval(() => {
+    for (const d of ["overworld", "nether", "the_end"]) {
+        try {
+            for (const e of world.getDimension(d).getEntities({ families: ["eclipse_fx"] })) {
+                if (!live.has(e.id)) e.remove();
+            }
+        } catch {
+            // not loaded
+        }
+    }
+}, 100);
+
 // --- floor decals ---------------------------------------------------------------------------
-/** A decal: radius r now, growing `speed` blocks per second (negative: shrinking), at most `max`. */
+/** A decal: radius r now, growing `speed` blocks per second (negative: shrinking), at most `max`,
+ *  with a wall of light `wall` blocks high around its edge (0: none). */
 function decal(kind, dim, at, r, color, life, o = {}) {
-    particle(dim, `eclipse:decal_${kind}`, at, { radius: r, speed: o.speed ?? 0, size: o.max ?? 64, life, color,
+    const max = o.max ?? 64;
+    particle(dim, `eclipse:decal_${kind}`, at, { radius: r, speed: o.speed ?? 0, size: max, life, color,
         alpha: o.alpha ?? 1 });
+    const h = o.wall ?? 2;
+    if (h > 0) shape(dim, "tube", at, { r0: r, rate: o.speed ?? 0, rmax: max, h }, color, life);
 }
 
 /** A thin glowing ring (telegraphs, a ray's closing timer, portals). */
 export const ring = (dim, at, r, color, life, o = {}) => decal("ring", dim, at, r, color, life, o);
+/** The same, flat only (for quick or shrinking marks). */
+export const flatRing = (dim, at, r, color, life, o = {}) => decal("ring", dim, at, r, color, life, { ...o, wall: 0 });
 /** A filled magic circle: the area a zone will hit. */
 export const disc = (dim, at, r, color, life, o = {}) => decal("zone", dim, at, r, color, life, { alpha: 0.85, ...o });
 /** A celestial ray's target sigil. */
@@ -69,34 +146,40 @@ export const safe = (dim, at, r, color, life) => decal("safe", dim, at, r, color
 /** A thick ring running along the floor (jump it). */
 export const waveDecal = (dim, at, r, speed, life, color) => decal("wave", dim, at, r, color, life, { speed });
 
-// --- cylinders of light -------------------------------------------------------------------------
-/** A laser from `from` to `to`, `width` blocks thick (radius). shrink: it thins out as it fades. */
+// --- cylinders and walls of light -----------------------------------------------------------------
+/** A laser from `from` to `to` (horizontal), `width` blocks thick (radius). o.spin: degrees
+ *  per second it turns around its middle; o.shrink: it thins out as it fades. */
 export function laser(dim, from, to, color, width, life, o = {}) {
-    const dx = to.x - from.x, dy = to.y - from.y, dz = to.z - from.z;
-    const len = Math.hypot(dx, dy, dz);
-    if (len < 0.05) return;
-    particle(dim, "eclipse:laser", { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2, z: (from.z + to.z) / 2 }, {
-        color, radius: width, size: len / 2, life, speed: o.shrink ? 1 : 0, alpha: o.alpha ?? 1,
-        dir: { speed: 0, v: { x: dx / len, y: dy / len, z: dz / len } } });
+    const dx = to.x - from.x, dz = to.z - from.z;
+    const len = Math.hypot(dx, dz);
+    if (len < 0.05) return undefined;
+    return shape(dim, "beam", { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2, z: (from.z + to.z) / 2 },
+        { w: width, len, spin: o.spin ?? 0, shrink: !!o.shrink }, color, life, yawOf(dx, dz));
 }
 
-/** A faint line on the floor: where something will pass. */
-export function line(dim, from, to, color, life, width = 0.09) {
-    laser(dim, { ...from, y: from.y + 0.05 }, { ...to, y: to.y + 0.05 }, color, width, life, { alpha: 0.6 });
+/** A line on the floor: a wall of light `h` blocks high that fades upwards. */
+export function line(dim, from, to, color, life, h = 3) {
+    const dx = to.x - from.x, dz = to.z - from.z;
+    const len = Math.hypot(dx, dz);
+    if (len < 0.05) return undefined;
+    return shape(dim, "wall", { x: (from.x + to.x) / 2, y: from.y, z: (from.z + to.z) / 2 }, { len, h }, color, life,
+        yawOf(dx, dz));
 }
 
 /** A celestial ray falling: a column of light that thins out. */
 export function beam(dim, at, color, height = 22, width = 0.6) {
-    laser(dim, at, { x: at.x, y: at.y + height, z: at.z }, color, width, 0.45, { shrink: true });
-    laser(dim, at, { x: at.x, y: at.y + height, z: at.z }, C.white, width * 0.35, 0.3, { shrink: true });
+    shape(dim, "column", at, { w: width, len: height, shrink: true }, color, 0.45);
 }
 
-/** A steady, translucent column of light (safe zones, portals, teleport destinations). */
-export function column(dim, at, color, life, height = 6, width = 0.45, alpha = 0.45) {
-    laser(dim, at, { x: at.x, y: at.y + height, z: at.z }, color, width, life, { alpha });
+/** A steady column of light (safe zones, portals, teleport destinations). */
+export function column(dim, at, color, life, height = 6, width = 0.45) {
+    return shape(dim, "column", at, { w: width, len: height }, color, life);
 }
 
-export const pillar = (dim, at, color, life = 0.5, height = 6) => column(dim, at, color, life, height, 0.3, 0.55);
+/** A bullet's diamond (moved by hazards.js). */
+export const gem = (dim, at, color, size, life) => shape(dim, "gem", at, { size }, color, life);
+
+export const pillar = (dim, at, color, life = 0.5, height = 6) => column(dim, at, color, life, height, 0.3);
 
 // --- sparks ------------------------------------------------------------------------------------
 export const burst = (dim, at, color, count = 24, speed = 5) => particle(dim, "eclipse:burst", at, { color, count, speed });

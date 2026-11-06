@@ -1,0 +1,143 @@
+{
+  "format_version": "1.8.0",
+  "render_controllers": {
+    "controller.render.eclipse.fx_gem": {
+      "arrays": {
+        "textures": {
+          "Array.colors": [
+            "Texture.c0",
+            "Texture.c1",
+            "Texture.c2",
+            "Texture.c3",
+            "Texture.c4",
+            "Texture.c5",
+            "Texture.c6",
+            "Texture.c7",
+            "Texture.c8",
+            "Texture.c9"
+          ]
+        }
+      },
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        },
+        {
+          "glow": "Material.glow"
+        }
+      ],
+      "textures": [
+        "Array.colors[q.property('eclipse:color')]"
+      ]
+    },
+    "controller.render.eclipse.fx_beam": {
+      "arrays": {
+        "textures": {
+          "Array.colors": [
+            "Texture.c0",
+            "Texture.c1",
+            "Texture.c2",
+            "Texture.c3",
+            "Texture.c4",
+            "Texture.c5",
+            "Texture.c6",
+            "Texture.c7",
+            "Texture.c8",
+            "Texture.c9"
+          ]
+        }
+      },
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.colors[q.property('eclipse:color')]"
+      ]
+    },
+    "controller.render.eclipse.fx_column": {
+      "arrays": {
+        "textures": {
+          "Array.colors": [
+            "Texture.c0",
+            "Texture.c1",
+            "Texture.c2",
+            "Texture.c3",
+            "Texture.c4",
+            "Texture.c5",
+            "Texture.c6",
+            "Texture.c7",
+            "Texture.c8",
+            "Texture.c9"
+          ]
+        }
+      },
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.colors[q.property('eclipse:color')]"
+      ]
+    },
+    "controller.render.eclipse.fx_tube": {
+      "arrays": {
+        "textures": {
+          "Array.colors": [
+            "Texture.c0",
+            "Texture.c1",
+            "Texture.c2",
+            "Texture.c3",
+            "Texture.c4",
+            "Texture.c5",
+            "Texture.c6",
+            "Texture.c7",
+            "Texture.c8",
+            "Texture.c9"
+          ]
+        }
+      },
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.colors[q.property('eclipse:color')]"
+      ]
+    },
+    "controller.render.eclipse.fx_wall": {
+      "arrays": {
+        "textures": {
+          "Array.colors": [
+            "Texture.c0",
+            "Texture.c1",
+            "Texture.c2",
+            "Texture.c3",
+            "Texture.c4",
+            "Texture.c5",
+            "Texture.c6",
+            "Texture.c7",
+            "Texture.c8",
+            "Texture.c9"
+          ]
+        }
+      },
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.colors[q.property('eclipse:color')]"
+      ]
+    }
+  }
+}

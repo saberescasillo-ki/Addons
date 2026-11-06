@@ -1,0 +1,116 @@
+{
+  "format_version": "1.21.50",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "eclipse:fx_tube",
+      "is_spawnable": false,
+      "is_summonable": true,
+      "properties": {
+        "eclipse:color": {
+          "type": "int",
+          "range": [
+            0,
+            9
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "eclipse:life": {
+          "type": "float",
+          "range": [
+            0.0,
+            60.0
+          ],
+          "default": 1.0,
+          "client_sync": true
+        },
+        "eclipse:r0": {
+          "type": "float",
+          "range": [
+            0.0,
+            64.0
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "eclipse:rate": {
+          "type": "float",
+          "range": [
+            -64.0,
+            64.0
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "eclipse:rmax": {
+          "type": "float",
+          "range": [
+            0.0,
+            64.0
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "eclipse:h": {
+          "type": "float",
+          "range": [
+            0.0,
+            8.0
+          ],
+          "default": 0,
+          "client_sync": true
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "eclipse",
+          "eclipse_fx",
+          "inanimate"
+        ]
+      },
+      "minecraft:health": {
+        "value": 1,
+        "max": 1
+      },
+      "minecraft:collision_box": {
+        "width": 0.1,
+        "height": 0.1
+      },
+      "minecraft:custom_hit_test": {
+        "hitboxes": [
+          {
+            "width": 0,
+            "height": 0,
+            "pivot": [
+              0,
+              200,
+              0
+            ]
+          }
+        ]
+      },
+      "minecraft:physics": {
+        "has_gravity": false,
+        "has_collision": false
+      },
+      "minecraft:pushable": {
+        "is_pushable": false,
+        "is_pushable_by_piston": false
+      },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "cause": "all",
+            "deals_damage": "no"
+          }
+        ]
+      },
+      "minecraft:fire_immune": {},
+      "minecraft:loot": {
+        "table": "loot_tables/empty.json"
+      }
+    }
+  }
+}

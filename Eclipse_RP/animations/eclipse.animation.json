@@ -1288,6 +1288,61 @@
       },
       "animation_length": 0.4
     },
+    "animation.eclipse.laugh": {
+      "loop": true,
+      "bones": {
+        "root": {
+          "position": [
+            0,
+            "2 + math.abs(math.sin(q.life_time * 700)) * 1.2",
+            0
+          ]
+        },
+        "body": {
+          "rotation": [
+            "-14 + math.sin(q.life_time * 1400) * 4",
+            0,
+            0
+          ]
+        },
+        "head": {
+          "rotation": [
+            "-32 + math.sin(q.life_time * 1400) * 7",
+            "math.sin(q.life_time * 300) * 10",
+            0
+          ]
+        },
+        "rightArm": {
+          "rotation": [
+            "-38 + math.sin(q.life_time * 1400) * 6",
+            0,
+            -28
+          ]
+        },
+        "leftArm": {
+          "rotation": [
+            "-38 + math.sin(q.life_time * 1400) * 6",
+            0,
+            28
+          ]
+        },
+        "rightLeg": {
+          "rotation": [
+            "12 + math.sin(q.life_time * 700) * 5",
+            0,
+            4
+          ]
+        },
+        "leftLeg": {
+          "rotation": [
+            "12 + math.sin(q.life_time * 700) * 5",
+            0,
+            -4
+          ]
+        }
+      },
+      "animation_length": 1.5
+    },
     "animation.eclipse.death": {
       "loop": "hold_on_last_frame",
       "bones": {

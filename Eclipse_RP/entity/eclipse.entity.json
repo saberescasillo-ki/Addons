@@ -29,6 +29,7 @@
         "exhausted": "animation.eclipse.exhausted",
         "slam": "animation.eclipse.slam",
         "dash": "animation.eclipse.dash",
+        "laugh": "animation.eclipse.laugh",
         "always": "animation.eclipse.always",
         "look": "animation.common.look_at_target",
         "pose": "controller.animation.eclipse.pose",

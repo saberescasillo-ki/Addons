@@ -30,10 +30,12 @@ ataque tiene su animación. Todo el combate se basa en **reconocer patrones y mo
 (postura, sonido y marcas en el suelo) y siempre tiene una salida. Lucha contra **todo** lo que entre en la arena:
 jugadores y mobs.
 
-Formas fáciles de reconocer:
+Formas fáciles de reconocer, en 3D (no giran hacia la cámara):
 
-- **Círculos y zonas**: texturas planas en el suelo (círculos mágicos, dianas, soles), que crecen o se cierran.
-- **Proyectiles**: rombos que apuntan hacia donde vuelan.
+- **Círculos y zonas**: texturas en el suelo (círculos mágicos, dianas, soles) con una pared de luz de 2 bloques de
+  alto en su borde, que se desvanece hacia arriba. Crecen o se cierran.
+- **Líneas en el suelo**: paredes de luz de 3 bloques de alto, también con degradado.
+- **Proyectiles**: diamantes 3D que giran.
 - **Láseres y rayos**: cilindros de luz.
 
 Los colores también avisan: **dorado** en el suelo es saltar o colocarse ahí, **rojo** es salir de ahí y **blanco**
@@ -81,7 +83,15 @@ se esquivan saltando.
 | **Constelación** – un anillo sale, se detiene (las estrellas se unen con líneas) y cada estrella dispara al objetivo más cercano | las estrellas quietas y unidas | muévete de lado cuando disparen |
 | **Láser giratorio** – láseres dorados a ras del suelo giran alrededor del jefe | línea dorada inicial, línea blanca donde terminará y flechas del giro | **salta** cuando pase, o sal del sector marcado |
 | **Rejilla de láseres** – láseres atraviesan toda la arena; en las fases 2 y 3 se cruzan 2 o 3 juegos | finas líneas rojas antes de disparar | colócate entre las líneas |
+| **Triángulo de láseres** – marca 3 líneas a su alrededor; un segundo después salen láseres por ellas durante un segundo (en las fases 2 y 3, un segundo triángulo girado) | paredes rojas en el suelo | quédate fuera de las líneas |
+| **Cuadrícula** – traza una cuadrícula de luz a su alrededor; en sus casillas aparecen diamantes, oleada tras oleada, y cada uno dispara al objetivo más cercano (en la fase 3 también en cruz) | la cuadrícula y un anillo en cada casilla | muévete de lado cuando disparen |
 | **Embestida** – cruza la arena como una lanza de luz; en la fase 2 deja estrellas que salen hacia los lados | camino rojo marcado en el suelo y carga roja | apártate del camino (en la fase 3 lo hace dos veces) |
+
+**Risa:** de vez en cuando (como mucho cada 25 s) se ríe a carcajadas y da **lentitud II durante 3 s** a todo lo que
+haya en la arena.
+
+**Cómo elige:** nunca repite el mismo ataque dos veces seguidas y evita repetir el mismo tipo. Si estás cerca prefiere
+zonas y láseres; si estás lejos, rayos, orbes guiados y la embestida.
 
 **Encadenar ataques:** el siguiente ataque puede empezar en el **último cuarto** del actual: a veces en la fase 1, la
 mayoría de las veces en la fase 2 y siempre en la fase 3. Nunca se teletransporta en mitad de un ataque.
@@ -103,11 +113,10 @@ violeta y carmesí.
 
 ## Eclipse Total
 
-Una vez entrada la fase 3 (a los 15 s, y luego cada minuto) se eleva sobre el centro de la arena y carga durante 6,5 s.
-Aparecen **tres soles dorados en el suelo** con columnas de luz, un anillo rojo que se cierra desde el borde y una
-cuenta atrás. Al liberarlo, todo el que no esté
-dentro de un círculo de luz recibe **18 de daño mágico** (la armadura no lo reduce). Después cae al suelo y se queda
-**arrodillado y agotado** unos 4 segundos: el momento de atacar.
+Una vez entrada la fase 3 (a los 15 s, y luego cada minuto) se eleva sobre el centro de la arena y reúne oscuridad
+durante 1,5 s. Entonces aparecen **seis soles dorados en el suelo** (uno en el centro) con columnas de luz, y solo hay
+**2 segundos** para llegar a uno. Al liberarlo, todo lo que no esté dentro de un sol recibe **18 de daño mágico** (la
+armadura no lo reduce). No se cansa: baja y sigue luchando.
 
 ## Muerte y botín
 
@@ -120,7 +129,8 @@ mucha experiencia.
 Ni las balas ni los rayos son entidades: el script las simula y las dibuja con partículas. Una bala recta es una sola
 partícula que vuela por su cuenta; solo las guiadas, las que se curvan o las que esperan se vuelven a dibujar.
 
-Cada círculo es una sola textura que crece o se cierra por sí misma, y cada láser es una sola partícula.
+Las formas 3D son pequeños modelos que el juego anima solo (crecen, se desvanecen y giran): el script solo los crea y
+los quita. En el momento más cargado hay unos 150 a la vez. Las partículas que quedan son las chispas, que son pocas.
 
 ---
 
