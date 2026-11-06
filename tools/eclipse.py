@@ -29,7 +29,7 @@ BP = os.path.join(ROOT, f"{NAME}_BP")
 RP = os.path.join(ROOT, f"{NAME}_RP")
 DIST = os.path.join(ROOT, "dist")
 SCRIPTS = os.path.join(HERE, "eclipse", "scripts")
-VERSION = [1, 0, 0]
+VERSION = [1, 1, 0]
 MIN_ENGINE = [1, 21, 90]
 BOSS, REMNANT, ALTAR = "eclipse:eclipse", "eclipse:remnant", "eclipse:altar"
 HEALTH = 500
@@ -104,6 +104,105 @@ def particle_atlas(path):
             if d < 1:
                 px[48 + x, y] = (255, 255, 255, int(255 * (1 - d) ** 2))
     img.save(path)
+
+
+def _smooth(draw_fn, size=256, ss=2):
+    big = Image.new("RGBA", (size * ss, size * ss), (0, 0, 0, 0))
+    draw_fn(ImageDraw.Draw(big), size * ss)
+    return big.resize((size, size), Image.LANCZOS)
+
+
+def _circle(d, n, r, **kw):
+    c = n / 2
+    d.ellipse([c - r, c - r, c + r, c + r], **kw)
+
+
+def decal_textures(folder):
+    """Floor decals, white on transparent (the particles tint them)."""
+    W = (255, 255, 255)
+
+    def ring(d, n):
+        _circle(d, n, n * 0.47, outline=W + (255,), width=int(n * 0.022))
+        _circle(d, n, n * 0.44, outline=W + (90,), width=int(n * 0.01))
+        for k in range(24):
+            a = 2 * math.pi * k / 24
+            r0, r1 = n * (0.38 if k % 2 else 0.40), n * 0.43
+            d.line([n / 2 + math.cos(a) * r0, n / 2 + math.sin(a) * r0, n / 2 + math.cos(a) * r1, n / 2 + math.sin(a) * r1],
+                   fill=W + (200,), width=int(n * 0.008) + 1)
+
+    def zone(d, n):
+        c = n / 2
+        _circle(d, n, n * 0.49, fill=W + (70,))
+        _circle(d, n, n * 0.49, outline=W + (255,), width=int(n * 0.02))
+        _circle(d, n, n * 0.43, outline=W + (150,), width=int(n * 0.008))
+        _circle(d, n, n * 0.28, outline=W + (200,), width=int(n * 0.012))
+        for rot in (0, math.pi / 3):           # a hexagram
+            pts = [(c + math.cos(rot + 2 * math.pi * k / 3 - math.pi / 2) * n * 0.43,
+                    c + math.sin(rot + 2 * math.pi * k / 3 - math.pi / 2) * n * 0.43) for k in range(3)]
+            d.polygon(pts, outline=W + (170,), width=int(n * 0.008))
+        for k in range(12):                     # runes between the circles
+            a = 2 * math.pi * k / 12
+            x, y = c + math.cos(a) * n * 0.36, c + math.sin(a) * n * 0.36
+            r = n * 0.018
+            if k % 3 == 0:
+                d.ellipse([x - r, y - r, x + r, y + r], fill=W + (230,))
+            else:
+                d.line([x - r, y - r, x + r, y + r], fill=W + (210,), width=int(n * 0.007) + 1)
+                d.line([x - r, y + r, x + r, y - r], fill=W + (210,), width=int(n * 0.007) + 1)
+
+    def target(d, n):
+        c = n / 2
+        _circle(d, n, n * 0.48, fill=W + (45,))
+        _circle(d, n, n * 0.48, outline=W + (255,), width=int(n * 0.022))
+        _circle(d, n, n * 0.24, outline=W + (220,), width=int(n * 0.015))
+        _circle(d, n, n * 0.05, fill=W + (255,))
+        for k in range(4):
+            a = math.pi / 2 * k + math.pi / 4
+            d.line([c + math.cos(a) * n * 0.3, c + math.sin(a) * n * 0.3, c + math.cos(a) * n * 0.46, c + math.sin(a) * n * 0.46],
+                   fill=W + (255,), width=int(n * 0.02))
+        for k in range(4):                      # four-pointed star in the middle
+            a = math.pi / 2 * k
+            d.polygon([(c + math.cos(a) * n * 0.2, c + math.sin(a) * n * 0.2),
+                       (c + math.cos(a + 0.3) * n * 0.06, c + math.sin(a + 0.3) * n * 0.06),
+                       (c + math.cos(a - 0.3) * n * 0.06, c + math.sin(a - 0.3) * n * 0.06)], fill=W + (230,))
+
+    def sun(d, n):
+        c = n / 2
+        _circle(d, n, n * 0.49, fill=W + (95,))
+        _circle(d, n, n * 0.49, outline=W + (255,), width=int(n * 0.02))
+        for k in range(12):
+            a = 2 * math.pi * k / 12
+            d.polygon([(c + math.cos(a) * n * 0.44, c + math.sin(a) * n * 0.44),
+                       (c + math.cos(a + 0.12) * n * 0.2, c + math.sin(a + 0.12) * n * 0.2),
+                       (c + math.cos(a - 0.12) * n * 0.2, c + math.sin(a - 0.12) * n * 0.2)], fill=W + (200,))
+        _circle(d, n, n * 0.17, fill=W + (255,))
+
+    def wave(d, n):
+        c = n / 2
+        for i in range(40):
+            t = i / 39
+            r = n * (0.40 + 0.09 * t)
+            a = int(255 * (1 - abs(t - 0.75) / 0.75) ** 2)
+            _circle(d, n, r, outline=W + (a,), width=int(n * 0.004) + 1)
+
+    for name, fn in (("ring", ring), ("zone", zone), ("target", target), ("safe", sun), ("wave", wave)):
+        _smooth(fn).save(os.path.join(folder, f"decal_{name}.png"))
+    # a laser: across its width it fades out at the edges (it reads as a cylinder)
+    img = Image.new("RGBA", (32, 4))
+    for x in range(32):
+        u = (x + 0.5) / 16 - 1
+        a = max(0.0, 1 - u * u) ** 0.5
+        v = int(255 * (0.55 + 0.45 * a))
+        for y in range(4):
+            img.putpixel((x, y), (v, v, v, int(255 * a ** 0.7)))
+    img.save(os.path.join(folder, "laser.png"))
+    # a bullet: a diamond with a dark rim and a bright heart
+    def diamond(d, n):
+        c = n / 2
+        for scale, col in ((0.98, W + (70,)), (0.82, (110, 110, 110, 255)), (0.66, W + (255,)), (0.3, W + (255,))):
+            d.polygon([(c, c - n * 0.5 * scale), (c + n * 0.3 * scale, c), (c, c + n * 0.5 * scale), (c - n * 0.3 * scale, c)],
+                      fill=col)
+    _smooth(diamond, 64, 4).save(os.path.join(folder, "diamond.png"))
 
 
 def altar_textures(folder):
@@ -283,6 +382,11 @@ def animations():
         "body": {"rotation": {"0.0": [0, 0, 0], "0.4": [-15, 0, 0], "0.55": [30, 0, 0], "0.8": [25, 0, 0]}},
         **arms({"0.0": [0, 0, 10], "0.4": [-175, 0, 10], "0.55": [-30, 0, 10], "0.8": [-25, 0, 10]}),
         **legs({"0.0": [10, 0, 3], "0.55": [-40, 0, 6], "0.8": [-35, 0, 6]})}, loop=False)
+    A["dash"] = anim(0.4, {
+        "root": {"position": [0, 2, 0]},
+        "body": {"rotation": [48, 0, 0]}, "head": {"rotation": [-38, 0, 0]},
+        "cape": {"rotation": [f"45 + math.sin({t} * 900) * 8", 0, 0]},
+        **arms([55, 0, 18]), **legs([38, 0, 4], [30, 0, -4])})
     A["death"] = anim(3.6, {
         "root": {"position": {"0.0": [0, 0, 0], "3.0": [0, 24, 0]},
                  "rotation": ["math.sin(q.life_time * 1500) * q.anim_time * 1.5", 0,
@@ -301,7 +405,7 @@ def animations():
 
 # the order of eclipse:anim values (tools/eclipse/scripts/attacks.js ANIM)
 POSES = ["idle", "point", "raise", "spin", "cross", "summon", "charge", "release", "vanish", "appear", "phase",
-         "ult_charge", "ult_release", "exhausted", "slam"]
+         "ult_charge", "ult_release", "exhausted", "slam", "dash"]
 
 
 def controllers():
@@ -332,12 +436,12 @@ FADE = "v.color.a * math.clamp((1 - v.particle_age / v.particle_lifetime) * 4, 0
 TINT = {"color": ["v.color.r", "v.color.g", "v.color.b", FADE]}
 
 
-def particle(name, components, material="particles_blend"):
+def particle(name, components, material="particles_blend", texture=TEX):
     dump(os.path.join(RP, "particles", f"{name}.particle.json"), {
         "format_version": "1.10.0",
         "particle_effect": {
             "description": {"identifier": f"eclipse:{name}",
-                            "basic_render_parameters": {"material": material, "texture": TEX}},
+                            "basic_render_parameters": {"material": material, "texture": texture}},
             "components": components}})
 
 
@@ -351,41 +455,42 @@ def board(size, uv=GLOW):
 
 
 def particles():
+    look = lambda w, h, uv: {"size": [w, h], "facing_camera_mode": "lookat_direction",  # noqa: E731
+                             "direction": {"mode": "custom", "custom_direction": [
+                                 "v.dir.direction_x", "v.dir.direction_y", "v.dir.direction_z"]}, "uv": uv}
+    full = lambda n: {"texture_width": n, "texture_height": n, "uv": [0, 0], "uv_size": [n, n]}  # noqa: E731
+    # bullets: diamonds pointing where they fly
     particle("orb", {
         **once(1),
         "minecraft:emitter_shape_point": {"direction": ["v.dir.direction_x", "v.dir.direction_y", "v.dir.direction_z"]},
         "minecraft:particle_lifetime_expression": {"max_lifetime": "v.life"},
         "minecraft:particle_initial_speed": "v.dir.speed",
         "minecraft:particle_motion_dynamic": {"linear_acceleration": ["v.acc.x", "v.acc.y", "v.acc.z"]},
-        "minecraft:particle_appearance_billboard": board("v.size"),
-        "minecraft:particle_appearance_tinting": {"color": ["v.color.r", "v.color.g", "v.color.b", "v.color.a"]}})
-    for name, surface, alpha in (("ring", True, 1), ("disc", False, 0.5)):
-        particle(name, {
-            **once("v.count"),
-            "minecraft:emitter_shape_disc": {"radius": "v.radius", "surface_only": surface, "plane_normal": [0, 1, 0],
-                                             "direction": "outwards"},
-            "minecraft:particle_lifetime_expression": {"max_lifetime": "v.life"},
-            "minecraft:particle_initial_speed": "v.speed" if surface else 0,
-            "minecraft:particle_motion_dynamic": {},
-            "minecraft:particle_appearance_billboard": board("v.size"),
-            "minecraft:particle_appearance_tinting": {"color": ["v.color.r", "v.color.g", "v.color.b", f"({FADE}) * {alpha}"]}})
-    particle("dot", {
+        "minecraft:particle_appearance_billboard": look("v.size * 0.8", "v.size * 1.3", full(64)),
+        "minecraft:particle_appearance_tinting": {"color": ["v.color.r", "v.color.g", "v.color.b", "v.color.a"]}},
+        texture="textures/eclipse/particle/diamond")
+    # lasers and rays: cylinders of light along v.dir, v.size long (half), v.radius thick
+    particle("laser", {
         **once(1), "minecraft:emitter_shape_point": {},
         "minecraft:particle_lifetime_expression": {"max_lifetime": "v.life"},
-        "minecraft:particle_appearance_billboard": board("v.size"),
-        "minecraft:particle_appearance_tinting": TINT})
-    particle("beam", {
-        **once("math.min(80, v.height * 2.5)"),
-        "minecraft:emitter_shape_box": {"offset": [0, "v.height / 2", 0], "half_dimensions": [0.18, "v.height / 2", 0.18],
-                                        "direction": [0, -1, 0]},
-        "minecraft:particle_lifetime_expression": {"max_lifetime": "math.random(0.25, 0.5)"},
-        "minecraft:particle_initial_speed": "math.random(2, 6)",
-        "minecraft:particle_motion_dynamic": {},
-        "minecraft:particle_appearance_billboard": board("0.45 - 0.4 * v.particle_age / v.particle_lifetime"),
-        "minecraft:particle_appearance_tinting": {"color": [
-            "math.lerp(1, v.color.r, v.particle_age / v.particle_lifetime)",
-            "math.lerp(1, v.color.g, v.particle_age / v.particle_lifetime)",
-            "math.lerp(1, v.color.b, v.particle_age / v.particle_lifetime)", 1]}}, "particles_add")
+        "minecraft:particle_appearance_billboard": look(
+            "v.radius * (1 - v.speed * v.particle_age / v.particle_lifetime)", "v.size",
+            {"texture_width": 32, "texture_height": 4, "uv": [0, 0], "uv_size": [32, 4]}),
+        "minecraft:particle_appearance_tinting": {"color": ["v.color.r", "v.color.g", "v.color.b",
+            "v.color.a * math.clamp(v.particle_age * 30, 0, 1) * math.clamp((v.particle_lifetime - v.particle_age) * 12, 0, 1)"]}},
+        "particles_add", texture="textures/eclipse/particle/laser")
+    # floor decals: flat, growing or shrinking by themselves (v.radius + v.speed * age, at most v.size)
+    for name, spin in (("ring", 25), ("zone", 18), ("target", -40), ("safe", 12), ("wave", 0)):
+        size = "math.clamp(v.radius + v.speed * v.particle_age, 0.01, v.size)"
+        particle(f"decal_{name}", {
+            **once(1), "minecraft:emitter_shape_point": {},
+            "minecraft:particle_lifetime_expression": {"max_lifetime": "v.life"},
+            "minecraft:particle_initial_spin": {"rotation": "math.random(0, 360)", "rotation_rate": spin},
+            "minecraft:particle_appearance_billboard": {"size": [size, size], "facing_camera_mode": "emitter_transform_xz",
+                                                        "uv": full(256)},
+            "minecraft:particle_appearance_tinting": {"color": ["v.color.r", "v.color.g", "v.color.b",
+                "v.color.a * math.clamp(v.particle_age * 10, 0, 1) * math.clamp((v.particle_lifetime - v.particle_age) * 6, 0, 1)"]}},
+            texture=f"textures/eclipse/particle/decal_{name}")
     particle("burst", {
         **once("v.count"),
         "minecraft:emitter_shape_sphere": {"radius": 0.3, "direction": "outwards"},
@@ -402,15 +507,6 @@ def particles():
         "minecraft:particle_motion_dynamic": {},
         "minecraft:particle_appearance_billboard": board("0.08 + 0.12 * v.particle_age / v.particle_lifetime", SPARK),
         "minecraft:particle_appearance_tinting": {"color": ["v.color.r", "v.color.g", "v.color.b", 1]}}, "particles_add")
-    particle("pillar", {
-        **once("v.count"),
-        "minecraft:emitter_shape_box": {"offset": [0, "v.height / 2", 0], "half_dimensions": [0.45, "v.height / 2", 0.45],
-                                        "direction": [0, 1, 0]},
-        "minecraft:particle_lifetime_expression": {"max_lifetime": "v.life"},
-        "minecraft:particle_initial_speed": 1,
-        "minecraft:particle_motion_dynamic": {},
-        "minecraft:particle_appearance_billboard": board("0.13", STAR),
-        "minecraft:particle_appearance_tinting": TINT})
     for n, rgb, rate in ((1, (1, 0.92, 0.7), 8), (2, (0.72, 0.5, 1), 10), (3, (1, 0.3, 0.38), 14)):
         dump(os.path.join(RP, "particles", f"aura{n}.particle.json"), {
             "format_version": "1.10.0",
@@ -623,6 +719,7 @@ def build(preview=False):
     os.makedirs(os.path.join(RP, "textures", "eclipse", "particle"), exist_ok=True)
     body_texture(os.path.join(RP, "textures", "eclipse", "entity", "eclipse.png"))
     particle_atlas(os.path.join(RP, "textures", "eclipse", "particle", "atlas.png"))
+    decal_textures(os.path.join(RP, "textures", "eclipse", "particle"))
     geometry()
     animations()
     controllers()

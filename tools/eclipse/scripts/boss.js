@@ -1,6 +1,6 @@
 import { world, system, EntityDamageCause } from "@minecraft/server";
-import { C, ring, disc, burst, charge, pillar, beam, sound, shake, flash } from "./fx.js";
-import { shoot, clear, arenaPlayers, hurt, inPlay } from "./hazards.js";
+import { C, ring, safe as safe_, burst, charge, column, beam, sound, shake, flash } from "./fx.js";
+import { shoot, clear, arenaPlayers, arenaTargets, arenaMobs, hurt, inPlay } from "./hazards.js";
 import { ATTACKS, DECKS, ANIM, combo } from "./attacks.js";
 import { level } from "./settings.js";
 import { setAltar } from "./altar.js";
@@ -18,6 +18,8 @@ const PHASE_AT = [0.66, 0.33];
 const ULT_FIRST = 300, ULT_EVERY = 1200; // ticks (15 s after phase 3 begins, then every 60 s)
 const LEAVE_AFTER = 600;           // 30 s without anyone in the arena: the Eclipse withdraws
 const REST = [24, 18, 14], TP_EVERY = [3, 2, 2];
+// chance that the next attack starts in the last quarter of the current one
+const OVERLAP = [0.5, 0.75, 1];
 
 const fights = new Map();
 const isValid = (e) => !!e && (typeof e.isValid === "function" ? e.isValid() : e.isValid);
@@ -76,6 +78,9 @@ class Fight {
         this.empty = 0;
         this.close = 0;
         this.lockedUntil = 0;
+        this.freeAt = 0;
+        this.animToken = 0;
+        this.goalSpeed = 7;
         this.nextUlt = this.phase === 3 ? system.currentTick + ULT_FIRST : Infinity;
         const n = Math.max(1, Math.min(4, this.players().length));
         this.hpScale = level().hp * (1 + 0.5 * (n - 1));
@@ -121,12 +126,42 @@ class Fight {
         }
     }
 
-    anim(n) {
+    /** Sets a pose; returns a token so that only its owner puts the boss back to idle. */
+    pose(n) {
         this.set("eclipse:anim", n);
+        return ++this.animToken;
+    }
+
+    unpose(token, toIdle = true) {
+        if (token !== this.animToken) return false;
+        if (toIdle) this.pose(0);
+        return true;
+    }
+
+    anim(n) {
+        this.pose(n);
     }
 
     players() {
         return arenaPlayers(this.dim, this.arena);
+    }
+
+    /** Everything it fights: players and mobs in the arena. */
+    targets() {
+        return arenaTargets(this.dim, this.arena);
+    }
+
+    hit(e, dmg) {
+        return hurt(e, dmg, this.boss);
+    }
+
+    dashTo(x, z, speed, ticks) {
+        this.goal = { x, z };
+        this.goalSpeed = speed;
+        this.after(ticks + 2, () => {
+            this.goal = null;
+            this.goalSpeed = 7;
+        });
     }
 
     inArena(x, z) {
@@ -135,7 +170,7 @@ class Fight {
 
     nearestTo(pos) {
         let best, bd = Infinity;
-        for (const p of this.players()) {
+        for (const p of this.targets()) {
             const d = Math.hypot(p.location.x - pos.x, p.location.z - pos.z);
             if (d < bd) {
                 best = p;
@@ -146,13 +181,13 @@ class Fight {
     }
 
     target() {
-        if (isValid(this.tgt) && inPlay(this.tgt) && this.players().some((p) => p.id === this.tgt.id)) return this.tgt;
+        if (isValid(this.tgt) && this.targets().some((p) => p.id === this.tgt.id)) return this.tgt;
         this.tgt = this.nearestTo(this.boss.location);
         return this.tgt;
     }
 
     pickTarget() {
-        const ps = this.players();
+        const ps = this.targets();
         this.tgt = ps.length && Math.random() < 0.4 ? ps[Math.floor(Math.random() * ps.length)] : this.nearestTo(this.boss.location);
     }
 
@@ -194,7 +229,7 @@ class Fight {
             gz = l.z;
         }
         const dx = gx - l.x, dz = gz - l.z, dist = Math.hypot(dx, dz);
-        const step = Math.min(dist, (this.goal ? 7 : DRIFT_SPEED) / 20);
+        const step = Math.min(dist, (this.goal ? this.goalSpeed : DRIFT_SPEED) / 20);
         const vy = Math.max(-0.25, Math.min(0.25, (a.floor + this.height - l.y) * 0.25));
         try {
             b.clearVelocity();
@@ -235,7 +270,8 @@ class Fight {
             this.lockedUntil = now + d;
             return this.busy(d);
         }
-        if (now < this.busyUntil || !players.length) return;
+        const targets = this.targets();
+        if (now < this.busyUntil || !targets.length) return;
         if (this.phase === 3 && now >= this.nextUlt) {
             this.nextUlt = now + ULT_EVERY;
             const d = ultimate(this);
@@ -243,7 +279,7 @@ class Fight {
             return this.busy(d);
         }
         // someone glued to the boss: push them away, then vanish
-        const near = players.some((p) => Math.hypot(p.location.x - this.boss.location.x, p.location.z - this.boss.location.z) < 3.2);
+        const near = targets.some((p) => Math.hypot(p.location.x - this.boss.location.x, p.location.z - this.boss.location.z) < 3.2);
         this.close = near ? this.close + 1 : 0;
         if (this.close > 30) {
             this.close = 0;
@@ -251,6 +287,7 @@ class Fight {
             return this.busy(ATTACKS.repel(this, {}), 6);
         }
         if (this.attacks >= by(this, TP_EVERY)) {
+            if (now < this.freeAt) return; // never vanish in the middle of an attack
             this.attacks = 0;
             return this.busy(teleport(this), 4);
         }
@@ -258,11 +295,18 @@ class Fight {
         this.attacks++;
         const entry = this.draw();
         const dur = Array.isArray(entry) ? combo(this, ...entry) : ATTACKS[entry](this, {});
-        this.busy(dur);
+        // the next attack may begin in this one's last quarter
+        if (Math.random() < by(this, OVERLAP) && this.attacks < by(this, TP_EVERY)) {
+            this.freeAt = now + dur;
+            this.busyUntil = now + Math.ceil(dur * 0.75);
+        } else {
+            this.busy(dur);
+        }
     }
 
     busy(ticks, rest = by(this, REST)) {
         this.busyUntil = system.currentTick + ticks + rest;
+        this.freeAt = system.currentTick + ticks;
     }
 
     draw() {
@@ -315,7 +359,7 @@ function resetAltar(f) {
 
 // --- teleport ----------------------------------------------------------------------------
 function spot(f) {
-    const a = f.arena, ps = f.players(), t = f.target();
+    const a = f.arena, ps = f.targets(), t = f.target();
     let best, bestScore = -Infinity;
     for (let i = 0; i < 24; i++) {
         const ang = Math.random() * 2 * Math.PI, d = Math.sqrt(Math.random()) * (a.R - 4);
@@ -343,12 +387,9 @@ export function teleport(f, dest = spot(f), o = {}) {
     const g = f.ground(dest.x, dest.z);
     // the warning at the destination
     f.after(2, () => sound(f.dim, "mob.shulker.teleport", { ...g, y: g.y + 1 }, 2, 0.6));
-    for (let i = 0; i < 8 + warn; i += 4) {
-        f.after(i, () => {
-            pillar(f.dim, g, C.violet, 0.25, 5);
-            ring(f.dim, g, Math.max(0.4, 1.8 * (1 - i / (8 + warn))), C.white, 0.22, { spacing: 0.4 });
-        });
-    }
+    column(f.dim, g, C.violet, (8 + warn) / 20, 5, 0.4, 0.5);
+    ring(f.dim, g, 2, C.white, (8 + warn) / 20, { speed: -2 / ((8 + warn) / 20) });
+    ring(f.dim, { ...g, y: g.y + 0.02 }, 1.3, C.violet, (8 + warn) / 20);
     f.after(8, () => {
         f.set("eclipse:hidden", true);
         f.relocate(dest.x, dest.z, o.height ?? HOVER);
@@ -395,7 +436,7 @@ function transition(f, phase) {
         f.after(t, () => {
             const l = f.boss.location;
             charge(f.dim, { x: l.x, y: l.y + 1.2, z: l.z }, color, 4, 0.5, 26);
-            if (t % 18 === 0) ring(f.dim, f.ground(l.x, l.z), 2, color, 0.6, { speed: 14, spacing: 0.5 });
+            if (t % 18 === 0) ring(f.dim, f.ground(l.x, l.z), 2, color, 0.8, { speed: 18 });
         });
     }
     f.after(40, () => shake(f.dim, f.boss.location, a.R + 10, 0.2, 2.5));
@@ -406,10 +447,10 @@ function transition(f, phase) {
         sound(f.dim, roar, l, 3, 1);
         sound(f.dim, "random.explode", l, 2, 0.6);
         burst(f.dim, { x: l.x, y: l.y + 1.2, z: l.z }, color, 60, 9);
-        ring(f.dim, f.ground(l.x, l.z), 1.5, color, 1.2, { speed: 20, spacing: 0.4, max: 200 });
-        beam(f.dim, f.ground(l.x, l.z), color, 30);
-        for (const p of f.players()) {
-            flash(p, color[0] * 255, color[1] * 255, color[2] * 255, 0.1);
+        ring(f.dim, f.ground(l.x, l.z), 1.5, color, 1.4, { speed: 22 });
+        beam(f.dim, f.ground(l.x, l.z), color, 30, 1.4);
+        for (const p of f.targets()) {
+            if (p.typeId === "minecraft:player") flash(p, color[0] * 255, color[1] * 255, color[2] * 255, 0.1);
             const d = Math.max(0.5, Math.hypot(p.location.x - l.x, p.location.z - l.z));
             try {
                 p.applyKnockback({ x: ((p.location.x - l.x) / d) * 1.4, z: ((p.location.z - l.z) / d) * 1.4 }, 0.35);
@@ -449,20 +490,22 @@ function ultimate(f) {
         sound(f.dim, "mob.warden.sonic_charge", f.boss.location, 3, 0.5);
         sound(f.dim, "ambient.cave", f.boss.location, 3, 0.6);
     });
-    // safe zones: golden circles and columns of light, shown for the whole charge
+    // safe zones: golden suns and columns of light, shown for the whole charge; the
+    // darkness (a red ring) closes in from the edge
+    f.after(start, () => {
+        const life = ULT_CHARGE / 20 + 0.3;
+        for (const s of safe) {
+            const g = f.ground(s.x, s.z);
+            safe_(f.dim, g, SAFE_R, C.safe, life);
+            column(f.dim, g, C.safe, life, 10, SAFE_R, 0.22);
+            column(f.dim, g, C.white, life, 14, 0.25, 0.6);
+        }
+        ring(f.dim, f.ground(a.cx, a.cz), a.R, C.danger, life, { speed: -(a.R * 0.15) / life });
+    });
     for (let t = start; t < start + ULT_CHARGE; t += 10) {
         f.after(t, () => {
-            for (const s of safe) {
-                const g = f.ground(s.x, s.z);
-                ring(f.dim, g, SAFE_R, C.safe, 0.55, { spacing: 0.45 });
-                disc(f.dim, g, SAFE_R, C.safe, 0.55, 0.6);
-                pillar(f.dim, g, C.safe, 0.55, 9);
-            }
             const l = f.boss.location;
             charge(f.dim, { x: l.x, y: l.y + 1.2, z: l.z }, C.violet, 7, 0.55, 40);
-            // the darkness closes in from the edge
-            const k = (t - start) / ULT_CHARGE;
-            ring(f.dim, f.ground(a.cx, a.cz), a.R * (1 - 0.15 * k), C.danger, 0.55, { spacing: 0.9 });
         });
     }
     for (let s = 3; s >= 1; s--) {
@@ -477,21 +520,25 @@ function ultimate(f) {
         sound(f.dim, "mob.warden.sonic_boom", l, 4, 0.6);
         sound(f.dim, "random.explode", l, 3, 0.5);
         shake(f.dim, l, a.R + 20, 0.5, 1.2);
-        ring(f.dim, f.ground(l.x, l.z), 1, C.violet, 1.1, { speed: 24, spacing: 0.35, max: 240 });
+        ring(f.dim, f.ground(l.x, l.z), 1, C.violet, 1.2, { speed: 26 });
         burst(f.dim, { x: l.x, y: l.y + 1, z: l.z }, C.violet, 80, 12);
         for (let i = 0; i < 14; i++) {
             const ang = Math.random() * 2 * Math.PI, d = 4 + Math.random() * (a.R - 4);
             const x = a.cx + Math.cos(ang) * d, z = a.cz + Math.sin(ang) * d;
-            if (safe.every((s) => Math.hypot(s.x - x, s.z - z) > SAFE_R + 1)) beam(f.dim, f.ground(x, z), C.violet, 28);
+            if (safe.every((s) => Math.hypot(s.x - x, s.z - z) > SAFE_R + 1)) beam(f.dim, f.ground(x, z), C.violet, 28, 1);
         }
-        const everyone = f.dim.getPlayers({ location: { x: a.cx, y: a.floor, z: a.cz }, maxDistance: a.R + 24 }).filter(inPlay);
+        const everyone = [...f.dim.getPlayers({ location: { x: a.cx, y: a.floor, z: a.cz }, maxDistance: a.R + 24 }).filter(inPlay),
+            ...arenaMobs(f.dim, a)];
         for (const p of everyone) {
             const ok = safe.some((s) => Math.hypot(s.x - p.location.x, s.z - p.location.z) <= SAFE_R + 0.4);
+            const player = p.typeId === "minecraft:player";
             if (ok) {
-                flash(p, 255, 230, 140, 0.05);
-                p.onScreenDisplay.setActionBar("§e✦ La luz te protege ✦");
+                if (player) {
+                    flash(p, 255, 230, 140, 0.05);
+                    p.onScreenDisplay.setActionBar("§e✦ La luz te protege ✦");
+                }
             } else {
-                flash(p, 40, 0, 60, 0.3);
+                if (player) flash(p, 40, 0, 60, 0.3);
                 hurt(p, ULT_DAMAGE, f.boss, EntityDamageCause.magic);
             }
         }
@@ -606,8 +653,8 @@ function deathScene(dim, at, rot, arena) {
         sound(dim, "mob.warden.sonic_boom", at, 3, 1.2);
         sound(dim, "random.totem", at, 2, 0.8);
         burst(dim, top, C.white, 80, 10);
-        ring(dim, { x: at.x, y: (arena?.floor ?? at.y) + 0.06, z: at.z }, 1, C.gold, 1.2, { speed: 18, spacing: 0.4, max: 200 });
-        beam(dim, { x: at.x, y: arena?.floor ?? at.y, z: at.z }, C.white, 40);
+        ring(dim, { x: at.x, y: (arena?.floor ?? at.y) + 0.06, z: at.z }, 1, C.gold, 1.4, { speed: 20 });
+        beam(dim, { x: at.x, y: arena?.floor ?? at.y, z: at.z }, C.white, 40, 1.6);
         for (const p of dim.getPlayers({ location: at, maxDistance: 48 })) {
             flash(p, 255, 255, 255, 0.2);
             p.onScreenDisplay.setTitle("§f§l✦ El Eclipse se disipa ✦", { subtitle: "§7La luz vuelve al cielo",

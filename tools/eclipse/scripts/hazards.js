@@ -1,21 +1,27 @@
 import { system, EntityDamageCause } from "@minecraft/server";
-import { C, particle, ring, disc, beam, burst, sound } from "./fx.js";
+import { C, particle, ring, disc, target, waveDecal, beam, burst, sound } from "./fx.js";
 import { level } from "./settings.js";
 
-// Everything that can hurt: bullets, celestial rays, growing zones and ground waves.
-// They are simulated here (cheap) and drawn with particles; nothing is an entity.
+// Everything that can hurt: bullets, celestial rays, growing zones, ground waves and
+// lasers. They are simulated here (cheap) and drawn with particles; nothing is an entity.
+// They hurt everything alive in the arena: players (in survival/adventure) and mobs.
 //
-// Bullets fly on a flat plane 1.1 blocks above the arena floor: the player dodges by
-// moving, never by luck. A straight bullet is drawn with ONE particle that flies by
-// itself; only homing / curving / waiting bullets are redrawn every few ticks.
+// Bullets fly on a flat plane 1.1 blocks above the arena floor: dodge them by moving.
+// A straight bullet is drawn with ONE particle that flies by itself; only homing,
+// curving, waiting or stopping bullets are redrawn every few ticks.
 
 export const PLANE = 1.1;
-const PLAYER_R = 0.32, PLAYER_H = 1.8;
-const BULLET_COOLDOWN = 10; // a player is hurt by bullets at most twice a second
+const BODY_R = 0.32, BODY_H = 1.8;
+const HIT_COOLDOWN = 10; // the same kind of hazard hurts a target at most twice a second
+const IGNORE = ["minecraft:item", "minecraft:xp_orb", "minecraft:armor_stand", "minecraft:arrow", "minecraft:snowball",
+    "minecraft:egg", "minecraft:ender_pearl", "minecraft:fireball", "minecraft:small_fireball", "minecraft:wind_charge_projectile",
+    "minecraft:painting", "minecraft:leash_knot", "minecraft:tnt", "minecraft:falling_block", "minecraft:fishing_hook",
+    "minecraft:thrown_trident", "minecraft:splash_potion", "minecraft:lingering_potion", "minecraft:area_effect_cloud",
+    "minecraft:lightning_bolt", "minecraft:ender_crystal", "minecraft:eye_of_ender_signal"];
 
 const bullets = [];
 const hazards = [];
-const cooldown = new Map(); // player id -> tick of the last bullet hit
+const cooldown = new Map(); // "<kind>:<entity id>" -> tick of the last hit
 
 const isValid = (e) => !!e && (typeof e.isValid === "function" ? e.isValid() : e.isValid);
 
@@ -28,24 +34,54 @@ export function inPlay(p) {
     }
 }
 
+const center = (a) => ({ x: a.cx, y: a.floor + 2, z: a.cz });
+
 /** Players fighting in this arena. */
 export function arenaPlayers(dim, a) {
     try {
-        return dim.getPlayers({ location: { x: a.cx, y: a.floor + 2, z: a.cz }, maxDistance: a.R + 8 })
+        return dim.getPlayers({ location: center(a), maxDistance: a.R + 8 })
             .filter((p) => inPlay(p) && Math.abs(p.location.y - a.floor) < 14);
     } catch {
         return [];
     }
 }
 
-export function hurt(p, amount, owner, cause = EntityDamageCause.entityAttack) {
-    const dmg = amount * level().dmg;
-    if (dmg <= 0) return;
+const mobCache = new Map(); // arena key -> {tick, list}
+
+/** Mobs in this arena (anything alive that is not the Eclipse), refreshed every 5 ticks. */
+export function arenaMobs(dim, a) {
+    const key = `${dim.id}:${a.cx}:${a.cz}`;
+    const now = system.currentTick;
+    const c = mobCache.get(key);
+    if (c && now - c.tick < 5) return c.list.filter(isValid);
+    let list = [];
     try {
-        if (isValid(owner)) p.applyDamage(dmg, { cause, damagingEntity: owner });
-        else p.applyDamage(dmg, { cause });
+        list = dim.getEntities({ location: center(a), maxDistance: a.R + 6, excludeFamilies: ["eclipse", "inanimate", "player"],
+            excludeTypes: IGNORE }).filter((e) => Math.abs(e.location.y - a.floor) < 14 && !!e.getComponent("minecraft:health"));
     } catch {
-        // gone
+        list = [];
+    }
+    mobCache.set(key, { tick: now, list });
+    return list;
+}
+
+/** Everything the Eclipse fights here. */
+export const arenaTargets = (dim, a) => [...arenaPlayers(dim, a), ...arenaMobs(dim, a)];
+
+export function hurt(e, amount, owner, cause = EntityDamageCause.entityAttack, kind) {
+    if (kind) {
+        const key = `${kind}:${e.id}`, now = system.currentTick;
+        if (now - (cooldown.get(key) ?? -100) < HIT_COOLDOWN) return false;
+        cooldown.set(key, now);
+    }
+    const dmg = amount * level().dmg;
+    if (dmg <= 0) return false;
+    try {
+        if (isValid(owner)) e.applyDamage(dmg, { cause, damagingEntity: owner });
+        else e.applyDamage(dmg, { cause });
+        return true;
+    } catch {
+        return false;
     }
 }
 
@@ -69,40 +105,44 @@ function ticksLeft(b) {
     return b.life;
 }
 
-function draw(b, ticks) {
-    const speed = Math.hypot(b.vx, b.vz);
-    const v = speed > 1e-4 ? { x: b.vx / speed, y: 0, z: b.vz / speed } : { x: 0, y: 1, z: 0 };
+function draw(b, ticks, still = false) {
+    const speed = still ? 0 : Math.hypot(b.vx, b.vz);
+    const fx = Math.hypot(b.vx, b.vz) > 1e-4 ? b.vx : Math.cos(b.face), fz = Math.hypot(b.vx, b.vz) > 1e-4 ? b.vz : Math.sin(b.face);
+    const n = Math.hypot(fx, fz) || 1;
     particle(b.dim, "eclipse:orb", { x: b.x, y: b.y, z: b.z }, {
-        color: b.color, size: b.size, life: ticks / 20, dir: { speed, v }, acc: { x: b.ax, y: 0, z: b.az } });
+        color: b.color, size: b.size, life: ticks / 20, dir: { speed, v: { x: fx / n, y: 0, z: fz / n } },
+        acc: still ? undefined : { x: b.ax, y: 0, z: b.az } });
 }
 
-const dynamic = (b) => b.hold > 0 || b.homeTicks > 0 || b.curve !== 0;
+const dynamic = (b) => b.hold > 0 || b.homeTicks > 0 || (b.curve !== 0 && b.curveTicks > 0) || !!b.stop;
 
 /**
  * Fires a bullet. o: {x, z, angle (rad), speed (blocks/s), accel (blocks/s² along the
  * angle), r, dmg, color, size, life (ticks), hold (ticks it waits, visible, before
- * flying), home {target, turn (rad/s), ticks}, curve (rad/s), square (walls)}.
+ * flying), home {target, turn (rad/s), ticks}, curve (rad/s) for curveTicks, square
+ * (walls), stop {at (ticks), hold, speed, aim: fn(bullet) -> target}}.
  */
 export function shoot(f, o) {
     const ca = Math.cos(o.angle), sa = Math.sin(o.angle);
     const b = {
-        owner: f.id, boss: f.boss, dim: f.dim, arena: f.arena,
-        x: o.x, y: f.arena.floor + PLANE, z: o.z,
+        owner: f.id, boss: f.boss, dim: f.dim, arena: f.arena, f,
+        x: o.x, y: f.arena.floor + PLANE, z: o.z, face: o.angle,
         vx: ca * o.speed, vz: sa * o.speed, ax: ca * (o.accel ?? 0), az: sa * (o.accel ?? 0),
-        r: o.r ?? 0.35, dmg: o.dmg ?? 4, color: o.color ?? C.cyan, size: o.size ?? 0.2,
+        r: o.r ?? 0.35, dmg: o.dmg ?? 4, color: o.color ?? C.cyan, size: o.size ?? 0.22,
         life: o.life ?? 220, hold: o.hold ?? 0, square: !!o.square,
-        home: o.home?.target, turn: o.home?.turn ?? 0, homeTicks: o.home?.ticks ?? 0, curve: o.curve ?? 0,
+        home: o.home?.target, turn: o.home?.turn ?? 0, homeTicks: o.home?.ticks ?? 0,
+        curve: o.curve ?? 0, curveTicks: o.curveTicks ?? (o.curve ? 9999 : 0), stop: o.stop,
         age: 0,
     };
     bullets.push(b);
-    if (b.hold > 0) draw({ ...b, vx: 0, vz: 0, ax: 0, az: 0 }, 6);
+    if (b.hold > 0) draw(b, 6, true);
     else if (dynamic(b)) draw(b, 3);
     else draw(b, ticksLeft(b));
     return b;
 }
 
 function steer(b) {
-    let t = b.home;
+    const t = b.home;
     if (!isValid(t)) {
         b.homeTicks = 0;
         return;
@@ -129,10 +169,29 @@ function moveBullet(b) {
     if (b.hold > 0) {
         b.hold--;
         if (b.hold === 0) {
+            if (b.retarget) {
+                const t = b.retarget.aim(b);
+                const a = t ? Math.atan2(t.location.z - b.z, t.location.x - b.x) : b.face;
+                b.vx = Math.cos(a) * b.retarget.speed;
+                b.vz = Math.sin(a) * b.retarget.speed;
+                b.face = a;
+                b.retarget = undefined;
+                sound(b.dim, "random.orb", { x: b.x, y: b.y, z: b.z }, 0.3, 1.8);
+            }
             draw(b, dynamic(b) ? 3 : ticksLeft(b));
         } else if (b.hold % 5 === 0) {
-            draw({ ...b, vx: 0, vz: 0, ax: 0, az: 0 }, 6);
+            draw(b, 6, true);
         }
+        return true;
+    }
+    if (b.stop && b.age >= b.stop.at) {
+        // stop, wait, and set off again towards a target
+        b.face = Math.atan2(b.vz, b.vx);
+        b.vx = b.vz = b.ax = b.az = 0;
+        b.hold = b.stop.hold;
+        b.retarget = { speed: b.stop.speed, aim: b.stop.aim };
+        b.stop = undefined;
+        draw(b, 6, true);
         return true;
     }
     const wasDynamic = dynamic(b);
@@ -140,7 +199,10 @@ function moveBullet(b) {
         steer(b);
         b.homeTicks--;
     }
-    if (b.curve) rotate(b, b.curve / 20);
+    if (b.curve && b.curveTicks > 0) {
+        rotate(b, b.curve / 20);
+        b.curveTicks--;
+    }
     b.vx += b.ax / 20;
     b.vz += b.az / 20;
     b.x += b.vx / 20;
@@ -148,21 +210,23 @@ function moveBullet(b) {
     b.life--;
     if (b.life <= 0 || outside(b, b.x, b.z)) return false;
     if (wasDynamic) {
-        if (!dynamic(b)) draw(b, ticksLeft(b)); // the homing ended: one last straight particle
+        if (!dynamic(b)) draw(b, ticksLeft(b)); // the homing / curve ended: one last straight particle
         else if (b.age % 2 === 0) draw(b, 3);
     }
     return true;
 }
 
-function bulletHits(b, players, now) {
-    for (const p of players) {
-        const l = p.location;
-        if (b.y < l.y - b.r || b.y > l.y + PLAYER_H + b.r) continue;
-        if (Math.hypot(l.x - b.x, l.z - b.z) > b.r + PLAYER_R) continue;
-        if (now - (cooldown.get(p.id) ?? -100) < BULLET_COOLDOWN) continue;
-        cooldown.set(p.id, now);
-        hurt(p, b.dmg, b.boss);
-        burst(b.dim, { x: b.x, y: b.y, z: b.z }, b.color, 8, 3);
+/** Does a body (feet at l) touch a sphere of radius r at p? */
+function touches(l, p, r) {
+    return p.y >= l.y - r && p.y <= l.y + BODY_H + r && Math.hypot(l.x - p.x, l.z - p.z) <= r + BODY_R;
+}
+
+function bulletHits(b, targets) {
+    for (const e of targets) {
+        if (!touches(e.location, b, b.r)) continue;
+        if (hurt(e, b.dmg, b.boss, EntityDamageCause.entityAttack, "bullet")) {
+            burst(b.dim, { x: b.x, y: b.y, z: b.z }, b.color, 8, 3);
+        }
     }
 }
 
@@ -171,25 +235,22 @@ function groundAt(f, x, z) {
     return { x, y: f.arena.floor + 0.06, z };
 }
 
-/** A celestial ray: its spot is marked (a ring closing in), then it falls. */
+/** A celestial ray: its target sigil appears with a ring closing in, then a column of light falls. */
 export function ray(f, x, z, o = {}) {
     const radius = o.radius ?? 2.3, fuse = o.fuse ?? 24, color = o.color ?? C.gold;
     const at = groundAt(f, x, z);
-    ring(f.dim, at, radius, color, fuse / 20, { spacing: o.light ? 1 : 0.7 });
-    disc(f.dim, at, radius, color, fuse / 20, o.light ? 0.18 : 0.35);
+    target(f.dim, at, radius, color, fuse / 20 + 0.1);
+    ring(f.dim, { ...at, y: at.y + 0.02 }, radius, C.white, fuse / 20, { speed: -radius / (fuse / 20) });
     let t = 0;
-    hazards.push({ owner: f.id, f, update(now, players) {
-        t++;
-        if (t < fuse) {
-            if (t % 5 === 0) ring(f.dim, at, Math.max(0.3, radius * (1 - t / fuse)), C.white, 0.27, { spacing: 0.9, max: 20 });
-            return true;
-        }
-        beam(f.dim, at, color, o.light ? 12 : 22);
-        burst(f.dim, { x, y: at.y + 0.3, z }, color, o.light ? 6 : 14, 4);
+    hazards.push({ owner: f.id, f, update(now, targets) {
+        if (++t < fuse) return true;
+        beam(f.dim, at, color, o.light ? 14 : 24, radius * 0.45);
+        ring(f.dim, { ...at, y: at.y + 0.03 }, radius * 0.6, color, 0.3, { speed: 10, max: radius * 1.6 });
+        burst(f.dim, { x, y: at.y + 0.3, z }, color, o.light ? 5 : 12, 4);
         if (!o.quiet) sound(f.dim, "ambient.weather.thunder", at, 0.5, 1.6);
-        for (const p of players) {
-            if (Math.hypot(p.location.x - x, p.location.z - z) <= radius + PLAYER_R && p.location.y - f.arena.floor < 4) {
-                hurt(p, o.dmg ?? 7, f.boss, EntityDamageCause.lightning);
+        for (const e of targets) {
+            if (Math.hypot(e.location.x - x, e.location.z - z) <= radius + BODY_R && e.location.y - f.arena.floor < 4) {
+                hurt(e, o.dmg ?? 7, f.boss, EntityDamageCause.lightning);
             }
         }
         return false;
@@ -198,14 +259,20 @@ export function ray(f, x, z, o = {}) {
 
 /**
  * A zone that grows from r0 to r1 in `grow` ticks, waits `hold` and explodes. With
- * `inner`, the circle of that radius in its middle is safe (drawn in gold). With
+ * `inner`, the circle of that radius in its middle is safe (a golden sun). With
  * `follow`, it stays centred on that entity while it grows.
  */
 export function zone(f, o) {
     const color = o.color ?? C.violet;
-    const total = o.grow + (o.hold ?? 8);
+    const hold = o.hold ?? 8, total = o.grow + hold;
     let t = 0, x = o.x, z = o.z;
-    hazards.push({ owner: f.id, f, update(now, players) {
+    const rate = (o.r1 - o.r0) / (o.grow / 20);
+    if (!o.follow) {
+        disc(f.dim, groundAt(f, x, z), o.r0, color, total / 20, { speed: rate, max: o.r1 });
+        if (o.inner) particle(f.dim, "eclipse:decal_safe", { ...groundAt(f, x, z), y: f.arena.floor + 0.09 },
+            { radius: o.inner, speed: 0, size: o.inner, life: total / 20, color: C.safe });
+    }
+    hazards.push({ owner: f.id, f, update(now, targets) {
         t++;
         if (o.follow && t <= o.grow && isValid(o.follow)) {
             x = o.follow.location.x;
@@ -214,27 +281,24 @@ export function zone(f, o) {
         const r = o.r0 + (o.r1 - o.r0) * Math.min(1, t / o.grow);
         const at = groundAt(f, x, z);
         if (t < total) {
-            if (t % 4 === 1) {
-                ring(f.dim, at, r, t > o.grow ? C.white : color, 0.22, { spacing: 0.75 });
-                if (o.inner) ring(f.dim, at, o.inner, C.safe, 0.22, { spacing: 0.6 });
-            }
-            if (t % 10 === 1) disc(f.dim, at, r, color, 0.52, 0.18);
+            if (o.follow && t % 3 === 1) disc(f.dim, at, r, color, t >= o.grow ? hold / 20 + 0.1 : 0.18);
+            if (t === o.grow) ring(f.dim, { ...at, y: at.y + 0.02 }, r, C.white, hold / 20); // about to blow
             return true;
         }
-        ring(f.dim, at, r * 0.4, color, 0.45, { speed: r * 1.6, spacing: 0.5 });
-        burst(f.dim, { x, y: at.y + 0.5, z }, color, 30, 6);
-        for (let i = 0; i < 6; i++) {
+        ring(f.dim, { ...at, y: at.y + 0.03 }, r * 0.5, color, 0.4, { speed: r * 2.5, max: r * 1.4 });
+        burst(f.dim, { x, y: at.y + 0.5, z }, color, 26, 6);
+        for (let i = 0; i < 5; i++) {
             const a = Math.random() * 2 * Math.PI, d = (o.inner ?? 0) + Math.random() * (r - (o.inner ?? 0));
             burst(f.dim, { x: x + Math.cos(a) * d, y: at.y + 0.4, z: z + Math.sin(a) * d }, color, 8, 3);
         }
         sound(f.dim, "random.explode", at, 1.2, 1.3);
-        for (const p of players) {
-            const d = Math.hypot(p.location.x - x, p.location.z - z);
-            if (d <= r + PLAYER_R && d >= (o.inner ?? -1) && p.location.y - f.arena.floor < 5) {
-                hurt(p, o.dmg ?? 8, f.boss, EntityDamageCause.magic);
+        for (const e of targets) {
+            const d = Math.hypot(e.location.x - x, e.location.z - z);
+            if (d <= r + BODY_R && d >= (o.inner ?? -1) && e.location.y - f.arena.floor < 5) {
+                hurt(e, o.dmg ?? 8, f.boss, EntityDamageCause.magic);
                 try {
                     const k = Math.max(0.01, d);
-                    p.applyKnockback({ x: ((p.location.x - x) / k) * 0.8, z: ((p.location.z - z) / k) * 0.8 }, 0.3);
+                    e.applyKnockback({ x: ((e.location.x - x) / k) * 0.8, z: ((e.location.z - z) / k) * 0.8 }, 0.3);
                 } catch {
                     // ignore
                 }
@@ -248,23 +312,34 @@ export function zone(f, o) {
 export function wave(f, o) {
     const color = o.color ?? C.gold;
     const hit = new Set();
-    let r = o.r0 ?? 1.5, t = 0;
+    let r = o.r0 ?? 1.5;
     const at = groundAt(f, o.x, o.z);
-    hazards.push({ owner: f.id, f, update(now, players) {
+    waveDecal(f.dim, { ...at, y: at.y + 0.04 }, r, o.speed, (o.rMax - r) / o.speed, color);
+    hazards.push({ owner: f.id, f, update(now, targets) {
         r += o.speed / 20;
         if (r > o.rMax) return false;
-        if (t++ % 3 === 0) {
-            ring(f.dim, { ...at, y: at.y + 0.15 }, r, color, 0.16, { speed: o.speed, spacing: 0.55, max: 220, size: 0.2 });
-        }
-        for (const p of players) {
-            if (hit.has(p.id)) continue;
-            const d = Math.hypot(p.location.x - o.x, p.location.z - o.z);
-            if (Math.abs(d - r) > 0.75 || p.location.y - f.arena.floor > 0.55) continue; // jumped over
-            hit.add(p.id);
-            hurt(p, o.dmg ?? 5, f.boss);
+        for (const e of targets) {
+            if (hit.has(e.id)) continue;
+            const d = Math.hypot(e.location.x - o.x, e.location.z - o.z);
+            if (Math.abs(d - r) > 0.75 || e.location.y - f.arena.floor > 0.55) continue; // jumped over
+            hit.add(e.id);
+            hurt(e, o.dmg ?? 5, f.boss);
         }
         return true;
     } });
+}
+
+/** Hurts what a laser from `a` to `b` touches. low: only what is on the floor (jump it). */
+export function laserHits(f, a, b, width, dmg, low = false) {
+    const dx = b.x - a.x, dz = b.z - a.z, len2 = dx * dx + dz * dz || 1;
+    for (const e of arenaTargets(f.dim, f.arena)) {
+        const l = e.location;
+        const t = Math.max(0, Math.min(1, ((l.x - a.x) * dx + (l.z - a.z) * dz) / len2));
+        const d = Math.hypot(l.x - (a.x + dx * t), l.z - (a.z + dz * t));
+        if (d > width + BODY_R) continue;
+        if (low ? l.y - f.arena.floor > 0.55 : l.y - f.arena.floor > 3.5) continue;
+        hurt(e, dmg, f.boss, EntityDamageCause.magic, low ? "laser_low" : "laser");
+    }
 }
 
 /** Anything else that runs each tick for a while (portals, safe zones...). */
@@ -289,11 +364,10 @@ export const count = () => bullets.length;
 // --- the loop ---------------------------------------------------------------------------------
 system.runInterval(() => {
     if (!bullets.length && !hazards.length) return;
-    const now = system.currentTick;
     const cache = new Map();
-    const playersOf = (arena, dim) => {
+    const targetsOf = (arena, dim) => {
         const key = `${dim.id}:${arena.cx}:${arena.cz}`;
-        if (!cache.has(key)) cache.set(key, arenaPlayers(dim, arena));
+        if (!cache.has(key)) cache.set(key, arenaTargets(dim, arena));
         return cache.get(key);
     };
     for (let i = bullets.length - 1; i >= 0; i--) {
@@ -301,7 +375,7 @@ system.runInterval(() => {
         let keep;
         try {
             keep = moveBullet(b);
-            if (keep) bulletHits(b, playersOf(b.arena, b.dim), now);
+            if (keep) bulletHits(b, targetsOf(b.arena, b.dim));
         } catch {
             keep = false;
         }
@@ -311,10 +385,13 @@ system.runInterval(() => {
         const h = hazards[i];
         let keep;
         try {
-            keep = h.update(now, playersOf(h.f.arena, h.f.dim));
+            keep = h.update(system.currentTick, targetsOf(h.f.arena, h.f.dim));
         } catch {
             keep = false;
         }
-        if (!keep) hazards.splice(hazards.indexOf(h), 1);
+        if (!keep) {
+            const k = hazards.indexOf(h);
+            if (k >= 0) hazards.splice(k, 1);
+        }
     }
 }, 1);

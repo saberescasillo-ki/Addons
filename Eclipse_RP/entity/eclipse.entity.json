@@ -28,6 +28,7 @@
         "ult_release": "animation.eclipse.ult_release",
         "exhausted": "animation.eclipse.exhausted",
         "slam": "animation.eclipse.slam",
+        "dash": "animation.eclipse.dash",
         "always": "animation.eclipse.always",
         "look": "animation.common.look_at_target",
         "pose": "controller.animation.eclipse.pose",

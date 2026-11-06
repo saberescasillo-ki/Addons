@@ -51,6 +51,9 @@
             },
             {
               "slam": "q.property('eclipse:anim') == 14"
+            },
+            {
+              "dash": "q.property('eclipse:anim') == 15"
             }
           ]
         },
@@ -205,6 +208,17 @@
           "transitions": [
             {
               "idle": "q.property('eclipse:anim') != 14"
+            }
+          ]
+        },
+        "dash": {
+          "animations": [
+            "dash"
+          ],
+          "blend_transition": 0.12,
+          "transitions": [
+            {
+              "idle": "q.property('eclipse:anim') != 15"
             }
           ]
         }

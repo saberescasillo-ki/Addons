@@ -1226,6 +1226,68 @@
       },
       "animation_length": 0.8
     },
+    "animation.eclipse.dash": {
+      "loop": true,
+      "bones": {
+        "root": {
+          "position": [
+            0,
+            2,
+            0
+          ]
+        },
+        "body": {
+          "rotation": [
+            48,
+            0,
+            0
+          ]
+        },
+        "head": {
+          "rotation": [
+            -38,
+            0,
+            0
+          ]
+        },
+        "cape": {
+          "rotation": [
+            "45 + math.sin(q.life_time * 900) * 8",
+            0,
+            0
+          ]
+        },
+        "rightArm": {
+          "rotation": [
+            55,
+            0,
+            18
+          ]
+        },
+        "leftArm": {
+          "rotation": [
+            55,
+            0,
+            -18
+          ]
+        },
+        "rightLeg": {
+          "rotation": [
+            38,
+            0,
+            4
+          ]
+        },
+        "leftLeg": {
+          "rotation": [
+            30,
+            0,
+            -4
+          ]
+        }
+      },
+      "animation_length": 0.4
+    },
     "animation.eclipse.death": {
       "loop": "hold_on_last_frame",
       "bones": {

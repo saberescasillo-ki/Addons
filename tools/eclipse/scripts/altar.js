@@ -1,5 +1,5 @@
 import { system } from "@minecraft/server";
-import { C, ring, disc, burst, charge, pillar, beam, sound, shake } from "./fx.js";
+import { C, ring, disc, burst, charge, column, beam, sound, shake } from "./fx.js";
 
 // The Altar of the Eclipse: touching it starts a 5-second ritual, then the Eclipse
 // descends. The arena is the circle of radius 22 around the altar.
@@ -40,9 +40,9 @@ function ritual(block, player) {
             const k = t / 10;
             const ang = (k / 8) * 2 * Math.PI;
             const g = { x: c.x + Math.cos(ang) * 7, y: c.y + 0.06, z: c.z + Math.sin(ang) * 7 };
-            beam(dim, g, C.white, 24);
+            beam(dim, g, C.white, 24, 0.5);
             burst(dim, { ...g, y: g.y + 0.3 }, C.gold, 10, 3);
-            ring(dim, { ...c, y: c.y + 0.06 }, 7, C.gold, 0.55, { spacing: 0.8 });
+            if (k === 0) ring(dim, { ...c, y: c.y + 0.06 }, 7, C.gold, RITUAL / 20);
             charge(dim, { x: c.x, y: c.y + 4, z: c.z }, C.violet, 3 + k * 0.4, 0.5, 24);
             sound(dim, "note.bell", c, 1.5, 0.5 + k * 0.08);
         }, t);
@@ -54,10 +54,10 @@ function ritual(block, player) {
             const boss = dim.spawnEntity(BOSS, at);
             boss.setDynamicProperty("eclipse:arena", JSON.stringify({ cx: c.x, cz: c.z, floor: pos.y, R: 22,
                 ax: pos.x, ay: pos.y, az: pos.z }));
-            beam(dim, { x: at.x, y: c.y, z: at.z }, C.violet, 40);
+            beam(dim, { x: at.x, y: c.y, z: at.z }, C.violet, 40, 1.6);
             burst(dim, { x: at.x, y: at.y + 1, z: at.z }, C.white, 50, 8);
-            disc(dim, { x: at.x, y: c.y + 0.06, z: at.z }, 3, C.violet, 1);
-            pillar(dim, { x: at.x, y: c.y + 0.06, z: at.z }, C.violet, 1, 10);
+            disc(dim, { x: at.x, y: c.y + 0.06, z: at.z }, 1, C.violet, 1.2, { speed: 6, max: 5 });
+            column(dim, { x: at.x, y: c.y + 0.06, z: at.z }, C.violet, 1, 10, 0.8, 0.4);
             sound(dim, "mob.wither.spawn", at, 2, 1.4);
         } catch {
             setAltar(dim, pos, false);

@@ -27,7 +27,17 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 Un jefe *bullet hell*: una figura con forma de jugador, **completamente negra**, con un halo, una capa y tres
 fragmentos que orbitan a su alrededor. Flota, apunta, alza los brazos al cielo, gira, se arrodilla agotado... cada
 ataque tiene su animación. Todo el combate se basa en **reconocer patrones y moverse bien**: cada ataque avisa antes
-(postura, sonido y marcas en el suelo) y siempre tiene una salida.
+(postura, sonido y marcas en el suelo) y siempre tiene una salida. Lucha contra **todo** lo que entre en la arena:
+jugadores y mobs.
+
+Formas fáciles de reconocer:
+
+- **Círculos y zonas**: texturas planas en el suelo (círculos mágicos, dianas, soles), que crecen o se cierran.
+- **Proyectiles**: rombos que apuntan hacia donde vuelan.
+- **Láseres y rayos**: cilindros de luz.
+
+Los colores también avisan: **dorado** en el suelo es saltar o colocarse ahí, **rojo** es salir de ahí y **blanco**
+significa que está a punto de golpear.
 
 ![El Santuario Celeste](docs/eclipse_arena.png)
 
@@ -66,6 +76,15 @@ se esquivan saltando.
 | **Trampa** – un círculo crece bajo cada jugador | círculo rojo que te sigue mientras crece | sal de él |
 | **Ondas** – golpea el suelo y salen ondas a ras del suelo | salta alto y brilla un anillo dorado | **salta** cuando llegue la onda |
 | **Pulso** – si te pegas a él, te empuja | se encoge con un anillo rojo de 4,5 bloques | apártate |
+| **Espiral de rayos** – los rayos caen uno tras otro en espiral desde el jefe | dianas que aparecen en orden | sal del camino de la espiral |
+| **Flor** – dos anillos cuyas balas se curvan en sentidos contrarios y luego siguen recto | gira; anillo verde que se cierra | busca los huecos entre los pétalos |
+| **Constelación** – un anillo sale, se detiene (las estrellas se unen con líneas) y cada estrella dispara al objetivo más cercano | las estrellas quietas y unidas | muévete de lado cuando disparen |
+| **Láser giratorio** – láseres dorados a ras del suelo giran alrededor del jefe | línea dorada inicial, línea blanca donde terminará y flechas del giro | **salta** cuando pase, o sal del sector marcado |
+| **Rejilla de láseres** – láseres atraviesan toda la arena; en las fases 2 y 3 se cruzan 2 o 3 juegos | finas líneas rojas antes de disparar | colócate entre las líneas |
+| **Embestida** – cruza la arena como una lanza de luz; en la fase 2 deja estrellas que salen hacia los lados | camino rojo marcado en el suelo y carga roja | apártate del camino (en la fase 3 lo hace dos veces) |
+
+**Encadenar ataques:** el siguiente ataque puede empezar en el **último cuarto** del actual: a veces en la fase 1, la
+mayoría de las veces en la fase 2 y siempre en la fase 3. Nunca se teletransporta en mitad de un ataque.
 
 **Teletransporte:** cada 2–3 ataques desaparece girando y reaparece en otro punto. Antes de aparecer, el destino brilla
 (columna violeta y anillo que se cierra) y suena. Mientras está oculto no recibe daño.
@@ -75,8 +94,8 @@ se esquivan saltando.
 | Fase | Vida | Cambios |
 |---|---|---|
 | 1 | 100–66 % | ataques simples, uno cada vez |
-| 2 | 66–33 % | balas un 15 % más rápidas, más brazos y más ráfagas; rejilla, espiral, muros, satélites; **combinaciones** (espiral + rayos, ráfaga + orbes, muros + rayos) |
-| 3 | 33–0 % | balas un 25 % más rápidas; novas más grandes y la nova invertida; casi todo son combinaciones; **Eclipse Total** |
+| 2 | 66–33 % | balas un 15 % más rápidas, más brazos y más ráfagas; rejilla de rayos, espiral, muros, satélites, rejilla de láseres, embestida; **combinaciones** (espiral + rayos, ráfaga + orbes, muros + rayos, láser giratorio + ráfaga) |
+| 3 | 33–0 % | balas un 25 % más rápidas; novas más grandes y la nova invertida; casi todo son combinaciones (también láser giratorio + flor, rejilla de láseres + orbes, constelación + espiral de rayos); **Eclipse Total** |
 
 Cada cambio de fase interrumpe lo que esté haciendo: va al centro, se eleva con los brazos abiertos, las balas
 desaparecen, la arena tiembla y estalla en una onda de luz que te empuja (sin daño). Su aura cambia de color: blanca,
@@ -85,7 +104,8 @@ violeta y carmesí.
 ## Eclipse Total
 
 Una vez entrada la fase 3 (a los 15 s, y luego cada minuto) se eleva sobre el centro de la arena y carga durante 6,5 s.
-Aparecen **tres círculos de luz dorada** con columnas de luz, y una cuenta atrás. Al liberarlo, todo el que no esté
+Aparecen **tres soles dorados en el suelo** con columnas de luz, un anillo rojo que se cierra desde el borde y una
+cuenta atrás. Al liberarlo, todo el que no esté
 dentro de un círculo de luz recibe **18 de daño mágico** (la armadura no lo reduce). Después cae al suelo y se queda
 **arrodillado y agotado** unos 4 segundos: el momento de atacar.
 
@@ -98,7 +118,9 @@ mucha experiencia.
 ## Rendimiento
 
 Ni las balas ni los rayos son entidades: el script las simula y las dibuja con partículas. Una bala recta es una sola
-partícula que vuela por su cuenta; solo las guiadas o las que esperan se vuelven a dibujar.
+partícula que vuela por su cuenta; solo las guiadas, las que se curvan o las que esperan se vuelven a dibujar.
+
+Cada círculo es una sola textura que crece o se cierra por sí misma, y cada láser es una sola partícula.
 
 ---
 
