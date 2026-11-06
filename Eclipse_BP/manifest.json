@@ -1,0 +1,54 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "El Eclipse (BP)",
+    "description": "Jefe bullet hell: El Eclipse",
+    "uuid": "1e705642-fe24-5970-8cca-5e49b0681957",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      90
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "2c163289-8a30-5fce-bf4f-dd50ef388ae3",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "entry": "scripts/main.js",
+      "uuid": "0afba2c0-16ac-5535-ab8e-76ea903c62d8",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "bc5ce26d-8028-5cf3-944b-6a800e7fd1ef",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.0.0"
+    }
+  ]
+}

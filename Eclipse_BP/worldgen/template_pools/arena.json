@@ -1,0 +1,18 @@
+{
+  "format_version": "1.21.20",
+  "minecraft:template_pool": {
+    "description": {
+      "identifier": "eclipse:arena"
+    },
+    "elements": [
+      {
+        "element": {
+          "element_type": "minecraft:single_pool_element",
+          "location": "eclipse/arena",
+          "processors": "eclipse:arena"
+        },
+        "weight": 1
+      }
+    ]
+  }
+}

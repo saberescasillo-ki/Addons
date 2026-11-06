@@ -1,0 +1,35 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "eclipse:altar"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      "OAO",
+      "AEA",
+      "OAO"
+    ],
+    "key": {
+      "O": {
+        "item": "minecraft:crying_obsidian"
+      },
+      "A": {
+        "item": "minecraft:amethyst_shard"
+      },
+      "E": {
+        "item": "minecraft:ender_eye"
+      }
+    },
+    "unlock": [
+      {
+        "item": "minecraft:ender_eye"
+      }
+    ],
+    "result": {
+      "item": "eclipse:altar"
+    }
+  }
+}

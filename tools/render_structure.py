@@ -11,6 +11,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import mcstructure as m  # noqa: E402
 
 COLORS = [  # first match wins
+    ("glowstone", (250, 215, 120)), ("calcite", (225, 225, 220)), ("smooth_basalt", (75, 75, 80)),
+    ("black_concrete", (12, 12, 16)), ("amethyst", (170, 110, 220)), ("end_rod", (250, 245, 235)),
+    ("eclipse:altar", (40, 20, 60)),
     ("blue_ice", (120, 170, 240)), ("packed_ice", (150, 190, 235)), ("snow", (240, 245, 250)),
     ("oxidized", (80, 160, 135)), ("copper", (190, 110, 70)), ("lightning_rod", (200, 120, 80)),
     ("chiseled_deepslate", (70, 70, 78)), ("deepslate_tile", (45, 45, 52)), ("deepslate", (60, 60, 68)),

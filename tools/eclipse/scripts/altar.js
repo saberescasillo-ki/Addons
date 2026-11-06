@@ -1,0 +1,88 @@
+import { system } from "@minecraft/server";
+import { C, ring, disc, burst, charge, pillar, beam, sound, shake } from "./fx.js";
+
+// The Altar of the Eclipse: touching it starts a 5-second ritual, then the Eclipse
+// descends. The arena is the circle of radius 22 around the altar.
+
+const ALTAR = "eclipse:altar";
+const BOSS = "eclipse:eclipse";
+const RITUAL = 100;
+
+export function setAltar(dim, pos, active) {
+    try {
+        const b = dim.getBlock(pos);
+        if (b?.typeId === ALTAR) b.setPermutation(b.permutation.withState("eclipse:active", active));
+    } catch {
+        // unloaded: the altar notices next time it is touched
+    }
+}
+
+function bossNear(dim, at) {
+    try {
+        return dim.getEntities({ type: BOSS, location: at, maxDistance: 96 }).length > 0;
+    } catch {
+        return true;
+    }
+}
+
+function ritual(block, player) {
+    const dim = block.dimension;
+    const pos = { ...block.location };
+    const c = { x: pos.x + 0.5, y: pos.y, z: pos.z + 0.5 };
+    setAltar(dim, pos, true);
+    sound(dim, "block.end_portal.spawn", c, 1.5, 0.7);
+    for (const p of dim.getPlayers({ location: c, maxDistance: 64 })) {
+        p.onScreenDisplay.setTitle("§0§l✦ §8EL ECLIPSE §0✦", { subtitle: "§7El cielo se oscurece...",
+            fadeInDuration: 10, stayDuration: 60, fadeOutDuration: 20 });
+    }
+    for (let t = 0; t < RITUAL; t += 10) {
+        system.runTimeout(() => {
+            const k = t / 10;
+            const ang = (k / 8) * 2 * Math.PI;
+            const g = { x: c.x + Math.cos(ang) * 7, y: c.y + 0.06, z: c.z + Math.sin(ang) * 7 };
+            beam(dim, g, C.white, 24);
+            burst(dim, { ...g, y: g.y + 0.3 }, C.gold, 10, 3);
+            ring(dim, { ...c, y: c.y + 0.06 }, 7, C.gold, 0.55, { spacing: 0.8 });
+            charge(dim, { x: c.x, y: c.y + 4, z: c.z }, C.violet, 3 + k * 0.4, 0.5, 24);
+            sound(dim, "note.bell", c, 1.5, 0.5 + k * 0.08);
+        }, t);
+    }
+    system.runTimeout(() => shake(dim, c, 40, 0.15, 3), 40);
+    system.runTimeout(() => {
+        try {
+            const at = { x: c.x, y: c.y + 0.4, z: c.z - 6 };
+            const boss = dim.spawnEntity(BOSS, at);
+            boss.setDynamicProperty("eclipse:arena", JSON.stringify({ cx: c.x, cz: c.z, floor: pos.y, R: 22,
+                ax: pos.x, ay: pos.y, az: pos.z }));
+            beam(dim, { x: at.x, y: c.y, z: at.z }, C.violet, 40);
+            burst(dim, { x: at.x, y: at.y + 1, z: at.z }, C.white, 50, 8);
+            disc(dim, { x: at.x, y: c.y + 0.06, z: at.z }, 3, C.violet, 1);
+            pillar(dim, { x: at.x, y: c.y + 0.06, z: at.z }, C.violet, 1, 10);
+            sound(dim, "mob.wither.spawn", at, 2, 1.4);
+        } catch {
+            setAltar(dim, pos, false);
+        }
+    }, RITUAL);
+}
+
+system.beforeEvents.startup.subscribe(({ blockComponentRegistry }) => {
+    blockComponentRegistry.registerCustomComponent("eclipse:altar", {
+        onPlayerInteract({ block, player }) {
+            if (!block || !player) return;
+            system.run(() => {
+                const center = block.center();
+                const awake = bossNear(block.dimension, center);
+                if (block.permutation.getState("eclipse:active")) {
+                    if (awake) player.onScreenDisplay.setActionBar("§5El Eclipse ya está aquí.");
+                    else setAltar(block.dimension, block.location, false); // left lit (world closed mid-fight)
+                    return;
+                }
+                if (awake) {
+                    player.onScreenDisplay.setActionBar("§5El Eclipse ya está aquí.");
+                    return;
+                }
+                ritual(block, player);
+            });
+        },
+    });
+});

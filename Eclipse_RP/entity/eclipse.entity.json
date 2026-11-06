@@ -1,0 +1,58 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "eclipse:eclipse",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/eclipse/entity/eclipse"
+      },
+      "geometry": {
+        "default": "geometry.eclipse"
+      },
+      "animations": {
+        "idle": "animation.eclipse.idle",
+        "point": "animation.eclipse.point",
+        "raise": "animation.eclipse.raise",
+        "spin": "animation.eclipse.spin",
+        "cross": "animation.eclipse.cross",
+        "summon": "animation.eclipse.summon",
+        "charge": "animation.eclipse.charge",
+        "release": "animation.eclipse.release",
+        "vanish": "animation.eclipse.vanish",
+        "appear": "animation.eclipse.appear",
+        "phase": "animation.eclipse.phase",
+        "ult_charge": "animation.eclipse.ult_charge",
+        "ult_release": "animation.eclipse.ult_release",
+        "exhausted": "animation.eclipse.exhausted",
+        "slam": "animation.eclipse.slam",
+        "always": "animation.eclipse.always",
+        "look": "animation.common.look_at_target",
+        "pose": "controller.animation.eclipse.pose",
+        "aura": "controller.animation.eclipse.aura"
+      },
+      "particle_effects": {
+        "aura1": "eclipse:aura1",
+        "aura2": "eclipse:aura2",
+        "aura3": "eclipse:aura3"
+      },
+      "scripts": {
+        "animate": [
+          "pose",
+          "always",
+          "look",
+          "aura"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.eclipse"
+      ],
+      "spawn_egg": {
+        "base_color": "#050507",
+        "overlay_color": "#ffd46e"
+      }
+    }
+  }
+}

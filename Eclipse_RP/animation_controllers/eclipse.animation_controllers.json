@@ -1,0 +1,268 @@
+{
+  "format_version": "1.10.0",
+  "animation_controllers": {
+    "controller.animation.eclipse.pose": {
+      "initial_state": "idle",
+      "states": {
+        "idle": {
+          "animations": [
+            "idle"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "point": "q.property('eclipse:anim') == 1"
+            },
+            {
+              "raise": "q.property('eclipse:anim') == 2"
+            },
+            {
+              "spin": "q.property('eclipse:anim') == 3"
+            },
+            {
+              "cross": "q.property('eclipse:anim') == 4"
+            },
+            {
+              "summon": "q.property('eclipse:anim') == 5"
+            },
+            {
+              "charge": "q.property('eclipse:anim') == 6"
+            },
+            {
+              "release": "q.property('eclipse:anim') == 7"
+            },
+            {
+              "vanish": "q.property('eclipse:anim') == 8"
+            },
+            {
+              "appear": "q.property('eclipse:anim') == 9"
+            },
+            {
+              "phase": "q.property('eclipse:anim') == 10"
+            },
+            {
+              "ult_charge": "q.property('eclipse:anim') == 11"
+            },
+            {
+              "ult_release": "q.property('eclipse:anim') == 12"
+            },
+            {
+              "exhausted": "q.property('eclipse:anim') == 13"
+            },
+            {
+              "slam": "q.property('eclipse:anim') == 14"
+            }
+          ]
+        },
+        "point": {
+          "animations": [
+            "point"
+          ],
+          "blend_transition": 0.12,
+          "transitions": [
+            {
+              "idle": "q.property('eclipse:anim') != 1"
+            }
+          ]
+        },
+        "raise": {
+          "animations": [
+            "raise"
+          ],
+          "blend_transition": 0.12,
+          "transitions": [
+            {
+              "idle": "q.property('eclipse:anim') != 2"
+            }
+          ]
+        },
+        "spin": {
+          "animations": [
+            "spin"
+          ],
+          "blend_transition": 0.12,
+          "transitions": [
+            {
+              "idle": "q.property('eclipse:anim') != 3"
+            }
+          ]
+        },
+        "cross": {
+          "animations": [
+            "cross"
+          ],
+          "blend_transition": 0.12,
+          "transitions": [
+            {
+              "idle": "q.property('eclipse:anim') != 4"
+            }
+          ]
+        },
+        "summon": {
+          "animations": [
+            "summon"
+          ],
+          "blend_transition": 0.12,
+          "transitions": [
+            {
+              "idle": "q.property('eclipse:anim') != 5"
+            }
+          ]
+        },
+        "charge": {
+          "animations": [
+            "charge"
+          ],
+          "blend_transition": 0.12,
+          "transitions": [
+            {
+              "idle": "q.property('eclipse:anim') != 6"
+            }
+          ]
+        },
+        "release": {
+          "animations": [
+            "release"
+          ],
+          "blend_transition": 0.12,
+          "transitions": [
+            {
+              "idle": "q.property('eclipse:anim') != 7"
+            }
+          ]
+        },
+        "vanish": {
+          "animations": [
+            "vanish"
+          ],
+          "blend_transition": 0.12,
+          "transitions": [
+            {
+              "idle": "q.property('eclipse:anim') != 8"
+            }
+          ]
+        },
+        "appear": {
+          "animations": [
+            "appear"
+          ],
+          "blend_transition": 0.12,
+          "transitions": [
+            {
+              "idle": "q.property('eclipse:anim') != 9"
+            }
+          ]
+        },
+        "phase": {
+          "animations": [
+            "phase"
+          ],
+          "blend_transition": 0.12,
+          "transitions": [
+            {
+              "idle": "q.property('eclipse:anim') != 10"
+            }
+          ]
+        },
+        "ult_charge": {
+          "animations": [
+            "ult_charge"
+          ],
+          "blend_transition": 0.12,
+          "transitions": [
+            {
+              "idle": "q.property('eclipse:anim') != 11"
+            }
+          ]
+        },
+        "ult_release": {
+          "animations": [
+            "ult_release"
+          ],
+          "blend_transition": 0.12,
+          "transitions": [
+            {
+              "idle": "q.property('eclipse:anim') != 12"
+            }
+          ]
+        },
+        "exhausted": {
+          "animations": [
+            "exhausted"
+          ],
+          "blend_transition": 0.12,
+          "transitions": [
+            {
+              "idle": "q.property('eclipse:anim') != 13"
+            }
+          ]
+        },
+        "slam": {
+          "animations": [
+            "slam"
+          ],
+          "blend_transition": 0.12,
+          "transitions": [
+            {
+              "idle": "q.property('eclipse:anim') != 14"
+            }
+          ]
+        }
+      }
+    },
+    "controller.animation.eclipse.aura": {
+      "initial_state": "off",
+      "states": {
+        "off": {
+          "transitions": [
+            {
+              "p1": "!q.property('eclipse:hidden') && q.is_alive && q.property('eclipse:phase') == 1"
+            },
+            {
+              "p2": "!q.property('eclipse:hidden') && q.is_alive && q.property('eclipse:phase') == 2"
+            },
+            {
+              "p3": "!q.property('eclipse:hidden') && q.is_alive && q.property('eclipse:phase') == 3"
+            }
+          ]
+        },
+        "p1": {
+          "particle_effects": [
+            {
+              "effect": "aura1"
+            }
+          ],
+          "transitions": [
+            {
+              "off": "!(!q.property('eclipse:hidden') && q.is_alive) || q.property('eclipse:phase') != 1"
+            }
+          ]
+        },
+        "p2": {
+          "particle_effects": [
+            {
+              "effect": "aura2"
+            }
+          ],
+          "transitions": [
+            {
+              "off": "!(!q.property('eclipse:hidden') && q.is_alive) || q.property('eclipse:phase') != 2"
+            }
+          ]
+        },
+        "p3": {
+          "particle_effects": [
+            {
+              "effect": "aura3"
+            }
+          ],
+          "transitions": [
+            {
+              "off": "!(!q.property('eclipse:hidden') && q.is_alive) || q.property('eclipse:phase') != 3"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

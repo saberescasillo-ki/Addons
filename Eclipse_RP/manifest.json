@@ -1,0 +1,39 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "El Eclipse (RP)",
+    "description": "Jefe bullet hell: El Eclipse",
+    "uuid": "bc5ce26d-8028-5cf3-944b-6a800e7fd1ef",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      90
+    ]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "a037ef6e-28e6-561d-a938-f21271dc312d",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "1e705642-fe24-5970-8cca-5e49b0681957",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ]
+}

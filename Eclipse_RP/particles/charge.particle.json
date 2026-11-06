@@ -1,0 +1,57 @@
+{
+  "format_version": "1.10.0",
+  "particle_effect": {
+    "description": {
+      "identifier": "eclipse:charge",
+      "basic_render_parameters": {
+        "material": "particles_add",
+        "texture": "textures/eclipse/particle/atlas"
+      }
+    },
+    "components": {
+      "minecraft:emitter_rate_instant": {
+        "num_particles": "v.count"
+      },
+      "minecraft:emitter_lifetime_once": {
+        "active_time": 0.05
+      },
+      "minecraft:emitter_shape_sphere": {
+        "radius": "v.radius",
+        "surface_only": true,
+        "direction": "inwards"
+      },
+      "minecraft:particle_lifetime_expression": {
+        "max_lifetime": "v.life"
+      },
+      "minecraft:particle_initial_speed": "v.speed",
+      "minecraft:particle_motion_dynamic": {},
+      "minecraft:particle_appearance_billboard": {
+        "size": [
+          "0.08 + 0.12 * v.particle_age / v.particle_lifetime",
+          "0.08 + 0.12 * v.particle_age / v.particle_lifetime"
+        ],
+        "facing_camera_mode": "lookat_xyz",
+        "uv": {
+          "texture_width": 64,
+          "texture_height": 32,
+          "uv": [
+            48,
+            0
+          ],
+          "uv_size": [
+            16,
+            16
+          ]
+        }
+      },
+      "minecraft:particle_appearance_tinting": {
+        "color": [
+          "v.color.r",
+          "v.color.g",
+          "v.color.b",
+          1
+        ]
+      }
+    }
+  }
+}

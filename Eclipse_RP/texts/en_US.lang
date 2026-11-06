@@ -1,0 +1,6 @@
+entity.eclipse:eclipse.name=El Eclipse
+entity.eclipse:remnant.name=Eco del Eclipse
+item.spawn_egg.entity.eclipse:eclipse.name=Generar El Eclipse
+tile.eclipse:altar.name=Altar del Eclipse
+pack.name=El Eclipse
+pack.description=Jefe bullet hell: El Eclipse

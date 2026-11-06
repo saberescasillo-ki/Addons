@@ -1,0 +1,18 @@
+{
+  "resource_pack_name": "eclipse",
+  "texture_name": "atlas.terrain",
+  "texture_data": {
+    "eclipse_altar_top": {
+      "textures": "textures/eclipse/blocks/eclipse_altar_top"
+    },
+    "eclipse_altar_side": {
+      "textures": "textures/eclipse/blocks/eclipse_altar_side"
+    },
+    "eclipse_altar_top_active": {
+      "textures": "textures/eclipse/blocks/eclipse_altar_top_active"
+    },
+    "eclipse_altar_side_active": {
+      "textures": "textures/eclipse/blocks/eclipse_altar_side_active"
+    }
+  }
+}

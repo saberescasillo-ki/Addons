@@ -1,0 +1,58 @@
+{
+  "format_version": "1.21.80",
+  "minecraft:block": {
+    "description": {
+      "identifier": "eclipse:altar",
+      "menu_category": {
+        "category": "items"
+      },
+      "states": {
+        "eclipse:active": [
+          false,
+          true
+        ]
+      }
+    },
+    "components": {
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "eclipse_altar_side",
+          "render_method": "opaque"
+        },
+        "up": {
+          "texture": "eclipse_altar_top",
+          "render_method": "opaque"
+        }
+      },
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 4
+      },
+      "minecraft:destructible_by_explosion": {
+        "explosion_resistance": 1200
+      },
+      "minecraft:light_emission": 7,
+      "minecraft:map_color": "#141018",
+      "minecraft:custom_components": [
+        "eclipse:altar"
+      ]
+    },
+    "permutations": [
+      {
+        "condition": "q.block_state('eclipse:active')",
+        "components": {
+          "minecraft:material_instances": {
+            "*": {
+              "texture": "eclipse_altar_side_active",
+              "render_method": "opaque"
+            },
+            "up": {
+              "texture": "eclipse_altar_top_active",
+              "render_method": "opaque"
+            }
+          },
+          "minecraft:light_emission": 15
+        }
+      }
+    ]
+  }
+}

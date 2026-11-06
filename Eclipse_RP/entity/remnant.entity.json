@@ -1,0 +1,30 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "eclipse:remnant",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/eclipse/entity/eclipse"
+      },
+      "geometry": {
+        "default": "geometry.eclipse"
+      },
+      "animations": {
+        "death": "animation.eclipse.death",
+        "always": "animation.eclipse.always"
+      },
+      "scripts": {
+        "animate": [
+          "death",
+          "always"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.eclipse_remnant"
+      ]
+    }
+  }
+}

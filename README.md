@@ -8,6 +8,7 @@
 | **Objetos de Ayuda** – 4 objetos especiales que ayudan al jugador | [`dist/HelperItems.mcaddon`](dist/HelperItems.mcaddon) | `tools/helper_items.py` |
 | **The LITIUS Blind** – nueva dimensión de islas flotantes | [`dist/LitiusBlind.mcaddon`](dist/LitiusBlind.mcaddon) | `tools/litius_blind.py` |
 | **TerraDraconis Mobs** – los mobs y las armas de TerraDraconis Beta, con variantes de color | [`dist/TerraDraconisMobs.mcaddon`](dist/TerraDraconisMobs.mcaddon) | `tools/terradraconis_mobs.py` |
+| **El Eclipse** – jefe *bullet hell* con su arena celestial | [`dist/Eclipse.mcaddon`](dist/Eclipse.mcaddon) | `tools/eclipse.py` |
 
 Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo. No hace falta activar experimentos
 (salvo en The LITIUS Blind, ver abajo).
@@ -17,6 +18,87 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 - Ruleta de Colores y Objetos de Ayuda requieren **1.21.90** o superior.
 - The LITIUS Blind requiere **26.20** o superior y el experimento **Beta APIs**.
 - TerraDraconis Mobs requiere **1.21.80** o superior.
+- El Eclipse requiere **1.21.90** o superior.
+
+---
+
+# El Eclipse
+
+Un jefe *bullet hell*: una figura con forma de jugador, **completamente negra**, con un halo, una capa y tres
+fragmentos que orbitan a su alrededor. Flota, apunta, alza los brazos al cielo, gira, se arrodilla agotado... cada
+ataque tiene su animación. Todo el combate se basa en **reconocer patrones y moverse bien**: cada ataque avisa antes
+(postura, sonido y marcas en el suelo) y siempre tiene una salida.
+
+![El Santuario Celeste](docs/eclipse_arena.png)
+
+## Cómo invocarlo
+
+1. Coloca la arena: `/function eclipse/arena` (aparece a tus pies) o `/place structure eclipse:arena`.
+   Nunca se genera sola, y el Eclipse no aparece de forma natural.
+2. Toca el **Altar del Eclipse** del centro. Tras un ritual de 5 segundos, el Eclipse desciende.
+
+El altar también se puede fabricar (obsidiana llorosa en las esquinas, fragmentos de amatista en los lados y un ojo de
+ender en el centro) o conseguir con `/function eclipse/altar`; la arena es el círculo de 22 bloques a su alrededor.
+Si nadie queda en la arena durante 30 segundos, el Eclipse se retira y el altar se apaga.
+
+Dificultad: `/scriptevent eclipse:dificultad facil|normal|dificil`. Cambia el daño (×0,6 / ×1 / ×1,4) y la vida del
+jefe (×0,75 / ×1 / ×1,4), nunca los avisos ni los tiempos de reacción. Con más jugadores, el jefe aguanta un 50 % más
+por cada jugador extra (hasta 4).
+
+## Ataques
+
+Las balas vuelan a la altura del pecho sobre el suelo de la arena: se esquivan moviéndose. Solo las **ondas de suelo**
+se esquivan saltando.
+
+| Ataque | Aviso | Cómo esquivarlo |
+|---|---|---|
+| **Ráfaga** – abanicos de energía apuntados, con balas lentas y rápidas | señala con el brazo; energía en la mano | muévete de lado entre ráfagas |
+| **Anillos** – anillos de balas, alternados; en la fase 2 algunos aceleran | brazos en cruz; un anillo violeta lo rodea | colócate en los huecos |
+| **Rayos celestiales** – caen donde estás | círculo dorado en el suelo con un anillo que se cierra | no te quedes quieto |
+| **Rejilla de rayos** – medio tablero de ajedrez, luego la otra mitad | todas las casillas marcadas a la vez | pasa a las casillas sin marcar, y vuelve |
+| **Orbes guiados** – te siguen unos 2,5 s y luego siguen recto | se forman y esperan junto al jefe | gira en el último momento: no pueden girar tan rápido |
+| **Espiral** – brazos de balas que giran; en la fase 3, otra en sentido contrario | gira sobre sí mismo | sigue el giro por los huecos |
+| **Muros** – una pared de balas cruza la arena (horizontal o vertical) | las balas esperan en el borde; el hueco se marca en dorado | ponte en el carril del hueco |
+| **Cruz** – cuatro chorros (seis en la fase 3) que giran despacio | líneas doradas en el suelo y la dirección del giro | sal de las líneas y acompaña el giro |
+| **Satélites** – portales en el borde de la arena te disparan por turnos | columnas de luz y un sonido en cada portal | muévete sin parar; en la fase 2 también sueltan anillos |
+| **Nova** – una zona crece a su alrededor y explota | se encoge; círculo violeta que crece | aléjate antes de que explote |
+| **Nova invertida** (fase 3) – explota todo menos el círculo junto al jefe | círculo rojo y un círculo seguro dorado en el centro | acércate al jefe |
+| **Trampa** – un círculo crece bajo cada jugador | círculo rojo que te sigue mientras crece | sal de él |
+| **Ondas** – golpea el suelo y salen ondas a ras del suelo | salta alto y brilla un anillo dorado | **salta** cuando llegue la onda |
+| **Pulso** – si te pegas a él, te empuja | se encoge con un anillo rojo de 4,5 bloques | apártate |
+
+**Teletransporte:** cada 2–3 ataques desaparece girando y reaparece en otro punto. Antes de aparecer, el destino brilla
+(columna violeta y anillo que se cierra) y suena. Mientras está oculto no recibe daño.
+
+## Fases
+
+| Fase | Vida | Cambios |
+|---|---|---|
+| 1 | 100–66 % | ataques simples, uno cada vez |
+| 2 | 66–33 % | balas un 15 % más rápidas, más brazos y más ráfagas; rejilla, espiral, muros, satélites; **combinaciones** (espiral + rayos, ráfaga + orbes, muros + rayos) |
+| 3 | 33–0 % | balas un 25 % más rápidas; novas más grandes y la nova invertida; casi todo son combinaciones; **Eclipse Total** |
+
+Cada cambio de fase interrumpe lo que esté haciendo: va al centro, se eleva con los brazos abiertos, las balas
+desaparecen, la arena tiembla y estalla en una onda de luz que te empuja (sin daño). Su aura cambia de color: blanca,
+violeta y carmesí.
+
+## Eclipse Total
+
+Una vez entrada la fase 3 (a los 15 s, y luego cada minuto) se eleva sobre el centro de la arena y carga durante 6,5 s.
+Aparecen **tres círculos de luz dorada** con columnas de luz, y una cuenta atrás. Al liberarlo, todo el que no esté
+dentro de un círculo de luz recibe **18 de daño mágico** (la armadura no lo reduce). Después cae al suelo y se queda
+**arrodillado y agotado** unos 4 segundos: el momento de atacar.
+
+## Muerte y botín
+
+Se eleva, se agrieta de luz y estalla en un destello. Suelta una estrella del Nether, diamantes, fragmentos de amatista,
+fragmentos de eco, botellas de experiencia, a veces un tótem de la inmortalidad o una manzana dorada encantada, y
+mucha experiencia.
+
+## Rendimiento
+
+Ni las balas ni los rayos son entidades: el script las simula y las dibuja con partículas. Una bala recta es una sola
+partícula que vuela por su cuenta; solo las guiadas o las que esperan se vuelven a dibujar.
 
 ---
 
