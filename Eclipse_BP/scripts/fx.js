@@ -57,7 +57,8 @@ export function sound(dim, id, at, volume = 1, pitch = 1) {
 // --- 3D shapes ---------------------------------------------------------------------------------
 const RANGE = { w: [0, 8], len: [0, 96], spin: [-360, 360], r0: [0, 64], rate: [-64, 64], rmax: [0, 64], h: [0, 8],
     size: [0, 3], life: [0, 60] };
-const live = new Map(); // entity id -> {e, until, owner}
+const live = new Map(); // entity id -> {e, until, owner, kind}
+const counts = {};
 let owner = null;
 export const setOwner = (id) => {
     owner = id;
@@ -65,8 +66,29 @@ export const setOwner = (id) => {
 const isValid = (e) => !!e && (typeof e.isValid === "function" ? e.isValid() : e.isValid);
 export const yawOf = (dx, dz) => Math.atan2(-dx, dz) * (180 / Math.PI);
 
+// Walls and tubes are only decoration of a warning the floor mark already shows: when
+// many are asked for in the same tick, the rest wait for the next ticks (and end on time).
+const SPAWNS_PER_TICK = 20;
+const DEFERRABLE = new Set(["tube", "wall"]);
+const queue = [];
+let spawnedTick = -1, spawned = 0;
+
 /** Spawns a shape (gem, beam, column, tube, wall) for `life` seconds, turned to `yaw`. */
 export function shape(dim, kind, at, props, color, life, yaw = 0) {
+    const now = system.currentTick;
+    if (spawnedTick !== now) {
+        spawnedTick = now;
+        spawned = 0;
+    }
+    if (DEFERRABLE.has(kind) && spawned >= SPAWNS_PER_TICK) {
+        queue.push({ dim, kind, at, props, color, life, yaw, owner, asked: now });
+        return undefined;
+    }
+    spawned++;
+    return spawnNow(dim, kind, at, props, color, life, yaw, owner);
+}
+
+function spawnNow(dim, kind, at, props, color, life, yaw, who) {
     let e;
     try {
         e = dim.spawnEntity(`eclipse:fx_${kind}`, at, { initialRotation: yaw });
@@ -84,13 +106,27 @@ export function shape(dim, kind, at, props, color, life, yaw = 0) {
     } catch {
         return undefined;
     }
-    live.set(e.id, { e, until: system.currentTick + Math.ceil(life * 20) + 2, owner });
+    live.set(e.id, { e, until: system.currentTick + Math.ceil(life * 20) + 2, owner: who, kind });
+    counts[kind] = (counts[kind] ?? 0) + 1;
+    return e;
+}
+
+/** Lets the shape registry remove any other entity (the blue Eclipse's clones) when it
+ *  expires or its fight is cleared. */
+export function track(e, life, kind = "other") {
+    if (!e) return e;
+    live.set(e.id, { e, until: system.currentTick + Math.ceil(life * 20) + 2, owner, kind });
+    counts[kind] = (counts[kind] ?? 0) + 1;
     return e;
 }
 
 export function unshape(e) {
     if (!e) return;
-    live.delete(e.id);
+    const v = live.get(e.id);
+    if (v) {
+        counts[v.kind]--;
+        live.delete(e.id);
+    }
     try {
         if (isValid(e)) e.remove();
     } catch {
@@ -100,13 +136,25 @@ export function unshape(e) {
 
 export function clearShapes(id) {
     for (const [k, v] of live) if (v.owner === id) unshape(v.e);
+    for (let i = queue.length - 1; i >= 0; i--) if (queue[i].owner === id) queue.splice(i, 1);
 }
 
-export const shapeCount = (kind) => [...live.values()].filter((v) => !kind || v.e.typeId === `eclipse:fx_${kind}`).length;
+export const shapeCount = (kind) => (kind ? counts[kind] ?? 0 : live.size);
 
 system.runInterval(() => {
     const now = system.currentTick;
     for (const [id, v] of live) if (now >= v.until) unshape(v.e);
+    if (spawnedTick !== now) {
+        spawnedTick = now;
+        spawned = 0;
+    }
+    while (queue.length && spawned < SPAWNS_PER_TICK) {
+        const q = queue.shift();
+        const left = q.life - (now - q.asked) / 20;
+        if (left <= 0.15) continue;
+        spawned++;
+        spawnNow(q.dim, q.kind, q.at, q.props, q.color, left, q.yaw, q.owner);
+    }
 }, 1);
 
 // leftovers (a world closed mid-fight): remove shapes nobody is tracking

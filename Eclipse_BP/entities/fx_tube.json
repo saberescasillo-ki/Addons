@@ -30,7 +30,7 @@
             0.0,
             64.0
           ],
-          "default": 0,
+          "default": 0.0,
           "client_sync": true
         },
         "eclipse:rate": {
@@ -39,7 +39,7 @@
             -64.0,
             64.0
           ],
-          "default": 0,
+          "default": 0.0,
           "client_sync": true
         },
         "eclipse:rmax": {
@@ -48,7 +48,7 @@
             0.0,
             64.0
           ],
-          "default": 0,
+          "default": 0.0,
           "client_sync": true
         },
         "eclipse:h": {
@@ -57,7 +57,7 @@
             0.0,
             8.0
           ],
-          "default": 0,
+          "default": 0.0,
           "client_sync": true
         }
       }

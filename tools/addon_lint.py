@@ -158,6 +158,12 @@ class Lint:
             props = set((desc.get("properties") or {}).keys())
             text = json.dumps(ent)
             where = self.rel(p)
+            for name, spec in (desc.get("properties") or {}).items():
+                # the game rejects a float property whose default (or range) is written as an integer
+                if isinstance(spec, dict) and spec.get("type") == "float":
+                    values = [spec.get("default")] + list(spec.get("range") or [])
+                    if any(isinstance(v, int) and not isinstance(v, bool) for v in values):
+                        self.p("ERROR", where, f"propiedad '{name}': tipo float con valor entero (usa 0.0, no 0)")
             # component groups added/removed
             for g in _all_values(ent.get("events", {}), "component_groups"):
                 for name in g if isinstance(g, list) else [g]:
@@ -205,6 +211,10 @@ class Lint:
             for ident, p in table.items():
                 d = self.json[p][key]
                 comps = [d.get("components", {})] + [x.get("components", {}) for x in d.get("permutations", [])]
+                if key == "minecraft:block":
+                    has = lambda k: any(k in c for c in comps)  # noqa: E731
+                    if has("minecraft:material_instances") != has("minecraft:geometry"):
+                        self.p("ERROR", self.rel(p), f"bloque {ident}: necesita minecraft:geometry y minecraft:material_instances juntos")
                 for c in comps:
                     names = set(c.get("minecraft:custom_components", []))
                     names |= {k for k in c if not k.startswith(("minecraft:", "tag:"))}

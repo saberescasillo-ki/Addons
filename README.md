@@ -8,7 +8,7 @@
 | **Objetos de Ayuda** – 4 objetos especiales que ayudan al jugador | [`dist/HelperItems.mcaddon`](dist/HelperItems.mcaddon) | `tools/helper_items.py` |
 | **The LITIUS Blind** – nueva dimensión de islas flotantes | [`dist/LitiusBlind.mcaddon`](dist/LitiusBlind.mcaddon) | `tools/litius_blind.py` |
 | **TerraDraconis Mobs** – los mobs y las armas de TerraDraconis Beta, con variantes de color | [`dist/TerraDraconisMobs.mcaddon`](dist/TerraDraconisMobs.mcaddon) | `tools/terradraconis_mobs.py` |
-| **El Eclipse** – jefe *bullet hell* con su arena celestial | [`dist/Eclipse.mcaddon`](dist/Eclipse.mcaddon) | `tools/eclipse.py` |
+| **El Eclipse** – jefe *bullet hell* con su arena celestial, y El Eclipse Azul | [`dist/Eclipse.mcaddon`](dist/Eclipse.mcaddon) | `tools/eclipse.py` |
 
 Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo. No hace falta activar experimentos
 (salvo en The LITIUS Blind, ver abajo).
@@ -43,6 +43,20 @@ significa que está a punto de golpear.
 
 ![El Santuario Celeste](docs/eclipse_arena.png)
 
+## El Eclipse Azul
+
+Una variante **completamente azul**, igual de bullet hell pero **sin proyectiles**: solo láseres (giratorio, rejilla,
+triángulo), rayos celestiales, explosiones, anillos, ondas, embestidas y **clones**. Se invoca tocando el altar con
+**lapislázuli en la mano** (o `/summon eclipse:azure`). Tiene sus mismas fases, el Eclipse Total y la risa, y además:
+
+| Ataque | Aviso | Cómo esquivarlo |
+|---|---|---|
+| **Espejismos** – clones translúcidos aparecen en el borde de la arena y cada uno embiste a lo largo de su camino; en la fase 3 explotan al llegar | camino rojo marcado en el suelo | apártate del camino; un golpe rompe un clon |
+| **Bombardeo** – oleadas de explosiones caen sobre ti y por toda la arena | círculos que crecen | sal de ellos |
+| **Anillos de luz** – los anillos alrededor del jefe, marcados por paredes rojas, explotan alternados | paredes rojas en los bordes de cada anillo | colócate en el anillo que no va a explotar y luego cambia |
+
+Al teletransportarse en las fases 2 y 3 suelta una onda a ras del suelo (sáltala) en vez de un anillo de balas.
+
 ## Cómo invocarlo
 
 1. Coloca la arena: `/function eclipse/arena` (aparece a tus pies) o `/place structure eclipse:arena`.
@@ -59,7 +73,7 @@ por cada jugador extra (hasta 4).
 
 ## Ataques
 
-Las balas vuelan a la altura del pecho sobre el suelo de la arena: se esquivan moviéndose. Solo las **ondas de suelo**
+Las balas (diamantes) son pocas pero hacen **6 de daño** (7 las guiadas). Vuelan a la altura del pecho sobre el suelo de la arena: se esquivan moviéndose. Solo las **ondas de suelo**
 se esquivan saltando.
 
 | Ataque | Aviso | Cómo esquivarlo |
@@ -130,7 +144,9 @@ Ni las balas ni los rayos son entidades: el script las simula y las dibuja con p
 partícula que vuela por su cuenta; solo las guiadas, las que se curvan o las que esperan se vuelven a dibujar.
 
 Las formas 3D son pequeños modelos que el juego anima solo (crecen, se desvanecen y giran): el script solo los crea y
-los quita. En el momento más cargado hay unos 150 a la vez. Las partículas que quedan son las chispas, que son pocas.
+los quita. Como mucho hay 100 diamantes a la vez, y se crean como mucho 20 paredes por tick (el resto, en los ticks
+siguientes). Lo que el script pregunta al juego (jugadores, mobs, posiciones) se calcula una vez por tick. Las
+partículas que quedan son las chispas, que son pocas.
 
 ---
 

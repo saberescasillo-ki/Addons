@@ -30,7 +30,7 @@
             0.0,
             3.0
           ],
-          "default": 0,
+          "default": 0.0,
           "client_sync": true
         }
       }

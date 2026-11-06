@@ -1,6 +1,6 @@
 import { world, system, EntityDamageCause } from "@minecraft/server";
 import { C, ring, safe as safe_, burst, charge, column, beam, sound, shake, flash, setOwner, clearShapes } from "./fx.js";
-import { shoot, clear, arenaPlayers, arenaTargets, arenaMobs, hurt, inPlay } from "./hazards.js";
+import { shoot, wave, clear, arenaPlayers, arenaTargets, arenaMobs, hurt, inPlay } from "./hazards.js";
 import { ATTACKS, DECKS, ANIM, KIND, RANGE, combo } from "./attacks.js";
 import { level } from "./settings.js";
 import { setAltar } from "./altar.js";
@@ -9,7 +9,9 @@ import { setAltar } from "./altar.js";
 // total eclipse (the ultimate) and the death scene.
 
 export const BOSS = "eclipse:eclipse";
-export const REMNANT = "eclipse:remnant";
+export const AZURE = "eclipse:azure";
+const KINDS = { [BOSS]: "black", [AZURE]: "azure" };
+const REMNANTS = { [BOSS]: "eclipse:remnant", [AZURE]: "eclipse:azure_remnant" };
 const DIMENSIONS = ["overworld", "nether", "the_end"];
 const ARENA_R = 22;
 const HOVER = 0.4;                 // feet above the floor
@@ -55,6 +57,7 @@ class Fight {
         this.boss = boss;
         this.id = boss.id;
         this.dim = boss.dimension;
+        this.kind = KINDS[boss.typeId] ?? "black";
         let arena;
         try {
             arena = JSON.parse(boss.getDynamicProperty("eclipse:arena") ?? "null");
@@ -175,7 +178,8 @@ class Fight {
     nearestTo(pos) {
         let best, bd = Infinity;
         for (const p of this.targets()) {
-            const d = Math.hypot(p.location.x - pos.x, p.location.z - pos.z);
+            const l = p.location;
+            const d = Math.hypot(l.x - pos.x, l.z - pos.z);
             if (d < bd) {
                 best = p;
                 bd = d;
@@ -283,7 +287,11 @@ class Fight {
             return this.busy(d);
         }
         // someone glued to the boss: push them away, then vanish
-        const near = targets.some((p) => Math.hypot(p.location.x - this.boss.location.x, p.location.z - this.boss.location.z) < 3.2);
+        const bl = this.boss.location;
+        const near = targets.some((p) => {
+            const l = p.location;
+            return Math.hypot(l.x - bl.x, l.z - bl.z) < 3.2;
+        });
         this.close = near ? this.close + 1 : 0;
         if (this.close > 30) {
             this.close = 0;
@@ -323,7 +331,7 @@ class Fight {
         const t = this.target();
         const d = t ? Math.hypot(t.location.x - this.boss.location.x, t.location.z - this.boss.location.z) : 10;
         const recent = this.recent ?? (this.recent = []);
-        const options = DECKS[this.phase - 1].map(([entry, w]) => {
+        const options = DECKS[this.kind][this.phase - 1].map(([entry, w]) => {
             const key = JSON.stringify(entry);
             const name = Array.isArray(entry) ? entry[0] : entry;
             const kind = KIND[name];
@@ -414,13 +422,15 @@ function flatRing_(f, r, color) {
 
 // --- teleport ----------------------------------------------------------------------------
 function spot(f) {
-    const a = f.arena, ps = f.targets(), t = f.target();
+    const a = f.arena, t = f.target();
+    const ps = f.targets().map((q) => q.location);   // read each position once
+    const tl = t?.location;
     let best, bestScore = -Infinity;
     for (let i = 0; i < 24; i++) {
         const ang = Math.random() * 2 * Math.PI, d = Math.sqrt(Math.random()) * (a.R - 4);
         const p = { x: a.cx + Math.cos(ang) * d, z: a.cz + Math.sin(ang) * d };
-        const near = Math.min(...ps.map((q) => Math.hypot(q.location.x - p.x, q.location.z - p.z)), 99);
-        const td = t ? Math.hypot(t.location.x - p.x, t.location.z - p.z) : 10;
+        const near = Math.min(...ps.map((q) => Math.hypot(q.x - p.x, q.z - p.z)), 99);
+        const td = tl ? Math.hypot(tl.x - p.x, tl.z - p.z) : 10;
         const score = (near >= 6 ? 10 : 0) - Math.abs(td - 11) + Math.random() * 3;
         if (score > bestScore) {
             best = p;
@@ -456,7 +466,8 @@ export function teleport(f, dest = spot(f), o = {}) {
         burst(f.dim, { x: dest.x, y: g.y + 1.2, z: dest.z }, C.violet, 26, 4);
         sound(f.dim, "mob.endermen.portal", g, 1.5, 1.4);
         if (f.phase >= 2 && !o.quiet) {
-            for (let k = 0; k < 12; k++) shoot(f, { x: dest.x, z: dest.z, angle: (k / 12) * 2 * Math.PI, speed: 4.5, color: C.violet, dmg: 4 });
+            if (f.kind === "azure") wave(f, { x: dest.x, z: dest.z, speed: 9, rMax: 14, dmg: 5, color: C.azure });
+            else for (let k = 0; k < 8; k++) shoot(f, { x: dest.x, z: dest.z, angle: (k / 8) * 2 * Math.PI, speed: 4.5, color: C.violet, dmg: 6 });
         }
     });
     f.after(8 + warn + 12, () => {
@@ -614,7 +625,7 @@ system.runInterval(() => {
     for (const id of DIMENSIONS) {
         let list;
         try {
-            list = world.getDimension(id).getEntities({ type: BOSS });
+            list = [BOSS, AZURE].flatMap((type) => world.getDimension(id).getEntities({ type }));
         } catch {
             continue;
         }
@@ -642,7 +653,7 @@ system.runInterval(() => {
 // healed back (or, on Easy, hits count for more).
 const extra = new Set();
 world.afterEvents.entityHurt.subscribe(({ hurtEntity: e, damage }) => {
-    if (e.typeId !== BOSS || damage <= 0 || extra.has(e.id)) return;
+    if (!KINDS[e.typeId] || damage <= 0 || extra.has(e.id)) return;
     const f = fights.get(e.id);
     if (!f) return;
     const k = 1 / f.hpScale;
@@ -661,7 +672,7 @@ world.afterEvents.entityHurt.subscribe(({ hurtEntity: e, damage }) => {
 
 // --- death ---------------------------------------------------------------------------------------
 world.afterEvents.entityDie.subscribe(({ deadEntity: e }) => {
-    if (e.typeId !== BOSS) return;
+    if (!KINDS[e.typeId]) return;
     const f = fights.get(e.id);
     let at = f?.lastPos, dim = f?.dim, rot = { x: 0, y: 0 };
     try {
@@ -678,13 +689,13 @@ world.afterEvents.entityDie.subscribe(({ deadEntity: e }) => {
         resetAltar(f);
         fights.delete(f.id);
     }
-    deathScene(dim, at, rot, f?.arena);
+    deathScene(dim, at, rot, f?.arena, REMNANTS[e.typeId]);
 });
 
-function deathScene(dim, at, rot, arena) {
+function deathScene(dim, at, rot, arena, remnantType) {
     let remnant;
     try {
-        remnant = dim.spawnEntity(REMNANT, at);
+        remnant = dim.spawnEntity(remnantType, at);
         remnant.setRotation(rot);
     } catch {
         return;

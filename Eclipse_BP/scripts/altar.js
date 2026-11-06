@@ -1,11 +1,12 @@
-import { system } from "@minecraft/server";
+import { system, EquipmentSlot } from "@minecraft/server";
 import { C, ring, disc, burst, charge, column, beam, sound, shake } from "./fx.js";
 
 // The Altar of the Eclipse: touching it starts a 5-second ritual, then the Eclipse
-// descends. The arena is the circle of radius 22 around the altar.
+// descends. Touching it with lapis lazuli in hand calls the blue Eclipse instead.
+// The arena is the circle of radius 22 around the altar.
 
 const ALTAR = "eclipse:altar";
-const BOSS = "eclipse:eclipse";
+const BOSS = "eclipse:eclipse", AZURE = "eclipse:azure";
 const RITUAL = 100;
 
 export function setAltar(dim, pos, active) {
@@ -19,20 +20,22 @@ export function setAltar(dim, pos, active) {
 
 function bossNear(dim, at) {
     try {
-        return dim.getEntities({ type: BOSS, location: at, maxDistance: 96 }).length > 0;
+        return [BOSS, AZURE].some((type) => dim.getEntities({ type, location: at, maxDistance: 96 }).length > 0);
     } catch {
         return true;
     }
 }
 
-function ritual(block, player) {
+function ritual(block, player, type = BOSS) {
+    const blue = type === AZURE;
     const dim = block.dimension;
     const pos = { ...block.location };
     const c = { x: pos.x + 0.5, y: pos.y, z: pos.z + 0.5 };
     setAltar(dim, pos, true);
     sound(dim, "block.end_portal.spawn", c, 1.5, 0.7);
     for (const p of dim.getPlayers({ location: c, maxDistance: 64 })) {
-        p.onScreenDisplay.setTitle("§0§l✦ §8EL ECLIPSE §0✦", { subtitle: "§7El cielo se oscurece...",
+        p.onScreenDisplay.setTitle(blue ? "§9§l✦ EL ECLIPSE AZUL ✦" : "§f§l✦ §8EL ECLIPSE §f✦",
+            { subtitle: blue ? "§bEl cielo se vuelve de cristal..." : "§7El cielo se oscurece...",
             fadeInDuration: 10, stayDuration: 60, fadeOutDuration: 20 });
     }
     for (let t = 0; t < RITUAL; t += 10) {
@@ -43,7 +46,7 @@ function ritual(block, player) {
             beam(dim, g, C.white, 24, 0.5);
             burst(dim, { ...g, y: g.y + 0.3 }, C.gold, 10, 3);
             if (k === 0) ring(dim, { ...c, y: c.y + 0.06 }, 7, C.gold, RITUAL / 20);
-            charge(dim, { x: c.x, y: c.y + 4, z: c.z }, C.violet, 3 + k * 0.4, 0.5, 24);
+            charge(dim, { x: c.x, y: c.y + 4, z: c.z }, blue ? C.azure : C.violet, 3 + k * 0.4, 0.5, 24);
             sound(dim, "note.bell", c, 1.5, 0.5 + k * 0.08);
         }, t);
     }
@@ -51,13 +54,14 @@ function ritual(block, player) {
     system.runTimeout(() => {
         try {
             const at = { x: c.x, y: c.y + 0.4, z: c.z - 6 };
-            const boss = dim.spawnEntity(BOSS, at);
+            const tone = blue ? C.azure : C.violet;
+            const boss = dim.spawnEntity(type, at);
             boss.setDynamicProperty("eclipse:arena", JSON.stringify({ cx: c.x, cz: c.z, floor: pos.y, R: 22,
                 ax: pos.x, ay: pos.y, az: pos.z }));
-            beam(dim, { x: at.x, y: c.y, z: at.z }, C.violet, 40, 1.6);
+            beam(dim, { x: at.x, y: c.y, z: at.z }, tone, 40, 1.6);
             burst(dim, { x: at.x, y: at.y + 1, z: at.z }, C.white, 50, 8);
-            disc(dim, { x: at.x, y: c.y + 0.06, z: at.z }, 1, C.violet, 1.2, { speed: 6, max: 5 });
-            column(dim, { x: at.x, y: c.y + 0.06, z: at.z }, C.violet, 1, 10, 0.8, 0.4);
+            disc(dim, { x: at.x, y: c.y + 0.06, z: at.z }, 1, tone, 1.2, { speed: 6, max: 5 });
+            column(dim, { x: at.x, y: c.y + 0.06, z: at.z }, tone, 1, 10, 0.8, 0.4);
             sound(dim, "mob.wither.spawn", at, 2, 1.4);
         } catch {
             setAltar(dim, pos, false);
@@ -81,7 +85,13 @@ system.beforeEvents.startup.subscribe(({ blockComponentRegistry }) => {
                     player.onScreenDisplay.setActionBar("§5El Eclipse ya está aquí.");
                     return;
                 }
-                ritual(block, player);
+                let hand;
+                try {
+                    hand = player.getComponent("minecraft:equippable")?.getEquipment(EquipmentSlot.Mainhand)?.typeId;
+                } catch {
+                    hand = undefined;
+                }
+                ritual(block, player, hand === "minecraft:lapis_lazuli" ? AZURE : BOSS);
             });
         },
     });

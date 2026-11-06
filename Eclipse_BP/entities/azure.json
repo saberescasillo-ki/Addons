@@ -1,0 +1,147 @@
+{
+  "format_version": "1.21.50",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "eclipse:azure",
+      "is_spawnable": true,
+      "is_summonable": true,
+      "properties": {
+        "eclipse:anim": {
+          "type": "int",
+          "range": [
+            0,
+            20
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "eclipse:phase": {
+          "type": "int",
+          "range": [
+            1,
+            3
+          ],
+          "default": 1,
+          "client_sync": true
+        },
+        "eclipse:hidden": {
+          "type": "bool",
+          "default": false,
+          "client_sync": true
+        },
+        "eclipse:shield": {
+          "type": "bool",
+          "default": false,
+          "client_sync": true
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "eclipse",
+          "boss",
+          "monster",
+          "mob"
+        ]
+      },
+      "minecraft:health": {
+        "value": 500,
+        "max": 500
+      },
+      "minecraft:boss": {
+        "hud_range": 64,
+        "should_darken_sky": true
+      },
+      "minecraft:collision_box": {
+        "width": 0.7,
+        "height": 2.0
+      },
+      "minecraft:physics": {
+        "has_gravity": false,
+        "has_collision": true
+      },
+      "minecraft:pushable": {
+        "is_pushable": false,
+        "is_pushable_by_piston": false
+      },
+      "minecraft:knockback_resistance": {
+        "value": 1
+      },
+      "minecraft:fire_immune": {},
+      "minecraft:breathable": {
+        "total_supply": 15,
+        "suffocate_time": 0,
+        "breathes_water": true
+      },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "on_damage": {
+              "filters": {
+                "any_of": [
+                  {
+                    "test": "bool_property",
+                    "domain": "eclipse:hidden"
+                  },
+                  {
+                    "test": "bool_property",
+                    "domain": "eclipse:shield"
+                  }
+                ]
+              }
+            },
+            "deals_damage": "no"
+          },
+          {
+            "cause": "fall",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "suffocation",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "lightning",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "fire",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "fire_tick",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "lava",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "drowning",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "fly_into_wall",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "entity_explosion",
+            "deals_damage": "no"
+          },
+          {
+            "cause": "block_explosion",
+            "deals_damage": "no"
+          }
+        ]
+      },
+      "minecraft:loot": {
+        "table": "loot_tables/empty.json"
+      },
+      "minecraft:persistent": {},
+      "minecraft:nameable": {
+        "always_show": false
+      }
+    }
+  }
+}

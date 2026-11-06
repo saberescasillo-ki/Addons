@@ -30,7 +30,7 @@
             0.0,
             4.0
           ],
-          "default": 0,
+          "default": 0.0,
           "client_sync": true
         },
         "eclipse:len": {
@@ -39,7 +39,7 @@
             0.0,
             96.0
           ],
-          "default": 0,
+          "default": 0.0,
           "client_sync": true
         },
         "eclipse:spin": {
@@ -48,7 +48,7 @@
             -360.0,
             360.0
           ],
-          "default": 0,
+          "default": 0.0,
           "client_sync": true
         },
         "eclipse:shrink": {

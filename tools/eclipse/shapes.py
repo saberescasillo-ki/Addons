@@ -20,7 +20,11 @@ COLORS = [  # the order of COLOR_INDEX in scripts/fx.js
     ("magenta", (255, 90, 209)), ("azure", (90, 140, 255)), ("crimson", (255, 56, 77)), ("danger", (255, 64, 100)),
     ("safe", (255, 230, 115)), ("jade", (90, 255, 166)),
 ]
-P = lambda name, kind, rng, default=0: (name, {"type": kind, "range": rng, "default": default, "client_sync": True})  # noqa: E731
+def P(name, kind, rng, default=0):
+    """A synced entity property; float ones need float defaults and ranges (0.0, not 0)."""
+    if kind == "float":
+        rng, default = [float(rng[0]), float(rng[1])], float(default)
+    return (name, {"type": kind, "range": rng, "default": default, "client_sync": True})
 PROPS = {
     "gem": [P("eclipse:size", "float", [0.0, 3.0])],
     "beam": [P("eclipse:w", "float", [0.0, 4.0]), P("eclipse:len", "float", [0.0, 96.0]),

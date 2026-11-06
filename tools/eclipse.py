@@ -30,7 +30,7 @@ BP = os.path.join(ROOT, f"{NAME}_BP")
 RP = os.path.join(ROOT, f"{NAME}_RP")
 DIST = os.path.join(ROOT, "dist")
 SCRIPTS = os.path.join(HERE, "eclipse", "scripts")
-VERSION = [1, 2, 0]
+VERSION = [1, 3, 0]
 MIN_ENGINE = [1, 21, 90]
 BOSS, REMNANT, ALTAR = "eclipse:eclipse", "eclipse:remnant", "eclipse:altar"
 HEALTH = 500
@@ -83,6 +83,21 @@ def body_texture(path):
             v = rng.randint(2, 9)
             px[x, y] = (v, v, v + 2, 255)
     img.save(path)
+
+
+def azure_textures(folder):
+    """The blue Eclipse: completely blue (with the same faint grain); its clones, a
+    translucent lighter blue."""
+    rng = random.Random(5)
+    img = Image.new("RGBA", (64, 64))
+    clone = Image.new("RGBA", (64, 64))
+    for y in range(64):
+        for x in range(64):
+            v = rng.randint(-6, 6)
+            img.putpixel((x, y), (18 + v, 52 + v, 170 + v, 255))
+            clone.putpixel((x, y), (90 + v, 160 + v, 255, 120))
+    img.save(os.path.join(folder, "azure.png"))
+    clone.save(os.path.join(folder, "azure_clone.png"))
 
 
 def particle_atlas(path):
@@ -514,11 +529,13 @@ def particles():
         "minecraft:particle_motion_dynamic": {},
         "minecraft:particle_appearance_billboard": board("0.08 + 0.12 * v.particle_age / v.particle_lifetime", SPARK),
         "minecraft:particle_appearance_tinting": {"color": ["v.color.r", "v.color.g", "v.color.b", 1]}}, "particles_add")
-    for n, rgb, rate in ((1, (1, 0.92, 0.7), 8), (2, (0.72, 0.5, 1), 10), (3, (1, 0.3, 0.38), 14)):
-        dump(os.path.join(RP, "particles", f"aura{n}.particle.json"), {
+    auras = [("aura", n, rgb, rate) for n, rgb, rate in ((1, (1, 0.92, 0.7), 8), (2, (0.72, 0.5, 1), 10), (3, (1, 0.3, 0.38), 14))]
+    auras += [("azure_aura", n, rgb, rate) for n, rgb, rate in ((1, (0.6, 0.85, 1), 8), (2, (0.3, 0.6, 1), 10), (3, (0.85, 0.97, 1), 14))]
+    for prefix, n, rgb, rate in auras:
+        dump(os.path.join(RP, "particles", f"{prefix}{n}.particle.json"), {
             "format_version": "1.10.0",
             "particle_effect": {
-                "description": {"identifier": f"eclipse:aura{n}",
+                "description": {"identifier": f"eclipse:{prefix}{n}",
                                 "basic_render_parameters": {"material": "particles_add", "texture": TEX}},
                 "components": {
                     "minecraft:emitter_rate_steady": {"spawn_rate": rate, "max_particles": rate * 3},
@@ -534,6 +551,17 @@ def particles():
 
 
 # --- entities -------------------------------------------------------------------------------------
+# The two Eclipses: the black one (a bullet hell) and the blue one (no bullets: lasers,
+# rings, rays, explosions, dashes and clones). Same model, their own colour and aura.
+VARIANTS = [
+    {"id": BOSS, "file": "eclipse", "remnant": REMNANT, "texture": "eclipse", "aura": "aura",
+     "egg": ("#050507", "#ffd46e")},
+    {"id": "eclipse:azure", "file": "azure", "remnant": "eclipse:azure_remnant", "texture": "azure", "aura": "azure_aura",
+     "egg": ("#1030a0", "#bfe4ff")},
+]
+CLONE = "eclipse:azure_clone"
+
+
 def entities():
     props = {"eclipse:anim": {"type": "int", "range": [0, 20], "default": 0, "client_sync": True},
              "eclipse:phase": {"type": "int", "range": [1, 3], "default": 1, "client_sync": True},
@@ -541,66 +569,86 @@ def entities():
              "eclipse:shield": {"type": "bool", "default": False, "client_sync": True}}
     no = [{"cause": c, "deals_damage": "no"} for c in ("fall", "suffocation", "lightning", "fire", "fire_tick", "lava",
                                                       "drowning", "fly_into_wall", "entity_explosion", "block_explosion")]
-    dump(os.path.join(BP, "entities", "eclipse.json"), {
+    still = {"minecraft:physics": {"has_gravity": False, "has_collision": False},
+             "minecraft:pushable": {"is_pushable": False, "is_pushable_by_piston": False},
+             "minecraft:loot": {"table": "loot_tables/empty.json"}}
+    poses = {p: f"animation.eclipse.{p}" for p in POSES}
+    rc = {"geometry": "Geometry.default", "materials": [{"*": "Material.default"}], "textures": ["Texture.default"]}
+    rcs = {"controller.render.eclipse": {**rc, "part_visibility": [{"*": "!q.property('eclipse:hidden') && q.is_alive"}]},
+           "controller.render.eclipse_remnant": rc}
+    for v in VARIANTS:
+        dump(os.path.join(BP, "entities", f"{v['file']}.json"), {
+            "format_version": "1.21.50",
+            "minecraft:entity": {
+                "description": {"identifier": v["id"], "is_spawnable": True, "is_summonable": True, "properties": props},
+                "components": {
+                    "minecraft:type_family": {"family": ["eclipse", "boss", "monster", "mob"]},
+                    "minecraft:health": {"value": HEALTH, "max": HEALTH},
+                    "minecraft:boss": {"hud_range": 64, "should_darken_sky": True},
+                    "minecraft:collision_box": {"width": 0.7, "height": 2.0},
+                    "minecraft:physics": {"has_gravity": False, "has_collision": True},
+                    "minecraft:pushable": {"is_pushable": False, "is_pushable_by_piston": False},
+                    "minecraft:knockback_resistance": {"value": 1},
+                    "minecraft:fire_immune": {},
+                    "minecraft:breathable": {"total_supply": 15, "suffocate_time": 0, "breathes_water": True},
+                    "minecraft:damage_sensor": {"triggers": [
+                        {"on_damage": {"filters": {"any_of": [
+                            {"test": "bool_property", "domain": "eclipse:hidden"},
+                            {"test": "bool_property", "domain": "eclipse:shield"}]}}, "deals_damage": "no"}, *no]},
+                    "minecraft:loot": {"table": "loot_tables/empty.json"},
+                    "minecraft:persistent": {},
+                    "minecraft:nameable": {"always_show": False}}}})
+        dump(os.path.join(BP, "entities", f"{v['file']}_remnant.json" if v["file"] != "eclipse" else "remnant.json"), {
+            "format_version": "1.21.50",
+            "minecraft:entity": {
+                "description": {"identifier": v["remnant"], "is_spawnable": False, "is_summonable": True},
+                "components": {
+                    "minecraft:type_family": {"family": ["eclipse", "inanimate"]},
+                    "minecraft:health": {"value": 1, "max": 1},
+                    "minecraft:collision_box": {"width": 0.1, "height": 0.1},
+                    "minecraft:damage_sensor": {"triggers": [{"cause": "all", "deals_damage": "no"}]}, **still}}})
+        common = {"materials": {"default": "entity_alphatest"},
+                  "textures": {"default": f"textures/eclipse/entity/{v['texture']}"},
+                  "geometry": {"default": "geometry.eclipse"}}
+        dump(os.path.join(RP, "entity", f"{v['file']}.entity.json"), {
+            "format_version": "1.10.0",
+            "minecraft:client_entity": {"description": {
+                "identifier": v["id"], **common,
+                "animations": {**poses, "always": "animation.eclipse.always", "look": "animation.common.look_at_target",
+                               "pose": "controller.animation.eclipse.pose", "aura": "controller.animation.eclipse.aura"},
+                "particle_effects": {f"aura{n}": f"eclipse:{v['aura']}{n}" for n in (1, 2, 3)},
+                "scripts": {"animate": ["pose", "always", "look", "aura"]},
+                "render_controllers": ["controller.render.eclipse"],
+                "spawn_egg": {"base_color": v["egg"][0], "overlay_color": v["egg"][1]}}}})
+        dump(os.path.join(RP, "entity", f"{v['file']}_remnant.entity.json" if v["file"] != "eclipse" else "remnant.entity.json"), {
+            "format_version": "1.10.0",
+            "minecraft:client_entity": {"description": {
+                "identifier": v["remnant"], **common,
+                "animations": {"death": "animation.eclipse.death", "always": "animation.eclipse.always"},
+                "scripts": {"animate": ["death", "always"]},
+                "render_controllers": ["controller.render.eclipse_remnant"]}}})
+    # the blue Eclipse's clones: translucent copies that dash across the arena
+    dump(os.path.join(BP, "entities", "azure_clone.json"), {
         "format_version": "1.21.50",
         "minecraft:entity": {
-            "description": {"identifier": BOSS, "is_spawnable": True, "is_summonable": True, "properties": props},
-            "components": {
-                "minecraft:type_family": {"family": ["eclipse", "boss", "monster", "mob"]},
-                "minecraft:health": {"value": HEALTH, "max": HEALTH},
-                "minecraft:boss": {"hud_range": 64, "should_darken_sky": True},
-                "minecraft:collision_box": {"width": 0.7, "height": 2.0},
-                "minecraft:physics": {"has_gravity": False, "has_collision": True},
-                "minecraft:pushable": {"is_pushable": False, "is_pushable_by_piston": False},
-                "minecraft:knockback_resistance": {"value": 1},
-                "minecraft:fire_immune": {},
-                "minecraft:breathable": {"total_supply": 15, "suffocate_time": 0, "breathes_water": True},
-                "minecraft:damage_sensor": {"triggers": [
-                    {"on_damage": {"filters": {"any_of": [
-                        {"test": "bool_property", "domain": "eclipse:hidden"},
-                        {"test": "bool_property", "domain": "eclipse:shield"}]}}, "deals_damage": "no"}, *no]},
-                "minecraft:loot": {"table": "loot_tables/empty.json"},
-                "minecraft:persistent": {},
-                "minecraft:nameable": {"always_show": False}}}})
-    dump(os.path.join(BP, "entities", "remnant.json"), {
-        "format_version": "1.21.50",
-        "minecraft:entity": {
-            "description": {"identifier": REMNANT, "is_spawnable": False, "is_summonable": True},
+            "description": {"identifier": CLONE, "is_spawnable": False, "is_summonable": True},
             "components": {
                 "minecraft:type_family": {"family": ["eclipse", "inanimate"]},
                 "minecraft:health": {"value": 1, "max": 1},
-                "minecraft:collision_box": {"width": 0.1, "height": 0.1},
-                "minecraft:physics": {"has_gravity": False, "has_collision": False},
-                "minecraft:pushable": {"is_pushable": False, "is_pushable_by_piston": False},
-                "minecraft:damage_sensor": {"triggers": [{"cause": "all", "deals_damage": "no"}]},
-                "minecraft:loot": {"table": "loot_tables/empty.json"}}}})
-    common = {"materials": {"default": "entity_alphatest"},
-              "textures": {"default": "textures/eclipse/entity/eclipse"},
-              "geometry": {"default": "geometry.eclipse"}}
-    poses = {p: f"animation.eclipse.{p}" for p in POSES}
-    dump(os.path.join(RP, "entity", "eclipse.entity.json"), {
+                "minecraft:collision_box": {"width": 0.6, "height": 1.9},
+                "minecraft:damage_sensor": {"triggers": [{"cause": "fall", "deals_damage": "no"}]},
+                "minecraft:fire_immune": {}, **still}}})
+    dump(os.path.join(RP, "entity", "azure_clone.entity.json"), {
         "format_version": "1.10.0",
         "minecraft:client_entity": {"description": {
-            "identifier": BOSS, **common,
-            "animations": {**poses, "always": "animation.eclipse.always", "look": "animation.common.look_at_target",
-                           "pose": "controller.animation.eclipse.pose", "aura": "controller.animation.eclipse.aura"},
-            "particle_effects": {f"aura{n}": f"eclipse:aura{n}" for n in (1, 2, 3)},
-            "scripts": {"animate": ["pose", "always", "look", "aura"]},
-            "render_controllers": ["controller.render.eclipse"],
-            "spawn_egg": {"base_color": "#050507", "overlay_color": "#ffd46e"}}}})
-    dump(os.path.join(RP, "entity", "remnant.entity.json"), {
-        "format_version": "1.10.0",
-        "minecraft:client_entity": {"description": {
-            "identifier": REMNANT, **common,
-            "animations": {"death": "animation.eclipse.death", "always": "animation.eclipse.always"},
-            "scripts": {"animate": ["death", "always"]},
+            "identifier": CLONE, "materials": {"default": "entity_alphablend"},
+            "textures": {"default": "textures/eclipse/entity/azure_clone"}, "geometry": {"default": "geometry.eclipse"},
+            "animations": {"dash": "animation.eclipse.dash", "always": "animation.eclipse.always"},
+            "particle_effects": {"aura": "eclipse:azure_aura2"},
+            "scripts": {"animate": ["dash", "always"]},
             "render_controllers": ["controller.render.eclipse_remnant"]}}})
-    rc = {"geometry": "Geometry.default", "materials": [{"*": "Material.default"}], "textures": ["Texture.default"]}
-    dump(os.path.join(RP, "render_controllers", "eclipse.render_controllers.json"), {
-        "format_version": "1.8.0",
-        "render_controllers": {
-            "controller.render.eclipse": {**rc, "part_visibility": [{"*": "!q.property('eclipse:hidden') && q.is_alive"}]},
-            "controller.render.eclipse_remnant": rc}})
+    dump(os.path.join(RP, "render_controllers", "eclipse.render_controllers.json"),
+         {"format_version": "1.8.0", "render_controllers": rcs})
 
 
 # --- the altar, loot, recipe, functions, arena ----------------------------------------------------
@@ -615,6 +663,7 @@ def altar():
             "description": {"identifier": ALTAR, "menu_category": {"category": "items"},
                             "states": {"eclipse:active": [False, True]}},
             "components": {
+                "minecraft:geometry": "minecraft:geometry.full_block",
                 "minecraft:material_instances": mats(False),
                 "minecraft:destructible_by_mining": {"seconds_to_destroy": 4},
                 "minecraft:destructible_by_explosion": {"explosion_resistance": 1200},
@@ -699,6 +748,10 @@ def structure(preview):
 def lang():
     text = ("entity.eclipse:eclipse.name=El Eclipse\n"
             "entity.eclipse:remnant.name=Eco del Eclipse\n"
+            "entity.eclipse:azure.name=El Eclipse Azul\n"
+            "entity.eclipse:azure_remnant.name=Eco del Eclipse Azul\n"
+            "entity.eclipse:azure_clone.name=Espejismo del Eclipse\n"
+            "item.spawn_egg.entity.eclipse:azure.name=Generar El Eclipse Azul\n"
             "item.spawn_egg.entity.eclipse:eclipse.name=Generar El Eclipse\n"
             "tile.eclipse:altar.name=Altar del Eclipse\n"
             "pack.name=El Eclipse\npack.description=Jefe bullet hell: El Eclipse\n")
@@ -725,6 +778,7 @@ def build(preview=False):
     os.makedirs(os.path.join(RP, "textures", "eclipse", "entity"), exist_ok=True)
     os.makedirs(os.path.join(RP, "textures", "eclipse", "particle"), exist_ok=True)
     body_texture(os.path.join(RP, "textures", "eclipse", "entity", "eclipse.png"))
+    azure_textures(os.path.join(RP, "textures", "eclipse", "entity"))
     particle_atlas(os.path.join(RP, "textures", "eclipse", "particle", "atlas.png"))
     decal_textures(os.path.join(RP, "textures", "eclipse", "particle"))
     geometry()

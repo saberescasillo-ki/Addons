@@ -1,0 +1,33 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "eclipse:azure_clone",
+      "materials": {
+        "default": "entity_alphablend"
+      },
+      "textures": {
+        "default": "textures/eclipse/entity/azure_clone"
+      },
+      "geometry": {
+        "default": "geometry.eclipse"
+      },
+      "animations": {
+        "dash": "animation.eclipse.dash",
+        "always": "animation.eclipse.always"
+      },
+      "particle_effects": {
+        "aura": "eclipse:azure_aura2"
+      },
+      "scripts": {
+        "animate": [
+          "dash",
+          "always"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.eclipse_remnant"
+      ]
+    }
+  }
+}

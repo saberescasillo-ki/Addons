@@ -21,14 +21,6 @@
         "width": 0.1,
         "height": 0.1
       },
-      "minecraft:physics": {
-        "has_gravity": false,
-        "has_collision": false
-      },
-      "minecraft:pushable": {
-        "is_pushable": false,
-        "is_pushable_by_piston": false
-      },
       "minecraft:damage_sensor": {
         "triggers": [
           {
@@ -36,6 +28,14 @@
             "deals_damage": "no"
           }
         ]
+      },
+      "minecraft:physics": {
+        "has_gravity": false,
+        "has_collision": false
+      },
+      "minecraft:pushable": {
+        "is_pushable": false,
+        "is_pushable_by_piston": false
       },
       "minecraft:loot": {
         "table": "loot_tables/empty.json"

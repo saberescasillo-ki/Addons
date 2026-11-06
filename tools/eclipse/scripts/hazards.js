@@ -12,7 +12,7 @@ import { level } from "./settings.js";
 
 export const PLANE = 1.1;
 const BODY_R = 0.32, BODY_H = 1.8;
-const MAX_GEMS = 170;
+const MAX_GEMS = 100;
 const HIT_COOLDOWN = 10; // the same kind of hazard hurts a target at most twice a second
 const IGNORE = ["minecraft:item", "minecraft:xp_orb", "minecraft:armor_stand", "minecraft:arrow", "minecraft:snowball",
     "minecraft:egg", "minecraft:ender_pearl", "minecraft:fireball", "minecraft:small_fireball", "minecraft:wind_charge_projectile",
@@ -36,25 +36,45 @@ export function inPlay(p) {
 }
 
 const center = (a) => ({ x: a.cx, y: a.floor + 2, z: a.cz });
+const keyOf = (dim, a) => `${dim.id}:${a.cx}:${a.cz}`;
+
+// Everything asked about an arena is worked out once per tick (the game's queries are
+// what costs most; asking again in the same tick is free).
+const tickMemo = { tick: -1, map: new Map() };
+function memo(key, fn) {
+    const now = system.currentTick;
+    if (tickMemo.tick !== now) {
+        tickMemo.tick = now;
+        tickMemo.map.clear();
+    }
+    if (!tickMemo.map.has(key)) tickMemo.map.set(key, fn());
+    return tickMemo.map.get(key);
+}
 
 /** Players fighting in this arena. */
 export function arenaPlayers(dim, a) {
-    try {
-        return dim.getPlayers({ location: center(a), maxDistance: a.R + 8 })
-            .filter((p) => inPlay(p) && Math.abs(p.location.y - a.floor) < 14);
-    } catch {
-        return [];
-    }
+    return memo(`p:${keyOf(dim, a)}`, () => {
+        try {
+            return dim.getPlayers({ location: center(a), maxDistance: a.R + 8 })
+                .filter((p) => inPlay(p) && Math.abs(p.location.y - a.floor) < 14);
+        } catch {
+            return [];
+        }
+    });
 }
 
 const mobCache = new Map(); // arena key -> {tick, list}
 
-/** Mobs in this arena (anything alive that is not the Eclipse), refreshed every 5 ticks. */
+/** Mobs in this arena (anything alive that is not the Eclipse), searched every 10 ticks. */
 export function arenaMobs(dim, a) {
-    const key = `${dim.id}:${a.cx}:${a.cz}`;
+    return memo(`m:${keyOf(dim, a)}`, () => findMobs(dim, a));
+}
+
+function findMobs(dim, a) {
+    const key = keyOf(dim, a);
     const now = system.currentTick;
     const c = mobCache.get(key);
-    if (c && now - c.tick < 5) return c.list.filter(isValid);
+    if (c && now - c.tick < 10) return c.list.filter(isValid);
     let list = [];
     try {
         list = dim.getEntities({ location: center(a), maxDistance: a.R + 6, excludeFamilies: ["eclipse", "inanimate", "player"],
@@ -67,9 +87,19 @@ export function arenaMobs(dim, a) {
 }
 
 /** Everything the Eclipse fights here. */
-export const arenaTargets = (dim, a) => [...arenaPlayers(dim, a), ...arenaMobs(dim, a)];
+export const arenaTargets = (dim, a) => memo(`t:${keyOf(dim, a)}`, () => [...arenaPlayers(dim, a), ...arenaMobs(dim, a)]);
 
-export function hurt(e, amount, owner, cause = EntityDamageCause.entityAttack, kind) {
+/** The same, with their positions read once this tick: {id, typeId, location, e}. */
+export const arenaBodies = (dim, a) => memo(`b:${keyOf(dim, a)}`, () => arenaTargets(dim, a).map((e) => {
+    try {
+        return { id: e.id, typeId: e.typeId, location: e.location, e };
+    } catch {
+        return undefined;
+    }
+}).filter(Boolean));
+
+export function hurt(target, amount, owner, cause = EntityDamageCause.entityAttack, kind) {
+    const e = target.e ?? target;
     if (kind) {
         const key = `${kind}:${e.id}`, now = system.currentTick;
         if (now - (cooldown.get(key) ?? -100) < HIT_COOLDOWN) return false;
@@ -130,7 +160,7 @@ export function shoot(f, o) {
         owner: f.id, boss: f.boss, dim: f.dim, arena: f.arena, f,
         x: o.x, y: f.arena.floor + PLANE, z: o.z, face: o.angle,
         vx: ca * o.speed, vz: sa * o.speed, ax: ca * (o.accel ?? 0), az: sa * (o.accel ?? 0),
-        r: o.r ?? 0.35, dmg: o.dmg ?? 4, color: o.color ?? C.cyan, size: o.size ?? 0.22,
+        r: o.r ?? 0.38, dmg: o.dmg ?? 6, color: o.color ?? C.cyan, size: o.size ?? 0.28,
         life: o.life ?? 220, hold: o.hold ?? 0, square: !!o.square,
         home: o.home?.target, turn: o.home?.turn ?? 0, homeTicks: o.home?.ticks ?? 0,
         curve: o.curve ?? 0, curveTicks: o.curveTicks ?? (o.curve ? 9999 : 0), stop: o.stop,
@@ -152,10 +182,14 @@ function sync(b) {
     const e = b.e;
     if (!e) return;
     try {
-        const l = e.location;
-        if (b.age % 10 === 0 && Math.hypot(l.x - b.x, l.z - b.z) > 0.6) e.teleport({ x: b.x, y: b.y, z: b.z });
+        let dy = 0;
+        if (b.age % 10 === 0) {   // reading its position is not free: only now and then
+            const l = e.location;
+            if (Math.hypot(l.x - b.x, l.z - b.z) > 0.6) e.teleport({ x: b.x, y: b.y, z: b.z });
+            dy = (b.y - l.y) * 0.5;
+        }
         e.clearVelocity();
-        if (b.hold <= 0) e.applyImpulse({ x: b.vx / 20, y: (b.y - l.y) * 0.5, z: b.vz / 20 });
+        if (b.hold <= 0) e.applyImpulse({ x: b.vx / 20, y: dy, z: b.vz / 20 });
     } catch {
         b.e = undefined;
     }
@@ -329,7 +363,7 @@ export function zone(f, o) {
                 hurt(e, o.dmg ?? 8, f.boss, EntityDamageCause.magic);
                 try {
                     const k = Math.max(0.01, d);
-                    e.applyKnockback({ x: ((e.location.x - x) / k) * 0.8, z: ((e.location.z - z) / k) * 0.8 }, 0.3);
+                    (e.e ?? e).applyKnockback({ x: ((e.location.x - x) / k) * 0.8, z: ((e.location.z - z) / k) * 0.8 }, 0.3);
                 } catch {
                     // ignore
                 }
@@ -360,10 +394,42 @@ export function wave(f, o) {
     } });
 }
 
+/** A band (the ring between rIn and rOut) marked by red walls of light on both edges;
+ *  it explodes after `fuse` ticks. Stand outside it. */
+export function band(f, o) {
+    const color = o.color ?? C.danger, life = o.fuse / 20;
+    const at = groundAt(f, o.x, o.z);
+    ring(f.dim, at, o.rIn, color, life);
+    ring(f.dim, at, o.rOut, color, life);
+    flatRing(f.dim, { ...at, y: at.y + 0.01 }, (o.rIn + o.rOut) / 2, color, life, { alpha: 0.6 });
+    let t = 0;
+    hazards.push({ owner: f.id, f, update(now, targets) {
+        t++;
+        if (t === o.fuse - 8) {
+            flatRing(f.dim, { ...at, y: at.y + 0.02 }, o.rIn, C.white, 0.4);
+            flatRing(f.dim, { ...at, y: at.y + 0.02 }, o.rOut, C.white, 0.4);
+        }
+        if (t < o.fuse) return true;
+        for (let i = 0; i < 8; i++) {
+            const a = Math.random() * 2 * Math.PI, d = o.rIn + Math.random() * (o.rOut - o.rIn);
+            burst(f.dim, { x: o.x + Math.cos(a) * d, y: at.y + 0.5, z: o.z + Math.sin(a) * d }, color, 10, 4);
+        }
+        flatRing(f.dim, { ...at, y: at.y + 0.03 }, o.rIn, color, 0.35, { speed: (o.rOut - o.rIn) * 3, max: o.rOut });
+        sound(f.dim, "random.explode", at, 1, 1.5);
+        for (const e of targets) {
+            const d = Math.hypot(e.location.x - o.x, e.location.z - o.z);
+            if (d >= o.rIn - BODY_R && d <= o.rOut + BODY_R && e.location.y - f.arena.floor < 5) {
+                hurt(e, o.dmg ?? 8, f.boss, EntityDamageCause.magic);
+            }
+        }
+        return false;
+    } });
+}
+
 /** Hurts what a laser from `a` to `b` touches. low: only what is on the floor (jump it). */
 export function laserHits(f, a, b, width, dmg, low = false) {
     const dx = b.x - a.x, dz = b.z - a.z, len2 = dx * dx + dz * dz || 1;
-    for (const e of arenaTargets(f.dim, f.arena)) {
+    for (const e of arenaBodies(f.dim, f.arena)) {
         const l = e.location;
         const t = Math.max(0, Math.min(1, ((l.x - a.x) * dx + (l.z - a.z) * dz) / len2));
         const d = Math.hypot(l.x - (a.x + dx * t), l.z - (a.z + dz * t));
@@ -396,12 +462,7 @@ export const count = () => bullets.length;
 // --- the loop ---------------------------------------------------------------------------------
 system.runInterval(() => {
     if (!bullets.length && !hazards.length) return;
-    const cache = new Map();
-    const targetsOf = (arena, dim) => {
-        const key = `${dim.id}:${arena.cx}:${arena.cz}`;
-        if (!cache.has(key)) cache.set(key, arenaTargets(dim, arena));
-        return cache.get(key);
-    };
+    const targetsOf = (arena, dim) => arenaBodies(dim, arena);
     for (let i = bullets.length - 1; i >= 0; i--) {
         const b = bullets[i];
         let keep;

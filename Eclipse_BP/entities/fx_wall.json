@@ -30,7 +30,7 @@
             0.0,
             96.0
           ],
-          "default": 0,
+          "default": 0.0,
           "client_sync": true
         },
         "eclipse:h": {
@@ -39,7 +39,7 @@
             0.0,
             8.0
           ],
-          "default": 0,
+          "default": 0.0,
           "client_sync": true
         }
       }

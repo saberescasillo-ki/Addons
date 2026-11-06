@@ -1,5 +1,5 @@
-import { C, ring, flatRing, line, laser, burst, charge, column, sound, shake } from "./fx.js";
-import { shoot, ray, zone, wave, effect, laserHits, PLANE } from "./hazards.js";
+import { C, ring, flatRing, line, laser, burst, charge, column, sound, shake, track, yawOf } from "./fx.js";
+import { shoot, ray, zone, wave, band, effect, laserHits, PLANE } from "./hazards.js";
 
 // The Eclipse's attacks. Each one: a clear warning first (pose, sound, marks on the
 // floor), then the attack, always with a way out (gaps, lanes, safe tiles, a jump).
@@ -10,6 +10,8 @@ export const ANIM = { idle: 0, point: 1, raise: 2, spin: 3, cross: 4, summon: 5,
     vanish: 8, appear: 9, phase: 10, ultCharge: 11, ultRelease: 12, exhausted: 13, slam: 14, dash: 15, laugh: 16 };
 
 const DEG = Math.PI / 180;
+// fewer diamonds than before, but each one hurts more
+const SHOT = 6;
 const by = (f, list) => list[Math.min(list.length, f.phase) - 1];
 const speed = (f, base) => base * by(f, [1, 1.15, 1.25]);
 const at = (f) => ({ x: f.boss.location.x, z: f.boss.location.z });
@@ -28,7 +30,7 @@ function pose(f, o, anim, ticks) {
 // 1. Energy volleys: fans aimed at the target, two speeds in each, offset fans.
 export function volley(f, o = {}) {
     const bursts = o.bursts ?? by(f, [3, 4, 5]);
-    const n = by(f, [3, 5, 5]), step = 12 * DEG;
+    const n = by(f, [3, 3, 4]), step = 13 * DEG;
     const dur = 14 + bursts * 9 + 6;
     pose(f, o, ANIM.point, dur);
     sound(f.dim, "mob.evocation_illager.prepare_attack", f.boss.location, 1.2, 1.4);
@@ -41,8 +43,8 @@ export function volley(f, o = {}) {
             const offset = i % 2 ? step / 2 : 0;
             for (let k = 0; k < n; k++) {
                 const a = aim + offset + (k - (n - 1) / 2) * step;
-                shoot(f, { ...from, angle: a, speed: speed(f, 7), color: C.cyan, dmg: 4 });
-                if (f.phase >= 2 || k % 2 === 0) shoot(f, { ...from, angle: a, speed: speed(f, 11.5), color: C.white, size: 0.18, dmg: 4 });
+                shoot(f, { ...from, angle: a, speed: speed(f, 7), color: C.cyan, dmg: SHOT });
+                if (f.phase >= 3 && k % 2 === 0) shoot(f, { ...from, angle: a, speed: speed(f, 11.5), color: C.white, size: 0.22, dmg: SHOT });
             }
             sound(f.dim, "mob.shulker.shoot", f.boss.location, 1, 1.5);
         });
@@ -53,7 +55,7 @@ export function volley(f, o = {}) {
 // 2. Rings: rings of bullets with gaps between them; in later phases some speed up.
 export function rings(f, o = {}) {
     const count = o.rings ?? by(f, [2, 3, 4]);
-    const n = by(f, [20, 24, 28]);
+    const n = by(f, [12, 14, 16]);
     const dur = 16 + count * 14 + 8;
     pose(f, o, ANIM.cross, dur);
     sound(f.dim, "chime.amethyst_block", f.boss.location, 2, 0.7);
@@ -65,8 +67,8 @@ export function rings(f, o = {}) {
             const fast = f.phase >= 2 && i % 2 === 1;
             for (let k = 0; k < n; k++) {
                 const a = base + ((k + (i % 2) * 0.5) / n) * 2 * Math.PI;
-                if (fast) shoot(f, { ...from, angle: a, speed: 2.5, accel: 7, color: C.magenta, dmg: 4, life: 120 });
-                else shoot(f, { ...from, angle: a, speed: speed(f, 6.5), color: C.violet, dmg: 4 });
+                if (fast) shoot(f, { ...from, angle: a, speed: 2.5, accel: 7, color: C.magenta, dmg: SHOT, life: 120 });
+                else shoot(f, { ...from, angle: a, speed: speed(f, 6.5), color: C.violet, dmg: SHOT });
             }
             flatRing(f.dim, ground(f, from.x, from.z), 1.2, C.violet, 0.5, { speed: 9 });
             sound(f.dim, "mob.shulker.shoot", f.boss.location, 1, 0.9);
@@ -158,7 +160,7 @@ export function homing(f, o = {}) {
         const x = from.x + Math.cos(a) * 2.2, z = from.z + Math.sin(a) * 2.2;
         const target = targets.length ? targets[k % targets.length] : f.target();
         shoot(f, { x, z, angle: target ? yawTo({ x, z }, target.location) : a, speed: speed(f, 5.6),
-            hold: 18 + k * 3, r: 0.5, size: 0.4, color: C.crimson, dmg: 5, life: 160,
+            hold: 18 + k * 3, r: 0.5, size: 0.4, color: C.crimson, dmg: SHOT + 1, life: 160,
             home: { target, turn: by(f, [70, 85, 95]) * DEG, ticks: by(f, [45, 50, 55]) } });
     }
     f.after(18, () => sound(f.dim, "mob.wither.shoot", f.boss.location, 1, 1.4));
@@ -167,7 +169,7 @@ export function homing(f, o = {}) {
 
 // 5. Spirals: rotating arms of bullets; in phase 3 a second spiral turns the other way.
 export function spiral(f, o = {}) {
-    const arms = by(f, [2, 3, 4]), every = by(f, [4, 3, 3]), span = o.span ?? 60;
+    const arms = by(f, [2, 3, 3]), every = by(f, [6, 5, 5]), span = o.span ?? 60;
     const turn = by(f, [9, 11, 12]) * DEG * (Math.random() < 0.5 ? 1 : -1);
     const dur = 12 + span + 6;
     pose(f, o, ANIM.spin, dur);
@@ -178,11 +180,11 @@ export function spiral(f, o = {}) {
         f.after(12 + t, () => {
             const from = at(f);
             for (let k = 0; k < arms; k++) {
-                shoot(f, { ...from, angle: base + e * turn + (k / arms) * 2 * Math.PI, speed: speed(f, 6), color: C.magenta, dmg: 4 });
+                shoot(f, { ...from, angle: base + e * turn + (k / arms) * 2 * Math.PI, speed: speed(f, 6), color: C.magenta, dmg: SHOT });
             }
             if (f.phase >= 3 && e % 2 === 0) {
                 for (let k = 0; k < 2; k++) {
-                    shoot(f, { ...from, angle: -base - e * turn * 1.5 + k * Math.PI, speed: speed(f, 5), color: C.azure, dmg: 4 });
+                    shoot(f, { ...from, angle: -base - e * turn * 1.5 + k * Math.PI, speed: speed(f, 5), color: C.azure, dmg: SHOT });
                 }
             }
             if (e % 4 === 0) sound(f.dim, "mob.shulker.shoot", f.boss.location, 0.6, 1.8);
@@ -193,7 +195,7 @@ export function spiral(f, o = {}) {
 
 // 5b. Flower: two rings whose bullets curve opposite ways, weaving petals, then fly straight.
 export function flower(f, o = {}) {
-    const n = by(f, [10, 12, 14]), waves = by(f, [2, 3, 3]);
+    const n = by(f, [6, 7, 8]), waves = by(f, [2, 2, 3]);
     const dur = 14 + waves * 16 + 10;
     pose(f, o, ANIM.spin, dur);
     sound(f.dim, "block.bell.hit", f.boss.location, 1.5, 1.6);
@@ -204,8 +206,8 @@ export function flower(f, o = {}) {
             const from = at(f);
             for (let k = 0; k < n; k++) {
                 const a = base + ((k + w * 0.5) / n) * 2 * Math.PI;
-                shoot(f, { ...from, angle: a, speed: speed(f, 5.2), curve: 75 * DEG, curveTicks: 26, color: C.jade, dmg: 4 });
-                shoot(f, { ...from, angle: a, speed: speed(f, 5.2), curve: -75 * DEG, curveTicks: 26, color: C.white, size: 0.18, dmg: 4 });
+                shoot(f, { ...from, angle: a, speed: speed(f, 5.2), curve: 75 * DEG, curveTicks: 26, color: C.jade, dmg: SHOT });
+                shoot(f, { ...from, angle: a, speed: speed(f, 5.2), curve: -75 * DEG, curveTicks: 26, color: C.white, size: 0.24, dmg: SHOT });
             }
             sound(f.dim, "chime.amethyst_block", f.boss.location, 1.2, 1.4);
         });
@@ -216,7 +218,7 @@ export function flower(f, o = {}) {
 // 5c. Constellation: a ring flies out, stops (the stars are joined by lines), then every
 // star shoots at the nearest target.
 export function constellation(f, o = {}) {
-    const n = by(f, [10, 14, 18]), out = 18, wait = by(f, [22, 18, 16]);
+    const n = by(f, [6, 8, 10]), out = 18, wait = by(f, [22, 18, 16]);
     const dur = out + wait + 30;
     pose(f, o, ANIM.summon, dur);
     sound(f.dim, "mob.evocation_illager.cast_spell", f.boss.location, 1.5, 1.4);
@@ -226,7 +228,7 @@ export function constellation(f, o = {}) {
     for (let k = 0; k < n; k++) {
         const a = base + (k / n) * 2 * Math.PI;
         stars.push({ x: from.x + Math.cos(a) * sp * ((out - 1) / 20), z: from.z + Math.sin(a) * sp * ((out - 1) / 20) });
-        shoot(f, { ...from, angle: a, speed: sp, color: C.azure, size: 0.26, dmg: 4, life: 240,
+        shoot(f, { ...from, angle: a, speed: sp, color: C.azure, size: 0.3, dmg: SHOT, life: 240,
             stop: { at: out, hold: wait, speed: speed(f, 9), aim: nearest } });
     }
     f.after(out + 1, () => {
@@ -247,10 +249,10 @@ function wallFrom(f, side, hold) {
     const gap = (Math.random() * 2 - 1) * (a.R - 7), half = 1.9;
     const start = { x: a.cx - dir.x * R, z: a.cz - dir.z * R };
     const angle = Math.atan2(dir.z, dir.x), v = speed(f, 5.5);
-    for (let s = -R; s <= R; s += 0.95) {
+    for (let s = -R; s <= R; s += 1.5) {
         if (Math.abs(s - gap) < half) continue;
         shoot(f, { x: start.x + across.x * s, z: start.z + across.z * s, angle, speed: v, hold, square: true,
-            color: C.gold, dmg: 4, life: hold + Math.ceil((2 * R / v) * 20) + 4 });
+            color: C.gold, dmg: SHOT, life: hold + Math.ceil((2 * R / v) * 20) + 4 });
     }
     const life = (hold + (2 * R / v) * 20) / 20;
     for (const e of [gap - half, gap + half]) {
@@ -296,12 +298,12 @@ export function cross(f, o = {}) {
                 ground(f, from.x + Math.cos(b) * 11, from.z + Math.sin(b) * 11), C.white, warn / 20 + 0.2, 1.5);
         }
     }
-    for (let s = 0; s < span; s += 2) {
+    for (let s = 0; s < span; s += 3) {
         f.after(warn + s, () => {
             const p = at(f);
             for (let k = 0; k < arms; k++) {
                 const a = base + (k / arms) * 2 * Math.PI + spin * (s / 20);
-                shoot(f, { ...p, angle: a, speed: speed(f, 9), color: C.gold, dmg: 4, size: 0.2 });
+                shoot(f, { ...p, angle: a, speed: speed(f, 9), color: C.gold, dmg: SHOT, size: 0.2 });
             }
         });
     }
@@ -330,11 +332,11 @@ export function satellites(f, o = {}) {
             const target = f.nearestTo(s);
             if (!target) return;
             const aim = yawTo(s, target.location);
-            for (let i = 0; i < 3; i++) {
-                f.after(i * 3, () => shoot(f, { ...s, angle: aim, speed: speed(f, 9.5), color: C.white, dmg: 4 }));
+            for (let i = 0; i < 2; i++) {
+                f.after(i * 4, () => shoot(f, { ...s, angle: aim, speed: speed(f, 9.5), color: C.white, dmg: SHOT }));
             }
             if (f.phase >= 2) {
-                for (let i = 0; i < 8; i++) shoot(f, { ...s, angle: (i / 8) * 2 * Math.PI, speed: speed(f, 4), color: C.azure, dmg: 4 });
+                for (let i = 0; i < 6; i++) shoot(f, { ...s, angle: (i / 6) * 2 * Math.PI, speed: speed(f, 4), color: C.azure, dmg: SHOT });
             }
             sound(f.dim, "mob.shulker.shoot", { ...s, y: a.floor + 1 }, 1.5, 1.2);
         });
@@ -516,9 +518,9 @@ export function dash(f, o = {}) {
                         }
                     }
                     if (n % 2 === 0) burst(f.dim, { x: l.x, y: l.y + 1, z: l.z }, C.danger, 6, 2);
-                    if (f.phase >= 2 && n % 3 === 0) {
+                    if (f.phase >= 2 && n % 5 === 0 && f.kind !== "azure") { // the blue one has no bullets
                         for (const side of [1, -1]) {
-                            shoot(f, { x: l.x, z: l.z, angle: ang + side * Math.PI / 2, speed: 4, hold: 14, color: C.danger, dmg: 4, life: 120 });
+                            shoot(f, { x: l.x, z: l.z, angle: ang + side * Math.PI / 2, speed: 4, hold: 14, color: C.danger, dmg: SHOT, life: 120 });
                         }
                     }
                     return true;
@@ -566,7 +568,7 @@ export function triLines(f, o = {}) {
 // 15. Summoning grid: a grid of light is drawn around the boss; diamonds appear in
 // its cells, wave after wave, and each one fires at the nearest target.
 export function gridSummon(f, o = {}) {
-    const a = f.arena, n = by(f, [4, 5, 6]), cell = 4, warn = 20;
+    const a = f.arena, n = by(f, [3, 4, 5]), cell = 5, warn = 20;
     const p = at(f), half = (n * cell) / 2;
     const x0 = p.x - half, z0 = p.z - half;
     const waves = 2 * n - 1, every = by(f, [6, 5, 4]);
@@ -586,15 +588,130 @@ export function gridSummon(f, o = {}) {
             f.after(warn + (i + j) * every, () => {
                 flatRing(f.dim, ground(f, cx, cz), 1.6, C.azure, 0.9, { speed: -1.6 / 0.9 });
                 // the diamond waits in its cell, then flies at the nearest target
-                shoot(f, { x: cx, z: cz, angle: 0, speed: 0, color: C.azure, size: 0.26, dmg: 4, life: 220,
+                shoot(f, { x: cx, z: cz, angle: 0, speed: 0, color: C.azure, size: 0.3, dmg: SHOT, life: 220,
                     stop: { at: 1, hold: 18, speed: speed(f, 8.5), aim: nearest } });
                 if (f.phase >= 3 && (i + j) % 2 === 0) {
                     f.after(19, () => {
-                        for (let k = 0; k < 4; k++) shoot(f, { x: cx, z: cz, angle: (k * Math.PI) / 2, speed: speed(f, 5), color: C.white, dmg: 4 });
+                        for (let k = 0; k < 4; k++) shoot(f, { x: cx, z: cz, angle: (k * Math.PI) / 2, speed: speed(f, 5), color: C.white, dmg: SHOT });
                     });
                 }
             });
         }
+    }
+    return dur;
+}
+
+// --- the blue Eclipse's own attacks (no bullets) -------------------------------------------
+// 16. Mirages: translucent clones appear at the edge of the arena, each marks its path
+// in red and dashes across it. Hitting a clone breaks it.
+const CLONE = "eclipse:azure_clone";
+
+export function clones(f, o = {}) {
+    const a = f.arena, n = by(f, [2, 3, 4]), warn = by(f, [26, 22, 20]), apart = 10;
+    const dur = (n - 1) * apart + warn + 34;
+    pose(f, o, ANIM.summon, dur);
+    sound(f.dim, "mob.evocation_illager.cast_spell", f.boss.location, 1.5, 1.6);
+    const base = Math.random() * 2 * Math.PI;
+    for (let k = 0; k < n; k++) {
+        f.after(k * apart, () => {
+            const ang = base + (k / n) * 2 * Math.PI;
+            const s0 = { x: a.cx + Math.cos(ang) * (a.R - 2), z: a.cz + Math.sin(ang) * (a.R - 2) };
+            const t = f.nearestTo(s0);
+            const dir = t ? yawTo(s0, t.location) : ang + Math.PI;
+            let len = 4;
+            while (len < 44 && Math.hypot(s0.x + Math.cos(dir) * (len + 1) - a.cx, s0.z + Math.sin(dir) * (len + 1) - a.cz) < a.R - 1) len++;
+            const e = { x: s0.x + Math.cos(dir) * len, z: s0.z + Math.sin(dir) * len };
+            let clone;
+            try {
+                clone = f.dim.spawnEntity(CLONE, { x: s0.x, y: a.floor + 0.4, z: s0.z },
+                    { initialRotation: yawOf(Math.cos(dir), Math.sin(dir)) });
+                track(clone, (warn + 40) / 20, "clone");
+            } catch {
+                return;
+            }
+            burst(f.dim, { x: s0.x, y: a.floor + 1.2, z: s0.z }, C.azure, 20, 4);
+            sound(f.dim, "mob.endermen.portal", { x: s0.x, y: a.floor + 1, z: s0.z }, 1.5, 1.6);
+            line(f.dim, ground(f, s0.x, s0.z), ground(f, e.x, e.z), C.danger, warn / 20);
+            const ticks = Math.ceil((len / 22) * 20);
+            const hit = new Set();
+            let n2 = 0, x = s0.x, z = s0.z;
+            f.after(warn, () => {
+                sound(f.dim, "mob.enderdragon.flap", { x, y: a.floor + 1, z }, 1.5, 1.6);
+                effect(f, () => {
+                    if (n2++ > ticks) {
+                        burst(f.dim, { x, y: a.floor + 1.2, z }, C.azure, 16, 3);
+                        try {
+                            clone.remove();
+                        } catch {
+                            // broken already
+                        }
+                        if (f.phase >= 3) zone(f, { x, z, r0: 1, r1: 3, grow: 12, hold: 4, dmg: 6, color: C.azure });
+                        return false;
+                    }
+                    x += (Math.cos(dir) * 22) / 20;
+                    z += (Math.sin(dir) * 22) / 20;
+                    try {
+                        clone.clearVelocity();
+                        clone.applyImpulse({ x: (Math.cos(dir) * 22) / 20, y: 0, z: (Math.sin(dir) * 22) / 20 });
+                    } catch {
+                        return false; // broken by a player
+                    }
+                    for (const t2 of f.targets()) {
+                        const l = t2.location;
+                        if (hit.has(t2.id) || Math.hypot(l.x - x, l.z - z) > 1.5 || l.y - a.floor > 3) continue;
+                        hit.add(t2.id);
+                        f.hit(t2, 7);
+                    }
+                    if (n2 % 2 === 0) burst(f.dim, { x, y: a.floor + 1.2, z }, C.azure, 4, 2);
+                    return true;
+                });
+            });
+        });
+    }
+    return dur;
+}
+
+// 17. Bombardment: waves of explosions fall on the targets and around the arena.
+export function bombard(f, o = {}) {
+    const waves = o.waves ?? by(f, [3, 4, 5]), per = by(f, [5, 7, 9]), every = by(f, [14, 12, 10]);
+    const grow = 18, hold = 6;
+    const dur = waves * every + grow + hold + 8;
+    pose(f, o, ANIM.raise, dur);
+    sound(f.dim, "mob.evocation_illager.prepare_attack", f.boss.location, 1.5, 0.6);
+    const a = f.arena;
+    for (let w = 0; w < waves; w++) {
+        f.after(w * every, () => {
+            const spots = f.targets().slice(0, 4).map((t) => ({ x: t.location.x, z: t.location.z }));
+            for (let i = 0; i < per; i++) {
+                const ang = Math.random() * 2 * Math.PI, d = Math.sqrt(Math.random()) * (a.R - 2);
+                spots.push({ x: a.cx + Math.cos(ang) * d, z: a.cz + Math.sin(ang) * d });
+            }
+            for (const p of spots) zone(f, { ...p, r0: 0.6, r1: 2.4, grow, hold, dmg: 7, color: C.azure });
+        });
+    }
+    return dur;
+}
+
+// 18. Bands of light: the rings around the boss are marked by red walls; every other ring
+// explodes, then the rest. Stand in the ring that is not about to blow, then move.
+export function bands(f, o = {}) {
+    const p = at(f), fuse = by(f, [34, 30, 26]), gap = by(f, [28, 24, 20]);
+    const edges = [2.5, 6.5, 10.5, 14.5, 18.5, 22.5];
+    const dur = gap + fuse + 10;
+    const t1 = o.secondary ? 0 : f.pose(ANIM.charge);
+    if (!o.secondary) {
+        f.after(fuse - 4, () => {
+            if (f.unpose(t1, false)) {
+                const t2 = f.pose(ANIM.release);
+                f.after(dur - fuse, () => f.unpose(t2));
+            }
+        });
+    }
+    sound(f.dim, "mob.warden.sonic_charge", f.boss.location, 1.5, 1);
+    const shift = Math.random() < 0.5 ? 0 : 1;
+    for (let i = 0; i < edges.length - 1; i++) {
+        const first = (i + shift) % 2 === 0;
+        f.after(first ? 0 : gap, () => band(f, { ...p, rIn: edges[i], rOut: edges[i + 1], fuse, dmg: 8 }));
     }
     return dur;
 }
@@ -621,19 +738,19 @@ export function combo(f, first, second, delay = 10, o2 = {}) {
 }
 
 export const ATTACKS = { volley, rings, raysFollow, raysGrid, raySpiral, homing, spiral, flower, constellation, walls,
-    cross, satellites, nova, trap, shock, sweep, lattice, dash, triLines, gridSummon, repel };
+    cross, satellites, nova, trap, shock, sweep, lattice, dash, triLines, gridSummon, clones, bombard, bands, repel };
 
 /** What kind of attack each is, and the range it suits (boss.js picks with these). */
 export const KIND = {
     volley: "shots", rings: "shots", spiral: "shots", flower: "shots", constellation: "shots", walls: "shots",
     cross: "shots", satellites: "shots", gridSummon: "shots", homing: "seek", dash: "move",
     raysFollow: "sky", raysGrid: "sky", raySpiral: "sky", nova: "area", trap: "area", shock: "area",
-    sweep: "laser", lattice: "laser", triLines: "laser", repel: "area",
+    sweep: "laser", lattice: "laser", triLines: "laser", repel: "area", clones: "move", bombard: "sky", bands: "area",
 };
 export const RANGE = { area: "near", laser: "near", seek: "far", move: "far", sky: "far" };
 
 /** Each phase's deck: [attack, weight] or [[first, second, delay, options], weight]. */
-export const DECKS = [
+const BLACK = [
     [["volley", 3], ["rings", 3], ["raysFollow", 2], ["homing", 2], ["nova", 1], ["shock", 1], ["cross", 1],
         ["sweep", 2], ["constellation", 2], ["flower", 1], ["raySpiral", 1], ["triLines", 2], ["gridSummon", 1]],
     [["volley", 2], ["rings", 1], ["raysFollow", 1], ["raysGrid", 2], ["raySpiral", 1], ["homing", 1], ["spiral", 2],
@@ -650,4 +767,20 @@ export const DECKS = [
         [["constellation", "raySpiral", 14], 1], ["triLines", 2], ["gridSummon", 2],
         [["triLines", "spiral", 8, { span: 40 }], 2], [["gridSummon", "sweep", 20], 1]],
 ];
+
+// The blue Eclipse: no bullets at all.
+const AZURE = [
+    [["raysFollow", 2], ["sweep", 2], ["triLines", 2], ["nova", 1], ["shock", 2], ["bands", 2], ["bombard", 2], ["clones", 2],
+        ["dash", 1], ["raySpiral", 1]],
+    [["raysFollow", 1], ["sweep", 2], ["triLines", 2], ["nova", 1], ["shock", 1], ["bands", 2], ["bombard", 2], ["clones", 2],
+        ["dash", 2], ["raySpiral", 1], ["lattice", 2], ["raysGrid", 2], ["trap", 1],
+        [["lattice", "raysFollow", 24, { strikes: 2 }], 1], [["triLines", "bombard", 10, { waves: 2 }], 1],
+        [["bands", "raysFollow", 12, { strikes: 2 }], 1], [["clones", "sweep", 16], 1]],
+    [["sweep", 1], ["triLines", 1], ["nova", 2], ["shock", 1], ["bands", 2], ["bombard", 1], ["clones", 2], ["dash", 2],
+        ["lattice", 2], ["raysGrid", 1], ["trap", 1], ["raySpiral", 1],
+        [["raysGrid", "shock", 20], 2], [["clones", "triLines", 14], 2], [["lattice", "bombard", 10, { waves: 2 }], 2],
+        [["nova", "clones", 10], 1], [["sweep", "raySpiral", 16], 1], [["bands", "lattice", 30], 1]],
+];
+
+export const DECKS = { black: BLACK, azure: AZURE };
 
