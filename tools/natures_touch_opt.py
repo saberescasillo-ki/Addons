@@ -7,9 +7,8 @@ Optimisations (same look and behaviour as far as possible):
   * tick.json summoned an ambience entity EVERY tick (20 a second, everywhere) only
     for the Pale Garden haze: now one every 10 ticks per player, with a haze particle
     that emits 10 times more (tools/natures_touch/ambience.js);
-  * the wind was a "monster" that spawned naturally all over the Overworld (100 of
-    101 vanished at once, taking monster spawn attempts): no spawn rule now; a script
-    plays a gust now and then, with a lighter particle (radius 32, 120/s);
+  * the wind (a "monster" that spawned naturally all over the Overworld, 100 of 101
+    vanishing at once, with its sounds) is gone;
   * fruit leaves, berry bushes, crops, petal leaves and the pale flower summoned an
     entity on every random tick: the script does the same job directly
     (tools/natures_touch/nature_ticks.js), no entity is created;
@@ -18,6 +17,10 @@ Optimisations (same look and behaviour as far as possible):
     over up to 320 blocks, so nearly every try landed in air or rock: they now aim at
     the surface (the heightmap) with as many tries as were actually landing there.
     Clovers, orchard flowers, grass and cotton make fewer tries, clovers nearby only.
+Then tools/natures_touch/separate.py: custom biomes removed except the Lavender Forest
+(and the Sand Savanna), the remakes and the Lavender Forest as separate biomes (vanilla
+biomes back to vanilla), no mosquitoes, leaves that do not vanish in the distance.
+
 Fixes: four JSON files with a missing comma or brace (pale grass and mushrooms never
 generated), two feature rules placing features that do not exist (poplar leaf litter,
 chorus lavender), unregistered block
@@ -39,6 +42,8 @@ import zipfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import dungeons_mobs as dm  # noqa: E402
+sys.path.insert(0, os.path.join(HERE, "natures_touch"))
+import separate  # noqa: E402
 from dungeons_mobs import load, dump, read  # noqa: E402
 
 ROOT = os.path.dirname(HERE)
@@ -309,12 +314,6 @@ def particles():
         r["max_particles"] = r["max_particles"] * AMBIENCE_EVERY
     edit_json(os.path.join(RP, "particles", "palegardeneffect.particle.json"), haze)
 
-    def wind(d):
-        c = d["particle_effect"]["components"]
-        c["minecraft:emitter_rate_steady"] = {"spawn_rate": 120, "max_particles": 121}
-        c["minecraft:emitter_shape_sphere"]["radius"] = 32
-        c["minecraft:emitter_lifetime_once"] = {"active_time": "math.random(4, 10)"}
-    edit_json(os.path.join(RP, "particles", "windeffect.particle.json"), wind)
 
 
 def resources():
@@ -381,6 +380,35 @@ def report(src_bp):
     return rows
 
 
+def area_cost(bp, vanilla):
+    """Generation work the add-on adds, per chunk, where the world would have `vanilla`:
+    the share each add-on biome takes of it, at that biome's cost; the rest at the cost
+    of the add-on's decoration on the vanilla biome itself."""
+    biomes = separate.biome_index(bp)
+    share, cost = 0.0, 0.0
+    for ident, b in biomes.items():
+        amounts = [a for t, a in b["targets"] if t == "minecraft:" + vanilla]
+        if amounts and not ident.startswith("minecraft:"):
+            share += amounts[0]
+            cost += amounts[0] * gen_cost(bp, b["tags"])
+    if share > 1:              # several biomes compete for it: they split it
+        cost, share = cost / share, 1.0
+    return cost + (1 - share) * gen_cost(bp, set(separate.VANILLA_TAGS[vanilla]))
+
+
+def world_report(src_bp, stage1):
+    print("\nGeneración que añade el addon, por chunk, según el bioma vanilla de la zona (estimado)")
+    print(f"  {'zona':26} {'original':>9} {'1.ª optim.':>10} {'ahora':>8}")
+    tot = [0.0, 0.0, 0.0]
+    for v in sorted(separate.VANILLA_TAGS):
+        row = [area_cost(src_bp, v), area_cost(stage1, v), area_cost(BP, v)]
+        tot = [a + b for a, b in zip(tot, row)]
+        print(f"  {v:26} {row[0]:9.0f} {row[1]:10.0f} {row[2]:8.0f}")
+    print(f"  {'media':26} {tot[0] / 20:9.0f} {tot[1] / 20:10.0f} {tot[2] / 20:8.0f}")
+    print(f"  ahora frente al original: -{100 * (1 - tot[2] / tot[0]):.0f} %; frente a la 1.ª optimización: "
+          f"-{100 * (1 - tot[2] / tot[1]):.0f} %")
+
+
 def build(src_dir):
     src_bp, src_rp = dm.find_packs(src_dir)
     for d in (BP, RP):
@@ -409,6 +437,14 @@ def build(src_dir):
     fix_blocks()
     resources()
     manifests()
+    stage1 = tempfile.mkdtemp()
+    for folder in ("feature_rules", "features", "biomes"):
+        shutil.copytree(os.path.join(BP, folder), os.path.join(stage1, folder))
+    print("Segunda etapa: biomas aparte, sin mosquitos ni viento")
+    separate.separate_biomes(BP, RP, matches, print)
+    separate.remove_entity(BP, RP, "mob:mosquito", print)
+    separate.remove_wind(BP, RP, print)
+    separate.opaque_leaves(BP, print)
     with zipfile.ZipFile(MCADDON, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         for pack in (BP, RP):
             for dirpath, dirs, fs in os.walk(pack):
@@ -419,7 +455,8 @@ def build(src_dir):
                     info.compress_type = zipfile.ZIP_DEFLATED
                     with open(full, "rb") as f:
                         z.writestr(info, f.read(), compresslevel=9)
-    report(src_bp)
+    world_report(src_bp, stage1)
+    shutil.rmtree(stage1, ignore_errors=True)
     print(f"OK -> {os.path.relpath(MCADDON, ROOT)} ({os.path.getsize(MCADDON) / 1e6:.1f} MB)")
 
 
