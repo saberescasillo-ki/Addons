@@ -206,6 +206,18 @@ class Lint:
     def own_anim(self, name):
         return not name.startswith(("animation.humanoid", "animation.player", "controller.animation.humanoid"))
 
+    def biome_checks(self):
+        for p in [p for p in self.json if os.sep + "biomes" + os.sep in p and p.startswith(self.bp)]:
+            d = self.json[p]
+            if not isinstance(d, dict):
+                continue
+            rb = d.get("minecraft:biome", {}).get("components", {}).get("minecraft:replace_biomes", {})
+            for r in rb.get("replacements", []) if isinstance(rb, dict) else []:
+                bad = [t for t in r.get("targets", []) if ":" in t]
+                if bad:
+                    self.p("ERROR", self.rel(p), f"replace_biomes: los destinos no llevan namespace ({bad[0]} -> "
+                           f"{bad[0].split(':')[-1]}); así el bioma no se genera")
+
     def item_block_checks(self):
         for kind, table, key in (("objeto", self.items, "minecraft:item"), ("bloque", self.blocks, "minecraft:block")):
             for ident, p in table.items():
@@ -425,6 +437,7 @@ class Lint:
         self.client_checks()
         self.item_texture_checks()
         self.sound_checks()
+        self.biome_checks()
         self.text_checks()
         return self.problems
 

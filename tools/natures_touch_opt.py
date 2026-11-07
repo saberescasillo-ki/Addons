@@ -28,7 +28,8 @@ components (redwood trapdoor, large green brick stairs) and a missing texture, e
 and component groups that do not exist (bee, queen bee, mosquito, wasp), loot tables
 that do not exist (raccoon, wasp), the phantom summoning a mob that does not exist, the
 deer's death sound, the zombified pig's step sound (nested inside another sound), two
-textures that do not exist, and the names of nine mobs.
+textures that do not exist, the names of nine mobs, a stairs block with a loot table that does not exist, and the
+legacy blocks.json textures that made the game warn for every custom block.
 """
 import json
 import math
@@ -282,12 +283,61 @@ def fix_blocks():
     def stairs(d):
         c = d["minecraft:block"]["components"]
         c.pop("block_large_green_brick_stairs:trigger", None)
+        c.pop("minecraft:loot", None)   # its loot table does not exist: drop itself, like the other stairs
         for m in c.get("minecraft:material_instances", {}).values():
             if m.get("texture") == "block_large_green_brick_stairs":
                 m["texture"] = "block_large_green_bricks"
         for p in d["minecraft:block"].get("permutations", []):
             p.get("components", {}).pop("block_large_green_brick_stairs:trigger", None)
     edit_json(os.path.join(BP, "blocks", "stairs", "block_large_green_brick_stairs.json"), stairs)
+
+
+def block_loot():
+    """Blocks whose loot table does not exist log "Invalid asset path": the ones meant to
+    drop nothing use the vanilla empty table, the rest drop themselves."""
+    n = 0
+    for r, _, fs in os.walk(os.path.join(BP, "blocks")):
+        for name in fs:
+            def f(d):
+                nonlocal n
+                b = d.get("minecraft:block", {})
+                for c in [b.get("components", {})] + [x.get("components", {}) for x in b.get("permutations", [])]:
+                    t = c.get("minecraft:loot")
+                    t = t if isinstance(t, str) else (t or {}).get("table") if isinstance(t, dict) else None
+                    if not t or t == "loot_tables/empty.json" or os.path.exists(os.path.join(BP, t)):
+                        continue
+                    n += 1
+                    if t.endswith("/empty.json"):
+                        c["minecraft:loot"] = "loot_tables/empty.json"
+                    else:
+                        del c["minecraft:loot"]
+            edit_json(os.path.join(r, name), f)
+    print(f"  bloques con tabla de botín inexistente arreglados: {n}")
+
+
+def blocks_json():
+    """blocks.json gave textures to custom blocks that have their own geometry and
+    material instances: the game ignores them and warns ("trying to override the
+    Geometry component with blocks.json settings"). Only their sound is kept."""
+    geo = set()
+    for r, _, fs in os.walk(os.path.join(BP, "blocks")):
+        for n in fs:
+            b = load(os.path.join(r, n)).get("minecraft:block", {})
+            comps = [b.get("components", {})] + [p.get("components", {}) for p in b.get("permutations", [])]
+            if any("minecraft:geometry" in c for c in comps):
+                geo.add(b["description"]["identifier"])
+    n = 0
+
+    def f(d):
+        nonlocal n
+        for k, v in d.items():
+            if k in geo and isinstance(v, dict):
+                for key in ("textures", "carried_textures", "isotropic", "blockshape", "brightness_gamma"):
+                    if key in v:
+                        del v[key]
+                        n += 1
+    edit_json(os.path.join(RP, "blocks.json"), f)
+    print(f"  blocks.json: {n} definiciones antiguas quitadas")
 
 
 def scripts():
@@ -343,12 +393,16 @@ def resources():
         f.write(("" if text.endswith("\n") else "\n") + "\n".join(add) + "\n")
 
 
+BUILD = 2   # 1.0.24 was the first builds, 1.0.25 fixes the biomes
+
+
 def manifests():
     for pack in (BP, RP):
         def f(m):
             m["header"]["name"] += " (optimizado)"
             v = m["header"]["version"]
-            m["header"]["version"] = v[:2] + [v[2] + 1]   # imports over the original
+            # imports over the original; + BUILD so a new build also replaces the previous one
+            m["header"]["version"] = v[:2] + [v[2] + BUILD]
             for mod in m["modules"]:
                 mod["version"] = m["header"]["version"]
             for dep in m.get("dependencies", []):
@@ -387,7 +441,7 @@ def area_cost(bp, vanilla):
     biomes = separate.biome_index(bp)
     share, cost = 0.0, 0.0
     for ident, b in biomes.items():
-        amounts = [a for t, a in b["targets"] if t == "minecraft:" + vanilla]
+        amounts = [a for t, a in b["targets"] if t.split(":")[-1] == vanilla]
         if amounts and not ident.startswith("minecraft:"):
             share += amounts[0]
             cost += amounts[0] * gen_cost(bp, b["tags"])
@@ -435,6 +489,8 @@ def build(src_dir):
     optimise_generation(src_bp)
     fix_entities()
     fix_blocks()
+    block_loot()
+    blocks_json()
     resources()
     manifests()
     stage1 = tempfile.mkdtemp()

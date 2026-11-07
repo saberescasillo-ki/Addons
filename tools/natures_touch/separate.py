@@ -2,6 +2,8 @@
 no wind, leaves that do not vanish in the distance.
 
   * Custom biomes removed except the Lavender Forest; the Sand Savanna removed too.
+  * The add-on wrote its biome targets as "minecraft:forest"; the game wants "forest"
+    (no namespace), so its biomes never generated: fixed.
   * The kept ones (the remakes and the Lavender Forest) become biomes of their own:
     they take SHARE of the vanilla biomes they replaced (it was 90 %), carry the tag
     "nt_biome", and every decoration of the add-on needs that tag: vanilla biomes go
@@ -22,6 +24,7 @@ import shutil
 from dungeons_mobs import load, dump, read
 
 SHARE = 0.35
+NOISE = 25          # patch size: the documented examples use 25 (the add-on had 1: huge, rare areas)
 KEEP_CUSTOM = {"nt:lavender_forest"}
 DROP = {"nt:sand_savanna_remake"}
 TAG = "nt_biome"
@@ -86,6 +89,10 @@ def separate_biomes(bp, rp, matches, log):
         c = d["minecraft:biome"]["components"]
         for r in c.get("minecraft:replace_biomes", {}).get("replacements", []):
             r["amount"] = min(r.get("amount", 1), SHARE)
+            # "Target biomes must not contain namespaces": with "minecraft:forest" the
+            # add-on's biomes never generated at all
+            r["targets"] = [t.split(":", 1)[1] if t.startswith("minecraft:") else t for t in r.get("targets", [])]
+            r["noise_frequency_scale"] = NOISE
         tags = c.setdefault("minecraft:tags", {}).setdefault("tags", [])
         if TAG not in tags:
             tags.append(TAG)
