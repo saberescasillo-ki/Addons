@@ -18,7 +18,9 @@ Optimisations (same look and behaviour as far as possible):
     spawns 10 times less and drops a meteor 10 times more often: the same meteors;
   * the wind (spawned as a mob all over the Overworld, 100 of 101 removed at once,
     with its sounds and particle) is gone;
-  * leaves no longer vanish in the distance (alpha_test -> alpha_test_to_opaque).
+  * leaves no longer vanish in the distance (alpha_test -> alpha_test_to_opaque);
+  * the forests' leaf-litter removal and the wasteland's dead grass picked a random height
+    over 17 and 100 blocks: they aim at the surface, with as many tries as were landing.
 Fixes: ten JSON files with a missing comma, brace, quote or a broken first line,
 custom biomes whose replace_biomes targets carried "minecraft:" (targets must not
 have a namespace, so the biome never generated), legacy blocks.json textures for blocks
@@ -238,6 +240,36 @@ def biomes():
     print(f"  biomas con destinos sin namespace (ahora se pueden generar): {n}")
 
 
+# Surface replacements that picked a random height over many blocks (most tries landed in
+# air or rock): they aim at the surface with as many tries as were landing there.
+SURFACE = {
+    "no_leaf_litter_feature.json": "query.heightmap(variable.worldx, variable.worldz) - 1",
+    "overworld_underground_dead_grass_feature.json": "query.heightmap(variable.worldx, variable.worldz) - 1",
+}
+
+
+def gen_average(bp):
+    tags = separate.VANILLA_TAGS
+    return sum(nto.gen_cost(bp, set(t)) for t in tags.values()) / len(tags)
+
+
+def generation():
+    feats = nto.Features(BP)
+    before = gen_average(BP)
+    for n, y in SURFACE.items():
+        path = os.path.join(BP, "feature_rules", n)
+        data = load(path)
+        dist = data["minecraft:feature_rules"]["distribution"]
+        f = feats.f[data["minecraft:feature_rules"]["description"]["places_feature"]][1]
+        ext = dist["y"]["extent"]
+        landing = nto.as_num(dist.get("iterations"), 1) * nto.blob_span(nto.as_num(f.get("count"), 1)) / max(1, ext[1] - ext[0])
+        dist["y"] = y
+        dist["iterations"] = max(1, int(-(-landing * 1.25 // 1)))
+        dump(path, data)
+    after = gen_average(BP)
+    print(f"  generación (zonas vanilla, por chunk): {before:.0f} -> {after:.0f} ({(after / before - 1) * 100:+.0f} %)")
+
+
 def manifests():
     for pack in (BP, RP):
         def f(m):
@@ -265,6 +297,7 @@ def build(src_dir):
     meteors()
     separate.remove_wind(BP, RP, print)
     biomes()
+    generation()
     separate.opaque_leaves(BP, print)
     nto.block_loot()
     nto.blocks_json()
