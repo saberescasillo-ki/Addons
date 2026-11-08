@@ -20,7 +20,10 @@ Optimisations (same look and behaviour as far as possible):
     with its sounds and particle) is gone;
   * leaves no longer vanish in the distance (alpha_test -> alpha_test_to_opaque);
   * the forests' leaf-litter removal and the wasteland's dead grass picked a random height
-    over 17 and 100 blocks: they aim at the surface, with as many tries as were landing.
+    over 17 and 100 blocks: they aim at the surface, with as many tries as were landing;
+  * mimic chests: the Nether and the End only try where they have blocks (same tries per
+    block of height); the End's item-frame removal makes 50 tries in its column, not 130;
+    the End's middle island no longer works out biome noise it never used.
 Fixes: ten JSON files with a missing comma, brace, quote or a broken first line,
 custom biomes whose replace_biomes targets carried "minecraft:" (targets must not
 have a namespace, so the biome never generated), legacy blocks.json textures for blocks
@@ -253,9 +256,67 @@ def gen_average(bp):
     return sum(nto.gen_cost(bp, set(t)) for t in tags.values()) / len(tags)
 
 
+NETHER_TAGS = {
+    "hell": ["nether", "nether_wastes", "hell", "spawn_few_zombified_piglins", "spawn_ghast"],
+    "crimson_forest": ["nether", "crimson_forest", "spawn_few_zombified_piglins"],
+    "warped_forest": ["nether", "warped_forest", "spawn_endermen"],
+    "soulsand_valley": ["nether", "soulsand_valley", "spawn_ghast", "spawn_endermen"],
+    "basalt_deltas": ["nether", "basalt_deltas", "spawn_many_magma_cubes", "spawn_ghast"],
+}
+MIMIC_RANGE = {"nether": [0, 128], "the_end": [0, 256]}   # where those dimensions have blocks
+AIR_ITERATIONS = 50
+
+
+def nether_average(bp):
+    return sum(nto.gen_cost(bp, set(t)) for t in NETHER_TAGS.values()) / len(NETHER_TAGS)
+
+
+def other_dimensions():
+    """The Nether and the End, without changing what generates."""
+    rules = os.path.join(BP, "feature_rules")
+    # mimic chests: the same tries per block of height, only where each dimension has blocks
+    path = os.path.join(rules, "overworld_underground_mimic_feature.json")
+    data = load(path)
+    rule = data["minecraft:feature_rules"]
+    dist = rule["distribution"]
+    lo, hi = dist["y"]["extent"]
+    per_block = dist["iterations"] / (hi - lo)
+    rule["conditions"]["minecraft:biome_filter"] = [{"any_of": [{"test": "has_biome_tag", "operator": "==", "value": "overworld"}]}]
+    dump(path, data)
+    for dim, (a, b) in MIMIC_RANGE.items():
+        d = json.loads(json.dumps(data))
+        r = d["minecraft:feature_rules"]
+        r["description"]["identifier"] += "_" + dim
+        r["conditions"]["minecraft:biome_filter"] = [{"any_of": [{"test": "has_biome_tag", "operator": "==", "value": dim}]}]
+        a, b = max(a, lo), min(b, hi)
+        r["distribution"]["y"] = {"distribution": "uniform", "extent": [a, b]}
+        r["distribution"]["iterations"] = max(1, round(per_block * (b - a)))
+        dump(path.replace(".json", f"_{dim}.json"), d)
+    # End: 130 tries in the same 70-block column (each clearing ~6 blocks) to remove item frames
+    path = os.path.join(rules, "overworld_underground_air_feature.json")
+    data = load(path)
+    data["minecraft:feature_rules"]["distribution"]["iterations"] = AIR_ITERATIONS
+    dump(path, data)
+    # End biome columns: the island in the middle (|x|, |z| <= 200) placed nothing (y = -1)
+    # but still worked out its biome noise for each of the 256 columns: now it skips it
+    path = os.path.join(rules, "end_column_placer.json")
+    data = load(path)
+    dist = data["minecraft:feature_rules"]["distribution"]
+    y = dist["y"]
+    tail = "return (math.abs(v.worldx) > 200 || math.abs(v.worldz) > 200) ? q.heightmap(v.worldx, v.worldz) - 1 : - 1;"
+    assert y.endswith(tail), "end_column_placer cambió"
+    body = y[: -len(tail)]
+    dist["y"] = ("t.far = math.abs(v.worldx) > 200 || math.abs(v.worldz) > 200; t.far ? { " + body
+                 + " }; return t.far ? q.heightmap(v.worldx, v.worldz) - 1 : -1;")
+    dump(path, data)
+    print(f"  End: comprobaciones de marcos {130 * 80} -> {AIR_ITERATIONS * 80} por chunk; la isla central ya no "
+          f"calcula el ruido de biomas (256 columnas por chunk)")
+
+
 def generation():
     feats = nto.Features(BP)
     before = gen_average(BP)
+    before_n = nether_average(BP)
     for n, y in SURFACE.items():
         path = os.path.join(BP, "feature_rules", n)
         data = load(path)
@@ -266,8 +327,14 @@ def generation():
         dist["y"] = y
         dist["iterations"] = max(1, int(-(-landing * 1.25 // 1)))
         dump(path, data)
+    other_dimensions()
     after = gen_average(BP)
-    print(f"  generación (zonas vanilla, por chunk): {before:.0f} -> {after:.0f} ({(after / before - 1) * 100:+.0f} %)")
+    after_n = nether_average(BP)
+    print(f"  generación Overworld (por chunk): {before:.0f} -> {after:.0f} ({(after / before - 1) * 100:+.0f} %)")
+    print(f"  generación Nether (por chunk): {before_n:.0f} -> {after_n:.0f} ({(after_n / before_n - 1) * 100:+.0f} %)")
+
+
+BUILD = 2   # 1.0.32 was the first build, 1.0.33 optimises the Nether and the End
 
 
 def manifests():
@@ -275,7 +342,7 @@ def manifests():
         def f(m):
             m["header"]["name"] += " (optimizado)"
             v = m["header"]["version"]
-            m["header"]["version"] = v[:2] + [v[2] + 1]
+            m["header"]["version"] = v[:2] + [v[2] + BUILD]   # a new build replaces the last one
             for mod in m["modules"]:
                 if mod.get("type") != "script":
                     mod["version"] = m["header"]["version"]
