@@ -43,7 +43,7 @@ BP = os.path.join(OUT, "TEUMobs_BP")
 RP = os.path.join(OUT, "TEUMobs_RP")
 MCADDON = os.path.join(OUT, "TEUMobs.mcaddon")
 NAME = "TEU Mobs"
-VERSION = [1, 0, 0]
+VERSION = [1, 0, 1]
 UUIDS = dict(bp="3b8e1f64-7a29-4c51-9d0e-2f6a8c4b7e13", bp_data="c1d74e98-5b36-4a2f-8e61-0a9f3d7c2b54",
              bp_script="8f2a6c31-9e47-4d18-b5a3-6c0e1f9d4a72", rp="5e9c2b17-4f83-4a6d-a1c8-7d3e0b6f2c95",
              rp_res="a4f61d38-2c95-4e7b-9b14-e8c3f0a5d261")
@@ -184,10 +184,22 @@ SUMMON_RECIPES = {
 GENESIS_TEXT = "Genesis Seed\n\n§7Plant it on Moss in the Lush Caves\nbelow Y=0 to awaken the Floral Amalgam"
 WHISTLE_JS = """import { world } from "@minecraft/server";
 
-// The Inferno Death Whistle wakes the sleeping Nuclear Ghast (as in the add-on).
+// The Inferno Death Whistle wakes the sleeping Nuclear Ghast (as in the add-on): the
+// item can now be used (held for a moment) and says so when no ghast sleeps nearby.
 world.afterEvents.itemUse.subscribe((e) => {
-    if (e.itemStack?.typeId === "item:inferno_death_whistle") {
-        e.source.runCommandAsync("function infernodeathwhistle");
+    const p = e.source;
+    if (e.itemStack?.typeId !== "item:inferno_death_whistle") return;
+    let near = [];
+    try {
+        near = p.dimension.getEntities({ type: "boss:irradiated_ghast_sleeping", location: p.location, maxDistance: 30 });
+    } catch {
+        // ignore
+    }
+    try {
+        p.runCommand("function infernodeathwhistle");
+        if (!near.length) p.runCommand("titleraw @s actionbar {\\"rawtext\\":[{\\"text\\":\\"§cNo hay ningún Ghast dormido a menos de 30 bloques\\"}]}");
+    } catch {
+        // ignore
     }
 });
 """
@@ -452,6 +464,10 @@ def build(src_dir):
         if ident not in SUMMON_ITEMS:
             data = aq.plain_item(data, entities, keep)
         ic = data["minecraft:item"]["components"]
+        if ident == "item:inferno_death_whistle":   # nothing to "use" in it: the use event never came
+            data["format_version"] = "1.21.40"
+            ic["minecraft:use_modifiers"] = {"use_duration": 0.5, "movement_modifier": 1.0}
+            ic["minecraft:cooldown"] = {"category": "inferno_death_whistle", "duration": 3}
         if ident == "item:genesis_seed":
             ic["minecraft:entity_placer"]["use_on"] = ["minecraft:moss_block"]
             ic["minecraft:display_name"] = {"value": GENESIS_TEXT}
