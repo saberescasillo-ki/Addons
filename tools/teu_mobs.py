@@ -9,13 +9,20 @@ Kept:
     nor the queen bee), with what they need: projectiles, attack entities, minions,
     functions, BP animations, loot, models, textures, animations, particles, sounds;
   * the structures they live in (STRUCTURES), with the blocks they are built of (and the
-    block scripts those blocks use) and their chest loot, generated in vanilla biomes;
-  * the items they drop or the chests hold, as plain items (their scripted effects and
-    recipes are left out), and each boss's summoning item or block, with a crafting
-    recipe of vanilla materials (SUMMON_RECIPES).
+    block scripts those blocks use), generated in vanilla biomes (the End ones rarely);
+    their spawners spawn the chosen mobs of each structure;
+  * each boss's summoning item or block, with a recipe of vanilla materials.
+Version 1.1 (tools/teu/extras.py, arenas.py, torpendo.js, compass.js):
+  * every boss has its own arena (a complex of rooms round a domed hall) generated very
+    rarely, where a formula puts it; a craftable compass per boss shows the way there;
+    the boss appears when a player walks into the hall;
+  * vanilla loot instead of the add-on's items (chests, trial spawners, drops, gear);
+  * lighter particles; no Wanderer, Evupul, Illager Airforcer, Shulk Jouster;
+  * Eternal Iris: -25 % health, no teleport on each shot; Torpendo: -15 % health and
+    damage, it lunges at its target every 2 seconds;
+  * the mobs that were invisible (a model named with other capitals) are seen again.
 Left out: the add-on's biomes and world generation, the other mobs, blocks and items,
-the overrides of vanilla mobs and loot, the add-on's spawners (they spawned mobs by
-custom biome and block) and its other scripts.
+the overrides of vanilla mobs and loot, the add-on's spawners and its other scripts.
 
 Spawning: the add-on's spawn rules keep their vanilla biomes, the custom ones become the
 vanilla biome each of them replaced (BIOME_TAGS); the mobs that only came from the
@@ -35,6 +42,8 @@ import dungeons_mobs as dm  # noqa: E402  (shared helpers: JSON, references, RP 
 import aqueous_mobs as aq  # noqa: E402
 import teu_opt  # noqa: E402
 import mcstructure as mcs  # noqa: E402
+sys.path.insert(0, os.path.join(HERE, "teu"))
+import extras  # noqa: E402  (1.1: vanilla loot, particles, arenas, compasses)
 from dungeons_mobs import load, dump, read, mentions  # noqa: E402
 
 ROOT = os.path.dirname(HERE)
@@ -43,17 +52,18 @@ BP = os.path.join(OUT, "TEUMobs_BP")
 RP = os.path.join(OUT, "TEUMobs_RP")
 MCADDON = os.path.join(OUT, "TEUMobs.mcaddon")
 NAME = "TEU Mobs"
-VERSION = [1, 0, 1]
+VERSION = [1, 1, 0]
 UUIDS = dict(bp="3b8e1f64-7a29-4c51-9d0e-2f6a8c4b7e13", bp_data="c1d74e98-5b36-4a2f-8e61-0a9f3d7c2b54",
              bp_script="8f2a6c31-9e47-4d18-b5a3-6c0e1f9d4a72", rp="5e9c2b17-4f83-4a6d-a1c8-7d3e0b6f2c95",
              rp_res="a4f61d38-2c95-4e7b-9b14-e8c3f0a5d261")
 
-MOBS = """evupul wanderer specter giant_squid torpendo hovering_inferno illager_balloon sky_seeker soulerized_ghast
+MOBS = """specter giant_squid torpendo hovering_inferno sky_seeker soulerized_ghast
 winter_breeze endersent unholy_assalter ghast_balloon shulk end_mooshroom redstone_golem angry_strider flying_shulker
-inviseer astral_orbiter aeroslime creether shulk_jouster prismider drenched_squid lurer deer drowned_shark praiser
+inviseer astral_orbiter aeroslime creether prismider drenched_squid lurer deer drowned_shark praiser
 turkey exorcist solaronemone abyss_guardian blighted_eye crystalized eternal_iris orthoceras grand_guritavoid""".split()
+REMOVED = {"mob:wanderer", "mob:evupul", "mob:illager_balloon", "mob:shulk_jouster"}
 BOSSES = ["boss:floral_amalgam", "boss:primordial_wyrm", "boss:primordial_wyrm_clone", "boss:pyrogen", "boss:sculk_boss",
-          "boss:astrageldon", "boss:irradiated_ghast", "boss:irradiated_ghast_sleeping",
+          "boss:astrageldon", "boss:irradiated_ghast",
           "boss:sightful_obelisk_of_ender", "boss:void_pope"]
 # what summons the bosses (the item placers and projectiles are entities too)
 SUMMONERS = ["item:genesis_seed", "projectile:stellar_communicator", "mob:supreme_ender_eye", "mob:sculk_intro",
@@ -63,9 +73,10 @@ NEVER = {"mechanic:entity_spawner", "mechanic:sf_entity_spawner", "mechanic:biom
          # only named by a "kill @e[type=...]" of the End trial's warp pad
          "mob:ender_creeper", "mob:final_skeleton",
          # placed by items that are kept as plain items (dropped from chests)
-         "item:dragonchick_egg", "item:bottle_of_souls"}
-SUMMON_ITEMS = {"item:genesis_seed", "item:stellar_communicator", "item:supreme_ender_eye", "item:heart_of_darkness",
-                "item:inferno_death_whistle"}
+         "item:dragonchick_egg", "item:bottle_of_souls",
+         # the bosses have arenas now: no boss sleeping in a structure; the Torpendo lunges itself
+         "boss:irradiated_ghast_sleeping", "item:torpendo_dash"} | REMOVED
+SUMMON_ITEMS = {"item:genesis_seed", "item:stellar_communicator", "item:supreme_ender_eye", "item:heart_of_darkness"}
 SUMMON_BLOCKS = {"block:tempered_forge", "block:obelisk_frame"}
 
 # custom biome tag -> the vanilla biome that biome replaced (its tags)
@@ -96,8 +107,6 @@ def any_of(*tags):
 # ident -> (population, weight, herd, biome filter, where, extra conditions)
 NEW_SPAWNS = {
     # the End (the add-on spawned these on its End blocks and biomes)
-    "mob:evupul": ("monster", 6, (1, 2), END, "surface", {}),
-    "mob:wanderer": ("monster", 1, (1, 1), END, "surface", {}),
     "mob:torpendo": ("monster", 3, (1, 1), END, "surface", {}),
     "mob:inviseer": ("monster", 3, (1, 1), END, "surface", {}),
     "mob:blighted_eye": ("monster", 3, (1, 2), END, "surface", {}),
@@ -105,7 +114,6 @@ NEW_SPAWNS = {
     "mob:endersent": ("monster", 1, (1, 1), END, "surface", {}),
     "mob:shulk": ("monster", 4, (1, 3), END, "surface", {}),
     "mob:flying_shulker": ("monster", 3, (1, 2), END, "surface", {}),
-    "mob:shulk_jouster": ("monster", 2, (1, 1), END, "surface", {}),
     "mob:astral_orbiter": ("monster", 2, (1, 1), END, "surface", {}),
     "mob:grand_guritavoid": ("monster", 1, (1, 1), END, "surface", {}),
     "mob:end_mooshroom": ("animal", 8, (2, 4), END, "surface", {}),
@@ -118,7 +126,6 @@ NEW_SPAWNS = {
     "mob:winter_breeze": ("monster", 5, (1, 1), any_of("frozen"), "surface", {}),
     "mob:solaronemone": ("monster", 3, (1, 1), any_of("desert"), "surface",
                          {"minecraft:brightness_filter": {"min": 10, "max": 15, "adjust_for_weather": True}}),
-    "mob:illager_balloon": ("monster", 2, (1, 1), any_of("plains", "taiga", "savanna"), "surface", {}),
     "mob:redstone_golem": ("monster", 1, (1, 1), any_of("roofed_forest", "taiga"), "surface",
                            {"minecraft:brightness_filter": {"min": 0, "max": 7, "adjust_for_weather": True}}),
     "mob:abyss_guardian": ("monster", 2, (1, 1), [{"all_of": [tag("ocean"), tag("deep")]}], "underwater", {}),
@@ -136,17 +143,17 @@ END_Y = ("(math.abs(v.worldx) > 1000 || math.abs(v.worldz) > 1000) && q.heightma
          "q.heightmap(v.worldx, v.worldz) : -1")
 # structure -> (dimension/biome filter, y, chance per chunk %, pass)
 STRUCTURES = {
-    "abyssalchambers": (END, END_Y, 0.3, "after_surface_pass"),
-    "astralstructure1": (END, END_Y, 0.6, "after_surface_pass"),
-    "astralstructure2": (END, END_Y, 0.6, "after_surface_pass"),
-    "chorusstructure1": (END, END_Y, 0.8, "after_surface_pass"),
-    "chorusstructure2": (END, END_Y, 0.8, "after_surface_pass"),
-    "chorusstructure3": (END, END_Y, 0.8, "after_surface_pass"),
-    "endertowerthing": (END, END_Y, 0.8, "after_surface_pass"),
-    "endtrialchamberscommand": (END, END_Y, 0.3, "after_surface_pass"),
-    "portalstructure1": (END, END_Y, 0.6, "after_surface_pass"),
-    "portalstructure2": (END, END_Y, 0.6, "after_surface_pass"),
-    "portalstructure4": (END, END_Y, 0.6, "after_surface_pass"),
+    "abyssalchambers": (END, END_Y, 0.10, "after_surface_pass"),
+    "astralstructure1": (END, END_Y, 0.20, "after_surface_pass"),
+    "astralstructure2": (END, END_Y, 0.20, "after_surface_pass"),
+    "chorusstructure1": (END, END_Y, 0.27, "after_surface_pass"),
+    "chorusstructure2": (END, END_Y, 0.27, "after_surface_pass"),
+    "chorusstructure3": (END, END_Y, 0.27, "after_surface_pass"),
+    "endertowerthing": (END, END_Y, 0.27, "after_surface_pass"),
+    "endtrialchamberscommand": (END, END_Y, 0.10, "after_surface_pass"),
+    "portalstructure1": (END, END_Y, 0.20, "after_surface_pass"),
+    "portalstructure2": (END, END_Y, 0.20, "after_surface_pass"),
+    "portalstructure4": (END, END_Y, 0.20, "after_surface_pass"),
     # the Overworld: the sky towers float over land, the cryo chambers lie under the snow
     "skytower": (any_of("forest", "plains", "mountains"), {"distribution": "uniform", "extent": [260, 280]}, 2,
                  "after_surface_pass"),
@@ -154,10 +161,8 @@ STRUCTURES = {
                        "after_surface_pass"),
     "cryochamberscommand": (any_of("frozen"), {"distribution": "uniform", "extent": [-50, -30]}, 3, "after_underground_pass"),
     # the Nether: the obsidian home floats on the lava sea, the irradiated home holds the
-    # sleeping Nuclear Ghast (the Inferno Death Whistle wakes it)
     "infernochambers": ([tag("nether")], {"distribution": "uniform", "extent": [31, 32]}, 2, "after_underground_pass"),
     "obsidianhome4": ([tag("nether")], 31, 2, "after_underground_pass"),
-    "irradiatedhome4": (any_of("basalt_deltas"), {"distribution": "uniform", "extent": [40, 50]}, 5, "underground_pass"),
 }
 
 # too big for a feature: a command block placed by the feature loads them (as in the add-on)
@@ -176,51 +181,35 @@ SUMMON_RECIPES = {
                                                         "D": "dragon_breath", "E": "nether_star"}),
     "block:obelisk_frame": (["ABA", "BCB", "ABA"], {"A": "end_stone_bricks", "B": "obsidian", "C": "ender_eye"}),
     "item:heart_of_darkness": (["ABA", "BCB", "ABA"], {"A": "echo_shard", "B": "sculk_catalyst", "C": "recovery_compass"}),
-    "item:inferno_death_whistle": (["ABA", " C ", " D "], {"A": "ghast_tear", "B": "goat_horn", "C": "magma_cream",
-                                                            "D": "blaze_rod"}),
     "block:tempered_forge": (["ABA", "CDC", "EFE"], {"A": "magma_block", "B": "blaze_rod", "C": "gold_block",
                                                      "D": "blast_furnace", "E": "crying_obsidian", "F": "netherite_block"}),
 }
 GENESIS_TEXT = "Genesis Seed\n\n§7Plant it on Moss in the Lush Caves\nbelow Y=0 to awaken the Floral Amalgam"
-WHISTLE_JS = """import { world } from "@minecraft/server";
-
-// The Inferno Death Whistle wakes the sleeping Nuclear Ghast (as in the add-on): the
-// item can now be used (held for a moment) and says so when no ghast sleeps nearby.
-world.afterEvents.itemUse.subscribe((e) => {
-    const p = e.source;
-    if (e.itemStack?.typeId !== "item:inferno_death_whistle") return;
-    let near = [];
-    try {
-        near = p.dimension.getEntities({ type: "boss:irradiated_ghast_sleeping", location: p.location, maxDistance: 30 });
-    } catch {
-        // ignore
-    }
-    try {
-        p.runCommand("function infernodeathwhistle");
-        if (!near.length) p.runCommand("titleraw @s actionbar {\\"rawtext\\":[{\\"text\\":\\"§cNo hay ningún Ghast dormido a menos de 30 bloques\\"}]}");
-    } catch {
-        // ignore
-    }
-});
-"""
 
 
 # --- structures: only the chosen mobs ------------------------------------------------------
 MOB_ANY = re.compile(r"(?:mob|boss):[a-z0-9_]+")
 
 
-def _replace_ids(v, mapping):
-    """Walks a typed NBT tree (mcstructure.read_nbt) replacing whole-string ids."""
+LOOT_ANY = re.compile(r"loot_tables/[A-Za-z0-9_/.]+?\.json")
+
+
+def _replace_ids(v, mapping, chest=None):
+    """Walks a typed NBT tree (mcstructure.read_nbt) replacing ids (and the add-on's loot
+    tables by vanilla ones when chest is given)."""
     if isinstance(v, str):      # an id, or a command naming it
-        return MOB_ANY.sub(lambda m: mapping.get(m.group(0), m.group(0)), v)
+        v = MOB_ANY.sub(lambda m: mapping.get(m.group(0), m.group(0)), v)
+        if chest:
+            v = LOOT_ANY.sub(lambda m: extras.loot_path_for(m.group(0), chest), v)
+        return v
     if isinstance(v, dict):
-        return {k: _replace_ids(x, mapping) for k, x in v.items()}
+        return {k: _replace_ids(x, mapping, chest) for k, x in v.items()}
     if isinstance(v, list):
-        return [_replace_ids(x, mapping) for x in v]
+        return [_replace_ids(x, mapping, chest) for x in v]
     if isinstance(v, mcs.Tag):
         if v.type == mcs.LIST:
             t, xs = v.value
-            return mcs.Tag(mcs.LIST, (t, [_replace_ids(x, mapping) for x in xs]))
+            return mcs.Tag(mcs.LIST, (t, [_replace_ids(x, mapping, chest) for x in xs]))
         return v
     return v
 
@@ -230,10 +219,14 @@ def adapt_structures(src, keep_ids):
     spawners, but these spawn the chosen mobs of each structure instead of the add-on's
     others (and so do the functions those command blocks run). Returns the structures."""
     chosen = {"mob:" + m for m in MOBS}
-    done, todo = {}, [(n, None) for n in list(STRUCTURES) + list(LOADED.values())]
+    def dim_of(n):
+        biome = json.dumps(STRUCTURES[n][0]) if n in STRUCTURES else ""
+        return "the_end" if "the_end" in biome else "nether" if '"nether"' in biome or "basalt" in biome else "overworld"
+    loaders = {v: k for k, v in LOADED.items()}
+    done, todo = {}, [(n, None, dim_of(loaders.get(n, n))) for n in list(STRUCTURES) + list(LOADED.values())]
     changed = 0
     while todo:
-        name, parent_pool = todo.pop()
+        name, parent_pool, dim = todo.pop()
         if name in done:
             continue
         rel = "structures/" + name + ".mcstructure"
@@ -248,10 +241,11 @@ def adapt_structures(src, keep_ids):
             if not pool:
                 raise SystemExit(f"{name}: no tiene mobs elegidos para sustituir {others}")
             mapping = {o: pool[sum(map(ord, o)) % len(pool)] for o in others}
-            root = mcs.read_nbt(raw)
-            with open(path, "wb") as f:
-                f.write(mcs.write_nbt(_replace_ids(root, mapping)))
             changed += 1
+        # and vanilla loot in their chests and trial spawners
+        root = mcs.read_nbt(raw)
+        with open(path, "wb") as f:
+            f.write(mcs.write_nbt(_replace_ids(root, mapping, extras.structure_loot(name, dim))))
         for fn in set(re.findall(r"function ([a-z0-9_/]+)", text)):
             fp = src.bp_path("functions/" + fn + ".mcfunction")
             if not os.path.isfile(fp):
@@ -265,10 +259,40 @@ def adapt_structures(src, keep_ids):
             with open(fp, "w", encoding="utf-8", newline="\n") as f:
                 f.write(body)
             for sub in re.findall(r"structure load ([a-z0-9_:/]+)", body):
-                todo.append((sub.split(":")[-1], pool))
+                todo.append((sub.split(":")[-1], pool, dim))
     print(f"  estructuras: {len(done)} (con las cargadas por bloques de comandos); "
           f"{changed} con spawners cambiados a los mobs elegidos")
     return done
+
+
+# --- 1.1 balance ---------------------------------------------------------------------------------
+def _holders(e):
+    return [e.get("components", {})] + list(e.get("component_groups", {}).values())
+
+
+def scale_health(e, f):
+    for h in _holders(e):
+        hp = h.get("minecraft:health")
+        if isinstance(hp, dict):
+            for k in ("value", "max"):
+                if isinstance(hp.get(k), (int, float)):
+                    hp[k] = round(hp[k] * f)
+
+
+def tweak_entity(ident, data):
+    e = data["minecraft:entity"]
+    if ident == "mob:eternal_iris":                       # -25 % health
+        scale_health(e, 0.75)
+    elif ident == "projectile:eternal_iris_projectile":   # each shot teleported the iris
+        e.get("events", {}).pop("minecraft:entity_spawned", None)
+    elif ident == "mob:torpendo":                         # -15 % health and damage; it lunges (teu_torpendo.js)
+        scale_health(e, 0.85)
+        for h in _holders(e):
+            a = h.get("minecraft:attack")
+            if isinstance(a, dict) and isinstance(a.get("damage"), (int, float)):
+                a["damage"] = round(a["damage"] * 0.85, 1)
+            for k in ("minecraft:shooter", "minecraft:behavior.ranged_attack"):
+                h.pop(k, None)
 
 
 class Closure(dm.BPClosure):
@@ -395,6 +419,9 @@ def build(src_dir):
     shutil.copytree(src_rp, rp_dir)
     teu_opt.BP, teu_opt.RP, teu_opt.OUT = bp_dir, rp_dir, work
     teu_opt.fix_json()
+    fixed = extras.fix_case(rp_dir)
+    if fixed:
+        print("  modelos con mayúsculas distintas (salían invisibles):", ", ".join(fixed))
     src_bp, src_rp = bp_dir, rp_dir
     src = dm.Source(src_bp, src_rp)
     for d in (BP, RP):
@@ -435,8 +462,13 @@ def build(src_dir):
             kind, x = queue.pop()
             queue += closure.visit_file(src.entities[x] if kind == "entity" else x)
     entities = closure.entities
-    items = {i for i in src.items if i in closure.words} | SUMMON_ITEMS
+    # 1.1: no items of the add-on but the boss summoners (the rest becomes vanilla loot)
+    all_items = set(src.items)
+    items = set(SUMMON_ITEMS)
     keep = items | blocks
+    with_client = set(dm.RPIndex(src_rp).client)
+    boss_loot = {b: "loot_tables/teu_mobs/boss_" + b.split(":")[1] + ".json" for b in BOSSES
+                 if not b.endswith("_clone")}
 
     # vanilla loot tables the mobs use get their own copy (vanilla mobs stay as they are)
     vanilla_loot = {"entities/" + i.split(":")[1] for i in src.entities if i.startswith("minecraft:")}
@@ -453,21 +485,24 @@ def build(src_dir):
         return text
 
     # --- BP
+    timers = 0
     for ident in sorted(entities):
-        data = json.loads(fix_refs(json.dumps(load(src.bp_path(src.entities[ident])))))
-        data = aq.fix_entity(aq.sanitize(data, src, keep), src)
+        text = extras.vanillize_text(fix_refs(json.dumps(load(src.bp_path(src.entities[ident])))), all_items, keep)
+        data = aq.fix_entity(aq.sanitize(json.loads(text), src, keep), src)
         if ident == "item:genesis_seed":
             data = map_biomes(data)
+        tweak_entity(ident, data)
+        e = data["minecraft:entity"]
+        if ident in boss_loot:
+            e.setdefault("components", {})["minecraft:loot"] = {"table": boss_loot[ident]}
+        if ident not in with_client and e["description"].get("is_spawnable"):
+            e["description"]["is_spawnable"] = False     # helpers without a model: no (invisible) egg
+        timers += extras.slow_particle_timers(data)
         dump(os.path.join(BP, src.entities[ident]), data)
+    print(f"  temporizadores de partículas más lentos: {timers}")
     for ident in sorted(items):
         data = load(src.bp_path(src.items[ident]))
-        if ident not in SUMMON_ITEMS:
-            data = aq.plain_item(data, entities, keep)
         ic = data["minecraft:item"]["components"]
-        if ident == "item:inferno_death_whistle":   # nothing to "use" in it: the use event never came
-            data["format_version"] = "1.21.40"
-            ic["minecraft:use_modifiers"] = {"use_duration": 0.5, "movement_modifier": 1.0}
-            ic["minecraft:cooldown"] = {"category": "inferno_death_whistle", "duration": 3}
         if ident == "item:genesis_seed":
             ic["minecraft:entity_placer"]["use_on"] = ["minecraft:moss_block"]
             ic["minecraft:display_name"] = {"value": GENESIS_TEXT}
@@ -483,8 +518,11 @@ def build(src_dir):
             c["minecraft:destructible_by_explosion"] = {"explosion_resistance": 1200}
         dump(os.path.join(BP, src.blocks[ident]), data)
     for rel in sorted(closure.loot):
-        data = filter_loot(load(src.bp_path(rel)), keep, closure.loot, renamed)
+        data = extras.vanillize_loot(load(src.bp_path(rel)), keep)
+        data = filter_loot(data, keep, closure.loot, renamed)
         dump(os.path.join(BP, renamed.get(rel, rel)), data)
+    for boss, rel in boss_loot.items():
+        dump(os.path.join(BP, rel), extras.boss_loot(boss.split(":")[1]))
     bp_anim = {}
     for folder, key in (("animations", "animations"), ("animation_controllers", "animation_controllers")):
         for dirpath, _, files in os.walk(src.bp_path(folder)):
@@ -493,8 +531,13 @@ def build(src_dir):
                 for ident in load(path).get(key, {}):
                     bp_anim.setdefault(ident, set()).add(os.path.relpath(path, src_bp))
     anim_files = {f for w in closure.words if w in bp_anim for f in bp_anim[w]}
-    for rel in sorted(closure.functions | anim_files | set(structures.values())):
+    for rel in sorted(anim_files | set(structures.values())):
         dm.copy(src_bp, BP, rel)
+    for rel in sorted(closure.functions):
+        out = os.path.join(BP, rel)
+        os.makedirs(os.path.dirname(out), exist_ok=True)
+        with open(out, "w", encoding="utf-8", newline="\n") as f:
+            f.write(extras.vanillize_text(read(src.bp_path(rel)), all_items, keep))
     # spawn rules: the add-on's (vanilla biomes) and new ones
     have = set()
     for dirpath, _, files in os.walk(src.bp_path("spawn_rules")):
@@ -502,7 +545,7 @@ def build(src_dir):
             path = os.path.join(dirpath, name)
             data = load(path)
             ident = data["minecraft:spawn_rules"]["description"]["identifier"]
-            if ident not in entities:
+            if ident not in entities or ident.startswith("boss:"):   # the bosses live in their arenas
                 continue
             data = map_biomes(data)
             conds, seen = [], set()
@@ -512,10 +555,6 @@ def build(src_dir):
                     seen.add(k)
                     conds.append(c)
             data["minecraft:spawn_rules"]["conditions"] = conds
-            if ident == "boss:primordial_wyrm":       # a boss in every deep ocean: much rarer
-                for c in conds:
-                    c["minecraft:weight"] = {"default": 1}
-                    c["minecraft:density_limit"] = {"surface": 1, "underground": 1}
             have.add(ident)
             dump(os.path.join(BP, os.path.relpath(path, src_bp)), data)
     for ident, spec in NEW_SPAWNS.items():
@@ -535,18 +574,17 @@ def build(src_dir):
                                  "z": {"distribution": "uniform", "extent": [0, 15]}}}})
     for result, (pattern, key) in SUMMON_RECIPES.items():
         dump(os.path.join(BP, "recipes", "teu_mobs", result.split(":")[1] + ".json"), recipe(result, pattern, key))
-    # scripts: the block components the kept blocks use, and the whistle
+    # scripts: the block components the kept blocks use, the Torpendo's lunge, the compasses
     out_scripts = os.path.join(BP, "scripts")
     os.makedirs(out_scripts, exist_ok=True)
     with open(os.path.join(out_scripts, "teu_block_components.js"), "w", encoding="utf-8", newline="\n") as f:
         f.write(head.rstrip() + "\n\n" + "\n".join(chunks[c] for c in sorted(comps) if c in chunks))
-    with open(os.path.join(out_scripts, "teu_whistle.js"), "w", encoding="utf-8", newline="\n") as f:
-        f.write(WHISTLE_JS)
+    shutil.copyfile(os.path.join(HERE, "teu", "torpendo.js"), os.path.join(out_scripts, "teu_torpendo.js"))
     extra_files = sorted({comp_files[c] for c in comps if c in comp_files and c not in chunks})
     files = dm.script_closure(scripts_dir, {f: read(os.path.join(scripts_dir, f)) for f in extra_files})
     for rel in sorted(files):
         dm.copy(scripts_dir, out_scripts, rel)
-    imports = ["teu_block_components", "teu_whistle"] + [f[:-3] for f in extra_files]
+    imports = ["teu_block_components", "teu_torpendo", "teu_compass"] + [f[:-3] for f in extra_files]
     with open(os.path.join(out_scripts, "main.js"), "w", encoding="utf-8", newline="\n") as f:
         f.write("".join(f"import './{i}.js';\n" for i in imports))
     dm.copy(src_bp, BP, "pack_icon.png")
@@ -621,6 +659,16 @@ def build(src_dir):
     for rel in sorted(textures | dm.texture_sets(src_rp, textures) | sound_files):
         if os.path.isfile(os.path.join(src_rp, rel)):
             dm.copy(src_rp, RP, rel)
+    n = 0
+    for dirpath, _, fs in os.walk(os.path.join(RP, "particles")):
+        for name in fs:
+            if name.endswith(".json"):
+                path = os.path.join(dirpath, name)
+                dump(path, extras.lighten_particle(load(path)))
+                n += 1
+    print(f"  partículas aligeradas: {n}")
+    compass_items, arena_files = extras.write_arenas(BP, RP, os.path.join(HERE, "teu", "compass.js"), entities)
+    print(f"  arenas: {', '.join(arena_files)}; brújulas: {len(compass_items)}")
     for rel in sorted(f for f in rp_files if f.startswith("entity/") and f.endswith(".json")):
         dump(os.path.join(RP, rel), aq.fix_client(load(os.path.join(src_rp, rel))))
     for name in os.listdir(os.path.join(src_rp, "texts")):
