@@ -5,7 +5,7 @@ import { world, system, GameMode } from "@minecraft/server";
 const EVERY = 40;            // ticks between lunges
 const WINDUP = 8;            // ticks of warning before the lunge
 const SPEED = 1.6;           // impulse of the lunge
-const DAMAGE = 8.5;          // the add-on's dash did 10: -15 %
+const DAMAGE = 7.2;          // the add-on's dash did 10: -15 %, then -15 % for every mob
 const RANGE = 20;
 const state = new Map();     // id -> {next, lunge, hit}
 
