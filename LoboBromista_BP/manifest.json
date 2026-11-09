@@ -1,0 +1,54 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Lobo Bromista",
+    "description": "Un lobo domesticable 3 veces mejor: habla, cuenta chistes y hace memes.",
+    "uuid": "5b0f7c1e-2a7d-4f53-9a4e-6c1d2b8e0f31",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      26,
+      0
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "a8e3d2c4-71b9-4c0a-8f62-3e5d9b1a7c40",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "c4a1f9e2-3d6b-4e87-b5a0-9f2c7e8d1b52",
+      "version": [
+        1,
+        0,
+        0
+      ],
+      "entry": "scripts/main.js"
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "1e9d4b7a-6c3f-48a2-9d15-b7e0a3c6f283",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.1.0"
+    }
+  ]
+}

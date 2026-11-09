@@ -1,0 +1,574 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "lobo:lobo_bromista",
+      "is_spawnable": true,
+      "is_summonable": true,
+      "properties": {
+        "lobo:meme": {
+          "type": "int",
+          "range": [
+            0,
+            20
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "lobo:clima": {
+          "type": "int",
+          "range": [
+            0,
+            4
+          ],
+          "default": 4,
+          "client_sync": true
+        },
+        "lobo:paso": {
+          "type": "int",
+          "range": [
+            0,
+            2
+          ],
+          "default": 0,
+          "client_sync": true
+        },
+        "lobo:habla": {
+          "type": "bool",
+          "default": false,
+          "client_sync": true
+        },
+        "lobo:sentado": {
+          "type": "bool",
+          "default": false
+        }
+      }
+    },
+    "component_groups": {
+      "lobo:salvaje": {
+        "minecraft:health": {
+          "value": 24,
+          "max": 24
+        },
+        "minecraft:attack": {
+          "damage": 6
+        },
+        "minecraft:tameable": {
+          "probability": 0.33,
+          "tame_items": "bone",
+          "tame_event": {
+            "event": "lobo:domar",
+            "target": "self"
+          }
+        },
+        "minecraft:behavior.hurt_by_target": {
+          "priority": 1
+        },
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 4,
+          "reselect_targets": true,
+          "must_see": true,
+          "entity_types": [
+            {
+              "filters": {
+                "any_of": [
+                  {
+                    "test": "is_family",
+                    "subject": "other",
+                    "value": "sheep"
+                  },
+                  {
+                    "test": "is_family",
+                    "subject": "other",
+                    "value": "rabbit"
+                  },
+                  {
+                    "test": "is_family",
+                    "subject": "other",
+                    "value": "fox"
+                  },
+                  {
+                    "test": "is_family",
+                    "subject": "other",
+                    "value": "skeleton"
+                  }
+                ]
+              },
+              "max_dist": 16
+            }
+          ]
+        },
+        "minecraft:despawn": {
+          "despawn_from_distance": {}
+        }
+      },
+      "lobo:domado": {
+        "minecraft:is_tamed": {},
+        "minecraft:tameable": {
+          "probability": 0.0,
+          "tame_items": "bone"
+        },
+        "minecraft:health": {
+          "value": 120,
+          "max": 120
+        },
+        "minecraft:attack": {
+          "damage": 12
+        },
+        "minecraft:persistent": {},
+        "minecraft:sittable": {
+          "sit_event": {
+            "event": "lobo:sentarse",
+            "target": "self"
+          },
+          "stand_event": {
+            "event": "lobo:pararse",
+            "target": "self"
+          }
+        },
+        "minecraft:behavior.follow_owner": {
+          "priority": 6,
+          "speed_multiplier": 1.15,
+          "start_distance": 5,
+          "stop_distance": 2.5,
+          "can_teleport": false,
+          "max_distance": 150,
+          "ignore_vibration": true
+        },
+        "minecraft:behavior.owner_hurt_by_target": {
+          "priority": 1
+        },
+        "minecraft:behavior.owner_hurt_target": {
+          "priority": 2
+        },
+        "minecraft:behavior.hurt_by_target": {
+          "priority": 1,
+          "entity_types": {
+            "filters": {
+              "test": "is_family",
+              "subject": "other",
+              "value": "player",
+              "operator": "!="
+            }
+          }
+        },
+        "minecraft:behavior.nearest_attackable_target": {
+          "priority": 5,
+          "must_see": true,
+          "reselect_targets": true,
+          "within_radius": 12,
+          "entity_types": [
+            {
+              "filters": {
+                "all_of": [
+                  {
+                    "test": "is_family",
+                    "subject": "other",
+                    "value": "monster"
+                  },
+                  {
+                    "test": "is_family",
+                    "subject": "other",
+                    "value": "creeper",
+                    "operator": "!="
+                  }
+                ]
+              },
+              "max_dist": 12
+            }
+          ]
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": [
+          "lobo_bromista",
+          "wolf",
+          "animal",
+          "mob"
+        ]
+      },
+      "minecraft:collision_box": {
+        "width": 0.6,
+        "height": 0.85
+      },
+      "minecraft:scale": {
+        "value": 1.1
+      },
+      "minecraft:movement": {
+        "value": 0.35
+      },
+      "minecraft:movement.basic": {},
+      "minecraft:navigation.walk": {
+        "can_path_over_water": true,
+        "avoid_damage_blocks": true,
+        "avoid_water": true
+      },
+      "minecraft:jump.static": {},
+      "minecraft:can_climb": {},
+      "minecraft:physics": {},
+      "minecraft:pushable": {
+        "is_pushable": true,
+        "is_pushable_by_piston": true
+      },
+      "minecraft:nameable": {},
+      "minecraft:leashable": {
+        "soft_distance": 4,
+        "hard_distance": 6,
+        "max_distance": 10
+      },
+      "minecraft:breathable": {
+        "total_supply": 15,
+        "suffocate_time": 0
+      },
+      "minecraft:knockback_resistance": {
+        "value": 0.4
+      },
+      "minecraft:healable": {
+        "items": [
+          {
+            "item": "porkchop",
+            "heal_amount": 12
+          },
+          {
+            "item": "cooked_porkchop",
+            "heal_amount": 32
+          },
+          {
+            "item": "beef",
+            "heal_amount": 12
+          },
+          {
+            "item": "cooked_beef",
+            "heal_amount": 32
+          },
+          {
+            "item": "chicken",
+            "heal_amount": 8
+          },
+          {
+            "item": "cooked_chicken",
+            "heal_amount": 24
+          },
+          {
+            "item": "mutton",
+            "heal_amount": 8
+          },
+          {
+            "item": "cooked_mutton",
+            "heal_amount": 24
+          },
+          {
+            "item": "rabbit",
+            "heal_amount": 12
+          },
+          {
+            "item": "cooked_rabbit",
+            "heal_amount": 20
+          },
+          {
+            "item": "rabbit_stew",
+            "heal_amount": 40
+          },
+          {
+            "item": "rotten_flesh",
+            "heal_amount": 16
+          },
+          {
+            "item": "cod",
+            "heal_amount": 8
+          },
+          {
+            "item": "salmon",
+            "heal_amount": 8
+          },
+          {
+            "item": "cooked_cod",
+            "heal_amount": 20
+          },
+          {
+            "item": "cooked_salmon",
+            "heal_amount": 24
+          }
+        ]
+      },
+      "minecraft:ambient_sound_interval": {
+        "value": 12,
+        "range": 10,
+        "event_name": "ambient"
+      },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "cause": "fall",
+            "deals_damage": "no"
+          },
+          {
+            "on_damage": {
+              "filters": {
+                "all_of": [
+                  {
+                    "test": "is_family",
+                    "subject": "other",
+                    "value": "player"
+                  },
+                  {
+                    "test": "has_component",
+                    "subject": "self",
+                    "value": "minecraft:is_tamed"
+                  }
+                ]
+              }
+            },
+            "deals_damage": "no"
+          }
+        ]
+      },
+      "minecraft:environment_sensor": {
+        "triggers": [
+          {
+            "filters": {
+              "all_of": [
+                {
+                  "test": "weather_at_position",
+                  "value": "thunderstorm"
+                },
+                {
+                  "test": "is_underground",
+                  "value": false
+                },
+                {
+                  "test": "int_property",
+                  "domain": "lobo:clima",
+                  "operator": "!=",
+                  "value": 2
+                }
+              ]
+            },
+            "event": "lobo:clima_2"
+          },
+          {
+            "filters": {
+              "all_of": [
+                {
+                  "test": "weather_at_position",
+                  "value": "rain"
+                },
+                {
+                  "test": "is_underground",
+                  "value": false
+                },
+                {
+                  "test": "int_property",
+                  "domain": "lobo:clima",
+                  "operator": "!=",
+                  "value": 1
+                }
+              ]
+            },
+            "event": "lobo:clima_1"
+          },
+          {
+            "filters": {
+              "all_of": [
+                {
+                  "test": "weather_at_position",
+                  "value": "snow"
+                },
+                {
+                  "test": "is_underground",
+                  "value": false
+                },
+                {
+                  "test": "int_property",
+                  "domain": "lobo:clima",
+                  "operator": "!=",
+                  "value": 3
+                }
+              ]
+            },
+            "event": "lobo:clima_3"
+          },
+          {
+            "filters": {
+              "all_of": [
+                {
+                  "test": "weather_at_position",
+                  "value": "clear"
+                },
+                {
+                  "test": "is_underground",
+                  "value": false
+                },
+                {
+                  "test": "in_nether",
+                  "value": false
+                },
+                {
+                  "test": "is_daytime",
+                  "value": true
+                },
+                {
+                  "test": "int_property",
+                  "domain": "lobo:clima",
+                  "operator": "!=",
+                  "value": 0
+                }
+              ]
+            },
+            "event": "lobo:clima_0"
+          },
+          {
+            "filters": {
+              "all_of": [
+                {
+                  "any_of": [
+                    {
+                      "test": "is_underground",
+                      "value": true
+                    },
+                    {
+                      "test": "in_nether",
+                      "value": true
+                    },
+                    {
+                      "all_of": [
+                        {
+                          "test": "weather_at_position",
+                          "value": "clear"
+                        },
+                        {
+                          "test": "is_daytime",
+                          "value": false
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "test": "int_property",
+                  "domain": "lobo:clima",
+                  "operator": "!=",
+                  "value": 4
+                }
+              ]
+            },
+            "event": "lobo:clima_4"
+          }
+        ]
+      },
+      "minecraft:behavior.float": {
+        "priority": 0
+      },
+      "minecraft:behavior.stay_while_sitting": {
+        "priority": 3
+      },
+      "minecraft:behavior.leap_at_target": {
+        "priority": 4,
+        "yd": 0.4,
+        "must_be_on_ground": false
+      },
+      "minecraft:behavior.melee_attack": {
+        "priority": 5,
+        "speed_multiplier": 1.3,
+        "track_target": true
+      },
+      "minecraft:behavior.random_stroll": {
+        "priority": 8,
+        "speed_multiplier": 1.0
+      },
+      "minecraft:behavior.beg": {
+        "priority": 9,
+        "look_distance": 8,
+        "look_time": [
+          2,
+          4
+        ],
+        "items": [
+          "bone",
+          "porkchop",
+          "cooked_porkchop",
+          "beef",
+          "cooked_beef",
+          "chicken",
+          "cooked_chicken",
+          "mutton",
+          "cooked_mutton",
+          "rabbit",
+          "cooked_rabbit",
+          "rabbit_stew",
+          "rotten_flesh",
+          "cod",
+          "salmon",
+          "cooked_cod",
+          "cooked_salmon"
+        ]
+      },
+      "minecraft:behavior.look_at_player": {
+        "priority": 10,
+        "look_distance": 8
+      },
+      "minecraft:behavior.random_look_around": {
+        "priority": 11
+      },
+      "minecraft:conditional_bandwidth_optimization": {}
+    },
+    "events": {
+      "minecraft:entity_spawned": {
+        "add": {
+          "component_groups": [
+            "lobo:salvaje"
+          ]
+        }
+      },
+      "lobo:domar": {
+        "remove": {
+          "component_groups": [
+            "lobo:salvaje"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "lobo:domado"
+          ]
+        }
+      },
+      "lobo:sentarse": {
+        "set_property": {
+          "lobo:sentado": true
+        }
+      },
+      "lobo:pararse": {
+        "set_property": {
+          "lobo:sentado": false
+        }
+      },
+      "lobo:clima_0": {
+        "set_property": {
+          "lobo:clima": 0
+        }
+      },
+      "lobo:clima_1": {
+        "set_property": {
+          "lobo:clima": 1
+        }
+      },
+      "lobo:clima_2": {
+        "set_property": {
+          "lobo:clima": 2
+        }
+      },
+      "lobo:clima_3": {
+        "set_property": {
+          "lobo:clima": 3
+        }
+      },
+      "lobo:clima_4": {
+        "set_property": {
+          "lobo:clima": 4
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,4 @@
+entity.lobo:lobo_bromista.name=Lobo Bromista
+item.spawn_egg.entity.lobo:lobo_bromista.name=Generar Lobo Bromista
+pack.name=Lobo Bromista
+pack.description=Un lobo domesticable 3 veces mejor: habla, cuenta chistes y hace memes.

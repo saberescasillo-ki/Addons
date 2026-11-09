@@ -1,0 +1,22 @@
+{
+  "entity_sounds": {
+    "entities": {
+      "lobo:lobo_bromista": {
+        "volume": 1.0,
+        "pitch": [
+          0.95,
+          1.15
+        ],
+        "events": {
+          "ambient": "mob.wolf.bark",
+          "hurt": "mob.wolf.hurt",
+          "death": "mob.wolf.death",
+          "step": {
+            "sound": "mob.wolf.step",
+            "volume": 0.6
+          }
+        }
+      }
+    }
+  }
+}

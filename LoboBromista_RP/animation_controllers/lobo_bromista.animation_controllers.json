@@ -1,0 +1,196 @@
+{
+  "format_version": "1.10.0",
+  "animation_controllers": {
+    "controller.animation.lobo.lobo_bromista.memes": {
+      "initial_state": "normal",
+      "states": {
+        "normal": {
+          "transitions": [
+            {
+              "m1": "q.property('lobo:meme') == 1"
+            },
+            {
+              "m2": "q.property('lobo:meme') == 2"
+            },
+            {
+              "m3": "q.property('lobo:meme') == 3"
+            },
+            {
+              "m4": "q.property('lobo:meme') == 4"
+            },
+            {
+              "m5": "q.property('lobo:meme') == 5"
+            },
+            {
+              "m6": "q.property('lobo:meme') == 6"
+            },
+            {
+              "m7": "q.property('lobo:meme') == 7"
+            },
+            {
+              "m8": "q.property('lobo:meme') == 8"
+            },
+            {
+              "m9": "q.property('lobo:meme') == 9"
+            },
+            {
+              "m10": "q.property('lobo:meme') == 10"
+            },
+            {
+              "m11": "q.property('lobo:meme') == 11"
+            },
+            {
+              "m12": "q.property('lobo:meme') == 12"
+            },
+            {
+              "m13": "q.property('lobo:meme') == 13"
+            }
+          ]
+        },
+        "m1": {
+          "animations": [
+            "meme_vibe"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "normal": "q.property('lobo:meme') != 1"
+            }
+          ]
+        },
+        "m2": {
+          "animations": [
+            "meme_trompo"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "normal": "q.property('lobo:meme') != 2"
+            }
+          ]
+        },
+        "m3": {
+          "animations": [
+            "meme_longdog"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "normal": "q.property('lobo:meme') != 3"
+            }
+          ]
+        },
+        "m4": {
+          "animations": [
+            "meme_muerto"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "normal": "q.property('lobo:meme') != 4"
+            }
+          ]
+        },
+        "m5": {
+          "animations": [
+            "meme_dab"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "normal": "q.property('lobo:meme') != 5"
+            }
+          ]
+        },
+        "m6": {
+          "animations": [
+            "meme_moonwalk"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "normal": "q.property('lobo:meme') != 6"
+            }
+          ]
+        },
+        "m7": {
+          "animations": [
+            "meme_humano"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "normal": "q.property('lobo:meme') != 7"
+            }
+          ]
+        },
+        "m8": {
+          "animations": [
+            "meme_backflip"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "normal": "q.property('lobo:meme') != 8"
+            }
+          ]
+        },
+        "m9": {
+          "animations": [
+            "meme_huh"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "normal": "q.property('lobo:meme') != 9"
+            }
+          ]
+        },
+        "m10": {
+          "animations": [
+            "meme_rofl"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "normal": "q.property('lobo:meme') != 10"
+            }
+          ]
+        },
+        "m11": {
+          "animations": [
+            "meme_gafas"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "normal": "q.property('lobo:meme') != 11"
+            }
+          ]
+        },
+        "m12": {
+          "animations": [
+            "meme_susto"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "normal": "q.property('lobo:meme') != 12"
+            }
+          ]
+        },
+        "m13": {
+          "animations": [
+            "meme_baile"
+          ],
+          "blend_transition": 0.15,
+          "transitions": [
+            {
+              "normal": "q.property('lobo:meme') != 13"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

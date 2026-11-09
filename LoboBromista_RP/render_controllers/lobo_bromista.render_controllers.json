@@ -1,0 +1,36 @@
+{
+  "format_version": "1.8.0",
+  "render_controllers": {
+    "controller.render.lobo.lobo_bromista": {
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Texture.default"
+      ],
+      "part_visibility": [
+        {
+          "*": true
+        },
+        {
+          "gafas": "q.is_tamed && (q.property('lobo:clima') == 0 || q.property('lobo:meme') == 11 || q.property('lobo:meme') == 1)"
+        },
+        {
+          "paraguas": "q.is_tamed && (q.property('lobo:clima') == 1 || q.property('lobo:clima') == 2)"
+        },
+        {
+          "bufanda": "q.is_tamed && q.property('lobo:clima') == 3"
+        },
+        {
+          "bandana": "q.is_tamed && q.property('lobo:clima') != 3"
+        },
+        {
+          "lengua": "q.property('lobo:paso') == 2 || q.property('lobo:meme') == 4 || q.property('lobo:meme') == 10 || q.property('lobo:meme') == 1"
+        }
+      ]
+    }
+  }
+}

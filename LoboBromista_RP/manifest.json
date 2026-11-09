@@ -1,0 +1,39 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Lobo Bromista",
+    "description": "Modelo, textura y animaciones del Lobo Bromista.",
+    "uuid": "1e9d4b7a-6c3f-48a2-9d15-b7e0a3c6f283",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      26,
+      0
+    ]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "f72b5c8e-0d4a-4b91-a6e3-5c8f1d2b9e64",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "5b0f7c1e-2a7d-4f53-9a4e-6c1d2b8e0f31",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    }
+  ]
+}

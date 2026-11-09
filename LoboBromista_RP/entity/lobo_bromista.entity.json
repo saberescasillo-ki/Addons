@@ -1,0 +1,79 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "lobo:lobo_bromista",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/lobo/lobo_bromista"
+      },
+      "geometry": {
+        "default": "geometry.lobo.lobo_bromista"
+      },
+      "render_controllers": [
+        "controller.render.lobo.lobo_bromista"
+      ],
+      "animations": {
+        "look": "animation.lobo.lobo_bromista.look",
+        "walk": "animation.lobo.lobo_bromista.walk",
+        "cola": "animation.lobo.lobo_bromista.cola",
+        "sentado": "animation.lobo.lobo_bromista.sentado",
+        "carrera": "animation.lobo.lobo_bromista.carrera",
+        "hablar": "animation.lobo.lobo_bromista.hablar",
+        "lluvia": "animation.lobo.lobo_bromista.lluvia",
+        "temblor": "animation.lobo.lobo_bromista.temblor",
+        "frio": "animation.lobo.lobo_bromista.frio",
+        "sol": "animation.lobo.lobo_bromista.sol",
+        "meme_vibe": "animation.lobo.lobo_bromista.meme_vibe",
+        "meme_trompo": "animation.lobo.lobo_bromista.meme_trompo",
+        "meme_longdog": "animation.lobo.lobo_bromista.meme_longdog",
+        "meme_muerto": "animation.lobo.lobo_bromista.meme_muerto",
+        "meme_dab": "animation.lobo.lobo_bromista.meme_dab",
+        "meme_moonwalk": "animation.lobo.lobo_bromista.meme_moonwalk",
+        "meme_humano": "animation.lobo.lobo_bromista.meme_humano",
+        "meme_backflip": "animation.lobo.lobo_bromista.meme_backflip",
+        "meme_huh": "animation.lobo.lobo_bromista.meme_huh",
+        "meme_rofl": "animation.lobo.lobo_bromista.meme_rofl",
+        "meme_gafas": "animation.lobo.lobo_bromista.meme_gafas",
+        "meme_susto": "animation.lobo.lobo_bromista.meme_susto",
+        "meme_baile": "animation.lobo.lobo_bromista.meme_baile",
+        "memes": "controller.animation.lobo.lobo_bromista.memes"
+      },
+      "scripts": {
+        "animate": [
+          "look",
+          "walk",
+          "cola",
+          {
+            "sentado": "q.is_sitting"
+          },
+          {
+            "carrera": "q.property('lobo:paso') == 2"
+          },
+          {
+            "hablar": "q.property('lobo:habla')"
+          },
+          {
+            "lluvia": "q.is_tamed && (q.property('lobo:clima') == 1 || q.property('lobo:clima') == 2)"
+          },
+          {
+            "temblor": "q.property('lobo:clima') == 2"
+          },
+          {
+            "frio": "q.property('lobo:clima') == 3"
+          },
+          {
+            "sol": "q.is_tamed && q.property('lobo:clima') == 0"
+          },
+          "memes"
+        ]
+      },
+      "spawn_egg": {
+        "base_color": "#9c958c",
+        "overlay_color": "#d8393c"
+      }
+    }
+  }
+}

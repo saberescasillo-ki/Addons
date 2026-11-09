@@ -7,6 +7,7 @@
 | **Ruleta de Colores** – ruleta en el HUD con comandos de administrador | [`dist/Roulette.mcaddon`](dist/Roulette.mcaddon) | `tools/roulette.py` |
 | **Objetos de Ayuda** – 4 objetos especiales que ayudan al jugador | [`dist/HelperItems.mcaddon`](dist/HelperItems.mcaddon) | `tools/helper_items.py` |
 | **The LITIUS Blind** – nueva dimensión de islas flotantes | [`dist/LitiusBlind.mcaddon`](dist/LitiusBlind.mcaddon) | `tools/litius_blind.py` |
+| **Lobo Bromista** – lobo domesticable que habla, cuenta chistes y hace memes | [`dist/LoboBromista.mcaddon`](dist/LoboBromista.mcaddon) | `tools/lobo_bromista.py` |
 
 Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo. No hace falta activar experimentos
 (salvo en The LITIUS Blind, ver abajo).
@@ -15,6 +16,100 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 - Medieval Mobs requiere **1.21.0** o superior.
 - Ruleta de Colores y Objetos de Ayuda requieren **1.21.90** o superior.
 - The LITIUS Blind requiere **26.20** o superior y el experimento **Beta APIs**.
+- Lobo Bromista requiere **1.26.0** o superior.
+
+---
+
+# Lobo Bromista
+
+![El lobo con cada clima y algunas de sus animaciones meme](docs/lobo_bromista_preview.png)
+
+Un lobo domesticable **3 veces mejor que uno normal**, con personalidad de amigo bromista pesado.
+Habla por el chat, cuenta chistes, gasta bromas, hace animaciones meme y reacciona al clima y a lo que haces.
+
+**Cómo conseguirlo:** aparece en bosques y taigas (solo, más raro que el lobo normal), o con su huevo
+(*Generar Lobo Bromista*) del inventario creativo. Se domestica con **huesos**, como un lobo
+(1 de cada 3 sale bien). Al domesticarlo se pone un nombre al azar (Firulais, Chispas, Toby...) y se presenta
+en el chat. Con una etiqueta de nombre puedes cambiárselo.
+
+| | Lobo normal | Lobo Bromista |
+|---|---|---|
+| Vida (salvaje / domado) | 8 / 40 | **24 / 120** |
+| Daño (salvaje / domado) | 3 / 4 | **6 / 12**, y un 20 % de las mordidas son **críticas** (+12) |
+| Velocidad | 0,3 | 0,35, y hasta **Velocidad V** cuando te persigue |
+| Extras | – | se regenera solo (+1 de vida cada 2 s), no recibe daño de caída, los jugadores no le pueden hacer daño, la comida lo cura el doble, ataca a los monstruos cercanos (menos creepers) |
+
+### No se teletransporta: corre
+
+Cuando te alejas, en vez de aparecer a tu lado como un lobo normal, **acelera el paso**:
+
+- a más de **7 bloques** va al trote (Velocidad II);
+- a más de **14 bloques** corre a tope (Velocidad V): orejas hacia atrás, lengua fuera y una estela de humo, y te grita
+  algo como *"¡ESPÉRAME!"*;
+- si está lejos y no te alcanza, da **saltos turbo** hacia ti;
+- cuando llega, jadea y te lo echa en cara.
+
+Si lo dejas sentado, se queda (y te recuerda que sigue ahí). A más de 150 bloques se rinde y te espera.
+Si te vas a otra dimensión no puede seguirte, pero se queja, y te lo recuerda cuando vuelves.
+
+### Reacciona al clima
+
+| Clima | Qué hace |
+|---|---|
+| Sol (de día, al aire libre) | se pone **gafas de sol** pixeladas y levanta la cabeza |
+| Lluvia | se pone un **sombrero-paraguas** y baja las orejas y la cola |
+| Tormenta | paraguas, **tiembla**, orejas pegadas y la cola entre las patas; se asusta |
+| Nieve | se pone una **bufanda** y tirita |
+| Noche, cuevas y Nether | sin accesorios |
+
+Cada vez que cambia el clima donde está, lo comenta en el chat.
+
+### Animaciones meme
+
+Las hace solo de vez en cuando (cada 25–60 s) cuando está cerca de ti, y a veces lo dice en el chat:
+
+| N.º | Meme | | N.º | Meme |
+|---|---|---|---|---|
+| 1 | Vibrando (cabeceo al ritmo, con gafas) | | 8 | Mortal hacia atrás |
+| 2 | Trompo (gira sobre sí mismo) | | 9 | ¿Eh? (cabeza ladeada) |
+| 3 | *Looooobo* (se estira) | | 10 | Rodando de risa (ROFL) |
+| 4 | Se hace el muerto dramáticamente | | 11 | *Asúmelo*: le caen las gafas de sol |
+| 5 | Dab | | 12 | Susto de dibujos animados |
+| 6 | Moonwalk | | 13 | Baila de pie |
+| 7 | Sentado como una persona | | | |
+
+### Habla en el chat
+
+Los mensajes los ve **todo el mundo**, escritos por el lobo con su nombre (`<Firulais> ...`), mientras mueve la boca y ladra.
+
+- **Chistes**: cada 3–6 minutos te cuenta uno, con *ba-dum-tss* al final, y se ríe solo... o se queja de que no te reíste.
+- **Bromas** (cada 5–10 minutos o si te quedas quieto un minuto): un *ssss* de creeper detrás de ti, un *¡BU!*,
+  un logro falso, *"¡mira, un diamante detrás de ti!"*, te lame la cara...
+- **Comentarios** al azar de amigo pesado.
+- **Reacciona a lo que haces**: caídas, quemarte, lava, explosiones, ahogarte, abrazar un cactus, que te pegue un mob,
+  tener poca vida, morir y reaparecer, dormir y despertar, nadar, agacharte varias veces seguidas, minar diamantes,
+  netherite, esmeraldas u otros minerales, talar árboles, cavar, construir, comer (sobre todo carne podrida o manzanas
+  doradas), matar mobs (y si matas a un lobo, a un aldeano o al dragón), entrar al mundo, que se haga de día o de noche,
+  y cuando le das de comer, un hueso, una galleta o lo sientas. Si le pegas, se hace el muerto y te amenaza con
+  demandarte. Si muere, dice sus últimas palabras.
+- Con el experimento **Beta APIs** también contesta si lo nombras en el chat (o escribes *lobo* o *perro*):
+  *"lobo, cuéntame un chiste"*, *"baila"*, *"una broma"*...
+
+### Comandos
+
+Cualquier jugador puede usarlos con sus lobos (también con `/scriptevent lobo:chiste`, etc.):
+
+| Comando | Qué hace |
+|---|---|
+| `/lobo:chiste` | Tu lobo más cercano te cuenta un chiste. |
+| `/lobo:broma` | Te gasta una broma. |
+| `/lobo:meme [número]` | Hace un meme (1–13 de la tabla, o uno al azar). |
+| `/lobo:silencio` | Activa o desactiva los mensajes de **tus** lobos en el chat. |
+| `/lobo:invocar` | (Operadores, con trucos) invoca un Lobo Bromista ya domesticado. |
+
+- Las frases, chistes y bromas están al principio de `tools/lobo_bromista/main.js`; las distancias, tiempos y
+  estadísticas, en `CONFIG` y `STATS` de `tools/lobo_bromista.py`.
+- La imagen de arriba la dibuja el propio generador con las mismas animaciones del addon (`--preview`).
 
 ---
 
@@ -287,6 +382,7 @@ sources/soul_corrupted_mobs_v1.0.0/           addon original (base)
 MedievalMobs_BP/   MedievalMobs_RP/    addon medieval
 Roulette_BP/       Roulette_RP/        ruleta de colores (generado)
 HelperItems_BP/    HelperItems_RP/     objetos de ayuda (generado)
+LoboBromista_BP/   LoboBromista_RP/    lobo bromista (generado)
 tools/             generadores en Python (modelos + texturas + JSON)
 dist/              los .mcaddon listos para instalar
 ```
@@ -303,6 +399,7 @@ python3 tools/soul_mobs.py --preview
 python3 tools/generate.py --preview
 python3 tools/roulette.py --preview
 python3 tools/helper_items.py --preview
+python3 tools/lobo_bromista.py --preview
 ```
 
 Cada uno vuelve a generar sus packs y su `.mcaddon`. `--preview` además actualiza las imágenes de `docs/`.
