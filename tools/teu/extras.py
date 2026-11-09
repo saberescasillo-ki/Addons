@@ -214,31 +214,35 @@ def fix_case(rp):
 
 # --- arenas and compasses ------------------------------------------------------------------------
 REGION, QUARTER, SPAN, MARGIN, OFFSET, END_SKIP = 128, 64, 48, 8, 4000037, 400
-# theme name -> boss, dimension, y of the structure, quarter, constants, label, compass item
+# theme name -> boss, dimension, y of the arena floor, quarter, constants, label, compass item, colour
 ARENAS = {
-    "floral": ("boss:floral_amalgam", "overworld", -26, (0, 0), (11, 29), "Floral Amalgam", "moss_block", "#6fb04a"),
-    "wyrm": ("boss:primordial_wyrm", "overworld", -46, (1, 0), (41, 7), "Primordial Wyrm", "prismarine_shard", "#3fb6c4"),
-    "sculk": ("boss:sculk_boss", "overworld", -60, (0, 1), (23, 53), "Sculk Monstrosity", "echo_shard", "#1d6f78"),
-    "pyrogen": ("boss:pyrogen", "nether", 26, (0, 0), (17, 61), "Pyrogen", "blaze_powder", "#f08a24"),
-    "ghast": ("boss:irradiated_ghast", "nether", 40, (1, 1), (59, 13), "Mutated Nuclear Ghast", "ghast_tear", "#7be04a"),
-    "astral": ("boss:astrageldon", "the_end", 40, (0, 0), (31, 43), "Eclipsion Geliath", "amethyst_shard", "#b06cf0"),
-    "obelisk": ("boss:sightful_obelisk_of_ender", "the_end", 40, (1, 1), (5, 37), "Sightful Obelisk of Ender",
+    "floral": ("boss:floral_amalgam", "overworld", -24, (0, 0), (11, 29), "Floral Amalgam", "moss_block", "#6fb04a"),
+    "wyrm": ("boss:primordial_wyrm", "overworld", -40, (1, 0), (41, 7), "Primordial Wyrm", "prismarine_shard", "#3fb6c4"),
+    "sculk": ("boss:sculk_boss", "overworld", -52, (0, 1), (23, 53), "Sculk Monstrosity", "echo_shard", "#1d6f78"),
+    "pyrogen": ("boss:pyrogen", "nether", 34, (0, 0), (17, 61), "Pyrogen", "blaze_powder", "#f08a24"),
+    "ghast": ("boss:irradiated_ghast", "nether", 45, (1, 1), (59, 13), "Mutated Nuclear Ghast", "ghast_tear", "#7be04a"),
+    "astral": ("boss:astrageldon", "the_end", 60, (0, 0), (31, 43), "Eclipsion Geliath", "amethyst_shard", "#b06cf0"),
+    "obelisk": ("boss:sightful_obelisk_of_ender", "the_end", 60, (1, 1), (5, 37), "Sightful Obelisk of Ender",
                 "ender_eye", "#3ad6a0"),
 }
+NOWHERE = {"overworld": -100, "nether": -1, "the_end": -1}     # below the world: nothing is placed
 DIM_TAG = {"overworld": "overworld", "nether": "nether", "the_end": "the_end"}
-SUMMON_Y = {"wyrm": 5, "ghast": 8, "obelisk": 3}
+SUMMON_Y = {"wyrm": 4, "ghast": 6, "obelisk": 2}
 TITLES = {"floral": "El jardín despierta", "wyrm": "Algo se mueve en el agua", "sculk": "El sculk late",
           "pyrogen": "La forja arde", "ghast": "Un llanto radiactivo", "astral": "Las estrellas se apagan",
           "obelisk": "El vacío te observa"}
 
 
-def placement(k1, k2, qx, qz, dim):
-    end = " && (math.abs(v.originx) > %d || math.abs(v.originz) > %d)" % (END_SKIP, END_SKIP) if dim == "the_end" else ""
-    return ("t.cx = v.originx / 16; t.cz = v.originz / 16; t.rx = math.floor(t.cx / %d); t.rz = math.floor(t.cz / %d); "
+def placement(k1, k2, qx, qz, dim, y):
+    """Feature rule y: the arena's floor in the one chunk of the region the formula picks,
+    below the world (nothing placed) in every other chunk."""
+    end = " && (math.abs(v.worldx) > %d || math.abs(v.worldz) > %d)" % (END_SKIP, END_SKIP) if dim == "the_end" else ""
+    return ("t.cx = math.floor(v.worldx / 16); t.cz = math.floor(v.worldz / 16); "
+            "t.rx = math.floor(t.cx / %d); t.rz = math.floor(t.cz / %d); "
             "t.ox = math.mod(t.rx * 37 + t.rz * 91 + %d, %d) + %d; t.oz = math.mod(t.rx * 71 + t.rz * 29 + %d, %d) + %d; "
-            "return (t.cx == t.rx * %d + t.ox && t.cz == t.rz * %d + t.oz%s) ? 1 : 0;"
+            "return (t.cx == t.rx * %d + t.ox && t.cz == t.rz * %d + t.oz%s) ? %d : %d;"
             % (REGION, REGION, k1 + OFFSET, SPAN, MARGIN + qx * QUARTER, k2 + OFFSET, SPAN, MARGIN + qz * QUARTER,
-               REGION, REGION, end))
+               REGION, REGION, end, y, NOWHERE[dim]))
 
 
 def compass_icon(path, color):
@@ -256,8 +260,11 @@ def compass_icon(path, color):
 
 
 def write_arenas(bp, rp, compass_js, keep_entities):
-    """Structures, features, rules, trigger functions, compass items/recipes/icons and the
-    compass script. Returns the compass item ids and the script file name."""
+    """Arena structures and their loaders, features, rules, functions, compass items,
+    recipes and icons, and the compass script. Returns the compass items and the arenas.
+
+    World generation places a 1-block loader (a command block): when a player comes near
+    it loads the whole arena round it (any size works, and /place feature does the same)."""
     cmds = {n: f"execute if entity @p[r=12,m=!spectator] run function teu_mobs/arena/{n}" for n in ARENAS}
     built = arenas.build(os.path.join(bp, "structures"), cmds)
     compass_data, items = {}, []
@@ -268,25 +275,34 @@ def write_arenas(bp, rp, compass_js, keep_entities):
         assert boss in keep_entities, boss
         path, size, (cx, fy, cz) = built[name]
         struct = os.path.splitext(os.path.basename(path))[0]
+        # the loader: where the middle of the floor goes (the arena overwrites it once loaded)
+        loader = arenas.Arena((1, 1, 1))
+        arenas.command_block(loader, 0, 0, 0, f"execute if entity @p[r=48] run function teu_mobs/arena_load/{name}")
+        loader.save(os.path.join(bp, "structures", struct + "_loader.mcstructure"))
+        fn = os.path.join(bp, "functions", "teu_mobs", "arena_load", name + ".mcfunction")
+        os.makedirs(os.path.dirname(fn), exist_ok=True)
+        with open(fn, "w", encoding="utf-8", newline="\n") as f:
+            f.write(f"structure load mystructure:{struct} ~-{cx} ~-{fy - 1} ~-{cz}\n")
         ident = f"teu_mobs:arena_{name}"
         dump(os.path.join(bp, "features", "teu_mobs", f"arena_{name}.json"), {
             "format_version": "1.13.0", "minecraft:structure_template_feature": {
-                "description": {"identifier": ident}, "structure_name": "mystructure:" + struct,
+                "description": {"identifier": ident}, "structure_name": f"mystructure:{struct}_loader",
                 "facing_direction": "north"}})
         dump(os.path.join(bp, "feature_rules", "teu_mobs", f"arena_{name}.json"), {
             "format_version": "1.13.0", "minecraft:feature_rules": {
                 "description": {"identifier": f"teu_mobs:arena_{name}_rule", "places_feature": ident},
                 "conditions": {"placement_pass": "final_pass",
                                "minecraft:biome_filter": [{"test": "has_biome_tag", "operator": "==", "value": DIM_TAG[dim]}]},
-                "distribution": {"iterations": placement(k1, k2, qx, qz, dim), "x": 0, "y": y, "z": 0}}})
+                "distribution": {"iterations": 1, "coordinate_eval_order": "xzy", "x": 0, "z": 0,
+                                 "y": placement(k1, k2, qx, qz, dim, y)}}})
         under = {"floral": "minecraft:moss_block", "wyrm": "minecraft:dark_prismarine", "sculk": "minecraft:deepslate_tiles",
                  "pyrogen": "minecraft:polished_blackstone", "ghast": "minecraft:smooth_basalt",
-                 "astral": "minecraft:obsidian", "obelisk": "minecraft:obsidian"}[name]
+                 "astral": "minecraft:calcite", "obelisk": "minecraft:obsidian"}[name]
         fn = os.path.join(bp, "functions", "teu_mobs", "arena", name + ".mcfunction")
         os.makedirs(os.path.dirname(fn), exist_ok=True)
         with open(fn, "w", encoding="utf-8", newline="\n") as f:
             f.write("\n".join([
-                f"summon {boss} ~ ~{SUMMON_Y.get(name, 4)} ~",
+                f"summon {boss} ~ ~{SUMMON_Y.get(name, 3)} ~",
                 f"title @a[r=48] title §c{label}",
                 f"title @a[r=48] subtitle §7{TITLES[name]}",
                 "playsound mob.wither.spawn @a[r=48] ~ ~ ~ 1 0.8",
@@ -310,7 +326,7 @@ def write_arenas(bp, rp, compass_js, keep_entities):
                 "key": {"A": {"item": "minecraft:" + mat}, "B": {"item": "minecraft:compass"}},
                 "result": {"item": item, "count": 1}}})
         compass_data[item] = {"label": label, "dim": "minecraft:" + dim, "k1": k1, "k2": k2, "qx": qx * QUARTER,
-                              "qz": qz * QUARTER, "cx": cx, "cz": cz, "y": y + fy}
+                              "qz": qz * QUARTER, "cx": 0, "cz": 0, "y": y}
     dump(item_tex, atlas)
     js = read(compass_js)
     for k, v in (("__REGION__", REGION), ("__QUARTER__", QUARTER), ("__SPAN__", SPAN), ("__MARGIN__", MARGIN),
@@ -320,3 +336,100 @@ def write_arenas(bp, rp, compass_js, keep_entities):
     with open(os.path.join(bp, "scripts", "teu_compass.js"), "w", encoding="utf-8", newline="\n") as f:
         f.write(js)
     return items, {n: b[0] for n, b in built.items()}
+
+
+# --- 1.2 fixes -----------------------------------------------------------------------------------
+LOW_RING = re.compile(r"^(\s*)summon (mechanic:(?:pyrogen_fireballs|homing_obelisk)) ~([^~\s]*)~([^~\s]*)~([^\s]*)\s*$", re.M)
+
+
+def projectiles_at_player(fn_name, text):
+    """The Pyrogen and the Obelisk fire from a ring round themselves, high in the air: the
+    ring now forms round the nearest player, at their height, and aims at them."""
+    def near(v):     # 35 blocks away would be inside the walls of a closed arena: 12
+        return v.replace("35", "12")
+    text = LOW_RING.sub(lambda m: f"{m.group(1)}execute at @p[r=60] run summon {m.group(2)} "
+                                  f"~{near(m.group(3))} ~1.2 ~{near(m.group(5))}", text)
+    return text.replace("facing @e[c=1,type=boss:pyrogen]", "facing @p[r=60]")
+
+
+INVALID_SOUND_EVENTS = {"scream", "guardian.flop"}
+
+
+def fix_sounds(sounds):
+    for v in sounds.get("entity_sounds", {}).get("entities", {}).values():
+        ev = v.get("events", {})
+        for k in [k for k in ev if k in INVALID_SOUND_EVENTS]:
+            del ev[k]
+    return sounds
+
+
+def fix_controller(data):
+    """Transitions with an empty condition ("No tokens found in expression") -> never."""
+    n = 0
+    for ac in data.get("animation_controllers", {}).values():
+        for st in ac.get("states", {}).values():
+            for t in st.get("transitions", []) or []:
+                for k, v in list(t.items()):
+                    if isinstance(v, str) and not v.strip():
+                        t[k] = "0"
+                        n += 1
+    return n
+
+
+def fix_baby_locators(data):
+    """Baby models repeating the adult's neck locator with other values (content log error)."""
+    n = 0
+    geos = [g for g in data.get("minecraft:geometry", []) or []
+            if g.get("description", {}).get("identifier", "").startswith("geometry.baby_")]
+    geos += [v for k, v in data.items() if k.startswith("geometry.baby_") and isinstance(v, dict)]
+    for g in geos:
+        if True:
+            for b in g.get("bones", []):
+                loc = b.get("locators")
+                if isinstance(loc, dict) and "armor_offset.default_neck" in loc:
+                    del loc["armor_offset.default_neck"]
+                    n += 1
+    return n
+
+
+def fix_guardian_client(data):
+    """controller.render.guardian also asks for texture.elder and material.ghost."""
+    d = data["minecraft:client_entity"]["description"]
+    if any((r if isinstance(r, str) else next(iter(r))) == "controller.render.guardian" for r in d.get("render_controllers", [])):
+        d.setdefault("textures", {}).setdefault("elder", d["textures"].get("default"))
+        d.setdefault("materials", {}).setdefault("ghost", d["materials"].get("default", "guardian"))
+    return data
+
+
+def clearer_particle_texture(path):
+    """Brighter colours and firmer edges: soft, dark particle textures read badly."""
+    from PIL import Image, ImageEnhance
+    try:
+        img = Image.open(path).convert("RGBA")
+    except Exception:
+        return False
+    r, g, b, a = img.split()
+    rgb = Image.merge("RGB", (r, g, b))
+    rgb = ImageEnhance.Brightness(rgb).enhance(1.35)
+    rgb = ImageEnhance.Contrast(rgb).enhance(1.15)
+    rgb = ImageEnhance.Color(rgb).enhance(1.2)
+    a = a.point(lambda v: 0 if v < 24 else min(255, int(v * 1.6)))
+    out = Image.merge("RGBA", (*rgb.split(), a))
+    out.save(path)
+    return True
+
+
+def particle_textures(rp):
+    """Texture files the particles use."""
+    out = set()
+    for dirpath, _, fs in os.walk(os.path.join(rp, "particles")):
+        for name in fs:
+            if not name.endswith(".json"):
+                continue
+            d = load(os.path.join(dirpath, name))
+            t = d.get("particle_effect", {}).get("description", {}).get("basic_render_parameters", {}).get("texture")
+            if isinstance(t, str):
+                for ext in (".png", ".tga"):
+                    if os.path.isfile(os.path.join(rp, t + ext)):
+                        out.add(os.path.join(rp, t + ext))
+    return out

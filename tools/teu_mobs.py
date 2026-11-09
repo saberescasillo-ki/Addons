@@ -12,8 +12,9 @@ Kept:
     block scripts those blocks use), generated in vanilla biomes (the End ones rarely);
     their spawners spawn the chosen mobs of each structure;
   * each boss's summoning item or block, with a recipe of vanilla materials.
-Version 1.1 (tools/teu/extras.py, arenas.py, torpendo.js, compass.js):
-  * every boss has its own arena (a complex of rooms round a domed hall) generated very
+Versions 1.1 and 1.2 (tools/teu/extras.py, arenas.py, torpendo.js, compass.js):
+  * every boss has its own flat arena (flower, circle, octagon, hexagon, star, pentagon; a
+    one-block loader placed by world generation or /place feature loads it) generated very
     rarely, where a formula puts it; a craftable compass per boss shows the way there;
     the boss appears when a player walks into the hall;
   * vanilla loot instead of the add-on's items (chests, trial spawners, drops, gear);
@@ -52,7 +53,7 @@ BP = os.path.join(OUT, "TEUMobs_BP")
 RP = os.path.join(OUT, "TEUMobs_RP")
 MCADDON = os.path.join(OUT, "TEUMobs.mcaddon")
 NAME = "TEU Mobs"
-VERSION = [1, 1, 0]
+VERSION = [1, 2, 0]
 UUIDS = dict(bp="3b8e1f64-7a29-4c51-9d0e-2f6a8c4b7e13", bp_data="c1d74e98-5b36-4a2f-8e61-0a9f3d7c2b54",
              bp_script="8f2a6c31-9e47-4d18-b5a3-6c0e1f9d4a72", rp="5e9c2b17-4f83-4a6d-a1c8-7d3e0b6f2c95",
              rp_res="a4f61d38-2c95-4e7b-9b14-e8c3f0a5d261")
@@ -537,7 +538,7 @@ def build(src_dir):
         out = os.path.join(BP, rel)
         os.makedirs(os.path.dirname(out), exist_ok=True)
         with open(out, "w", encoding="utf-8", newline="\n") as f:
-            f.write(extras.vanillize_text(read(src.bp_path(rel)), all_items, keep))
+            f.write(extras.projectiles_at_player(rel, extras.vanillize_text(read(src.bp_path(rel)), all_items, keep)))
     # spawn rules: the add-on's (vanilla biomes) and new ones
     have = set()
     for dirpath, _, files in os.walk(src.bp_path("spawn_rules")):
@@ -640,7 +641,7 @@ def build(src_dir):
     for k in ("block_sounds", "interactive_sounds"):
         if isinstance(sounds.get(k), dict):
             sounds[k] = {b: v for b, v in sounds[k].items() if b in blocks or b == "block_sounds"}
-    dump(os.path.join(RP, "sounds.json"), sounds)
+    dump(os.path.join(RP, "sounds.json"), extras.fix_sounds(sounds))
     sound_words = words | mentions(json.dumps(sounds))
     sd_path = os.path.join(src_rp, "sounds", "sound_definitions.json")
     defs = load(sd_path)
@@ -667,10 +668,26 @@ def build(src_dir):
                 dump(path, extras.lighten_particle(load(path)))
                 n += 1
     print(f"  partículas aligeradas: {n}")
+    tex = extras.particle_textures(RP)
+    print(f"  texturas de partículas más claras: {sum(extras.clearer_particle_texture(t) for t in tex)}")
+    fixes = 0
+    for folder, fn in (("animation_controllers", extras.fix_controller), ("models", extras.fix_baby_locators)):
+        for dirpath, _, fs in os.walk(os.path.join(RP, folder)):
+            for name in fs:
+                if name.endswith(".json"):
+                    path = os.path.join(dirpath, name)
+                    d = load(path)
+                    if fn(d):
+                        fixes += 1
+                        dump(path, d)
+    print(f"  controladores y modelos corregidos: {fixes}")
+    teu_opt.nto.BP, teu_opt.nto.RP = BP, RP
+    teu_opt.nto.blocks_json()
+    teu_opt.nto.block_loot()
     compass_items, arena_files = extras.write_arenas(BP, RP, os.path.join(HERE, "teu", "compass.js"), entities)
     print(f"  arenas: {', '.join(arena_files)}; brújulas: {len(compass_items)}")
     for rel in sorted(f for f in rp_files if f.startswith("entity/") and f.endswith(".json")):
-        dump(os.path.join(RP, rel), aq.fix_client(load(os.path.join(src_rp, rel))))
+        dump(os.path.join(RP, rel), extras.fix_guardian_client(aq.fix_client(load(os.path.join(src_rp, rel)))))
     for name in os.listdir(os.path.join(src_rp, "texts")):
         dm.copy(src_rp, RP, "texts/" + name)
         if name.endswith(".lang"):           # the add-on names "mob:soulrized_ghast", a typo
