@@ -1,0 +1,29 @@
+{
+  "format_version": "1.14.0",
+  "sound_definitions": {
+    "terror.burden.layer1": {
+      "category": "ui",
+      "sounds": [
+        {
+          "name": "sounds/terror/burden_layer_1",
+          "is3D": false,
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "terror.burden.layer2": {
+      "category": "ui",
+      "sounds": [
+        {
+          "name": "sounds/terror/burden_layer_2",
+          "is3D": false,
+          "stream": false,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    }
+  }
+}

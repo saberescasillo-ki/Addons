@@ -1,0 +1,5 @@
+item.terror:selector.name=Terror Radius Selector
+entity.terror:dummy.name=Dummy
+item.spawn_egg.entity.terror:dummy.name=Spawn Dummy
+pack.name=Terror Radius
+pack.description=Nearby players hear your Terror Radius.

@@ -7,14 +7,52 @@
 | **Ruleta de Colores** – ruleta en el HUD con comandos de administrador | [`dist/Roulette.mcaddon`](dist/Roulette.mcaddon) | `tools/roulette.py` |
 | **Objetos de Ayuda** – 4 objetos especiales que ayudan al jugador | [`dist/HelperItems.mcaddon`](dist/HelperItems.mcaddon) | `tools/helper_items.py` |
 | **The LITIUS Blind** – nueva dimensión de islas flotantes | [`dist/LitiusBlind.mcaddon`](dist/LitiusBlind.mcaddon) | `tools/litius_blind.py` |
+| **Terror Radius** – música en bucle para los jugadores cercanos a quien lo tiene | [`dist/TerrorRadius.mcaddon`](dist/TerrorRadius.mcaddon) | `tools/terror_radius.py` |
 
 Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo. No hace falta activar experimentos
 (salvo en The LITIUS Blind, ver abajo).
 
 - The Revamp of the Soul requiere Minecraft Bedrock **1.26.0** o superior.
 - Medieval Mobs requiere **1.21.0** o superior.
-- Ruleta de Colores y Objetos de Ayuda requieren **1.21.90** o superior.
+- Ruleta de Colores, Objetos de Ayuda y Terror Radius requieren **1.21.90** o superior.
 - The LITIUS Blind requiere **26.20** o superior y el experimento **Beta APIs**.
+
+---
+
+# Terror Radius
+
+![Las dos capas, el selector y el dummy](docs/terror_radius_preview.png)
+
+Quien tiene **Terror Radius** hace sonar un tema en bucle a los jugadores que se le acercan. **Solo cuentan los
+jugadores** (y el dummy de prueba): ningún mob lo activa ni lo puede llevar.
+
+| Capa | Distancia al portador | Audio |
+|---|---|---|
+| Capa 1 | de **30 a 15** bloques | `burden_layer_1.ogg` |
+| Capa 2 | de **15 a 0** bloques | `burden_layer_2.ogg` |
+
+- Suena **en bucle** para cada jugador que esté dentro del radio y **se corta en cuanto sale**. Al pasar de una capa
+  a otra se cambia de audio.
+- Con varios portadores cuenta el más cercano. Tienen que estar en la misma dimensión. Los espectadores no lo activan.
+- El audio no es posicional: se oye igual te muevas como te muevas, y no depende del deslizador de música.
+
+**Selector de Terror Radius** (`terror:selector`, en el inventario creativo o `/give @s terror:selector`):
+
+- **Úsalo mirando a un jugador o a un dummy** (hasta 12 bloques) para darle o quitarle el Terror Radius. Se puede
+  poner y quitar en cualquier momento.
+- **Úsalo al aire** (o agachado) para abrir el menú:
+  - *Elegir quién lo tiene*: lista de jugadores y dummies; toca un nombre para ponerlo o quitarlo (también a ti).
+  - *Mi volumen*: tu volumen del Terror Radius (0–100 %), solo para ti.
+  - *Opciones* (para todo el mundo): volumen general, radio de cada capa, si **el portador también lo oye** cuando
+    alguien entra en su radio (activado por defecto) y un indicador en pantalla con la capa y la distancia, para probar.
+  - *Invocar dummy de prueba* y *Quitar todos los dummies*.
+- Los portadores llevan la etiqueta `terror_radius`, así que también vale `/tag <jugador> add terror_radius`.
+
+**Dummy** (`terror:dummy`, con huevo generador): un maniquí quieto que el addon trata como un jugador. Para probar
+tú solo: dale el Terror Radius al dummy y acércate (capa 1 a 30 bloques, capa 2 a 15), o póntelo tú y acércate al dummy.
+
+Para cambiar el tema, sustituye los `.ogg` de `sources/terror_radius/` y ejecuta `python3 tools/terror_radius.py`
+(la duración del bucle se lee del archivo). Las distancias por defecto están en `CONFIG`.
 
 ---
 
@@ -287,6 +325,8 @@ sources/soul_corrupted_mobs_v1.0.0/           addon original (base)
 MedievalMobs_BP/   MedievalMobs_RP/    addon medieval
 Roulette_BP/       Roulette_RP/        ruleta de colores (generado)
 HelperItems_BP/    HelperItems_RP/     objetos de ayuda (generado)
+TerrorRadius_BP/   TerrorRadius_RP/    terror radius (generado)
+sources/terror_radius/                        audio del terror radius (una capa por archivo)
 tools/             generadores en Python (modelos + texturas + JSON)
 dist/              los .mcaddon listos para instalar
 ```
@@ -303,6 +343,7 @@ python3 tools/soul_mobs.py --preview
 python3 tools/generate.py --preview
 python3 tools/roulette.py --preview
 python3 tools/helper_items.py --preview
+python3 tools/terror_radius.py --preview
 ```
 
 Cada uno vuelve a generar sus packs y su `.mcaddon`. `--preview` además actualiza las imágenes de `docs/`.
