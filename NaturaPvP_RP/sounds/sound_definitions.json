@@ -1,13 +1,94 @@
 {
   "format_version": "1.14.0",
   "sound_definitions": {
-    "natura.epic": {
-      "category": "ui",
+    "natura.song.duelo_final": {
+      "category": "record",
+      "min_distance": 4096.0,
+      "max_distance": 8192.0,
       "sounds": [
         {
-          "name": "sounds/natura/epic",
+          "name": "sounds/natura/songs/duelo_final",
           "stream": true,
-          "volume": 1.0
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "natura.song.eternity_eternal_v4": {
+      "category": "record",
+      "min_distance": 4096.0,
+      "max_distance": 8192.0,
+      "sounds": [
+        {
+          "name": "sounds/natura/songs/eternity_eternal_v4",
+          "stream": true,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "natura.song.find_your_flame": {
+      "category": "record",
+      "min_distance": 4096.0,
+      "max_distance": 8192.0,
+      "sounds": [
+        {
+          "name": "sounds/natura/songs/find_your_flame",
+          "stream": true,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "natura.song.in_your_dreams": {
+      "category": "record",
+      "min_distance": 4096.0,
+      "max_distance": 8192.0,
+      "sounds": [
+        {
+          "name": "sounds/natura/songs/in_your_dreams",
+          "stream": true,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "natura.song.teapot_palace_tour": {
+      "category": "record",
+      "min_distance": 4096.0,
+      "max_distance": 8192.0,
+      "sounds": [
+        {
+          "name": "sounds/natura/songs/teapot_palace_tour",
+          "stream": true,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "natura.song.the_sol_still_burns": {
+      "category": "record",
+      "min_distance": 4096.0,
+      "max_distance": 8192.0,
+      "sounds": [
+        {
+          "name": "sounds/natura/songs/the_sol_still_burns",
+          "stream": true,
+          "volume": 1.0,
+          "load_on_low_memory": true
+        }
+      ]
+    },
+    "natura.song.wilted_blossom": {
+      "category": "record",
+      "min_distance": 4096.0,
+      "max_distance": 8192.0,
+      "sounds": [
+        {
+          "name": "sounds/natura/songs/wilted_blossom",
+          "stream": true,
+          "volume": 1.0,
+          "load_on_low_memory": true
         }
       ]
     }

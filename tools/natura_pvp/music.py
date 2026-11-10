@@ -1,4 +1,6 @@
-"""The epic song of the hunt's final duel (an original piece, synthesised here).
+""""Duelo Final": the epic song of the hunt's final duel (an original piece, synthesised here).
+
+Encoded in stereo: Bedrock plays stereo sounds without 3D attenuation.
 
 D minor, 132 bpm, 32 bars (~58 s) that loop: war drums, a string ostinato,
 low brass, a choir and a heroic brass theme that climbs in the last part.
@@ -241,7 +243,7 @@ def write_ogg(path):
             w.setsampwidth(2)
             w.setframerate(SR)
             w.writeframes((data * 32767).astype("<i2").tobytes())
-        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", wav, "-c:a", "libvorbis", "-q:a", "5", path], check=True)
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", wav, "-ac", "2", "-c:a", "libvorbis", "-q:a", "4", path], check=True)
     return LENGTH
 
 

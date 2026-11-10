@@ -43,7 +43,7 @@ RP = os.path.join(ROOT, "NaturaPvP_RP")
 DIST = os.path.join(ROOT, "dist")
 DOCS = os.path.join(ROOT, "docs")
 
-VERSION = [1, 0, 0]
+VERSION = [1, 1, 0]
 MIN_ENGINE = [1, 21, 90]  # custom commands in @minecraft/server 2.0.0
 SERVER_API = "2.0.0"
 UI_API = "2.0.0"
@@ -51,8 +51,9 @@ UUIDS = dict(bp="0b6f3c52-8e1d-4c7a-9f4e-2a6d1e7b5c31", bp_data="7d2e9a14-3b5f-4
              bp_script="e5a1c7d3-9f2b-4a6e-8d4c-1b7f3e9a2c65", rp="3c8f1e6a-2d4b-4f9e-b7a3-5e1c9d2f8b46",
              rp_res="9a4d2b7e-6c1f-4e3a-8b5d-7f2e1c9a4d83")
 
-BUILD_VERSION = "1.0.0"  # change it to rebuild the map in existing worlds
-TRACK = "sounds/natura/epic"
+BUILD_VERSION = "1.1.0"  # change it to rebuild the map in existing worlds
+SONGS_DIR = os.path.join(SRC, "canciones")
+AUDIO = (".ogg", ".mp3", ".wav", ".m4a", ".flac", ".opus")
 
 LANG = {
     "es": {
@@ -152,28 +153,73 @@ def resource_files():
     blank = os.path.join(RP, "textures/entity/natura/blank.png")
     os.makedirs(os.path.dirname(blank), exist_ok=True)
     Image.new("RGBA", (16, 16), (0, 0, 0, 0)).save(blank)
-    write(os.path.join(RP, "sounds/sound_definitions.json"), {
-        "format_version": "1.14.0",
-        "sound_definitions": {
-            "natura.epic": {"category": "ui", "sounds": [{"name": TRACK, "stream": True, "volume": 1.0}]},
-        },
-    })
 
 
-def song(force):
-    """The song is kept in tools/natura_pvp/epic.ogg (rendering takes a few seconds)."""
+def slug(text):
+    out = "".join(ch if ch.isalnum() else "_" for ch in text.lower())
+    return "_".join(p for p in out.split("_") if p)[:40] or "cancion"
+
+
+def duration(path):
+    out = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", path],
+                         check=True, capture_output=True, text=True)
+    return float(out.stdout.strip())
+
+
+def songs(force_music):
+    """The songs: tools/natura_pvp/canciones/canciones.json (in that order).
+
+    Any other audio file put in that folder is converted to .ogg (same loudness,
+    stereo) and added at the end, named after the file. "Duelo Final" is
+    synthesised by music.py."""
     import music
-    cached = os.path.join(SRC, "epic.ogg")
-    if force or not os.path.exists(cached):
-        music.write_ogg(cached)
-    dst = os.path.join(RP, TRACK + ".ogg")
-    os.makedirs(os.path.dirname(dst), exist_ok=True)
-    shutil.copy(cached, dst)
-    return music.LENGTH
+    listing = os.path.join(SONGS_DIR, "canciones.json")
+    with open(listing, encoding="utf-8") as fh:
+        entries = json.load(fh)
+    epic = os.path.join(SONGS_DIR, "duelo_final.ogg")
+    if force_music or not os.path.exists(epic):
+        music.write_ogg(epic)
+    known = {e["file"] for e in entries}
+    for name in sorted(os.listdir(SONGS_DIR)):
+        stem, ext = os.path.splitext(name)
+        if ext.lower() not in AUDIO or name in known:
+            continue
+        target = slug(stem) + ".ogg"
+        if target in known:
+            continue
+        src = os.path.join(SONGS_DIR, name)
+        tmp = os.path.join(SONGS_DIR, "_tmp_" + target)
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", src, "-af", "loudnorm=I=-14:TP=-1.5:LRA=11",
+                        "-ar", "44100", "-ac", "2", "-c:a", "libvorbis", "-q:a", "2", tmp], check=True)
+        if name != target:
+            os.remove(src)
+        os.replace(tmp, os.path.join(SONGS_DIR, target))
+        entries.append({"file": target, "name": stem.replace("_", " ").strip()})
+        known.add(target)
+        print("Canción añadida:", target)
+    defs, tracks = {}, []
+    for e in entries:
+        path = os.path.join(SONGS_DIR, e["file"])
+        if "seconds" not in e or force_music:
+            e["seconds"] = round(duration(path), 2)
+        sid = "natura.song." + slug(os.path.splitext(e["file"])[0])
+        rel = "sounds/natura/songs/" + os.path.splitext(e["file"])[0]
+        dst = os.path.join(RP, rel + ".ogg")
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        shutil.copy(path, dst)
+        # stereo + a huge min_distance: the song sounds the same anywhere
+        defs[sid] = {"category": "record", "min_distance": 4096.0, "max_distance": 8192.0,
+                     "sounds": [{"name": rel, "stream": True, "volume": 1.0, "load_on_low_memory": True}]}
+        tracks.append({"id": sid, "name": e["name"], "ticks": int(e["seconds"] * 20) + 10})
+    with open(listing, "w", encoding="utf-8") as fh:
+        json.dump(entries, fh, indent=2, ensure_ascii=False)
+        fh.write("\n")
+    write(os.path.join(RP, "sounds/sound_definitions.json"), {"format_version": "1.14.0", "sound_definitions": defs})
+    return tracks
 
 
-def scripts(track_seconds):
-    cfg = {"buildVersion": BUILD_VERSION, "trackSeconds": int(track_seconds)}
+def scripts(tracks):
+    cfg = {"buildVersion": BUILD_VERSION, "tracks": tracks}
     with open(os.path.join(SRC, "main.js"), encoding="utf-8") as f:
         main = f.read().replace("__CONFIG__", json.dumps(cfg))
     write(os.path.join(BP, "scripts/main.js"), main)
@@ -316,8 +362,12 @@ COLORS = {
     "azure": "#cfe0ef", "allium": "#b46ad8", "tulip": "#e04a3a", "otulip": "#ef8d2f", "lily": "#f4f4f4",
     "mcarpet": "#6a8a35", "lantern": "#f0b040", "fence": "#9a7a4a", "shroom": "#f0a050", "diamond": "#5ee0d8",
     "emerald": "#30c060", "redstone": "#c0281c", "lapis": "#2a4ab0", "vineN": "#3d7a25", "vineS": "#3d7a25",
-    "vineW": "#3d7a25", "vineE": "#3d7a25",
+    "vineW": "#3d7a25", "vineE": "#3d7a25", "dark": "#3e2a17", "darkL": "#2c5a1a", "cherry": "#4a2a2a",
+    "cherryL": "#f2a7c8",
 }
+for _wood in ("oak", "birch", "spruce", "dark", "cherry"):
+    for _ax in ("x", "z"):
+        COLORS[f"{_wood}_{_ax}"] = COLORS[_wood]
 
 
 def hexc(h):
@@ -384,6 +434,33 @@ def preview(sim):
     return out
 
 
+def iso_region(area, x0, z0, x1, z1, s=4, ymin=70):
+    """An isometric view of a region (to show the trees)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        out = os.path.join(tmp, "iso.json")
+        subprocess.run(["node", os.path.join(SRC, "iso.mjs"), area, str(x0), str(z0), str(x1), str(z1), out], check=True, cwd=SRC)
+        with open(out) as fh:
+            cols = json.load(fh)
+    blocks = []
+    for x, z, segs in cols:
+        col = {}
+        for y0, y1, k in segs:
+            for y in range(max(y0, ymin), y1 + 1):
+                col[y] = k
+        blocks += [(x - x0, y - ymin, z - z0, k) for y, k in col.items()]
+    W, D = x1 - x0 + 1, z1 - z0 + 1
+    top = max(b[1] for b in blocks)
+    img = Image.new("RGB", ((W + D) * s + 10, (W + D) * s // 2 + (top + 3) * s + 10), (18, 26, 20))
+    d = ImageDraw.Draw(img)
+    for x, y, z, k in sorted(blocks, key=lambda b: (b[0] + b[2], b[1])):
+        c = hexc(COLORS.get(k, "#ff00ff"))
+        px, py = (x - z) * s + D * s + 5, (x + z) * s // 2 - y * s + (top + 1) * s + 5
+        d.polygon([(px, py), (px + s, py + s // 2), (px, py + s), (px - s, py + s // 2)], fill=c)
+        d.polygon([(px - s, py + s // 2), (px, py + s), (px, py + 2 * s), (px - s, py + s + s // 2)], fill=tuple(int(v * 0.75) for v in c))
+        d.polygon([(px, py + s), (px + s, py + s // 2), (px + s, py + s + s // 2), (px, py + 2 * s)], fill=tuple(int(v * 0.6) for v in c))
+    return img
+
+
 def icon(sim):
     lobby = render_area(sim["lobby"], 2)
     bg = Image.new("RGBA", lobby.size, (24, 40, 30, 255))
@@ -402,10 +479,10 @@ def zip_dir(z, folder, arc_root):
 def main():
     for pack in (BP, RP):
         shutil.rmtree(pack, ignore_errors=True)
-    seconds = song("--music" in sys.argv)
-    scripts(seconds)
-    write(os.path.join(BP, "entities/text.json"), text_entity())
     resource_files()
+    tracks = songs("--music" in sys.argv)
+    scripts(tracks)
+    write(os.path.join(BP, "entities/text.json"), text_entity())
     for code, key in (("es_ES", "es"), ("es_MX", "es"), ("en_US", "en"), ("en_GB", "en")):
         write(os.path.join(RP, f"texts/{code}.lang"), lang(LANG[key]))
         write(os.path.join(BP, f"texts/{code}.lang"), lang({k: v for k, v in LANG[key].items() if k.startswith("pack.")}))
@@ -425,6 +502,12 @@ def main():
         ic.save(os.path.join(pack, "pack_icon.png"))
     if sim and "--preview" in sys.argv:
         preview(sim).convert("RGB").save(os.path.join(DOCS, "natura_pvp_preview.png"))
+        lobby = iso_region("lobby", -30, -30, 29, 29, s=5, ymin=86)
+        forest = iso_region("hunt", -62, -540, -8, -486, s=5, ymin=72)
+        both = Image.new("RGB", (lobby.width + forest.width + 20, max(lobby.height, forest.height)), (18, 26, 20))
+        both.paste(lobby, (0, (both.height - lobby.height) // 2))
+        both.paste(forest, (lobby.width + 20, (both.height - forest.height) // 2))
+        both.save(os.path.join(DOCS, "natura_pvp_arboles.png"))
 
     # the world: void, with the packs inside
     dat = level_dat()

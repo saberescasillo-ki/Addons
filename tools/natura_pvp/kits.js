@@ -42,7 +42,7 @@ export const DEFAULT_KITS = {
   },
   hunter: {
     name: "Cazador",
-    desc: "Kit de diamante de los cazadores.",
+    desc: "Kit de diamante de los cazadores, con utilidades para perseguir.",
     items: [
       { slot: "head", id: "minecraft:diamond_helmet" },
       { slot: "chest", id: "minecraft:diamond_chestplate" },
@@ -53,15 +53,20 @@ export const DEFAULT_KITS = {
       { slot: 1, id: "minecraft:bow" },
       { slot: 2, id: "minecraft:diamond_pickaxe" },
       { slot: 3, id: "minecraft:diamond_axe" },
-      { slot: 4, id: "minecraft:golden_apple", count: 3 },
-      { slot: 5, id: "minecraft:cooked_beef", count: 32 },
-      { slot: 6, id: "minecraft:oak_planks", count: 64 },
+      { slot: 4, id: "minecraft:shears" },
+      { slot: 5, id: "minecraft:water_bucket" },
+      { slot: 6, id: "minecraft:ender_pearl", count: 2 },
+      { slot: 7, id: "minecraft:golden_apple", count: 3 },
+      { slot: 8, id: "minecraft:oak_planks", count: 64 },
       { slot: 9, id: "minecraft:arrow", count: 24 },
+      { slot: 10, id: "minecraft:cooked_beef", count: 32 },
+      { slot: 11, id: "minecraft:ladder", count: 8 },
+      { slot: 12, id: "minecraft:diamond_shovel" },
     ],
   },
   hunted: {
     name: "Cazado",
-    desc: "Kit de hierro encantado; mejora con cada cazador extra.",
+    desc: "Kit de hierro encantado con muchas utilidades para escapar; mejora con cada cazador extra.",
     items: [
       { slot: "head", id: "minecraft:iron_helmet", ench: { protection: 1 } },
       { slot: "chest", id: "minecraft:iron_chestplate", ench: { protection: 1 } },
@@ -72,11 +77,24 @@ export const DEFAULT_KITS = {
       { slot: 1, id: "minecraft:bow", ench: { power: 1 } },
       { slot: 2, id: "minecraft:iron_pickaxe", ench: { efficiency: 2 } },
       { slot: 3, id: "minecraft:iron_axe", ench: { efficiency: 1 } },
-      { slot: 4, id: "minecraft:golden_apple", count: 3 },
-      { slot: 5, id: "minecraft:cooked_beef", count: 32 },
-      { slot: 6, id: "minecraft:oak_planks", count: 64 },
-      { slot: 7, id: "minecraft:cobblestone", count: 64 },
+      { slot: 4, id: "minecraft:web|minecraft:cobweb", count: 16 },
+      { slot: 5, id: "minecraft:water_bucket" },
+      { slot: 6, id: "minecraft:ender_pearl", count: 4 },
+      { slot: 7, id: "minecraft:golden_apple", count: 3 },
+      { slot: 8, id: "minecraft:oak_planks", count: 64 },
       { slot: 9, id: "minecraft:arrow", count: 32 },
+      { slot: 10, id: "minecraft:cobblestone", count: 64 },
+      { slot: 11, id: "minecraft:lava_bucket" },
+      { slot: 12, id: "minecraft:cooked_beef", count: 32 },
+      { slot: 13, id: "minecraft:iron_shovel", ench: { efficiency: 2 } },
+      { slot: 14, id: "minecraft:shears" },
+      { slot: 15, id: "minecraft:fishing_rod" },
+      { slot: 16, id: "minecraft:ladder", count: 16 },
+      { slot: 17, id: "minecraft:scaffolding", count: 16 },
+      { slot: 18, id: "minecraft:snowball", count: 16 },
+      { slot: 19, id: "minecraft:crossbow", ench: { quick_charge: 1 } },
+      { slot: 20, id: "minecraft:water_bucket" },
+      { slot: 21, id: "minecraft:web|minecraft:cobweb", count: 8 },
     ],
   },
 };
@@ -112,11 +130,13 @@ function clampLevel(type, level) {
 
 function makeItem(spec) {
   let item;
-  try {
-    item = new ItemStack(spec.id, Math.max(1, Math.min(255, spec.count ?? 1)));
-  } catch {
-    return undefined;
+  for (const id of spec.id.split("|")) {
+    try {
+      item = new ItemStack(id, Math.max(1, Math.min(255, spec.count ?? 1)));
+      break;
+    } catch {}
   }
+  if (!item) return undefined;
   if (spec.name) item.nameTag = spec.name;
   if (spec.lore?.length) {
     try {
@@ -162,10 +182,12 @@ export function scaledHuntedKit(hunters) {
         ench.unbreaking = Math.max(ench.unbreaking ?? 0, bonus);
       }
     }
-    const count = s.id === "minecraft:golden_apple" ? (s.count ?? 1) + bonus * 2 : s.count;
+    // more apples, cobwebs and pearls with every extra hunter
+    const per = { "minecraft:golden_apple": 2, "minecraft:web|minecraft:cobweb": 4, "minecraft:ender_pearl": 1 }[s.id] ?? 0;
+    const count = per ? Math.min(64, (s.count ?? 1) + bonus * per) : s.count;
     return { ...s, ench, count };
   });
-  if (bonus >= 3) items.push({ slot: 8, id: "minecraft:enchanted_golden_apple", count: 1 });
+  if (bonus >= 3) items.push({ slot: 22, id: "minecraft:enchanted_golden_apple", count: 1 });
   // and some effects for the whole hunt
   const effects = [];
   if (bonus >= 2) effects.push({ id: "speed", amp: 0 });
@@ -255,7 +277,7 @@ export function saveKitFrom(player, id) {
 
 export function describeKit(kit) {
   const names = kit.items.map((s) => {
-    const n = s.id.replace("minecraft:", "").replace(/_/g, " ");
+    const n = s.id.split("|")[0].replace("minecraft:", "").replace(/_/g, " ");
     const e = s.ench && Object.keys(s.ench).length ? ` (${Object.entries(s.ench).map(([k, v]) => `${k} ${v}`).join(", ")})` : "";
     return `§7- §f${s.count > 1 ? s.count + "x " : ""}${n}§8${e}`;
   });

@@ -33,6 +33,20 @@ export const PALETTE = {
   oak: { id: "minecraft:oak_log", s: { pillar_axis: "y" } },
   birch: { id: "minecraft:birch_log", s: { pillar_axis: "y" } },
   spruce: { id: "minecraft:spruce_log", s: { pillar_axis: "y" } },
+  oak_x: { id: "minecraft:oak_log", s: { pillar_axis: "x" } },
+  oak_z: { id: "minecraft:oak_log", s: { pillar_axis: "z" } },
+  birch_x: { id: "minecraft:birch_log", s: { pillar_axis: "x" } },
+  birch_z: { id: "minecraft:birch_log", s: { pillar_axis: "z" } },
+  spruce_x: { id: "minecraft:spruce_log", s: { pillar_axis: "x" } },
+  spruce_z: { id: "minecraft:spruce_log", s: { pillar_axis: "z" } },
+  dark: { id: "minecraft:dark_oak_log|minecraft:spruce_log", s: { pillar_axis: "y" } },
+  dark_x: { id: "minecraft:dark_oak_log|minecraft:spruce_log", s: { pillar_axis: "x" } },
+  dark_z: { id: "minecraft:dark_oak_log|minecraft:spruce_log", s: { pillar_axis: "z" } },
+  cherry: { id: "minecraft:cherry_log|minecraft:birch_log", s: { pillar_axis: "y" } },
+  cherry_x: { id: "minecraft:cherry_log|minecraft:birch_log", s: { pillar_axis: "x" } },
+  cherry_z: { id: "minecraft:cherry_log|minecraft:birch_log", s: { pillar_axis: "z" } },
+  darkL: { id: "minecraft:dark_oak_leaves|minecraft:oak_leaves", s: { persistent_bit: true } },
+  cherryL: { id: "minecraft:cherry_leaves|minecraft:azalea_leaves_flowered|minecraft:oak_leaves", s: { persistent_bit: true } },
   oakL: { id: "minecraft:oak_leaves", s: { persistent_bit: true } },
   birchL: { id: "minecraft:birch_leaves", s: { persistent_bit: true } },
   spruceL: { id: "minecraft:spruce_leaves", s: { persistent_bit: true } },
@@ -94,50 +108,188 @@ const pick = (list, r) => list[Math.min(list.length - 1, Math.floor(r * list.len
 const FLOWERS = ["poppy", "dandelion", "cornflower", "oxeye", "azure", "allium", "tulip", "otulip", "lily"];
 
 // ------------------------------------------------------------ trees
-// A tree: { x, z, y (ground), type, h }. treeColumn() appends the leaves of the
-// tree that fall on column (x, z) to `leaves` and its trunk to `trunks`.
-function treeColumn(t, x, z, leaves, trunks) {
-  const dx = x - t.x, dz = z - t.z;
-  const ax = Math.abs(dx), az = Math.abs(dz);
+// A tree: { x, z, y (ground), type, h }. Its shape is worked out once (and kept)
+// as a map "dx,dz" -> leaves and logs of that column, so a column only has to
+// look at the trees around it. Types: oak, big (fancy oak with branches and
+// roots), birch, spruce, mega (2x2 spruce), dark (2x2 dark oak), azalea,
+// cherry, bush and fallen (a log lying on the ground).
+const shapes = new Map();
+export const TREE_REACH = 6;
+
+function treeShape(t) {
+  const id = `${t.type}:${t.x}:${t.z}:${t.y}:${t.h}`;
+  let m = shapes.get(id);
+  if (m) return m;
+  if (shapes.size > 30000) shapes.clear();
+  m = new Map();
+  shapes.set(id, m);
+  const R = (i) => hash(t.x * 31 + i * 7, t.z * 17 - i * 3, 4242 + t.y);
+  const col = (dx, dz) => {
+    const k = `${dx},${dz}`;
+    let c = m.get(k);
+    if (!c) m.set(k, (c = { leaves: [], logs: [] }));
+    return c;
+  };
+  const log = (dx, y, dz, key) => col(dx, dz).logs.push([y, y, key]);
+  const trunk = (dx, dz, y0, y1, key) => y1 >= y0 && col(dx, dz).logs.push([y0, y1, key]);
+  const leafAt = (dx, dz, y0, y1, key) => y1 >= y0 && col(dx, dz).leaves.push([y0, y1, key]);
+  // a round cluster of leaves (vk squashes or stretches it)
+  const blob = (bx, by, bz, r, key, vk = 0.75, ragged = 0.3) => {
+    const n = Math.ceil(r + 0.5);
+    for (let dx = -n; dx <= n; dx++)
+      for (let dz = -n; dz <= n; dz++) {
+        const d = Math.hypot(dx + (bx % 1), dz + (bz % 1));
+        if (d > r) continue;
+        const cx = Math.floor(bx) + dx, cz = Math.floor(bz) + dz;
+        if (d > r - 1 && hash(t.x + cx, t.z + cz, 4300 + Math.round(by)) < ragged) continue;
+        const e = Math.sqrt(r * r - d * d) * vk;
+        const k = typeof key === "function" ? key(cx, cz) : key;
+        leafAt(cx, cz, Math.round(by - e), Math.round(by + e), k);
+      }
+  };
+  const axis = (wood, a) => (Math.abs(Math.cos(a)) >= Math.abs(Math.sin(a)) ? `${wood}_x` : `${wood}_z`);
+  // a branch that leaves the trunk at height y and climbs outwards
+  const branch = (wood, y, a, len, rise = 0.6) => {
+    let px = 0, pz = 0, py = y;
+    for (let s = 1; s <= len; s++) {
+      px = Math.round(Math.cos(a) * s);
+      pz = Math.round(Math.sin(a) * s);
+      py = y + Math.floor(s * rise);
+      log(px, py, pz, axis(wood, a));
+    }
+    return { x: px, y: py, z: pz };
+  };
   const top = t.y + t.h;
-  if (t.type === "spruce") {
-    // cone: radius 3 at the bottom of the crown, 0 at the top
-    const d = Math.max(ax, az) + Math.min(ax, az) * 0.5;
-    const base = t.y + 3, height = top + 1 - base;
-    if (d <= 3.2 && !(dx === 0 && dz === 0)) {
-      const yMax = Math.floor(base + height * (1 - d / 3.4));
-      if (yMax >= base) leaves.push([base, yMax, "spruceL"]);
+  const y = t.y;
+  switch (t.type) {
+    case "oak": {
+      trunk(0, 0, y + 1, top - 1, "oak");
+      blob(0, top - 0.5, 0, 2.6, "oakL", 0.7);
+      for (let i = 0; i < 2; i++) {
+        const a = R(i) * Math.PI * 2;
+        blob(Math.round(Math.cos(a) * 1.4), top - 1, Math.round(Math.sin(a) * 1.4), 1.9, "oakL", 0.75, 0.4);
+      }
+      if (t.h >= 6 && R(5) < 0.6) {
+        const end = branch("oak", y + t.h - 3, R(6) * Math.PI * 2, 2, 0.5);
+        blob(end.x, end.y + 1, end.z, 1.7, "oakL", 0.8, 0.35);
+      }
+      break;
     }
-    if (dx === 0 && dz === 0) {
-      trunks.push([t.y + 1, top, "spruce"]);
-      leaves.push([top + 1, top + 2, "spruceL"]);
+    case "big": {
+      trunk(0, 0, y + 1, top - 1, "oak");
+      const n = 3 + (R(1) < 0.5 ? 1 : 0);
+      const base = R(2) * Math.PI * 2;
+      for (let i = 0; i < n; i++) {
+        const a = base + (i * Math.PI * 2) / n + (R(10 + i) - 0.5) * 0.9;
+        const by = y + Math.floor(t.h * (0.45 + 0.35 * R(20 + i)));
+        const end = branch("oak", by, a, 2 + (R(30 + i) < 0.5 ? 1 : 0));
+        blob(end.x, end.y + 1, end.z, 2.2 + R(40 + i) * 0.5, "oakL", 0.7);
+      }
+      blob(0, top, 0, 3.2, "oakL", 0.72);
+      // roots
+      [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dz], i) => {
+        if (R(50 + i) < 0.65) log(dx, y + 1, dz, R(55 + i) < 0.5 ? "oak" : dx ? "oak_x" : "oak_z");
+        if (R(60 + i) < 0.35) log(dx * 2, y + 1, dz * 2, dx ? "oak_x" : "oak_z");
+      });
+      break;
     }
-    return;
-  }
-  if (t.type === "big") {
-    // a round crown around the top of a tall trunk
-    const R = t.r ?? 3.6;
-    const d = Math.sqrt(dx * dx + dz * dz);
-    if (d <= R) {
-      const e = Math.sqrt(R * R - d * d) * 0.75;
-      const cy = top - 0.5;
-      leaves.push([Math.round(cy - e), Math.round(cy + e), t.leaf ?? "oakL"]);
+    case "birch": {
+      trunk(0, 0, y + 1, top, "birch");
+      blob(0, top - 1.5, 0, 2.2, "birchL", 1.2, 0.35);
+      leafAt(0, 0, top + 1, top + 1, "birchL");
+      if (R(3) < 0.4) blob(Math.round(Math.cos(R(4) * 6.3) * 1.5), top - 3, Math.round(Math.sin(R(4) * 6.3) * 1.5), 1.5, "birchL", 0.9, 0.4);
+      break;
     }
-    if (ax <= 0 && az <= 0) trunks.push([t.y + 1, top - 1, t.log ?? "oak"]);
-    return;
+    case "spruce":
+    case "mega": {
+      const mega = t.type === "mega";
+      const off = mega ? 0.5 : 0;
+      const maxR = mega ? 4.2 : 3;
+      if (mega) for (const [dx, dz] of [[0, 0], [1, 0], [0, 1], [1, 1]]) trunk(dx, dz, y + 1, top, "spruce");
+      else trunk(0, 0, y + 1, top, "spruce");
+      const n = Math.ceil(maxR) + 1;
+      for (let dx = -n; dx <= n + (mega ? 1 : 0); dx++)
+        for (let dz = -n; dz <= n + (mega ? 1 : 0); dz++) {
+          const ax = Math.abs(dx - off), az = Math.abs(dz - off);
+          const d = Math.max(ax, az) + Math.min(ax, az) * 0.45;
+          let run = null;
+          // rings: wide and narrow layers that get wider downwards
+          for (let yy = top + (mega ? 2 : 1); yy >= y + (mega ? 5 : 3); yy--) {
+            const k = top + (mega ? 2 : 1) - yy;
+            const grow = Math.min(maxR, 0.6 + k * (mega ? 0.32 : 0.36));
+            const r = k % 2 === 0 ? grow : grow - 1.1;
+            const inside = d <= r + 0.15 && !(d > r - 0.6 && hash(t.x + dx, t.z + dz, 4400 + yy) < 0.25);
+            if (inside) run = run ? [yy, run[1]] : [yy, yy];
+            else if (run) {
+              leafAt(dx, dz, run[0], run[1], "spruceL");
+              run = null;
+            }
+          }
+          if (run) leafAt(dx, dz, run[0], run[1], "spruceL");
+        }
+      break;
+    }
+    case "dark": {
+      for (const [dx, dz] of [[0, 0], [1, 0], [0, 1], [1, 1]]) trunk(dx, dz, y + 1, top, "dark");
+      const n = 2 + (R(1) < 0.5 ? 1 : 0);
+      for (let i = 0; i < n; i++) {
+        const a = R(10 + i) * Math.PI * 2;
+        const end = branch("dark", top - 2, a, 2, 0.5);
+        blob(end.x + 0.5, top, end.z + 0.5, 2.6, "darkL", 0.55);
+      }
+      blob(0.5, top + 0.5, 0.5, 4.3, "darkL", 0.42, 0.35);
+      break;
+    }
+    case "azalea": {
+      trunk(0, 0, y + 1, top, "oak");
+      const mix = (cx, cz) => (hash(cx + t.x, cz + t.z, 4500) < 0.35 ? "fazaleaL" : "azaleaL");
+      blob(0, top + 1, 0, 2.7, mix, 0.5, 0.3);
+      break;
+    }
+    case "cherry": {
+      trunk(0, 0, y + 1, y + Math.max(2, t.h - 3), "cherry");
+      const a = R(1) * Math.PI * 2;
+      for (const k of [0, 1]) {
+        const end = branch("cherry", y + t.h - 3, a + k * Math.PI + (R(2 + k) - 0.5) * 0.6, 2 + (R(4 + k) < 0.5 ? 1 : 0), 0.8);
+        trunk(end.x, end.z, end.y + 1, end.y + 1, "cherry");
+        blob(end.x, end.y + 2, end.z, 2.7, "cherryL", 0.62, 0.3);
+      }
+      break;
+    }
+    case "bush": {
+      log(0, y + 1, 0, "oak");
+      blob(0, y + 1.5, 0, 1.8, R(1) < 0.5 ? "oakL" : "azaleaL", 0.7, 0.35);
+      break;
+    }
+    case "fallen": {
+      const along = R(1) < 0.5;
+      const len = 4 + Math.floor(R(2) * 3);
+      const wood = R(3) < 0.6 ? "oak" : R(3) < 0.85 ? "birch" : "spruce";
+      for (let s = 0; s < len; s++) {
+        const dx = along ? s - 1 : 0, dz = along ? 0 : s - 1;
+        log(dx, y + 1, dz, `${wood}_${along ? "x" : "z"}`);
+        if (s > 0 && hash(t.x + s, t.z, 4600) < 0.55) log(dx, y + 2, dz, "mcarpet");
+      }
+      log(along ? -3 : 0, y + 1, along ? 0 : -3, wood);
+      break;
+    }
   }
-  // oak / birch: two wide layers and two narrow ones
-  const log = t.type === "birch" ? "birch" : "oak";
-  const leaf = t.type === "birch" ? "birchL" : t.type === "azalea" ? (hash(x, z, 9) < 0.35 ? "fazaleaL" : "azaleaL") : "oakL";
-  const corner = ax === 2 && az === 2;
-  const notch = hash(t.x * 3 + dx, t.z * 5 + dz, 77) < 0.5;
-  if (ax <= 1 && az <= 1) {
-    const ring = ax === 1 && az === 1 && notch;
-    leaves.push([top - 2, ring ? top : top + 1, leaf]);
-  } else if (ax <= 2 && az <= 2 && (!corner || notch)) {
-    leaves.push([top - 2, corner ? top - 2 : top - 1, leaf]);
+  return m;
+}
+
+export function treeHeight(type, r) {
+  switch (type) {
+    case "big": return 9 + Math.floor(r * 4);
+    case "birch": return r < 0.2 ? 9 + Math.floor(r * 10) : 6 + Math.floor(r * 3);
+    case "spruce": return 8 + Math.floor(r * 5);
+    case "mega": return 15 + Math.floor(r * 5);
+    case "dark": return 6 + Math.floor(r * 3);
+    case "azalea": return 2 + Math.floor(r * 2);
+    case "cherry": return 5 + Math.floor(r * 2);
+    case "bush":
+    case "fallen": return 1;
+    default: return 4 + Math.floor(r * 3);
   }
-  if (dx === 0 && dz === 0) trunks.push([t.y + 1, top, log]);
 }
 
 // Trees on a grid of cells (one candidate per cell), so a column only needs to
@@ -148,17 +300,27 @@ function gridTrees(x, z, cell, treeAt) {
   for (let i = -1; i <= 1; i++)
     for (let j = -1; j <= 1; j++) {
       const t = treeAt(cx + i, cz + j);
-      if (t && Math.abs(t.x - x) <= 4 && Math.abs(t.z - z) <= 4) out.push(t);
+      if (t && Math.abs(t.x - x) <= TREE_REACH && Math.abs(t.z - z) <= TREE_REACH) out.push(t);
     }
   return out;
 }
 
+// Adds the leaves and then the logs of the trees on column (x, z). True if a
+// log stands on the ground there (no flowers then).
 function addTrees(trees, x, z, segs) {
-  const leaves = [], trunks = [];
-  for (const t of trees) treeColumn(t, x, z, leaves, trunks);
-  for (const s of leaves) segs.push(s);
-  for (const s of trunks) segs.push(s);
-  return trunks.length > 0;
+  const logs = [];
+  let ground = false;
+  for (const t of trees) {
+    const c = treeShape(t).get(`${x - t.x},${z - t.z}`);
+    if (!c) continue;
+    for (const s of c.leaves) segs.push(s);
+    for (const s of c.logs) {
+      logs.push(s);
+      if (s[0] === t.y + 1) ground = true;
+    }
+  }
+  for (const s of logs) segs.push(s);
+  return ground;
 }
 
 function groundColumn(segs, bottom, h, top, sub = "dirt", rock = "stone", dirtDepth = 3) {
@@ -237,10 +399,10 @@ function lobbyRadius(x, z) {
 }
 
 const LOBBY_TREES = [
-  [-7, -24, "big", 8], [9, -22, "birch", 6], [-21, -9, "big", 7], [21, -9, "oak", 5], [-22, 18, "oak", 5],
-  [22, 19, "big", 7], [-6, 22, "birch", 6], [7, 23, "oak", 5], [-17, -18, "birch", 6], [18, -18, "azalea", 4],
-  [0, 21, "azalea", 4], [-24, 3, "birch", 6], [24, 2, "azalea", 4],
-].map(([x, z, type, h]) => ({ x, z, y: 100, type, h, r: 3.8 }));
+  [-9, -20, "big", 10], [9, -21, "cherry", 6], [-21, -7, "dark", 7], [21, -6, "big", 9], [-20, 17, "cherry", 5],
+  [20, 17, "oak", 6], [-6, 21, "birch", 8], [8, 20, "big", 9], [-15, -16, "birch", 7], [16, -15, "azalea", 3],
+  [0, 22, "azalea", 3], [-23, 3, "birch", 8], [23, 3, "cherry", 5], [-12, 13, "bush", 1], [12, 14, "bush", 1],
+].map(([x, z, type, h]) => ({ x, z, y: 100, type, h }));
 
 function onLobbyPath(x, z) {
   const p = LOBBY.pads;
@@ -300,7 +462,7 @@ function lobbyColumn(x, z) {
     }
   }
   if (top === "path") return segs;
-  const hasTrunk = addTrees(LOBBY_TREES.filter((t) => Math.abs(t.x - x) <= 4 && Math.abs(t.z - z) <= 4), x, z, segs);
+  const hasTrunk = addTrees(LOBBY_TREES.filter((t) => Math.abs(t.x - x) <= TREE_REACH && Math.abs(t.z - z) <= TREE_REACH), x, z, segs);
   if (!hasTrunk && !edge && (top === "grass" || top === "moss")) {
     const deco = decoration(x, z, 910, false);
     if (deco) segs.push([y + 1, y + 1, deco]);
@@ -411,8 +573,9 @@ function campalTree(cx, cz) {
   if (Math.hypot(lx - CAMPAL_POND.x, lz - CAMPAL_POND.z) < CAMPAL_POND.r + 4) return null;
   for (const s of CAMPAL_SPAWNS) if (Math.abs(s.lx - lx) <= 4 && Math.abs(s.lz - lz) <= 4) return null;
   const r = hash(cx, cz, 313);
-  const type = r < 0.35 ? "oak" : r < 0.6 ? "birch" : r < 0.8 ? "big" : r < 0.9 ? "azalea" : "spruce";
-  const h = type === "big" ? 7 + Math.floor(hash(cx, cz, 314) * 3) : type === "spruce" ? 8 : 4 + Math.floor(hash(cx, cz, 314) * 3);
+  const type = r < 0.22 ? "oak" : r < 0.4 ? "birch" : r < 0.6 ? "big" : r < 0.68 ? "azalea" : r < 0.76 ? "cherry"
+    : r < 0.84 ? "dark" : r < 0.9 ? "spruce" : r < 0.95 ? "bush" : "fallen";
+  const h = treeHeight(type, hash(cx, cz, 314));
   return { x: lx, z: lz, y: campalHeight(lx, lz), type, h };
 }
 
@@ -550,18 +713,20 @@ function huntTree(cx, cz) {
   const chance = f > 0.25 ? 0.75 : f > -0.1 ? 0.25 : 0.06;
   if (hash(cx, cz, 552) > chance) return null;
   const x = lx + HUNT.cx, z = lz + HUNT.cz; // world position
-  if (x - HUNT.x0 < 4 || HUNT.x1 - x < 4 || z - HUNT.z0 < 4 || HUNT.z1 - z < 4) return null;
-  for (const r of HUNT_RUINS) if (Math.hypot(lx - r.x, lz - r.z) < r.r + 4) return null;
-  if (Math.max(Math.abs(lx - HUNT_TOWER.x), Math.abs(lz - HUNT_TOWER.z)) < 9) return null;
+  if (x - HUNT.x0 < 6 || HUNT.x1 - x < 6 || z - HUNT.z0 < 6 || HUNT.z1 - z < 6) return null;
+  for (const r of HUNT_RUINS) if (Math.hypot(lx - r.x, lz - r.z) < r.r + 6) return null;
+  if (Math.max(Math.abs(lx - HUNT_TOWER.x), Math.abs(lz - HUNT_TOWER.z)) < 10) return null;
   const y = huntHeight(x, z);
   if (y <= HUNT.water + 1 || huntRock(lx, lz)) return null;
   const r = hash(cx, cz, 553);
   const spruceZone = vnoise(lx, lz, 110, 560) > 0.3;
   let type;
-  if (spruceZone) type = r < 0.75 ? "spruce" : "oak";
-  else type = r < 0.42 ? "oak" : r < 0.72 ? "birch" : r < 0.88 ? "big" : "azalea";
-  const h = type === "spruce" ? 7 + Math.floor(hash(cx, cz, 554) * 4) : type === "big" ? 7 + Math.floor(hash(cx, cz, 554) * 3)
-    : type === "azalea" ? 3 : 4 + Math.floor(hash(cx, cz, 554) * 3);
+  if (spruceZone) type = r < 0.6 ? "spruce" : r < 0.75 ? "mega" : r < 0.85 ? "fallen" : r < 0.93 ? "bush" : "birch";
+  else if (f > 0.25) type = r < 0.2 ? "oak" : r < 0.4 ? "big" : r < 0.58 ? "birch" : r < 0.73 ? "dark" : r < 0.8 ? "azalea"
+    : r < 0.88 ? "bush" : "fallen";
+  else type = r < 0.3 ? "oak" : r < 0.47 ? "big" : r < 0.62 ? "birch" : r < 0.72 ? "cherry" : r < 0.8 ? "azalea"
+    : r < 0.93 ? "bush" : "fallen";
+  const h = treeHeight(type, hash(cx, cz, 554));
   return { x: lx, z: lz, y, type, h };
 }
 

@@ -240,14 +240,21 @@ export class Player extends Entity {
   sendMessage(m) {
     this.messages.push(m);
   }
-  playSound(id) {
+  playSound(id, o) {
     this.sounds.push(id);
+    this.lastVolume = o?.volume;
   }
   runCommand(c) {
     state.commands.push(`${this.name}: ${c}`);
     return { successCount: 1 };
   }
   setSpawnPoint() {}
+  getDynamicProperty(k) {
+    return (this.dyn ??= {})[k];
+  }
+  setDynamicProperty(k, v) {
+    (this.dyn ??= {})[k] = v;
+  }
 }
 
 const dimension = {

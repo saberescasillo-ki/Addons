@@ -10,7 +10,6 @@ const { system, world, ItemStack } = mc;
 const CFG = __CONFIG__;
 const SEC = 20;
 const ADMIN_TAG = "admin";
-const MUSIC = "natura.epic";
 
 // ------------------------------------------------------------ helpers
 const enumv = (E, name) => E?.[name] ?? E?.[name.toLowerCase()];
@@ -140,10 +139,10 @@ const DEFAULTS = {
   duel: { enabled: true, countdown: 9, maxTime: 300, arenas: 2 },
   hunt: {
     enabled: true, maxPlayers: 5, minPlayers: 2, lobbyCountdown: 30, headStart: 20, timeLimit: 600,
-    reveal: 60, music: true, friendlyFire: false, fullRegenEvery: 5,
+    reveal: 60, music: true, friendlyFire: false, fullRegenEvery: 5, lastStandMinutes: 3,
   },
   campal: { enabled: true, reward: true, spawnProtection: 3, combatTag: 8, sidebar: true },
-  world: { time: 2, lockTime: true, weather: 0, lockWeather: true, naturalRegen: true },
+  world: { time: 2, lockTime: true, naturalRegen: true },
 };
 let S = structuredCloneSafe(DEFAULTS);
 
@@ -164,14 +163,14 @@ function saveSettings() {
 }
 
 const TIMES = [["Amanecer", 23000], ["Mañana", 1000], ["Mediodía", 6000], ["Atardecer", 12000], ["Noche", 14000], ["Medianoche", 18000]];
-const WEATHERS = [["Despejado", "clear"], ["Lluvia", "rain"], ["Tormenta", "thunder"]];
 
 function applyWorld() {
   const w = S.world;
   cmd(`gamerule dodaylightcycle ${!w.lockTime}`);
   cmd(`time set ${TIMES[w.time]?.[1] ?? 6000}`);
-  cmd(`gamerule doweathercycle ${!w.lockWeather}`);
-  cmd(`weather ${WEATHERS[w.weather]?.[1] ?? "clear"}`);
+  // no weather: always clear
+  cmd("gamerule doweathercycle false");
+  cmd("weather clear");
   cmd(`gamerule naturalregeneration ${w.naturalRegen}`);
 }
 
@@ -286,9 +285,143 @@ function lobbyItems(player) {
   inv.setItem(8, isAdmin(player) ? ITEMS.admin() : undefined);
 }
 
-function stopMusic(player) {
-  pcmd(player, `stopsound @s ${MUSIC}`);
+// ------------------------------------------------------------ music
+// Every player chooses what plays: one song (looping), their own list in their
+// order, or all of them. In Emparejamiento and Campal each player hears their
+// own choice; in a hunt everybody hears the music the hunted player chose.
+const TRACKS = CFG.tracks; // [{ id, name, ticks }]
+const MUSIC_MODES = [
+  ["one", "Una sola canción (en bucle)"], ["list", "Mi lista, en el orden que elija"], ["all", "Todas, en orden"],
+  ["shuffle", "Todas, en orden aleatorio"], ["off", "Sin música"],
+];
+const DEFAULT_PREFS = { volume: 80, normal: { mode: "all", one: 0, list: [] }, hunt: { mode: "all", one: 0, list: [] }, final: 0 };
+const validTrack = (i) => Number.isInteger(i) && i >= 0 && i < TRACKS.length;
+
+function prefs(player) {
+  const out = structuredCloneSafe(DEFAULT_PREFS);
+  try {
+    const saved = JSON.parse(player.getDynamicProperty("natura:music") ?? "null");
+    if (saved) {
+      if (typeof saved.volume === "number") out.volume = Math.max(0, Math.min(100, saved.volume));
+      Object.assign(out.normal, saved.normal ?? {});
+      Object.assign(out.hunt, saved.hunt ?? {});
+      if (saved.final === -1 || validTrack(saved.final)) out.final = saved.final;
+    }
+  } catch {}
+  return out;
 }
+
+function savePrefs(player, p) {
+  player.setDynamicProperty("natura:music", JSON.stringify(p));
+}
+
+function queueOf(pl) {
+  const one = validTrack(pl.one) ? pl.one : 0;
+  switch (pl.mode) {
+    case "off": return [];
+    case "one": return [one];
+    case "list": {
+      const list = (pl.list ?? []).filter(validTrack);
+      return list.length ? list : [one];
+    }
+    case "shuffle": return shuffle(TRACKS.map((_, i) => i));
+    default: return TRACKS.map((_, i) => i);
+  }
+}
+
+function describePlaylist(pl) {
+  if (pl.mode === "off") return "sin música";
+  if (pl.mode === "one") return `${TRACKS[validTrack(pl.one) ? pl.one : 0]?.name} (en bucle)`;
+  if (pl.mode === "list") {
+    const q = queueOf(pl);
+    return q.length === 1 ? `${TRACKS[q[0]].name} (en bucle)` : `mi lista: ${q.map((i) => TRACKS[i].name).join(" > ")}`;
+  }
+  return pl.mode === "shuffle" ? "todas (aleatorio)" : "todas (en orden)";
+}
+
+const playing = new Map(); // player id -> sound id playing now
+const personal = new Map(); // player id -> { queue, i, end }
+let huntMusic = null; // { queue, i, end }
+
+function playTrack(player, index, announce = true) {
+  stopSong(player);
+  const t = TRACKS[index];
+  const vol = prefs(player).volume / 100;
+  if (!t || vol <= 0) return;
+  try {
+    player.playSound(t.id, { volume: vol });
+    playing.set(player.id, t.id);
+  } catch {}
+  if (announce) bar(player, `§d♪ §f${t.name}`);
+}
+
+function stopSong(player) {
+  const id = playing.get(player.id);
+  if (!id) return;
+  pcmd(player, `stopsound @s ${id}`);
+  playing.delete(player.id);
+}
+
+function playPersonal(player, queue) {
+  personal.delete(player.id);
+  stopSong(player);
+  if (!queue.length) return;
+  personal.set(player.id, { queue, i: 0, end: system.currentTick + TRACKS[queue[0]].ticks });
+  playTrack(player, queue[0]);
+}
+
+function stopMusic(player) {
+  personal.delete(player.id);
+  stopSong(player);
+}
+
+// a mode starts: the player's own music for Emparejamiento and Campal
+function modeMusic(player) {
+  playPersonal(player, queueOf(prefs(player).normal));
+}
+
+function huntMusicStart(queue) {
+  huntMusic = queue.length ? { queue, i: 0, end: system.currentTick + TRACKS[queue[0]].ticks } : null;
+  for (const p of huntParticipants()) {
+    personal.delete(p.id);
+    if (huntMusic) playTrack(p, queue[0]);
+    else stopSong(p);
+  }
+}
+
+function huntMusicJoin(player) {
+  personal.delete(player.id);
+  if (huntMusic) playTrack(player, huntMusic.queue[huntMusic.i]);
+}
+
+function huntMusicStop() {
+  huntMusic = null;
+  for (const p of huntParticipants()) stopSong(p);
+}
+
+// the songs loop: when one ends, the next one (or the same one) starts
+system.runInterval(() => {
+  const now = system.currentTick;
+  for (const [id, m] of personal) {
+    const p = byId(id);
+    if (!p) {
+      personal.delete(id);
+      playing.delete(id);
+      continue;
+    }
+    if (now < m.end) continue;
+    m.i = (m.i + 1) % m.queue.length;
+    m.end = now + TRACKS[m.queue[m.i]].ticks;
+    playTrack(p, m.queue[m.i], m.queue.length > 1);
+  }
+  if (huntMusic && now >= huntMusic.end) {
+    huntMusic.i = (huntMusic.i + 1) % huntMusic.queue.length;
+    huntMusic.end = now + TRACKS[huntMusic.queue[huntMusic.i]].ticks;
+    for (const p of huntParticipants()) playTrack(p, huntMusic.queue[huntMusic.i], huntMusic.queue.length > 1);
+  }
+}, 5);
+
+system.runInterval(() => cmd("weather clear"), 60 * SEC);
 
 function sendToLobby(player, message) {
   const s = st(player);
@@ -361,6 +494,7 @@ function startDuel(i, a, b) {
     tp(p, spawns[k]);
     giveKit(p, getKit("duel"));
     lockEffects(p, S.duel.countdown + 1);
+    modeMusic(p);
     title(p, "§b§lEMPAREJAMIENTO", `§fcontra §e${k ? a.name : b.name}`, 40);
     p.sendMessage(`§b[Emparejamiento]§r Rival encontrado: §e${k ? a.name : b.name}§r. La pelea empieza en §e${S.duel.countdown}§r segundos.`);
   });
@@ -462,7 +596,7 @@ function duelTick() {
 // ------------------------------------------------------------ Caza (hunt)
 const hunt = {
   phase: "idle", queue: [], countdown: 0, hunted: undefined, hunters: [], alive: new Set(), spectators: new Set(),
-  names: {}, timeLeft: 0, headLeft: 0, released: 0, music: false, musicNext: 0, dirty: new Set(), matches: 0,
+  names: {}, timeLeft: 0, headLeft: 0, released: 0, finalDuel: false, lastStand: false, dirty: new Set(), matches: 0,
   regen: false, nextHunted: undefined, startCount: 0,
 };
 
@@ -497,7 +631,7 @@ function huntSpectate(player) {
   const target = byId(hunt.hunted);
   tp(player, target ? { x: target.location.x, y: target.location.y + 12, z: target.location.z } : huntCenter());
   player.sendMessage("§c[Caza]§r Estás mirando la caza. Usa §e/natura:lobby§r para volver.");
-  if (hunt.music) playMusic(player);
+  huntMusicJoin(player);
 }
 
 function huntCenter() {
@@ -546,7 +680,8 @@ function startHunt() {
   hunt.timeLeft = S.hunt.timeLimit;
   hunt.headLeft = S.hunt.headStart;
   hunt.released = 0;
-  hunt.music = false;
+  hunt.finalDuel = false;
+  hunt.lastStand = false;
   hunt.phase = "running";
   hunt.dirty.clear();
   world.setDynamicProperty("natura:huntDirty", true);
@@ -591,25 +726,40 @@ function startHunt() {
     p.sendMessage(`§c[Caza]§r Eres §acazador§r. Atrapa a §c${hunt.names[huntedId]}§r antes de §e${fmtTime(S.hunt.timeLimit)}§r.`);
   });
   world.sendMessage(`§c[Caza]§r ¡Empieza la caza! §c${hunt.names[huntedId]}§r contra ${hunt.hunters.map((id) => `§a${hunt.names[id]}`).join("§r, ")}§r.`);
+  // the music the hunted player chose plays for everybody in the hunt
+  const preyPrefs = prefs(prey);
+  huntMusicStart(S.hunt.music ? queueOf(preyPrefs.hunt) : []);
+  if (S.hunt.music) {
+    const desc = describePlaylist(preyPrefs.hunt);
+    for (const p of huntParticipants()) p.sendMessage(`§d♪ Música de ${prey.name}: §f${desc}`);
+  }
   checkMusic();
 }
 
-function playMusic(player) {
-  stopMusic(player);
-  sound(player, MUSIC, 1, 1);
+// Only the hunted and one hunter left: the final duel (and its song).
+function checkMusic() {
+  if (hunt.phase !== "running" || hunt.finalDuel) return;
+  if (!hunt.alive.has(hunt.hunted) || aliveHunters().length !== 1) return;
+  hunt.finalDuel = true;
+  const prey = byId(hunt.hunted);
+  const fin = prey ? prefs(prey).final : 0;
+  if (S.hunt.music && validTrack(fin)) huntMusicStart([fin]);
+  for (const p of huntParticipants()) {
+    title(p, "§4§l¡DUELO FINAL!", `§c${hunt.names[hunt.hunted]} §7contra §a${hunt.names[aliveHunters()[0]]}`, 50);
+  }
 }
 
-function checkMusic() {
-  if (hunt.phase !== "running" || !S.hunt.music) return;
-  const one = hunt.alive.has(hunt.hunted) && aliveHunters().length === 1;
-  if (one && !hunt.music) {
-    hunt.music = true;
-    hunt.musicNext = system.currentTick + CFG.trackSeconds * SEC;
-    for (const p of huntParticipants()) {
-      playMusic(p);
-      title(p, "§4§l¡DUELO FINAL!", `§c${hunt.names[hunt.hunted]} §7contra §a${hunt.names[aliveHunters()[0]]}`, 50);
-    }
+function forceLastStand(admin) {
+  if (hunt.phase !== "running") return admin.sendMessage("§c[Admin] No hay ninguna caza en curso.");
+  const secs = Math.max(1, S.hunt.lastStandMinutes) * 60;
+  hunt.lastStand = true;
+  hunt.timeLeft = Math.min(hunt.timeLeft, secs);
+  const name = hunt.names[hunt.hunted];
+  for (const p of huntParticipants()) {
+    title(p, "§4§lÚLTIMO EN PIE", `§flos cazadores tienen §e${fmtTime(hunt.timeLeft)}§f para atrapar a §c${name}`, 70);
+    sound(p, "mob.enderdragon.growl", 0.6, 0.8);
   }
+  world.sendMessage(`§c[Caza]§r §4§lÚltimo en pie:§r los cazadores tienen §e${fmtTime(hunt.timeLeft)}§r para atrapar a §c${name}§r. Si no, gana el cazado.`);
 }
 
 function huntEliminate(id, killerName, reason) {
@@ -646,6 +796,7 @@ function endHunt(winner, reason) {
   }
   world.sendMessage(`§c[Caza]§r ${winner === "hunted" ? `§c${preyName}§r sobrevivió a la caza` : `Los cazadores atraparon a §c${preyName}§r`} §7(${reason})§r.`);
   system.runTimeout(() => {
+    huntMusicStop();
     cmd(`kill @e[type=item,x=${HUNT.x0},y=${HUNT.floor},z=${HUNT.z0},dx=${HUNT.size},dy=${HUNT.clearTop - HUNT.floor},dz=${HUNT.size}]`);
     cmd(`kill @e[type=arrow,x=${HUNT.x0},y=${HUNT.floor},z=${HUNT.z0},dx=${HUNT.size},dy=${HUNT.clearTop - HUNT.floor},dz=${HUNT.size}]`);
     for (const p of huntParticipants()) {
@@ -657,7 +808,8 @@ function endHunt(winner, reason) {
     hunt.hunters = [];
     hunt.alive.clear();
     hunt.spectators.clear();
-    hunt.music = false;
+    hunt.finalDuel = false;
+    hunt.lastStand = false;
     hunt.matches++;
     regenHunt(false);
   }, 6 * SEC);
@@ -739,7 +891,8 @@ function huntTick() {
     }
   } else hunt.released++;
   hunt.timeLeft--;
-  if (S.hunt.reveal > 0 && hunt.released > 0 && hunt.released % S.hunt.reveal === 0 && prey) {
+  const every = hunt.lastStand ? (S.hunt.reveal > 0 ? Math.min(S.hunt.reveal, 30) : 30) : S.hunt.reveal;
+  if (every > 0 && hunt.released > 0 && hunt.released % every === 0 && prey) {
     const l = prey.location;
     for (const id of aliveHunters()) {
       const p = byId(id);
@@ -759,11 +912,7 @@ function huntTick() {
       const d = Math.round(Math.sqrt(dist2(p.location, prey.location)));
       text = hunt.headLeft > 0 ? `§aCAZADOR §7| §fsales en §e${hunt.headLeft}s` : `§aCAZADOR §7| §fpresa: §c${hunt.names[hunt.hunted]} §7~${d > 100 ? "+100" : Math.ceil(d / 10) * 10} bloques §7| §e${fmtTime(hunt.timeLeft)}`;
     } else text = `§7ESPECTADOR §7| §fcazadores: §a${hn} §7| §e${fmtTime(hunt.timeLeft)}`;
-    bar(p, text);
-  }
-  if (hunt.music && system.currentTick >= hunt.musicNext) {
-    hunt.musicNext = system.currentTick + CFG.trackSeconds * SEC;
-    for (const p of huntParticipants()) playMusic(p);
+    bar(p, hunt.lastStand ? `§4ÚLTIMO EN PIE §7| ${text}` : text);
   }
   if (hunt.timeLeft <= 0) endHunt("hunted", "sobrevivió hasta el final del tiempo");
 }
@@ -794,6 +943,7 @@ function campalEnter(player) {
   leaveQueues(player);
   st(player).mode = "campal";
   spawnInCampal(player, true);
+  modeMusic(player);
   world.sendMessage(`§a[Campal]§r §e${player.name}§r entró a la arena §7(${campalPlayers().length} dentro)`);
 }
 
@@ -900,7 +1050,7 @@ world.afterEvents.playerSpawn.subscribe(({ player, initialSpawn }) => {
       setMode(player, GM.spectator);
       tp(player, huntCenter());
       player.sendMessage("§c[Caza]§r Ahora eres espectador. Usa §e/natura:lobby§r para volver al lobby.");
-      if (hunt.music) playMusic(player);
+      huntMusicJoin(player);
     } else if (s.mode !== "free") sendToLobby(player);
   }, 2);
 });
@@ -970,6 +1120,15 @@ world.afterEvents.playerPlaceBlock.subscribe(({ block, player }) => {
 });
 try {
   world.afterEvents.blockExplode.subscribe(({ block }) => markDirty(block));
+} catch {}
+// water and lava flow: a bucket marks everything around it
+try {
+  world.afterEvents.playerInteractWithBlock.subscribe(({ block, itemStack, beforeItemStack }) => {
+    const id = (beforeItemStack ?? itemStack)?.typeId ?? "";
+    if (!id.includes("bucket")) return;
+    const { x, z } = block.location;
+    for (let dx = -8; dx <= 8; dx++) for (let dz = -8; dz <= 8; dz++) if (inHunt(x + dx, z + dz)) hunt.dirty.add(`${x + dx},${z + dz}`);
+  });
 } catch {}
 
 // ------------------------------------------------------------ items
@@ -1190,6 +1349,7 @@ async function openSelector(player) {
   else add(inHuntQ ? "§cSalir de la cola\n§8Caza" : `§c§lCaza\n§8${hunt.queue.length}/${S.hunt.maxPlayers} jugadores`, "textures/items/bow_standby",
     () => (inHuntQ ? huntLeave(player) : huntJoin(player)));
   add(`§a§lCampal\n§8dentro: ${campalPlayers().length}`, "textures/items/iron_sword", () => campalEnter(player));
+  add("§d§lMúsica\n§8canciones y volumen", "textures/items/record_cat", () => openMusic(player));
   add("§e§lMis estadísticas", "textures/items/book_normal", () => openStats(player));
   if (isAdmin(player)) add("§c§lPanel de administración", "textures/items/clock_item", () => openAdmin(player));
   const r = await showForm(player, form);
@@ -1202,6 +1362,77 @@ async function openStats(player, name = player.name) {
   const kd = (s.k ?? 0) / Math.max(1, s.d ?? 0);
   const form = new ui.ActionFormData().title(`§l${name}`).body(`${lines.join("\n")}\n§7K/D: §f${kd.toFixed(2)}\n `).button("Cerrar");
   await showForm(player, form);
+}
+
+// ------------------------------------------------------------ the music menu
+async function openMusic(player) {
+  const p = prefs(player);
+  await menu(player, "§l§dMúsica", [
+    "§7En §bEmparejamiento§7 y §aCampal§7 cada uno oye su propia música desde que entra al modo.",
+    "§7En la §cCaza§7 todos oyen la música que eligió el §ccazado§7.",
+    `§fVolumen: §e${p.volume}%`, " ",
+  ].join("\n"), [
+    [`§b§lEmparejamiento y Campal\n§8${describePlaylist(p.normal)}`, () => playlistForm(player, "normal"), "textures/items/diamond_sword"],
+    [`§c§lMi caza (si soy el cazado)\n§8${describePlaylist(p.hunt)}`, () => playlistForm(player, "hunt"), "textures/items/bow_standby"],
+    [`§e§lVolumen: ${p.volume}%`, () => volumeForm(player), "textures/items/record_13"],
+    ["§a§lEscuchar canciones", () => jukebox(player), "textures/blocks/jukebox_top"],
+  ]);
+}
+
+async function playlistForm(player, which) {
+  const p = prefs(player);
+  const pl = p[which];
+  const names = TRACKS.map((t) => t.name);
+  const hunt_ = which === "hunt";
+  const form = new ui.ModalFormData().title(hunt_ ? "Música de mi caza" : "Música de Emparejamiento y Campal")
+    .dropdown(hunt_ ? "Qué suena durante tu caza (todos los de la caza lo oyen)" : "Qué suena al entrar a Emparejamiento o Campal (solo lo oyes tú)",
+      MUSIC_MODES.map((m) => m[1]), { defaultValueIndex: Math.max(0, MUSIC_MODES.findIndex((m) => m[0] === pl.mode)) })
+    .dropdown("Canción (para «Una sola canción»)", names, { defaultValueIndex: validTrack(pl.one) ? pl.one : 0 });
+  for (let k = 0; k < TRACKS.length; k++) {
+    form.dropdown(`Mi lista: ${k + 1}ª canción`, ["—", ...names], { defaultValueIndex: validTrack(pl.list?.[k]) ? pl.list[k] + 1 : 0 });
+  }
+  if (hunt_) form.dropdown("Canción del duelo final (cuando quedáis tú y un cazador)", ["Seguir con mi música", ...names],
+    { defaultValueIndex: validTrack(p.final) ? p.final + 1 : 0 });
+  form.submitButton("Guardar");
+  const r = await showForm(player, form);
+  if (!r || r.canceled || !r.formValues) return;
+  const v = r.formValues;
+  const list = v.slice(2, 2 + TRACKS.length).filter((x) => x > 0).map((x) => x - 1);
+  let mode = MUSIC_MODES[v[0]]?.[0] ?? "all";
+  if (mode === "list" && !list.length) {
+    mode = "one";
+    player.sendMessage("§e[Música] Tu lista está vacía: se usa «Una sola canción».");
+  }
+  p[which] = { mode, one: v[1], list };
+  if (hunt_) p.final = v[2 + TRACKS.length] > 0 ? v[2 + TRACKS.length] - 1 : -1;
+  savePrefs(player, p);
+  player.sendMessage(`§d[Música]§r ${hunt_ ? "Tu caza" : "Emparejamiento y Campal"}: §f${describePlaylist(p[which])}${hunt_ ? `§r. Duelo final: §f${validTrack(p.final) ? TRACKS[p.final].name : "seguir con tu música"}` : ""}`);
+}
+
+async function volumeForm(player) {
+  const p = prefs(player);
+  const form = new ui.ModalFormData().title("Volumen de la música")
+    .slider("Volumen (%)", 0, 100, { valueStep: 5, defaultValue: p.volume }).submitButton("Guardar");
+  const r = await showForm(player, form);
+  if (!r || r.canceled || !r.formValues) return;
+  p.volume = r.formValues[0];
+  savePrefs(player, p);
+  player.sendMessage(`§d[Música]§r Volumen: §e${p.volume}%`);
+  // the song that is playing starts again with the new volume
+  const m = personal.get(player.id);
+  if (m) playTrack(player, m.queue[m.i]);
+  else if (huntMusic && huntParticipants().some((x) => x.id === player.id)) playTrack(player, huntMusic.queue[huntMusic.i]);
+}
+
+async function jukebox(player) {
+  if (st(player).mode !== "lobby") return player.sendMessage("§7[Música] Para escuchar canciones sueltas, vuelve al lobby.");
+  const len = (t) => fmtTime(Math.round((t.ticks - 10) / SEC));
+  await menu(player, "§l§aEscuchar canciones", "§7Suena en bucle hasta que entres a un modo o la pares.\n ", [
+    ...TRACKS.map((t, i) => [`§f${t.name}\n§8${len(t)}`, () => playPersonal(player, [i]), "textures/items/record_cat"]),
+    ["§a§lTodas, en orden", () => playPersonal(player, TRACKS.map((_, i) => i)), "textures/items/record_mellohi"],
+    ["§a§lTodas, aleatorio", () => playPersonal(player, shuffle(TRACKS.map((_, i) => i))), "textures/items/record_far"],
+    ["§c§lParar", () => stopMusic(player), "textures/blocks/barrier"],
+  ]);
 }
 
 // ------------------------------------------------------------ the admin panel
@@ -1306,10 +1537,15 @@ async function adminHunt(player) {
       ["headStart", "slider", "Ventaja del cazado (s)", 0, 60, 5],
       ["timeLimit", "slider", "Duración de la caza (s)", 60, 1800, 60],
       ["reveal", "slider", "Revelar la posición del cazado cada (s, 0 = nunca)", 0, 180, 15],
-      ["music", "toggle", "Canción épica en el duelo final (1 contra 1)"],
+      ["music", "toggle", "Música en la caza (la elige el cazado; la del duelo final también)"],
       ["friendlyFire", "toggle", "Fuego amigo entre cazadores"],
       ["fullRegenEvery", "slider", "Regeneración completa cada N cazas (0 = solo lo modificado)", 0, 20, 1],
+      ["lastStandMinutes", "slider", "Minutos de «Forzar último en pie»", 1, 10, 1],
     ])],
+    ["§4§lForzar último en pie", async () => {
+      if (hunt.phase !== "running") return player.sendMessage("§c[Admin] No hay ninguna caza en curso.");
+      if (await confirm(player, "Forzar último en pie", `Los cazadores tendrán solo ${S.hunt.lastStandMinutes} minuto(s) para atrapar al cazado. Si no lo consiguen, gana el cazado.`)) forceLastStand(player);
+    }],
     ["Forzar inicio", () => {
       if (hunt.phase === "running" || hunt.phase === "ending") return player.sendMessage("§c[Admin] Ya hay una caza en curso.");
       if (hunt.regen) return player.sendMessage("§c[Admin] El mapa se está regenerando.");
@@ -1329,8 +1565,7 @@ async function adminHunt(player) {
       if (hunt.phase === "running") return player.sendMessage("§c[Admin] Espera a que acabe la caza.");
       if (await confirm(player, "Regeneración completa", "Se reconstruye todo el mapa de caza (365x365). Tarda un rato.")) regenHunt(true);
     }],
-    ["Probar la canción", () => playMusic(player)],
-    ["Parar la canción", () => stopMusic(player)],
+    ["Parar la música de la caza", () => huntMusicStop()],
   ]);
 }
 
@@ -1407,15 +1642,13 @@ async function adminWorld(player) {
   const form = new ui.ModalFormData().title("Mundo y tiempo")
     .dropdown("Hora", TIMES.map((t) => t[0]), { defaultValueIndex: S.world.time })
     .toggle("Congelar la hora", { defaultValue: S.world.lockTime })
-    .dropdown("Clima", WEATHERS.map((w) => w[0]), { defaultValueIndex: S.world.weather })
-    .toggle("Congelar el clima", { defaultValue: S.world.lockWeather })
     .toggle("Regeneración natural de vida", { defaultValue: S.world.naturalRegen })
     .textField("Mensaje para todos (opcional)", "escribe un anuncio", { defaultValue: "" })
     .submitButton("Aplicar");
   const r = await showForm(player, form);
   if (!r || r.canceled || !r.formValues) return;
-  const [time, lockTime, weather, lockWeather, naturalRegen, msg] = r.formValues;
-  Object.assign(S.world, { time, lockTime, weather, lockWeather, naturalRegen });
+  const [time, lockTime, naturalRegen, msg] = r.formValues;
+  Object.assign(S.world, { time, lockTime, naturalRegen });
   saveSettings();
   applyWorld();
   if (typeof msg === "string" && msg.trim()) {
@@ -1571,6 +1804,12 @@ system.beforeEvents.startup.subscribe((ev) => {
         sendToLobby(p, "§7Estás en el lobby (y fuera de las colas).");
       } else p.sendMessage("§cNo puedes salir en mitad de una partida.");
     });
+    return ok();
+  });
+  register({ ...any, name: "natura:musica", description: "Elige tus canciones y el volumen de Natura PvP" }, (origin) => {
+    const p = originPlayer(origin);
+    if (!p) return fail("Solo jugadores.");
+    system.run(() => openMusic(p));
     return ok();
   });
   register({ ...any, name: "natura:admin", description: "Abre el panel de administración (etiqueta admin)" }, (origin) => {
