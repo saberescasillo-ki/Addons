@@ -272,7 +272,7 @@ VOID_LAYERS = json.dumps({"biome_id": 1, "block_layers": [{"block_name": "minecr
                           "world_version": "version.post_1_18"}, separators=(",", ":"))
 
 
-def level_dat():
+def level_dat(packs_required=False):
     game = [1, 21, 90, 0, 0]
     rules = dict(
         commandblockoutput=b(0), commandblocksenabled=b(1), dodaylightcycle=b(0), doentitydrops=b(1),
@@ -303,7 +303,7 @@ def level_dat():
         lastOpenedWithVersion=ilist(game), lightningLevel=f(0.0), lightningTime=i(100000), limitedWorldDepth=i(16),
         limitedWorldWidth=i(16), permissionsLevel=i(0), playerPermissionsLevel=i(1), prid=s(""), rainLevel=f(0.0),
         rainTime=i(100000), requiresCopiedPackRemovalCheck=b(0), serverChunkTickRange=i(4), spawnMobs=b(0),
-        startWithMapEnabled=b(0), texturePacksRequired=b(0), useMsaGamertagsOnly=b(0), worldStartCount=l(0),
+        startWithMapEnabled=b(0), texturePacksRequired=b(1 if packs_required else 0), useMsaGamertagsOnly=b(0), worldStartCount=l(0),
         **rules,
     )
     payload = struct.pack("<bH", 10, 0) + nbt_payload(c(root))
@@ -510,19 +510,28 @@ def main():
         both.save(os.path.join(DOCS, "natura_pvp_arboles.png"))
 
     # the world: void, with the packs inside
-    dat = level_dat()
-    read_level_dat(dat)
     os.makedirs(DIST, exist_ok=True)
-    with zipfile.ZipFile(os.path.join(DIST, "NaturaPvP.mcworld"), "w", zipfile.ZIP_DEFLATED) as z:
-        z.writestr("level.dat", dat)
-        z.writestr("levelname.txt", NAME)
-        jpg = io.BytesIO()
-        ic.convert("RGB").save(jpg, "JPEG", quality=90)
-        z.writestr("world_icon.jpeg", jpg.getvalue())
-        z.writestr("world_behavior_packs.json", json.dumps([{"pack_id": UUIDS["bp"], "version": VERSION}], indent=2))
-        z.writestr("world_resource_packs.json", json.dumps([{"pack_id": UUIDS["rp"], "version": VERSION}], indent=2))
-        zip_dir(z, BP, "behavior_packs/NaturaPvP_BP")
-        zip_dir(z, RP, "resource_packs/NaturaPvP_RP")
+    jpg = io.BytesIO()
+    ic.convert("RGB").save(jpg, "JPEG", quality=90)
+
+    def world_zip(path, folder="", packs_required=False):
+        dat = level_dat(packs_required)
+        read_level_dat(dat)
+        with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
+            z.writestr(folder + "level.dat", dat)
+            z.writestr(folder + "levelname.txt", NAME)
+            z.writestr(folder + "world_icon.jpeg", jpg.getvalue())
+            z.writestr(folder + "world_behavior_packs.json", json.dumps([{"pack_id": UUIDS["bp"], "version": VERSION}], indent=2))
+            z.writestr(folder + "world_resource_packs.json", json.dumps([{"pack_id": UUIDS["rp"], "version": VERSION}], indent=2))
+            if folder:
+                z.writestr(zipfile.ZipInfo(folder + "db/"), "")  # the server creates the database here
+            zip_dir(z, BP, folder + "behavior_packs/NaturaPvP_BP")
+            zip_dir(z, RP, folder + "resource_packs/NaturaPvP_RP")
+
+    world_zip(os.path.join(DIST, "NaturaPvP.mcworld"))
+    # for a Bedrock server (Aternos, BDS): the world folder inside a .zip, and the
+    # resource pack (with the songs) required to join, so every player has it
+    world_zip(os.path.join(DIST, "NaturaPvP_Aternos.zip"), "NaturaPvP/", packs_required=True)
     with zipfile.ZipFile(os.path.join(DIST, "NaturaPvP.mcaddon"), "w", zipfile.ZIP_DEFLATED) as z:
         zip_dir(z, BP, "NaturaPvP_BP")
         zip_dir(z, RP, "NaturaPvP_RP")

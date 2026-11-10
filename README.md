@@ -7,7 +7,7 @@
 | **Ruleta de Colores** – ruleta en el HUD con comandos de administrador | [`dist/Roulette.mcaddon`](dist/Roulette.mcaddon) | `tools/roulette.py` |
 | **Objetos de Ayuda** – 4 objetos especiales que ayudan al jugador | [`dist/HelperItems.mcaddon`](dist/HelperItems.mcaddon) | `tools/helper_items.py` |
 | **The LITIUS Blind** – nueva dimensión de islas flotantes | [`dist/LitiusBlind.mcaddon`](dist/LitiusBlind.mcaddon) | `tools/litius_blind.py` |
-| **Natura PvP** – mapa PvP automatizado (Emparejamiento, Caza y Campal) | [`dist/NaturaPvP.mcworld`](dist/NaturaPvP.mcworld) (mundo) · [`dist/NaturaPvP.mcaddon`](dist/NaturaPvP.mcaddon) | `tools/natura_pvp.py` |
+| **Natura PvP** – mapa PvP automatizado (Emparejamiento, Caza y Campal) | [`dist/NaturaPvP.mcworld`](dist/NaturaPvP.mcworld) (mundo) · [`dist/NaturaPvP_Aternos.zip`](dist/NaturaPvP_Aternos.zip) (servidor) · [`dist/NaturaPvP.mcaddon`](dist/NaturaPvP.mcaddon) | `tools/natura_pvp.py` |
 
 Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo. No hace falta activar experimentos
 (salvo en The LITIUS Blind, ver abajo).
@@ -31,6 +31,20 @@ Un **mapa PvP automatizado** ambientado en la naturaleza, con lobby y tres modos
 **primera vez** que se abre, el script construye el mapa: el lobby en unos segundos y después las arenas (la caza,
 de 365x365, tarda un par de minutos). El progreso sale en la barra de acción y cada zona avisa en el chat cuando
 está lista. Hay que dejar el mundo abierto hasta que termine.
+
+### En un servidor (Aternos)
+Usa `dist/NaturaPvP_Aternos.zip`: es el mismo mundo dentro de una carpeta `NaturaPvP/`, con los packs ya puestos y
+el pack de recursos **obligatorio** al entrar (así todos descargan las canciones; son unos 14 MB la primera vez).
+
+1. Crea un servidor de **Bedrock** en Aternos con la versión más reciente (1.21.90 o superior).
+2. En **Mundos**, pulsa **Subir** y elige `NaturaPvP_Aternos.zip`. Cuando termine, selecciona el mundo *NaturaPvP*.
+3. En **Jugadores → Operadores**, añade tu nombre de Xbox.
+4. Inicia el servidor y entra. La primera vez **quédate conectado** hasta que el chat diga que la *Caza* está lista
+   (unos minutos): Aternos apaga el servidor cuando no hay nadie, y la construcción sigue la próxima vez que se encienda.
+5. Hazte admin con `/natura:hacer_admin TuNombre` (o `/tag TuNombre add admin`).
+
+No hace falta activar experimentos ni trucos. Si el mundo ya estaba subido antes de una actualización, súbelo de
+nuevo: el mapa se reconstruye solo.
 
 | Zona | Tamaño | Dónde |
 |---|---|---|
@@ -97,8 +111,19 @@ de bajas sale a la derecha de la pantalla. Para salir usa la **brújula de recup
 no funciona si te han dado en los últimos 8 s. Tiene colinas, árboles, un estanque y unas ruinas en el centro.
 
 ### Música
-Hay **7 canciones**: *Duelo Final* (original, hecha para el mapa), *Eternity - Eternal V4*, *Find Your Flame*,
-*In Your Dreams*, *Teapot Palace Tour*, *The Sol Still Burns* y *Wilted Blossom*. Todas suenan **en bucle**: cuando
+Hay **7 canciones**. Así se llaman dentro del mundo (el ID sirve para `/playsound`):
+
+| # | Nombre en el menú | ID del sonido | Duración |
+|---|---|---|---|
+| 1 | Duelo Final (original, hecha para el mapa) | `natura.song.duelo_final` | 0:58 |
+| 2 | Eternity - Eternal V4 | `natura.song.eternity_eternal_v4` | 2:17 |
+| 3 | Find Your Flame | `natura.song.find_your_flame` | 5:17 |
+| 4 | In Your Dreams | `natura.song.in_your_dreams` | 4:26 |
+| 5 | Teapot Palace Tour | `natura.song.teapot_palace_tour` | 1:14 |
+| 6 | The Sol Still Burns | `natura.song.the_sol_still_burns` | 3:00 |
+| 7 | Wilted Blossom | `natura.song.wilted_blossom` | 3:15 |
+
+Todas suenan **en bucle**: cuando
 una se acaba, empieza la siguiente de tu lista (o la misma si elegiste una sola). Se abre con la brújula
 (**Música**) o con `/natura:musica`:
 
