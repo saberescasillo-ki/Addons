@@ -7,6 +7,7 @@
 | **Ruleta de Colores** – ruleta en el HUD con comandos de administrador | [`dist/Roulette.mcaddon`](dist/Roulette.mcaddon) | `tools/roulette.py` |
 | **Objetos de Ayuda** – 4 objetos especiales que ayudan al jugador | [`dist/HelperItems.mcaddon`](dist/HelperItems.mcaddon) | `tools/helper_items.py` |
 | **The LITIUS Blind** – nueva dimensión de islas flotantes | [`dist/LitiusBlind.mcaddon`](dist/LitiusBlind.mcaddon) | `tools/litius_blind.py` |
+| **Natura PvP** – mapa PvP automatizado (Emparejamiento, Caza y Campal) | [`dist/NaturaPvP.mcworld`](dist/NaturaPvP.mcworld) (mundo) · [`dist/NaturaPvP.mcaddon`](dist/NaturaPvP.mcaddon) | `tools/natura_pvp.py` |
 
 Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo. No hace falta activar experimentos
 (salvo en The LITIUS Blind, ver abajo).
@@ -15,6 +16,100 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 - Medieval Mobs requiere **1.21.0** o superior.
 - Ruleta de Colores y Objetos de Ayuda requieren **1.21.90** o superior.
 - The LITIUS Blind requiere **26.20** o superior y el experimento **Beta APIs**.
+- Natura PvP requiere **1.21.90** o superior (sin experimentos). Es un **mundo**: abre el `.mcworld`.
+
+---
+
+# Natura PvP
+
+![Vista desde arriba del lobby y las tres arenas](docs/natura_pvp_preview.png)
+
+Un **mapa PvP automatizado** ambientado en la naturaleza, con lobby y tres modos. Todo lo demás del mundo está
+**completamente vacío**.
+
+**Cómo usarlo:** abre `dist/NaturaPvP.mcworld`. Se importa como un mundo nuevo con los packs ya activados. La
+**primera vez** que se abre, el script construye el mapa: el lobby en unos segundos y después las arenas (la caza,
+de 365x365, tarda un par de minutos). El progreso sale en la barra de acción y cada zona avisa en el chat cuando
+está lista. Hay que dejar el mundo abierto hasta que termine.
+
+| Zona | Tamaño | Dónde |
+|---|---|---|
+| Lobby | isla flotante (~55 bloques) | 0, 100, 0 |
+| Emparejamiento | 2 arenas de **64x64** con **paredes colosales** de 48 bloques | 0, 80, 320 y 160, 80, 320 |
+| Campal | **126x126**, muros de 38 bloques | 320, 80, 0 |
+| Caza | **365x365**, bosque abierto con muro en el borde | 0, 80, -480 |
+
+### Lobby
+Una isla con una plaza, una fuente, farolas, árboles, flores y una barrera invisible en el borde para no caerse.
+Tiene tres **plataformas de colores**: al pisarlas entras al modo (diamante = Emparejamiento,
+redstone = Caza, esmeralda = Campal). También está la **brújula** (*Selector de modos*), que abre un menú con
+los tres modos, salir de la cola y tus estadísticas. Encima de cada plataforma hay un texto flotante con la cola y
+el **top 3**. En el lobby no se recibe daño ni se pasa hambre.
+
+### Emparejamiento (1 contra 1)
+- Cola automática: cuando hay 2 jugadores y una arena libre, se les empareja (2 arenas, 2 duelos a la vez).
+- **Kit completo de diamante encantado**: armadura Protección IV, espada Filo V y Aspecto ígneo II, hacha Filo V,
+  arco Poder V con Infinidad y Fuego, escudo, 8 manzanas doradas y carne.
+- **9 segundos** de cuenta atrás con los jugadores congelados. Luego *¡A PELEAR!*
+- Gana el que sobrevive y los dos vuelven al lobby. Si se acaban los 5 minutos (configurable) es empate.
+- Arena de hierba con rocas y arbustos simétricos para cubrirse, y paredes de ladrillos musgosos con pilares de
+  troncos, enredaderas, hojas y faroles. Tiene techo invisible.
+
+### Caza (hasta 5 jugadores)
+- Te apuntas en la cola (mínimo 2). A los 30 s empieza; si se llena (5), a los 5 s.
+- Uno al azar es el **cazado**, con **kit de hierro encantado**; los demás son **cazadores** con **kit de diamante**.
+- **Cuantos más cazadores, mejor el kit de hierro**: con 2, 3 o 4 cazadores sube Protección, Filo, Poder,
+  Irrompibilidad y Caída de pluma, y da más manzanas doradas. Con 3 añade Aspecto ígneo, Infinidad y
+  **velocidad**; con 4, Retroceso, Fuego, Golpe, una manzana de Notch y **vida extra**.
+- El cazado tiene **20 s de ventaja**: los cazadores esperan ciegos y quietos. Cada 60 s los cazadores reciben su
+  posición. Dura 10 minutos: si el cazado sobrevive, gana él.
+- Se juega en **supervivencia**: se pueden **romper y poner bloques** (hasta Y 140). No hay fuego amigo entre
+  cazadores. Los eliminados pasan a espectadores. Si alguien sale del mundo cuenta como eliminado.
+- **Canción épica:** cuando solo quedan **el cazado y un cazador**, suena una canción épica para todos los de la
+  caza, aunque antes hubiera más jugadores (y también si la caza empezó 1 contra 1). Es una pieza original
+  generada por `tools/natura_pvp/music.py`.
+- **Regeneración:** al terminar, el mapa se regenera solo. Se reconstruyen las columnas donde se rompió o puso algo,
+  y cada 5 cazas el mapa entero. Si el mundo se cierra en mitad de una caza, se regenera completo al volver a abrirlo.
+- Bosques de robles, abedules, abetos y azaleas, lagos con arena, rocas musgosas, cuatro anillos de ruinas y
+  una torre de vigilancia en ruinas en el centro. El suelo es de bedrock y el borde es un muro con barrera encima.
+
+### Campal
+Arena **siempre abierta**: entras cuando quieras desde la plataforma o la brújula. Al morir reapareces dentro
+con el kit (lejos de los demás y con 3 s de protección). Cada baja da una manzana dorada y regeneración. La tabla
+de bajas sale a la derecha de la pantalla. Para salir usa la **brújula de recuperación** (*Volver al lobby*);
+no funciona si te han dado en los últimos 8 s. Tiene colinas, árboles, un estanque y unas ruinas en el centro.
+
+### Administradores (etiqueta `admin`)
+Quien tenga la etiqueta `admin` (`/tag <jugador> add admin`, o `/natura:hacer_admin <jugador>` siendo operador)
+recibe un **reloj** (*Panel de administración*) en el lobby. También puede usar `/natura:admin`. Desde el panel se
+puede:
+
+| Sección | Qué cambia |
+|---|---|
+| Emparejamiento | activar/desactivar, segundos de cuenta atrás (9 por defecto), duración máxima, arenas en uso, terminar duelos, vaciar la cola |
+| Caza | activar/desactivar, jugadores máx./mín., espera de la cola, ventaja del cazado, duración, cada cuánto se revela la posición, canción, fuego amigo, cada cuántas cazas se regenera todo; forzar inicio, detener, elegir el próximo cazado, regenerar, probar la canción |
+| Campal | abrir/cerrar, premio por baja, protección al aparecer, tiempo de combate para salir, tabla de bajas, reiniciar bajas, sacar a todos |
+| Kits | ver, probar, **guardar tu inventario como kit** (Emparejamiento, Campal, Cazador y Cazado) y restaurar el de por defecto |
+| Mundo y tiempo | hora (amanecer, mañana, mediodía, atardecer, noche, medianoche), congelar la hora, clima, congelar el clima, regeneración natural, **anuncio** con título para todos |
+| Jugadores | enviar al lobby o sacar de la partida, dar/quitar admin, curar, ver o reiniciar estadísticas, ir hacia él, elegirlo como próximo cazado |
+| Teletransporte | lobby y cada arena |
+| Modo libre | creativo y sin límites, para moverse y construir (fuera de la caza los cambios no se deshacen solos) |
+| Reconstruir | vuelve a colocar una zona entera tal como era |
+| Estadísticas y ajustes | ranking, reiniciar estadísticas, volver a los ajustes por defecto |
+
+Los ajustes, kits y estadísticas se guardan en el mundo.
+
+**Comandos:** `/natura:menu` (selector), `/natura:lobby` (volver al lobby, salir de la cola o dejar de mirar
+la caza), `/natura:admin` (panel, con la etiqueta), `/natura:hacer_admin` y `/natura:quitar_admin` (operadores).
+
+**Notas**
+- Reglas del mundo: inventario se conserva, reaparición inmediata, sin mobs, sin fuego que se propague y sin
+  explosiones de TNT. Por defecto es de día y sin lluvia (se cambia en el panel).
+- El `.mcaddon` lleva los mismos packs para ponerlos en otro mundo, pero el mapa está pensado para el mundo
+  vacío del `.mcworld`.
+- Generador: `python3 tools/natura_pvp.py` (`--preview` actualiza la imagen y `--music` vuelve a generar la
+  canción). El terreno está en `tools/natura_pvp/gen.js`. `node tools/natura_pvp/smoke/run.mjs` prueba los
+  scripts con un juego simulado: construcción, duelos, campal, caza, canción, regeneración y panel.
 
 ---
 

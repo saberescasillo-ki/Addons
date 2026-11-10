@@ -1,0 +1,20 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "natura:text",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/natura/blank"
+      },
+      "geometry": {
+        "default": "geometry.natura.blank"
+      },
+      "render_controllers": [
+        "controller.render.default"
+      ]
+    }
+  }
+}
