@@ -349,7 +349,6 @@ const ITEMS = {
   selector: () => menuItem("minecraft:compass", "§a§lMenú de Natura PvP", ["§7Modos, parkour, música y estadísticas"]),
   admin: () => menuItem("minecraft:clock", "§c§lPanel de administración", ["§7Solo para administradores"]),
   leave: () => menuItem("minecraft:recovery_compass", "§c§lVolver al lobby", ["§7Sal del campal"]),
-  checkpoint: () => menuItem("minecraft:recovery_compass", "§a§lVolver al punto de control", ["§7Parkour"]),
 };
 
 function itemKind(item) {
@@ -361,7 +360,7 @@ function itemKind(item) {
   if (!lore.includes(MENU_LORE)) return undefined;
   if (item.typeId === "minecraft:compass") return "selector";
   if (item.typeId === "minecraft:clock") return "admin";
-  if (item.typeId === "minecraft:recovery_compass") return lore.includes("§7Parkour") ? "checkpoint" : "leave";
+  if (item.typeId === "minecraft:recovery_compass") return "leave";
   return undefined;
 }
 
@@ -574,14 +573,15 @@ function unlock(p) {
 }
 
 // ------------------------------------------------------------ parkour
+// Inside the hollow trunk of the Árbol del Mundo, from the blue pad to the
+// golden one. No checkpoints: if you fall, you start again from the bottom.
 const PK = PARKOUR;
 
 function startParkour(player) {
   const s = st(player);
-  s.pk = { cp: 0, start: system.currentTick, falls: 0 };
-  player.getComponent("minecraft:inventory")?.container?.setItem(4, ITEMS.checkpoint());
-  title(player, "§a§lPARKOUR", "§fsube por la raíz y salta alrededor del Árbol del Mundo", 50);
-  player.sendMessage(`§2[Parkour]§r ¡Empieza el tiempo! Sube por la raíz hasta el tronco y salta hasta la cima. ${PK.checkpoints.length - 1} puntos de control. Si caes, vuelves al último.`);
+  s.pk = { start: system.currentTick };
+  title(player, "§a§lPARKOUR", "§fsube por dentro del Árbol del Mundo", 50);
+  player.sendMessage("§2[Parkour]§r ¡Empieza el tiempo! Salta por las plataformas hasta el bloque de oro de arriba. No hay puntos de control: si caes, vuelve a la plataforma azul.");
   sound(player, "random.orb", 1, 1.2);
 }
 
@@ -589,43 +589,22 @@ function stopParkour(player, message) {
   const s = st(player);
   if (!s.pk) return;
   s.pk = null;
-  const inv = player.getComponent("minecraft:inventory")?.container;
-  if (itemKind(inv?.getItem(4)) === "checkpoint") inv.setItem(4, undefined);
   if (message) player.sendMessage(message);
-}
-
-function toCheckpoint(player) {
-  const s = st(player);
-  if (!s.pk) return;
-  const cp = PK.checkpoints[s.pk.cp];
-  const next = PK.checkpoints[s.pk.cp + 1] ?? PK.finish;
-  tp(player, cp, { x: next.x, y: cp.y, z: next.z });
-  s.pk.falls++;
 }
 
 function parkourTick(player, s) {
   const l = player.location;
   const pad = PK.startPad;
   const onStart = Math.abs(Math.floor(l.x) - pad.x) <= 1 && Math.abs(Math.floor(l.z) - pad.z) <= 1 && l.y >= LOBBY.y + 0.5 && l.y <= LOBBY.y + 2.5;
-  if (!s.pk) {
-    if (onStart && s.pad !== "parkour") startParkour(player);
-    s.pad = onStart ? "parkour" : s.pad === "parkour" ? null : s.pad;
+  if (onStart) {
+    if (!s.pk) startParkour(player);
+    else s.pk.start = system.currentTick; // standing on the start pad: the clock starts again
     return;
   }
-  if (onStart) {
-    s.pk.start = system.currentTick; // standing on the start pad: the clock restarts
-    s.pk.cp = 0;
-  }
-  const near = (p) => Math.abs(l.x - p.x) <= 1.6 && Math.abs(l.z - p.z) <= 1.6 && l.y >= p.y - 0.6 && l.y <= p.y + 1.5;
-  for (let i = s.pk.cp + 1; i < PK.checkpoints.length; i++) {
-    if (near(PK.checkpoints[i])) {
-      s.pk.cp = i;
-      sound(player, "random.levelup", 0.6, 1.5);
-      title(player, "§a§lPUNTO DE CONTROL", `§f${i}/${PK.checkpoints.length - 1} §7· ${fmtMs(system.currentTick - s.pk.start)}`, 25);
-    }
-  }
+  if (!s.pk) return;
   const time = system.currentTick - s.pk.start;
-  if (near(PK.finish)) {
+  const f = PK.finish;
+  if (Math.abs(l.x - f.x) <= 1.6 && Math.abs(l.z - f.z) <= 1.6 && l.y >= f.y - 0.6 && l.y <= f.y + 1.5) {
     const best = STATS[player.name]?.pk;
     const record = !best || time < best;
     if (record) {
@@ -634,14 +613,108 @@ function parkourTick(player, s) {
     }
     title(player, "§6§l¡PARKOUR COMPLETADO!", `§f${fmtMs(time)}${record ? " §a¡nuevo récord!" : ` §7(récord: ${fmtMs(best)})`}`, 70);
     sound(player, "random.totem", 0.6, 1.2);
-    world.sendMessage(`§2[Parkour]§r §e${player.name}§r llegó a la cima del Árbol del Mundo en §e${fmtMs(time)}§r${record ? " §a(¡su mejor tiempo!)" : ""}.`);
+    world.sendMessage(`§2[Parkour]§r §e${player.name}§r llegó a lo alto del Árbol del Mundo en §e${fmtMs(time)}§r${record ? " §a(¡su mejor tiempo!)" : ""}.`);
     stopParkour(player);
     return;
   }
-  const cp = PK.checkpoints[s.pk.cp];
-  if (s.pk.cp > 0 && l.y < cp.y - 4) toCheckpoint(player);
-  else if (Math.hypot(l.x - pad.x, l.z - pad.z) > 45 && l.y < LOBBY.y + 6) stopParkour(player, "§2[Parkour]§r Te alejaste del recorrido: parkour cancelado.");
-  else bar(player, `§2Parkour §f${fmtMs(time)} §7| punto de control §f${s.pk.cp}/${PK.checkpoints.length - 1}`);
+  if (Math.hypot(l.x, l.z) > 18) return stopParkour(player, "§2[Parkour]§r Saliste del árbol: parkour cancelado.");
+  bar(player, `§2Parkour §f${fmtMs(time)} §7| altura §f${Math.max(0, Math.floor(l.y - LOBBY.y))}§7/${Math.floor(f.y - LOBBY.y)}`);
+}
+
+// ------------------------------------------------------------ spectating
+// Anyone in the lobby can watch a duel, the hunt or the Campal (spectator mode).
+// Crouch: next player. Keep crouching 2 s: back to the lobby.
+function specTargets() {
+  const out = [];
+  duel.matches.forEach((m, i) => {
+    if (m && m.phase !== "end") out.push({ kind: "duel", i, label: `§b§l${m.names[0]} vs ${m.names[1]}`, sub: `Emparejamiento · ${DUELS[i].name}` });
+  });
+  if (hunt.phase === "running") out.push({ kind: "hunt", label: `§c§lCAZA: ${hunt.names[hunt.hunted]}`, sub: `${huntMap().name} · ${hunt.alive.size} vivos` });
+  const cp = campalPlayers();
+  if (cp.length) out.push({ kind: "campal", label: "§a§lCAMPAL", sub: `${cp.length} jugando` });
+  return out;
+}
+
+function specPlayers(t) {
+  if (t.kind === "duel") return duel.matches[t.i] ? duelPlayers(duel.matches[t.i]).filter(Boolean) : [];
+  if (t.kind === "hunt") return [hunt.hunted, ...aliveHunters()].map(byId).filter(Boolean);
+  return campalPlayers();
+}
+
+function specActive(t) {
+  if (t.kind === "duel") return !!duel.matches[t.i] && duel.matches[t.i].phase !== "end";
+  if (t.kind === "hunt") return hunt.phase === "running";
+  return S.campal.enabled;
+}
+
+function specArea(t) {
+  return t.kind === "duel" ? DUELS[t.i].id : t.kind === "hunt" ? huntMap().id : "campal";
+}
+
+function specView(player, t) {
+  const list = specPlayers(t);
+  if (!list.length) {
+    const a = AREA[specArea(t)];
+    return tp(player, { x: (a.x0 + a.x1) / 2, y: (t.kind === "duel" ? DUEL.y : CAMPAL.y) + 25, z: (a.z0 + a.z1) / 2 });
+  }
+  const target = list[(t.k ?? 0) % list.length];
+  let dir = { x: 0, z: 1 };
+  try {
+    const v = target.getViewDirection();
+    const n = Math.hypot(v.x, v.z) || 1;
+    dir = { x: v.x / n, z: v.z / n };
+  } catch {}
+  const l = target.location;
+  tp(player, { x: l.x - dir.x * 4, y: l.y + 2.5, z: l.z - dir.z * 4 }, { x: l.x, y: l.y + 1.4, z: l.z });
+  bar(player, `§7Mirando a §f${target.name}`);
+}
+
+function specEnter(player, t) {
+  if (st(player).mode !== "lobby") return;
+  if (!specActive(t)) return player.sendMessage("§7Esa partida ya terminó.");
+  if (t.kind === "hunt") return huntSpectate(player);
+  leaveQueues(player);
+  stopParkour(player);
+  stopMusic(player);
+  const s = st(player);
+  s.mode = "spec";
+  s.spec = { ...t, k: 0 };
+  s.sneak = 0;
+  clearPlayer(player);
+  setMode(player, GM.spectator);
+  specView(player, s.spec);
+  title(player, "§7§lESPECTADOR", "§fagáchate: siguiente jugador · mantén 2 s: salir", 50);
+  player.sendMessage("§7[Espectador]§r Agáchate para pasar al siguiente jugador; mantén agachado 2 s (o usa §e/natura:lobby§r) para volver al lobby.");
+}
+
+async function specMenu(player) {
+  const list = specTargets();
+  if (!list.length) return player.sendMessage("§7[Espectador] Ahora mismo no hay ninguna partida.");
+  await menu(player, "§l§7ESPECTAR", "§7Elige qué partida quieres ver.\n ", list.map((t) => [`${t.label}\n§r§8${t.sub}`, () => specEnter(player, t),
+    t.kind === "duel" ? "textures/items/diamond_sword" : t.kind === "hunt" ? "textures/items/bow_standby" : "textures/items/iron_sword"]), () => openSelector(player));
+}
+
+// called every 5 ticks for players in "spec" or "hunt_spec"
+function specTick(player, s) {
+  const t = s.mode === "hunt_spec" ? (s.spec ??= { kind: "hunt", k: 0 }) : s.spec;
+  if (!t) return sendToLobby(player);
+  if (s.mode === "spec" && !specActive(t)) return sendToLobby(player, "§7[Espectador] La partida que mirabas terminó.");
+  if (player.isSneaking) s.sneak = (s.sneak ?? 0) + 5;
+  else {
+    if (s.sneak > 0 && s.sneak < 30) {
+      t.k = (t.k ?? 0) + 1;
+      specView(player, t);
+    }
+    s.sneak = 0;
+  }
+  if (s.sneak >= 40) {
+    hunt.spectators.delete(player.id);
+    return sendToLobby(player, "§7Volviste al lobby.");
+  }
+  const l = player.location;
+  const top = t.kind === "duel" ? DUEL.wallTop : t.kind === "hunt" ? HUNT.clearTop + 60 : CAMPAL.wallTop;
+  if (!insideArea(specArea(t), l.x, l.z, -2) || l.y > top || l.y < HUNT.floor) specView(player, t);
+  if (s.mode === "spec" && tick % 8 === 0) bar(player, "§7ESPECTADOR §8| §fagáchate: siguiente §8| §fmantén 2 s: salir");
 }
 
 // ------------------------------------------------------------ Emparejamiento (1v1)
@@ -677,8 +750,8 @@ function duelShots(map, spawns, names) {
   };
   const a = face(spawns[0], spawns[1]), b = face(spawns[1], spawns[0]);
   return () => [
-    { pos: { x: c.x - 44, y: c.y + 46, z: c.z - 44 }, look: c, hold: 0 },
-    { pos: { x: c.x + 42, y: c.y + 26, z: c.z - 30 }, look: c, ease: 3, hold: 0.2, title: `§b§l${map.name.toUpperCase()}`, sub: "§fEmparejamiento · 1 contra 1" },
+    { pos: { x: c.x - 27, y: c.y + 52, z: c.z - 27 }, look: c, hold: 0 },
+    { pos: { x: c.x + 26, y: c.y + 22, z: c.z - 24 }, look: c, ease: 3, hold: 0.2, title: `§b§l${map.name.toUpperCase()}`, sub: "§fEmparejamiento · 1 contra 1" },
     { ...a, ease: 1.8, hold: 0.4, title: `§e§l${names[0]}`, sub: "§7kit de diamante encantado" },
     { ...b, ease: 1.8, hold: 0.6, title: `§fVS §e§l${names[1]}`, sub: "§7¡que gane el mejor!" },
   ];
@@ -829,7 +902,9 @@ function huntSpectate(player) {
   setMode(player, GM.spectator);
   const target = byId(hunt.hunted);
   tp(player, target ? { x: target.location.x, y: target.location.y + 12, z: target.location.z } : huntCenter());
-  player.sendMessage("§c[Caza]§r Estás mirando la caza. Usa §e/natura:lobby§r para volver.");
+  s.spec = { kind: "hunt", k: 0 };
+  s.sneak = 0;
+  player.sendMessage("§c[Caza]§r Estás mirando la caza. Agáchate para pasar al siguiente jugador; mantén 2 s (o §e/natura:lobby§r) para volver.");
   huntMusicJoin(player);
 }
 
@@ -869,8 +944,9 @@ function aliveHunters() {
 // Loot for the chests of the structures (both sides can take it).
 const LOOT = [
   [8, () => ({ id: "minecraft:arrow", count: 8 + Math.floor(Math.random() * 9) })],
-  [5, () => ({ id: "minecraft:ender_pearl", count: 1 + Math.floor(Math.random() * 2) })],
-  [6, () => ({ id: "minecraft:golden_apple", count: 1 + Math.floor(Math.random() * 2) })],
+  [8, () => ({ id: "minecraft:ender_pearl", count: 2 + Math.floor(Math.random() * 3) })],
+  [9, () => ({ id: "minecraft:golden_apple", count: 2 + Math.floor(Math.random() * 3) })],
+  [5, () => ({ id: "minecraft:splash_potion", potion: 22, count: 1 + Math.floor(Math.random() * 2) })],
   [6, () => ({ id: "minecraft:web|minecraft:cobweb", count: 4 + Math.floor(Math.random() * 5), placeOn: "ground" })],
   [6, () => ({ id: "minecraft:snowball", count: 8 + Math.floor(Math.random() * 9) })],
   [5, () => ({ id: "minecraft:golden_carrot", count: 4 })],
@@ -909,8 +985,14 @@ function fillChests(map) {
           inv.clearAll();
           const n = 3 + Math.floor(Math.random() * 3);
           for (let i = 0; i < n; i++) {
-            const item = makeItem(lootRoll());
-            if (item) inv.setItem(Math.floor(Math.random() * inv.size), item);
+            const loot = lootRoll();
+            const slot = Math.floor(Math.random() * inv.size);
+            if (loot.potion !== undefined) {
+              dim.runCommand(`replaceitem block ${c.x} ${c.y} ${c.z} slot.container ${slot} ${loot.id.replace("minecraft:", "")} ${loot.count} ${loot.potion}`);
+              continue;
+            }
+            const item = makeItem(loot);
+            if (item) inv.setItem(slot, item);
           }
         } catch {}
       }
@@ -1178,7 +1260,7 @@ function huntTick() {
     else if (s.mode === "hunt" && prey) {
       const d = Math.round(Math.sqrt(dist2(p.location, prey.location)));
       text = hunt.headLeft > 0 ? `§aCAZADOR §7| §fsales en §e${hunt.headLeft}s` : `§aCAZADOR §7| §fpresa: §c${hunt.names[hunt.hunted]} §7~${d > 100 ? "+100" : Math.ceil(d / 10) * 10} bloques §7| §e${fmtTime(hunt.timeLeft)}`;
-    } else text = `§7ESPECTADOR §7| §fcazadores: §a${hn} §7| §e${fmtTime(hunt.timeLeft)}`;
+    } else text = `§7ESPECTADOR §7| §fcazadores: §a${hn} §7| §e${fmtTime(hunt.timeLeft)} §8| agáchate: cambiar · mantén: salir`;
     bar(p, hunt.lastStand ? `§4ÚLTIMO EN PIE §7| ${text}` : text);
   }
   if (hunt.timeLeft <= 0) endHunt("hunted", "sobrevivió hasta el final del tiempo");
@@ -1279,7 +1361,9 @@ world.afterEvents.entityDie.subscribe(({ deadEntity: player, damageSource }) => 
       } catch {}
       if (S.campal.reward) {
         effect(killer, "regeneration", 4, 2);
-        killer.getComponent("minecraft:inventory")?.container?.addItem(new ItemStack("minecraft:golden_apple", 1));
+        const inv = killer.getComponent("minecraft:inventory")?.container;
+        inv?.addItem(new ItemStack("minecraft:golden_apple", 2));
+        inv?.addItem(new ItemStack("minecraft:ender_pearl", 1));
       }
       bar(killer, `§a+1 baja §7(eliminaste a §f${player.name}§7)`);
       sound(killer, "random.orb", 1, 1.6);
@@ -1399,7 +1483,6 @@ world.afterEvents.itemUse.subscribe(({ source: player, itemStack }) => {
   if (kind === "selector") openSelector(player);
   else if (kind === "admin") openAdmin(player);
   else if (kind === "leave" && s.mode === "campal") campalLeave(player);
-  else if (kind === "checkpoint") toCheckpoint(player);
 });
 
 // ------------------------------------------------------------ lobby: pads, texts, safety
@@ -1423,7 +1506,7 @@ const TEXTS = {
   duel: { x: LOBBY.pads.duel.x + 0.5, y: LOBBY.y + 3.6, z: LOBBY.pads.duel.z + 0.5 },
   hunt: { x: LOBBY.pads.hunt.x + 0.5, y: LOBBY.y + 3.6, z: LOBBY.pads.hunt.z + 0.5 },
   campal: { x: LOBBY.pads.campal.x + 0.5, y: LOBBY.y + 3.6, z: LOBBY.pads.campal.z + 0.5 },
-  parkour: { x: PK.startPad.x + 0.5, y: LOBBY.y + 3.6, z: PK.startPad.z + 0.5 },
+  parkour: { x: PK.startPad.x + 0.5, y: LOBBY.y + 3.4, z: PK.startPad.z + 0.5 },
 };
 
 function topLines(key) {
@@ -1432,7 +1515,7 @@ function topLines(key) {
 }
 
 function textFor(key) {
-  if (key === "welcome") return "§2§lNATURA PvP\n§fel Árbol del Mundo\n§7usa la §abrújula§7 o cruza una puerta";
+  if (key === "welcome") return "§2§lNATURA PvP\n§fel Árbol del Mundo\n§7usa la §abrújula§7 o cruza una puerta\n§2parkour dentro del árbol";
   if (key === "duel") {
     const busy = duel.matches.filter((m) => m).length;
     return `§b§lEMPAREJAMIENTO\n§71 contra 1 · ${DUELS.length} mapas\n§fen cola: §e${duel.queue.length} §7| §fduelos: §e${busy}\n${S.duel.enabled ? "" : "§c(desactivado)\n"}§6Top victorias\n${topLines("dw")}`;
@@ -1443,7 +1526,7 @@ function textFor(key) {
   }
   if (key === "parkour") {
     const t = topParkour(3);
-    return `§2§lPARKOUR\n§7sube al Árbol del Mundo\n§6Mejores tiempos\n${t.length ? t.map(([n, s], i) => `§6${i + 1}. §f${n} §7(${fmtMs(s.pk)})`).join("\n") : "§7nadie lo ha terminado aún"}`;
+    return `§2§lPARKOUR\n§7pisa el bloque azul y sube hasta el oro\n§6Mejores tiempos\n${t.length ? t.map(([n, s], i) => `§6${i + 1}. §f${n} §7(${fmtMs(s.pk)})`).join("\n") : "§7nadie lo ha terminado aún"}`;
   }
   return `§a§lCAMPAL\n§7siempre abierta · entra cuando quieras\n§fdentro: §e${campalPlayers().length}\n${S.campal.enabled ? "" : "§c(cerrado)\n"}§6Top bajas\n${topLines("ck")}`;
 }
@@ -1494,10 +1577,7 @@ system.runInterval(() => {
         effect(player, "slow_falling", 5, 0);
         continue;
       }
-      if (l.y < LOBBY.y - 20 || Math.hypot(l.x, l.z) > LOBBY.radius + 6) {
-        if (s.pk) toCheckpoint(player);
-        else tp(player, LOBBY.spawn, LOBBY.look);
-      }
+      if (l.y < LOBBY.y - 20 || Math.hypot(l.x, l.z) > LOBBY.radius + 6) tp(player, LOBBY.spawn, LOBBY.look);
       if (slow) {
         effect(player, "resistance", 12, 255);
         effect(player, "saturation", 12, 255);
@@ -1508,13 +1588,12 @@ system.runInterval(() => {
           const has = itemKind(inv.getItem(8)) === "admin";
           if (isAdmin(player) && !has) inv.setItem(8, ITEMS.admin());
           if (!isAdmin(player) && has) inv.setItem(8, undefined);
-          if (s.pk && itemKind(inv.getItem(4)) !== "checkpoint") inv.setItem(4, ITEMS.checkpoint());
         }
       }
       parkourTick(player, s);
       const pad = padUnder(player);
       if (pad && pad !== s.pad) padAction(player, pad);
-      if (s.pad !== "parkour") s.pad = pad;
+      s.pad = pad;
     } else if (s.mode === "duel" && s.match) {
       const sp = s.match.spawns[s.match.ids.indexOf(player.id)];
       if ((s.match.phase === "countdown" || s.match.phase === "intro") && dist2(l, sp) > 0.5) tp(player, sp);
@@ -1527,8 +1606,8 @@ system.runInterval(() => {
         const z = Math.max(m.z0 + 3, Math.min(m.z1 - 3, Math.floor(l.z)));
         tp(player, { x: x + 0.5, y: m.surface(x, z).y + 1, z: z + 0.5 });
       }
-    } else if (s.mode === "hunt_spec") {
-      if (!insideArea(huntMap().id, l.x, l.z, 20) || l.y > HUNT.clearTop + 60) tp(player, huntCenter());
+    } else if (s.mode === "hunt_spec" || s.mode === "spec") {
+      specTick(player, s);
     } else if (s.mode === "campal") {
       if (l.y < CAMPAL.y - 4 || !insideArea("campal", l.x, l.z)) spawnInCampal(player, false);
     } else if (s.mode === "free" && slow && isAdmin(player)) {
@@ -1650,16 +1729,17 @@ async function openSelector(player) {
   const buttons = [
     [inDuel ? "§c§lSALIR DE LA COLA\n§r§8Emparejamiento" : `§b§lEMPAREJAMIENTO\n§r§81 contra 1 · ${duel.queue.length} en cola`, () => (inDuel ? duelLeave(player) : duelJoin(player)), "textures/items/diamond_sword"],
     hunt.phase === "running"
-      ? [`§c§lCAZA §r§8(en curso)\n§8mirar como espectador`, () => huntSpectate(player), "textures/items/bow_standby"]
+      ? [`§c§lCAZA §r§8(en curso en ${huntMap().name})\n§8mirar como espectador`, () => huntSpectate(player), "textures/items/bow_standby"]
       : [inHuntQ ? "§c§lSALIR DE LA COLA\n§r§8Caza" : `§c§lCAZA\n§r§8${huntState}`, () => (inHuntQ ? huntLeave(player) : huntJoin(player)), "textures/items/bow_standby"],
     [`§a§lCAMPAL\n§r§8${campalPlayers().length} dentro · entra ya`, () => campalEnter(player), "textures/items/iron_sword"],
+    [`§7§lESPECTAR\n§r§8${specTargets().length} partida(s) en curso`, () => specMenu(player), "textures/items/spyglass"],
     s.pk
       ? ["§2§lSALIR DEL PARKOUR\n§r§8vuelves al lobby", () => {
         stopParkour(player);
         sendToLobby(player);
       }, "textures/items/feather"]
-      : [`§2§lPARKOUR\n§r§8${best ? `tu récord: ${fmtMs(best)}` : "sube al Árbol del Mundo"}`, () => {
-        tp(player, { x: PK.startPad.x - 1.5, y: LOBBY.y + 1, z: PK.startPad.z - 1.5 }, PK.start);
+      : [`§2§lPARKOUR\n§r§8${best ? `tu récord: ${fmtMs(best)}` : "dentro del Árbol del Mundo"}`, () => {
+        tp(player, { x: PK.startPad.x + 0.5, y: LOBBY.y + 1, z: PK.startPad.z + 3.5 }, PK.start);
         player.sendMessage("§2[Parkour]§r Pisa la plataforma azul para empezar.");
       }, "textures/items/feather"],
     [`§d§lMÚSICA\n§r§8${describePlaylist(prefs(player).normal)} · ${prefs(player).volume}%`, () => openMusic(player), "textures/items/record_cat"],
@@ -2025,7 +2105,7 @@ async function adminWorld(player) {
 
 async function adminPlayers(player) {
   const list = world.getPlayers();
-  const modeName = { lobby: "lobby", duel: "duelo", hunt: "caza", hunt_spec: "espectador", campal: "campal", free: "modo libre" };
+  const modeName = { lobby: "lobby", duel: "duelo", hunt: "caza", hunt_spec: "espectador (caza)", spec: "espectador", campal: "campal", free: "modo libre" };
   await menu(player, "§l§6JUGADORES", "§7Elige un jugador.\n ", list.map((p) => [
     `${isAdmin(p) ? "§c" : "§f"}§l${p.name}\n§r§8${modeName[st(p).mode] ?? st(p).mode}${isAdmin(p) ? " · admin" : ""}`, () => adminPlayer(player, p), "textures/items/name_tag",
   ]), () => openAdmin(player));
@@ -2159,7 +2239,7 @@ system.beforeEvents.startup.subscribe((ev) => {
     system.run(() => {
       const s = st(p);
       if (s.mode === "campal") campalLeave(p);
-      else if (s.mode === "hunt_spec" || s.mode === "free") {
+      else if (s.mode === "hunt_spec" || s.mode === "free" || s.mode === "spec") {
         hunt.spectators.delete(p.id);
         sendToLobby(p);
       } else if (s.mode === "lobby") {

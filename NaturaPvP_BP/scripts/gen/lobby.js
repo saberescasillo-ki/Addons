@@ -1,16 +1,20 @@
 // Natura PvP: the lobby. A big floating island with the Árbol del Mundo in the
 // middle (a tree ~100 blocks tall that makes the players feel tiny), giant
 // roots, three colossal stone gates (one per mode, each with its pad), a ring
-// of ancient pillars and a parkour that climbs around the trunk.
-import { addTrees, decoration, groundColumn, hash, TREE_REACH, vnoise } from "./core.js";
+// of ancient pillars, a colossal ring wall floating around the island, and a
+// parkour inside the hollow trunk.
+import { addTrees, colossalWall, decoration, groundColumn, hash, TREE_REACH, vnoise, WALL_THEMES } from "./core.js";
 
 const Y = 100;
 const TOP = 198; // top of the trunk
 const PI2 = Math.PI * 2;
 
 // ------------------------------------------------------------ the tree
-const trunkR = (y) => 9.5 - 5 * Math.pow(Math.max(0, y - Y) / (TOP - Y), 0.9);
+const trunkR = (y) => 11 - 5.5 * Math.pow(Math.max(0, y - Y) / (TOP - Y), 1.3);
 const flare = (y) => (y < Y + 8 ? 4.5 * (1 - (y - Y) / 8) ** 2 : 0);
+// the trunk is hollow (walls 2.2 thick) up to the top of the parkour
+const hollowR = (y) => trunkR(y) - 2.2;
+const SHAFT_TOP = 152;
 const radiusAt = (y) => trunkR(y) + flare(y);
 
 function trunkTop(d) {
@@ -22,7 +26,7 @@ function trunkTop(d) {
 
 const ROOTS = [45, 135, 225, 315].map((deg) => {
   const a = (deg * Math.PI) / 180;
-  return { ux: Math.cos(a), uz: Math.sin(a), s0: 6, s1: 34 };
+  return { ux: Math.cos(a), uz: Math.sin(a), s0: 9, s1: 34 };
 });
 const rootShape = (t) => ({ cy: Y - 1 + 15 * (1 - t) ** 1.5, rr: 1.3 + 3 * (1 - t) });
 
@@ -57,6 +61,17 @@ function treeColumn(x, z, segs) {
       segs.push([y, Math.min(top, y + 5), outer && r < 0.18 ? "moss" : outer && r < 0.24 ? "oak_wood" : "dark_wood"]);
       if (outer && r > 0.97) segs.push([y + 2, y + 2, "shroom"]);
     }
+    // the hollow inside, lit by shroomlights in its walls
+    if (d < hollowR(Y + 1)) {
+      let yh = Y + 1;
+      while (yh < SHAFT_TOP && hollowR(yh + 1) > d) yh++;
+      segs.push([Y + 1, yh, "air"]);
+    } else if (d < hollowR(Y + 1) + 1.3) {
+      for (let y = Y + 6; y < SHAFT_TOP; y += 7) if (hash(x, z + y, 1325) < 0.3) segs.push([y, y, "shroom"]);
+    }
+    // the door, facing the spawn
+    const ax = Math.abs(x + 0.5);
+    if (z + 0.5 > 0 && ax <= 1.6 && d >= hollowR(Y + 1) - 1) segs.push([Y + 1, Y + (ax > 1 ? 3 : 4), "air"]);
   }
   // roots
   for (const R of ROOTS) {
@@ -161,60 +176,74 @@ function pillarColumn(x, z, segs) {
 }
 
 // ------------------------------------------------------------ the parkour
-// It starts on a pad next to the south-east root: you walk up the root to the
-// trunk and jump around it, upwards, until the lookout under the branches.
-const START = { x: 26, z: 26 };
+// Inside the hollow trunk: jumps around its inner wall, upwards, from the blue
+// start pad on the floor to the golden one at the top. No checkpoints: if you
+// fall, you start again from the bottom.
 export const PARKOUR = (() => {
   const blocks = []; // { x, y, z, key }
-  const checkpoints = [{ x: START.x + 0.5, y: Y + 1, z: START.z + 0.5 }];
-  const pattern = "UUFUUUFUUFUUUUFUUFUUUFUUFUUUUFUUUFUU";
-  let a = Math.PI / 4 + 0.08;
-  let y = 118;
-  const mats = ["moss", "dark_wood", "azaleaL", "msbrick", "mcobble", "oak_wood"];
+  const a0 = -Math.PI / 2; // the start pad is on the north side, in front of the door
+  const r0 = hollowR(Y + 1) - 2.2;
+  const sp = { x: Math.round(Math.cos(a0) * r0), z: Math.round(Math.sin(a0) * r0) };
+  for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) blocks.push({ x: sp.x + dx, y: Y, z: sp.z + dz, key: dx || dz ? "pandesite" : "lapis" });
+  const mats = ["moss", "dark_wood", "azaleaL", "msbrick", "mcobble", "oak_wood", "shroom"];
+  let a = a0, y = Y, prev = sp;
   let finish = null;
-  // the top of the root, where the jumps begin
-  let prev = { x: 7, z: 7 };
-  for (let i = 0; i < pattern.length; i++) {
-    const up = pattern[i] === "U";
+  const N = 56;
+  const used = []; // { x, y, z } of the platforms so far
+  // no platform right above another (3 blocks of room for the head)
+  const free = (px, py, pz) => !used.some((u) => u.x === px && u.z === pz && Math.abs(u.y - py) <= 3)
+    && !(Math.abs(px - sp.x) <= 1 && Math.abs(pz - sp.z) <= 1 && py - Y <= 3);
+  for (let i = 0; i < N; i++) {
+    const up = i % 5 !== 4;
     y += up ? 1 : 0;
-    const r = trunkR(y) + 3.8;
-    // every jump can be made: 2-2.6 blocks of gap going up, up to 3.2 on the flat
-    const [lo, hi] = up ? [2.9, 3.6] : [3.3, 4.2];
-    let px = 0, pz = 0;
-    for (let step = 2.4; step <= 5; step += 0.05) {
-      px = Math.round(Math.cos(a + step / r) * r);
-      pz = Math.round(Math.sin(a + step / r) * r);
-      const d = Math.hypot(px - prev.x, pz - prev.z);
-      if (d >= lo && d <= hi) {
-        a += step / r;
-        break;
+    const r = hollowR(y + 4) - 1.3; // room for the head under the narrowing wall
+    let best = null;
+    for (const [lo, hi] of up ? [[2.9, 3.6], [2.6, 3.7]] : [[3.3, 4.2], [3.0, 4.3]]) {
+      for (let step = 1.5; step <= 8 && !best; step += 0.05) {
+        const px = Math.round(Math.cos(a + step / r) * r), pz = Math.round(Math.sin(a + step / r) * r);
+        const dd = Math.hypot(px - prev.x, pz - prev.z);
+        if (dd >= lo && dd <= hi && free(px, y, pz)) best = { px, pz, step };
       }
+      if (best) break;
     }
+    if (!best) throw new Error(`parkour: no hay sitio para el salto ${i}`);
+    a += best.step / r;
+    const { px, pz } = best;
     prev = { x: px, z: pz };
-    const last = i === pattern.length - 1;
-    const cp = (i + 1) % 12 === 0;
-    if (last || cp) {
-      for (let dx = -1; dx <= 1; dx++)
-        for (let dz = -1; dz <= 1; dz++) blocks.push({ x: px + dx, y, z: pz + dz, key: dx || dz ? "moss" : last ? "gold" : "shroom" });
-      if (last) {
-        blocks.push({ x: px + 1, y: y + 1, z: pz + 1, key: "lantern" }, { x: px - 1, y: y + 1, z: pz - 1, key: "lantern" });
-        finish = { x: px + 0.5, y: y + 1, z: pz + 0.5 };
-      } else checkpoints.push({ x: px + 0.5, y: y + 1, z: pz + 0.5 });
-    } else {
-      blocks.push({ x: px, y, z: pz, key: mats[i % mats.length] });
-      if (i % 4 === 2) {
-        const tx = Math.round(Math.cos(a + 1 / r) * r), tz = Math.round(Math.sin(a + 1 / r) * r);
-        if (tx !== px || tz !== pz) blocks.push({ x: tx, y, z: tz, key: mats[(i + 1) % mats.length] });
-      }
-    }
+    used.push({ x: px, y, z: pz });
+    if (i === N - 1) {
+      for (const [dx, dz] of [[0, 0], [1, 0], [0, 1], [1, 1]]) blocks.push({ x: px + dx, y, z: pz + dz, key: "gold" });
+      blocks.push({ x: px, y: y + 1, z: pz + 1, key: "lantern" });
+      finish = { x: px + 0.5, y: y + 1, z: pz + 0.5 };
+    } else blocks.push({ x: px, y, z: pz, key: mats[i % mats.length] });
   }
-  return { start: checkpoints[0], checkpoints, finish, blocks, startPad: START };
+  const start = { x: sp.x + 0.5, y: Y + 1, z: sp.z + 0.5 };
+  return { start, startPad: sp, finish, blocks, checkpoints: [start] };
 })();
 const PK = new Map();
 for (const b of PARKOUR.blocks) {
   const k = `${b.x},${b.z}`;
   if (!PK.has(k)) PK.set(k, []);
   PK.get(k).push([b.y, b.y, b.key]);
+}
+
+// ------------------------------------------------------------ the ring wall
+// A colossal wall in a ring around the island, floating in the void: its
+// arcade faces the island; eight towers. It hides everything beyond it.
+const RING = { r: 82, thick: 6, top: 196 };
+function ringColumn(x, z, segs) {
+  const r = Math.hypot(x + 0.5, z + 0.5);
+  if (r < RING.r || r >= RING.r + RING.thick) return false;
+  const w = Math.floor(r - RING.r) + 1;
+  const ang = Math.atan2(z + 0.5, x + 0.5);
+  const along = (ang + Math.PI) * RING.r;
+  const seg = (Math.PI * 2 * RING.r) / 8;
+  const m = ((along % seg) + seg) % seg;
+  const tower = m < 7 || m > seg - 7;
+  // the foundation hangs below the island level, like a cliff
+  const bottom = Y - 26 - Math.floor(hash(x, z, 1390) * 14) - (w > 2 && w < 5 ? 10 : 0);
+  colossalWall(segs, x, z, w, along, bottom, Y, RING.top, RING.thick, WALL_THEMES.forest, tower);
+  return true;
 }
 
 // ------------------------------------------------------------ the island
@@ -230,9 +259,7 @@ function onPath(x, z) {
     const along = x * ux + z * uz, lat = Math.abs(x * -uz + z * ux);
     if (along > 20 && along < GATE_R + 6 && lat <= 2.5) return true;
   }
-  // from the spawn to the parkour pad
-  const along = (x + z) / Math.SQRT2, lat = Math.abs(x - z) / Math.SQRT2;
-  return along > 30 && along < 39 && lat <= 1.5;
+  return false;
 }
 
 const DECO_TREES = (() => {
@@ -240,7 +267,7 @@ const DECO_TREES = (() => {
   for (let i = 0; i < 200 && out.length < 26; i++) {
     const a = hash(i, 4, 1370) * PI2, r = 28 + hash(i, 5, 1371) * 30;
     const x = Math.round(Math.cos(a) * r), z = Math.round(Math.sin(a) * r);
-    if (onPath(x, z) || Math.hypot(x - START.x, z - START.z) < 9) continue;
+    if (onPath(x, z)) continue;
     if (Object.values(PADS).some((p) => Math.hypot(x - p.x, z - p.z) < 13)) continue;
     if (PILLARS.some((p) => Math.hypot(x - p.x, z - p.z) < 8)) continue;
     if (ROOTS.some((R) => Math.abs(x * R.uz - z * R.ux) < 6 && x * R.ux + z * R.uz < 40)) continue;
@@ -258,6 +285,7 @@ function lobbyColumn(x, z) {
   const segs = [];
   const r = Math.hypot(x + 0.5, z + 0.5);
   const R = islandR(x, z);
+  if (ringColumn(x, z, segs)) return segs;
   if (r > R) {
     if (r <= R + 1.6) segs.push([Y + 1, Y + 6, "barrier"]);
     return segs;
@@ -273,11 +301,6 @@ function lobbyColumn(x, z) {
   if (plaza) top = hash(x, z, 1366) < 0.3 ? "msbrick" : hash(x, z, 1367) < 0.15 ? "cbrick" : "sbrick";
   const rock = (y) => (y < Y - 30 ? "tuff" : hash(x, y, 1368) < 0.3 ? "andesite" : "stone");
   groundColumn(segs, Y - depth, Y, top, "dirt", rock(Y - depth));
-  // the parkour start pad
-  if (Math.abs(x - START.x) <= 1 && Math.abs(z - START.z) <= 1) {
-    segs[segs.length - 1] = [Y, Y, x === START.x && z === START.z ? "lapis" : "pandesite"];
-    return segs;
-  }
   const pond = Math.hypot(x + 0.5 - POND.x, z + 0.5 - POND.z);
   if (pond < POND.r) {
     segs.push([Y - 2, Y - 2, "clay"], [Y - 1, Y, "water"]);
@@ -306,7 +329,7 @@ function lobbyColumn(x, z) {
 }
 
 export const LOBBY = {
-  cx: 0, cz: 0, y: Y, radius: 74,
+  cx: 0, cz: 0, y: Y, radius: 74, ring: 82,
   spawn: { x: 0.5, y: Y + 1, z: 21.5 },
   look: { x: 0.5, y: Y + 45, z: 0.5 },
   pads: Object.fromEntries(Object.entries(PADS).map(([k, p]) => [k, { x: p.x, z: p.z, block: p.block }])),
@@ -314,4 +337,4 @@ export const LOBBY = {
   parkour: PARKOUR,
 };
 
-export const LOBBY_AREA = { id: "lobby", name: "Lobby", x0: -76, z0: -76, x1: 75, z1: 75, bottom: Y - 80, clearTop: 215, column: lobbyColumn };
+export const LOBBY_AREA = { id: "lobby", name: "Lobby", x0: -90, z0: -90, x1: 89, z1: 89, bottom: Y - 80, clearTop: 225, column: lobbyColumn };

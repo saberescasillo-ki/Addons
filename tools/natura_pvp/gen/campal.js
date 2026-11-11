@@ -2,7 +2,7 @@
 import { addTrees, decoration, fbm, gridTrees, groundColumn, hash, treeHeight, vnoise, walledColumn, WALL_THEMES } from "./core.js";
 
 // ------------------------------------------------------------ campal (126x126)
-export const CAMPAL = { cx: 320, cz: 0, y: 80, half: 63, wallTop: 118, thick: 4, theme: WALL_THEMES.forest };
+export const CAMPAL = { cx: 320, cz: 0, y: 80, half: 63, wallTop: 140, thick: 6, theme: WALL_THEMES.forest };
 const CAMPAL_POND = { x: -34, z: 26, r: 6.5 };
 
 function campalHeight(lx, lz) {
@@ -103,4 +103,4 @@ export function campalSpawns() {
   }));
 }
 
-export const CAMPAL_AREA = { id: "campal", name: "Campal", x0: CAMPAL.cx - 67, z0: CAMPAL.cz - 67, x1: CAMPAL.cx + 66, z1: CAMPAL.cz + 66, bottom: CAMPAL.y - 6, clearTop: CAMPAL.wallTop + 14, column: campalColumn };
+export const CAMPAL_AREA = { id: "campal", name: "Campal", x0: CAMPAL.cx - 69, z0: CAMPAL.cz - 69, x1: CAMPAL.cx + 68, z1: CAMPAL.cz + 68, bottom: CAMPAL.y - 6, clearTop: CAMPAL.wallTop + 14, column: campalColumn };

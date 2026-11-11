@@ -13,7 +13,8 @@ const DIAMOND_FULL = [
   { slot: 0, id: "minecraft:diamond_sword", ench: { sharpness: 5, fire_aspect: 2, unbreaking: 3 } },
   { slot: 1, id: "minecraft:diamond_axe", ench: { sharpness: 5, unbreaking: 3 } },
   { slot: 2, id: "minecraft:bow", ench: { power: 5, punch: 1, flame: 1, infinity: 1, unbreaking: 3 } },
-  { slot: 3, id: "minecraft:golden_apple", count: 8 },
+  { slot: 3, id: "minecraft:golden_apple", count: 16 },
+  { slot: 5, id: "minecraft:ender_pearl", count: 8 },
   { slot: 4, id: "minecraft:cooked_beef", count: 32 },
   { slot: 9, id: "minecraft:arrow", count: 1 },
 ];
@@ -35,7 +36,8 @@ export const DEFAULT_KITS = {
       { slot: "offhand", id: "minecraft:shield" },
       { slot: 0, id: "minecraft:diamond_sword", ench: { sharpness: 4, unbreaking: 3 } },
       { slot: 1, id: "minecraft:bow", ench: { power: 3, unbreaking: 3 } },
-      { slot: 2, id: "minecraft:golden_apple", count: 4 },
+      { slot: 2, id: "minecraft:golden_apple", count: 10 },
+      { slot: 4, id: "minecraft:ender_pearl", count: 6 },
       { slot: 3, id: "minecraft:cooked_beef", count: 16 },
       { slot: 9, id: "minecraft:arrow", count: 32 },
     ],
@@ -52,10 +54,10 @@ export const DEFAULT_KITS = {
       { slot: 0, id: "minecraft:diamond_sword", destroy: "webs" },
       { slot: 1, id: "minecraft:bow" },
       { slot: 2, id: "minecraft:shears", destroy: "webs" },
-      { slot: 3, id: "minecraft:ender_pearl", count: 2 },
+      { slot: 3, id: "minecraft:ender_pearl", count: 6 },
       { slot: 4, id: "minecraft:fishing_rod" },
       { slot: 5, id: "minecraft:ladder", count: 8, placeOn: "wood" },
-      { slot: 7, id: "minecraft:golden_apple", count: 3 },
+      { slot: 7, id: "minecraft:golden_apple", count: 8 },
       { slot: 8, id: "minecraft:cooked_beef", count: 32 },
       { slot: 9, id: "minecraft:arrow", count: 24 },
     ],
@@ -72,11 +74,11 @@ export const DEFAULT_KITS = {
       { slot: 0, id: "minecraft:iron_sword", ench: { sharpness: 1 }, destroy: "webs" },
       { slot: 1, id: "minecraft:bow", ench: { power: 1 } },
       { slot: 2, id: "minecraft:web|minecraft:cobweb", count: 16, placeOn: "ground" },
-      { slot: 3, id: "minecraft:ender_pearl", count: 4 },
+      { slot: 3, id: "minecraft:ender_pearl", count: 12 },
       { slot: 4, id: "minecraft:snowball", count: 16 },
       { slot: 5, id: "minecraft:scaffolding", count: 16, placeOn: "ground" },
       { slot: 6, id: "minecraft:ladder", count: 16, placeOn: "wood" },
-      { slot: 7, id: "minecraft:golden_apple", count: 3 },
+      { slot: 7, id: "minecraft:golden_apple", count: 10 },
       { slot: 8, id: "minecraft:cooked_beef", count: 32 },
       { slot: 9, id: "minecraft:arrow", count: 32 },
       { slot: 10, id: "minecraft:crossbow", ench: { quick_charge: 1 } },
@@ -85,6 +87,13 @@ export const DEFAULT_KITS = {
       { slot: 13, id: "minecraft:iron_axe", ench: { sharpness: 1 } },
       { slot: 14, id: "minecraft:web|minecraft:cobweb", count: 8, placeOn: "ground" },
       { slot: 15, id: "minecraft:golden_carrot", count: 8 },
+      // splash potions (data value of the potion: 22 healing II, 16 swiftness II,
+      // 17 slowness, 34 weakness, 25 poison)
+      { slot: 18, id: "minecraft:splash_potion", potion: 22, count: 4 },
+      { slot: 19, id: "minecraft:splash_potion", potion: 16, count: 2 },
+      { slot: 20, id: "minecraft:splash_potion", potion: 17, count: 3 },
+      { slot: 21, id: "minecraft:splash_potion", potion: 34, count: 2 },
+      { slot: 22, id: "minecraft:splash_potion", potion: 25, count: 2 },
     ],
   },
 };
@@ -204,11 +213,11 @@ export function scaledHuntedKit(hunters) {
       }
     }
     // more apples, cobwebs and pearls with every extra hunter
-    const per = { "minecraft:golden_apple": 2, "minecraft:web|minecraft:cobweb": 4, "minecraft:ender_pearl": 1 }[s.id] ?? 0;
+    const per = { "minecraft:golden_apple": 3, "minecraft:web|minecraft:cobweb": 4, "minecraft:ender_pearl": 2 }[s.id] ?? (s.potion === 22 ? 1 : 0);
     const count = per ? Math.min(64, (s.count ?? 1) + bonus * per) : s.count;
     return { ...s, ench, count };
   });
-  if (bonus >= 3) items.push({ slot: 16, id: "minecraft:enchanted_golden_apple", count: 1 });
+  if (bonus >= 3) items.push({ slot: 16, id: "minecraft:enchanted_golden_apple", count: 2 });
   // and some effects for the whole hunt
   const effects = [];
   if (bonus >= 2) effects.push({ id: "speed", amp: 0 });
@@ -235,13 +244,23 @@ export function giveKit(player, kit) {
   clearPlayer(player);
   const inv = player.getComponent("minecraft:inventory")?.container;
   const eq = player.getComponent("minecraft:equippable");
+  const potions = [];
   for (const spec of kit.items) {
+    if (spec.potion !== undefined) {
+      potions.push(spec);
+      continue;
+    }
     const item = makeItem(spec);
     if (!item) continue;
     try {
       if (typeof spec.slot === "string") eq?.setEquipment(mc.EquipmentSlot[SLOTS[spec.slot]], item);
       else if (inv && spec.slot >= 0 && spec.slot < inv.size) inv.setItem(spec.slot, item);
       else inv?.addItem(item);
+    } catch {}
+  }
+  for (const p of potions) {
+    try {
+      player.runCommand(`give @s ${p.id.replace("minecraft:", "")} ${Math.max(1, p.count ?? 1)} ${p.potion}`);
     } catch {}
   }
   for (const e of kit.effects ?? []) {
@@ -251,10 +270,31 @@ export function giveKit(player, kit) {
   }
 }
 
+// The data value of a potion item (to save kits with potions), from its
+// potion component when the game gives it; undefined if unknown.
+const POTIONS = [
+  ["harming", 23, 24], ["healing", 21, 22], ["swiftness", 14, 16], ["slowness", 17, 42], ["weakness", 34, 34],
+  ["poison", 25, 27], ["regeneration", 28, 30], ["strength", 31, 33], ["fire", 12, 12], ["invisibility", 7, 7],
+  ["leaping", 9, 11], ["slow_falling", 40, 40], ["night", 5, 5], ["turtle", 37, 39], ["water_breathing", 19, 19],
+];
+function potionData(item) {
+  try {
+    const c = item.getComponent("minecraft:potion");
+    const id = String(c?.potionEffectType?.id ?? "").toLowerCase();
+    const strong = /strong|ii$/.test(id);
+    for (const [name, weak, str] of POTIONS) if (id.includes(name)) return strong ? str : weak;
+  } catch {}
+  return undefined;
+}
+
 // ------------------------------------------------------------ saving an admin's inventory
 function readItem(item, slot) {
   if (!item) return undefined;
   const spec = { slot, id: item.typeId };
+  if (item.typeId.endsWith("potion")) {
+    const data = potionData(item);
+    if (data !== undefined) spec.potion = data;
+  }
   if (item.amount > 1) spec.count = item.amount;
   if (item.nameTag) spec.name = item.nameTag;
   try {
@@ -303,8 +343,10 @@ export function saveKitFrom(player, id) {
 }
 
 export function describeKit(kit) {
+  const POTION_NAMES = { 21: "curación", 22: "curación II", 16: "velocidad II", 14: "velocidad", 17: "lentitud", 34: "debilidad", 25: "veneno", 23: "daño", 24: "daño II" };
   const names = kit.items.map((s) => {
-    const n = s.id.split("|")[0].replace("minecraft:", "").replace(/_/g, " ");
+    let n = s.id.split("|")[0].replace("minecraft:", "").replace(/_/g, " ");
+    if (s.potion !== undefined) n += ` de ${POTION_NAMES[s.potion] ?? s.potion}`;
     const e = s.ench && Object.keys(s.ench).length ? ` (${Object.entries(s.ench).map(([k, v]) => `${k} ${v}`).join(", ")})` : "";
     return `§7- §f${s.count > 1 ? s.count + "x " : ""}${n}§8${e}`;
   });

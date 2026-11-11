@@ -418,6 +418,66 @@ export function hangingColumn(segs, x, z, top, floor, dir, leaf = "oakL") {
   if (hash(x, z, 63) < 0.5) segs.push([top - 1 - Math.floor(hash(x, z, 64) * 4), top, hash(x, z, 65) < 0.5 ? leaf : "azaleaL"]);
 }
 
+// A colossal wall, `thick` blocks thick (w = 1 is the inner face). The inner
+// face is an arcade of several floors, like a coliseum: deep arches between
+// pillars of logs with lights, a cornice on every floor, leaves hanging from
+// the arches, battlements and towers. `along` = position along the wall.
+export function colossalWall(segs, x, z, w, along, bottom, floor, top, thick, theme = WALL_THEMES.forest, tower = false) {
+  const P = 12, T = 22;
+  const a = ((Math.floor(along) % P) + P) % P;
+  const pillar = a <= 1;
+  // the body: bands of bricks, moss and cracks
+  for (let y = bottom; y <= top; y += 4) {
+    const r = hash(x * 7 + y, z * 13 - y, 41);
+    let b = r < 0.08 ? "cbrick" : r < 0.14 ? "moss" : y > top - 16 || r < 0.42 ? "msbrick" : r < 0.2 ? "chbrick" : "sbrick";
+    if (theme.snow && y > top - 12 && r < 0.5) b = "snow";
+    segs.push([y, Math.min(top, y + 3), w === thick && r > 0.8 ? "mcobble" : b]);
+  }
+  if (w <= 3) {
+    for (let tb = floor; tb + T <= top - 4; tb += T) {
+      // cornice of every floor
+      if (w <= 2) segs.push([tb, tb, w === 1 ? "chbrick" : "sbrick"], [tb + T - 1, tb + T - 1, "sbrick"]);
+      if (pillar) {
+        if (w === 1) {
+          segs.push([tb + 1, tb + T - 2, theme.logs[0]]);
+          segs.push([tb + 8, tb + 8, "shroom"]);
+        }
+        continue;
+      }
+      // a deep arch: 10 wide, 2 deep, with a round top
+      const dx = a - 2 - 4.5;
+      const archTop = tb + 12 + Math.round(Math.sqrt(Math.max(0, 25 - dx * dx)) * 1.2);
+      if (w <= 2) {
+        segs.push([tb + 1, archTop, "air"]);
+        if (hash(x, z, 42 + tb) < 0.4) segs.push([archTop - 2 - Math.floor(hash(x, z, 43 + tb) * 6), archTop, hash(x, z, 44) < 0.5 ? theme.crest[0] : "azaleaL"]);
+        if (w === 1 && hash(x, z, 45 + tb) < 0.3) segs.push([tb + 1, tb + 1, theme.snow ? "snowL" : "mcarpet"]);
+      } else if (w === 3) {
+        // the back of the arch: darker and mossy
+        segs.push([tb + 1, archTop, hash(x, tb, 46) < 0.5 ? "mcobble" : "msbrick"]);
+        if (a === 6 && tb > floor) segs.push([tb + 6, tb + 6, "shroom"]);
+      }
+    }
+  }
+  if (tower) {
+    // a tower over the wall: higher, with battlements and a pointed crown
+    segs.push([top + 1, top + 18, hash(x, z, 47) < 0.5 ? "msbrick" : "sbrick"]);
+    if (w === 1 && a === 6) segs.push([top + 8, top + 9, "air"]);
+    segs.push([top + 19, top + 21, theme.tower]);
+    if (w > 1 && w < thick) segs.push([top + 22, top + 23, theme.tower]);
+    if (theme.snow) segs.push([top + 24, top + 24, "snowL"]);
+    return;
+  }
+  if (w === thick) {
+    if (a % 2 === 0) segs.push([top + 1, top + 2, "msbrick"]);
+  } else {
+    const r = hash(x, z, 51);
+    segs.push([top + 1, top + 1, r < 0.5 ? theme.crest[0] : r < 0.75 ? theme.crest[1] : theme.crest[2]]);
+    if (w === 1 && pillar) segs.push([top + 2, top + 2, "lantern"]);
+    else if (r < 0.3) segs.push([top + 2, top + 2, theme.crest[0]]);
+    else if (theme.snow) segs.push([top + 2, top + 2, "snowL"]);
+  }
+}
+
 // A walled square arena: interior [-half, half-1], walls `thick` thick. Calls
 // inner(lx, lz, segs) for the floor; returns the segments of column (x, z).
 export function walledColumn(x, z, cfg, inner) {
@@ -428,7 +488,12 @@ export function walledColumn(x, z, cfg, inner) {
   if (wx > cfg.thick || wz > cfg.thick) return segs;
   const theme = cfg.theme ?? WALL_THEMES.forest;
   if (wx > 0 || wz > 0) {
-    wallColumn(segs, x, z, Math.max(wx, wz), wx >= wz ? lz : lx, cfg.y - 6, cfg.wallTop, cfg.thick, wx > 0 && wz > 0, theme);
+    const corner = wx > 0 && wz > 0;
+    const w = corner ? Math.max(wx, wz) : Math.max(wx, wz);
+    const along = wx >= wz ? lz + H : lx + H;
+    // towers at the corners and in the middle of every side
+    const mid = Math.abs((wx >= wz ? lz : lx) + 0.5) <= 3;
+    colossalWall(segs, x, z, corner ? Math.max(4, w) : w, along, cfg.y - 8, cfg.y, cfg.wallTop, cfg.thick, theme, corner || mid);
     return segs;
   }
   inner(lx, lz, segs);

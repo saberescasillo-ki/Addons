@@ -18,6 +18,7 @@ for (const [name, file] of [["server", "mock_server.js"], ["server-ui", "mock_ui
 writeFileSync(pjoin(tmp, "package.json"), JSON.stringify({ type: "module" }));
 cpSync(pjoin(root, "NaturaPvP_BP", "scripts"), pjoin(tmp, "scripts"), { recursive: true });
 
+const BUILD = readFileSync(pjoin(root, "NaturaPvP_BP", "scripts", "main.js"), "utf8").match(/"buildVersion": ?"([^"]+)"/)[1];
 const SONGS = Object.keys(JSON.parse(readFileSync(pjoin(root, "NaturaPvP_RP", "sounds", "sound_definitions.json"))).sound_definitions);
 const SONG = (i) => SONGS[i];
 const songOf = (p) => p.sounds.filter((x) => x.startsWith("natura.song.")).at(-1);
@@ -70,8 +71,8 @@ console.log(state.prebuilt ? "Mundo prebuilt" : "Construcción por el script");
 const admin = join("Admin");
 admin.addTag("admin");
 const t0 = Date.now();
-for (let i = 0; i < 6000 && gen.AREAS.some((a) => state.dyn[`natura:built:${a.id}`] !== "1.2.0"); i++) await advance(1);
-check(gen.AREAS.every((a) => state.dyn[`natura:built:${a.id}`] === "1.2.0"), `las ${gen.AREAS.length} zonas listas en ${state.tick} ticks (${state.blockOps} operaciones de bloques, ${Date.now() - t0} ms)`);
+for (let i = 0; i < 6000 && gen.AREAS.some((a) => state.dyn[`natura:built:${a.id}`] !== BUILD); i++) await advance(1);
+check(gen.AREAS.every((a) => state.dyn[`natura:built:${a.id}`] === BUILD), `las ${gen.AREAS.length} zonas listas en ${state.tick} ticks (${state.blockOps} operaciones de bloques, ${Date.now() - t0} ms)`);
 if (state.prebuilt) check(state.blockOps < 100, "con el mundo prebuilt no se coloca ningún bloque");
 check(commands.length === 6, `6 comandos registrados`);
 await advance(60);
@@ -79,21 +80,19 @@ check(state.entities.filter((e) => e.typeId === "natura:text").length === 5, "5 
 check(admin.inv.getItem(0)?.typeId === "minecraft:compass" && admin.inv.getItem(8)?.typeId === "minecraft:clock", "brújula y reloj de admin en el lobby");
 
 // ------------------------------------------------------------ parkour
-console.log("Parkour");
+console.log("Parkour (dentro del árbol)");
 const pk = gen.PARKOUR;
+check(Math.hypot(pk.startPad.x, pk.startPad.z) < 9 && pk.finish.y > 140, `empieza dentro del tronco y sube hasta Y ${pk.finish.y}`);
 at(admin, pk.startPad.x + 0.5, pk.startPad.z + 0.5);
 await advance(6);
-check(admin.titles.some((t) => t.includes("PARKOUR")) && admin.inv.getItem(4)?.typeId === "minecraft:recovery_compass", "pisar la plataforma azul empieza el parkour");
-at(admin, pk.checkpoints[1].x, pk.checkpoints[1].z, pk.checkpoints[1].y);
+check(admin.titles.some((t) => t.includes("PARKOUR")) && admin.inv.getItem(4) === undefined, "pisar el bloque azul empieza el parkour (sin objeto de punto de control)");
+at(admin, pk.finish.x - 4, pk.finish.z, pk.finish.y - 20);
 await advance(6);
-check(admin.titles.some((t) => t.includes("PUNTO DE CONTROL")), "punto de control");
-at(admin, pk.checkpoints[1].x + 3, pk.checkpoints[1].z, pk.checkpoints[1].y - 10);
-await advance(6);
-check(Math.abs(admin.location.y - pk.checkpoints[1].y) < 0.01, "al caer vuelve al punto de control");
+check(Math.abs(admin.location.y - (pk.finish.y - 20)) < 0.01, "sin puntos de control: al caer no te devuelve a ningún sitio");
 await advance(40);
 at(admin, pk.finish.x, pk.finish.z, pk.finish.y);
 await advance(6);
-check(admin.titles.some((t) => t.includes("PARKOUR COMPLETADO")) && log.some((m) => m.includes("Árbol del Mundo")), "llegar a la meta");
+check(admin.titles.some((t) => t.includes("PARKOUR COMPLETADO")) && log.some((m) => m.includes("Árbol del Mundo")), "llegar al bloque de oro");
 await toLobby(admin);
 
 // ------------------------------------------------------------ duel
@@ -108,18 +107,33 @@ await advance(30);
 const duelMap = gen.DUELS.findIndex((d) => Math.abs(a.location.x - d.cx) < 40 && Math.abs(a.location.z - d.cz) < 40);
 check(duelMap >= 0 && a.gm === "Adventure", `Ana está en un mapa de duelo (${gen.DUELS[duelMap]?.name})`);
 check(a.equip.Head?.typeId === "minecraft:diamond_helmet" && a.inv.getItem(0)?.ench.some((e) => e.type.id === "sharpness" && e.level === 5), "kit de diamante encantado");
+check(a.inv.getItem(3)?.amount === 16 && a.inv.getItem(5)?.typeId === "minecraft:ender_pearl" && a.inv.getItem(5).amount === 8, "16 manzanas doradas y 8 perlas en el duelo");
 check(songOf(a) === SONG(4) && songOf(b) === SONG(0), "cada jugador oye su propia canción");
 await advance(20 * 3);
 check(a.cams.length >= 2 && a.hud === "Hide" && a.titles.some((t) => t.includes(gen.DUELS[duelMap].name.toUpperCase())), "cinemática de inicio con el nombre del mapa");
 await advance(20 * 6);
 check(a.camClears > 0 && a.hud === "Reset", "la cinemática termina");
 check(!a.titles.some((t) => t.includes("¡A PELEAR!")), "aún no se pelea (aliste)");
+console.log("Espectador");
+const v = join("Vero");
+await advance(20);
+script = [pick("ESPECTAR"), pick("Ana vs Beto")];
+world.afterEvents.itemUse.fire({ source: v, itemStack: v.inv.getItem(0) });
+await advance(10);
+check(v.gm === "Spectator" && Math.abs(v.location.x - gen.DUELS[duelMap].cx) < 40 && Math.abs(v.location.z - gen.DUELS[duelMap].cz) < 40, "un jugador del lobby mira el duelo como espectador");
+const before = { ...v.location };
+v.isSneaking = true;
+await advance(10);
+v.isSneaking = false;
+await advance(5);
+check(v.location.z !== before.z || v.location.x !== before.x, "agacharse pasa al otro jugador");
 await advance(20 * 6);
 const counts = a.titles.filter((t) => /^§.§l[1-9] /.test(t + " ")).map((t) => t.match(/§l([1-9])/)[1]);
 check(a.titles.some((t) => t.includes("¡A PELEAR!")) && counts.join("") === "54321", `5 segundos de aliste tras la cinemática (${counts.join(",")})`);
 kill(b, a);
 await advance(80);
 check(Math.hypot(a.location.x, a.location.z) < 80 && Math.hypot(b.location.x, b.location.z) < 80, "los dos vuelven al lobby");
+check(Math.hypot(v.location.x, v.location.z) < 80 && v.gm === "Adventure", "el espectador vuelve al lobby cuando acaba el duelo");
 check(log.some((x) => x.includes("Ana") && x.includes("ganó") && x.includes(gen.DUELS[duelMap].name)), "mensaje de victoria con el mapa");
 
 // ------------------------------------------------------------ campal
@@ -130,6 +144,16 @@ await advance(10);
 at(b, ...pad("campal"));
 await advance(10);
 check(a.location.x > 250 && b.location.x > 250 && a.inv.getItem(8)?.typeId === "minecraft:recovery_compass", "entran al campal");
+check(a.inv.getItem(2)?.amount === 10 && a.inv.getItem(4)?.typeId === "minecraft:ender_pearl", "10 manzanas doradas y perlas en el campal");
+script = [pick("ESPECTAR"), pick("CAMPAL")];
+world.afterEvents.itemUse.fire({ source: v, itemStack: v.inv.getItem(0) });
+await advance(10);
+check(v.gm === "Spectator" && v.location.x > 250, "mirar el campal");
+v.isSneaking = true;
+await advance(45);
+v.isSneaking = false;
+await advance(5);
+check(v.gm === "Adventure" && Math.hypot(v.location.x, v.location.z) < 80, "mantener agachado 2 s vuelve al lobby");
 world.afterEvents.entityHurt.fire({ hurtEntity: b, damage: 4, damageSource: { damagingEntity: a } });
 kill(b, a);
 await advance(10);
@@ -166,6 +190,9 @@ check(hunters.every((p) => p.equip.Chest?.typeId === "minecraft:diamond_chestpla
 const web = prey.inv.getItem(2);
 check(web?.typeId === "minecraft:web" && web.amount === 24 && web.placeOn?.includes("minecraft:grass_block"), "24 telarañas que solo se ponen sobre el suelo");
 check(hunters.every((p) => p.inv.getItem(2)?.typeId === "minecraft:shears" && p.inv.getItem(2).destroy?.includes("minecraft:web")), "tijeras que cortan telarañas");
+check(prey.inv.getItem(7)?.amount === 16 && prey.inv.getItem(3)?.amount === 16, "cazado: 16 manzanas y 16 perlas con 3 cazadores");
+check(hunters.every((p) => p.inv.getItem(7)?.amount === 8 && p.inv.getItem(3)?.amount === 6), "cazadores: 8 manzanas y 6 perlas");
+check(["give @s splash_potion 6 22", "give @s splash_potion 2 16", "give @s splash_potion 3 17", "give @s splash_potion 2 34", "give @s splash_potion 2 25"].every((c) => state.commands.includes(`${prey.name}: ${c}`)), "pociones arrojadizas para el cazado (curación II, velocidad II, lentitud, debilidad y veneno)");
 const chests = [...state.blocks.values()].filter((v) => v.id === "minecraft:chest");
 check(chests.length === gen.HUNTS[mapIdx].chests().length && chests.every((v) => v.inv.items.some(Boolean)), `cofres con botín (${chests.length})`);
 const preyChoice = { Ana: 1, Beto: 2, Caro: 3, Dani: 5 }[prey.name];

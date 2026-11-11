@@ -12,7 +12,7 @@ export const AREAS = [
   LOBBY_AREA,
   ...DUELS.map((d) => ({ id: d.id, name: `Emparejamiento: ${d.name}`, ...box(d.cx, d.cz, DUEL.half, DUEL.thick), bottom: DUEL.y - 6, clearTop: DUEL.wallTop + 16, column: d.column })),
   CAMPAL_AREA,
-  ...HUNTS.map((m) => ({ id: m.id, name: `Caza: ${m.name}`, x0: m.x0 - 2, z0: m.z0 - 2, x1: m.x1 + 2, z1: m.z1 + 2, bottom: HUNT.floor, clearTop: HUNT.clearTop, column: m.column })),
+  ...HUNTS.map((m) => ({ id: m.id, name: `Caza: ${m.name}`, x0: m.x0 - HUNT.wallThick, z0: m.z0 - HUNT.wallThick, x1: m.x1 + HUNT.wallThick, z1: m.z1 + HUNT.wallThick, bottom: HUNT.floor, clearTop: HUNT.clearTop, column: m.column })),
 ];
 
 export const AREA = Object.fromEntries(AREAS.map((a) => [a.id, a]));

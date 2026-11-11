@@ -2,11 +2,11 @@
 // structures (towers, hideouts, igloos, tree houses, bridges) are there for
 // both sides, each with a chest the script fills when the hunt starts.
 import {
-  addTrees, decoration, fbm, gridTrees, groundColumn, hash, smooth, snowOver, stampIndex, topOf, treeHeight, vnoise,
+  addTrees, colossalWall, decoration, WALL_THEMES, fbm, gridTrees, groundColumn, hash, smooth, snowOver, stampIndex, topOf, treeHeight, vnoise,
 } from "./core.js";
 import { bridge, cabin, hideout, igloo, stoneTower, treehouse, watchtower } from "./structures.js";
 
-export const HUNT = { size: 365, floor: 60, wallTop: 96, clearTop: 150, barrierTop: 319 };
+export const HUNT = { size: 365, floor: 60, wallTop: 170, wallThick: 6, clearTop: 150, barrierTop: 319 };
 
 function frame(m) {
   m.x0 = m.cx - 182;
@@ -54,25 +54,23 @@ function sites(raw, water, wanted, rock) {
   return out;
 }
 
+// The border: a colossal wall 6 thick (an arcade facing the map, with towers)
+// and an invisible barrier above it up to the sky.
+const BORDER_THEMES = { forest: WALL_THEMES.forest, canyon: WALL_THEMES.ruins, snow: WALL_THEMES.frozen };
 function border(m, x, z, segs, theme) {
   const ox = x < m.x0 ? m.x0 - x : x > m.x1 ? x - m.x1 : 0;
   const oz = z < m.z0 ? m.z0 - z : z > m.z1 ? z - m.z1 : 0;
   const o = Math.max(ox, oz);
   if (o === 0) return 0;
-  if (o > 2) return 2;
+  if (o > HUNT.wallThick) return 2;
   const F = HUNT.floor;
   segs.push([F, F, "bedrock"]);
-  for (let y = F + 1; y <= HUNT.wallTop; y += 4) {
-    const r = hash(x * 3 + y, z * 5, 580);
-    let b = r < 0.5 ? "msbrick" : r < 0.6 ? "cbrick" : r < 0.7 ? "moss" : "sbrick";
-    if (theme === "snow" && y > HUNT.wallTop - 12 && r < 0.6) b = "snow";
-    if (theme === "canyon" && r < 0.3) b = "andesite";
-    segs.push([y, Math.min(HUNT.wallTop, y + 3), b]);
-  }
-  const crest = theme === "snow" ? "spruceL" : hash(x, z, 581) < 0.6 ? "oakL" : "azaleaL";
-  segs.push([HUNT.wallTop + 1, HUNT.wallTop + 1, o === 1 ? crest : "msbrick"]);
-  if (theme === "snow" && o === 1) segs.push([HUNT.wallTop + 2, HUNT.wallTop + 2, "snowL"]);
-  segs.push([HUNT.wallTop + (theme === "snow" && o === 1 ? 3 : 2), HUNT.barrierTop, "barrier"]);
+  const corner = ox > 0 && oz > 0;
+  const along = ox >= oz ? z - m.z0 : x - m.x0;
+  const tower = corner || ((along % 60) + 60) % 60 >= 27 && ((along % 60) + 60) % 60 <= 33;
+  colossalWall(segs, x, z, o, along, F + 1, m.edgeY, HUNT.wallTop, HUNT.wallThick, BORDER_THEMES[theme], tower);
+  const t = HUNT.wallTop + (tower ? 25 : 3);
+  segs.push([t, HUNT.barrierTop, "barrier"]);
   return 1;
 }
 
@@ -99,7 +97,7 @@ function surfaceOf(m, x, z) {
 }
 
 // ------------------------------------------------------------ 1. Bosque Antiguo
-const forest = frame({ id: "hunt0", name: "Bosque Antiguo", desc: "bosque con lagos, ruinas y una torre", cx: 0, cz: -480, seed: 500, water: 77 });
+const forest = frame({ id: "hunt0", name: "Bosque Antiguo", desc: "bosque con lagos, ruinas y una torre", cx: 0, cz: -480, seed: 500, water: 77, edgeY: 80 });
 {
   const m = forest;
   const raw = (lx, lz) => {
@@ -195,7 +193,7 @@ const forest = frame({ id: "hunt0", name: "Bosque Antiguo", desc: "bosque con la
 }
 
 // ------------------------------------------------------------ 2. Cañón del Río
-const canyon = frame({ id: "hunt1", name: "Cañón del Río", desc: "meseta cortada por un cañón con río y puentes", cx: -560, cz: 0, seed: 800, water: 71 });
+const canyon = frame({ id: "hunt1", name: "Cañón del Río", desc: "meseta cortada por un cañón con río y puentes", cx: -560, cz: 0, seed: 800, water: 71, edgeY: 92 });
 {
   const m = canyon;
   const zc = (lx) => 70 * Math.sin(lx / 85) + 25 * Math.sin(lx / 37 + 1);
@@ -297,7 +295,7 @@ const canyon = frame({ id: "hunt1", name: "Cañón del Río", desc: "meseta cort
 }
 
 // ------------------------------------------------------------ 3. Taiga Nevada
-const taiga = frame({ id: "hunt2", name: "Taiga Nevada", desc: "bosque nevado con montañas, lagos helados e iglús", cx: 560, cz: -480, seed: 900, water: 78 });
+const taiga = frame({ id: "hunt2", name: "Taiga Nevada", desc: "bosque nevado con montañas, lagos helados e iglús", cx: 560, cz: -480, seed: 900, water: 78, edgeY: 84 });
 {
   const m = taiga;
   const peaks = [{ x: -90, z: -70, h: 34, r: 85 }, { x: 100, z: 90, h: 26, r: 70 }];

@@ -44,7 +44,7 @@ RP = os.path.join(ROOT, "NaturaPvP_RP")
 DIST = os.path.join(ROOT, "dist")
 DOCS = os.path.join(ROOT, "docs")
 
-VERSION = [1, 2, 0]
+VERSION = [1, 3, 0]
 MIN_ENGINE = [1, 21, 90]  # custom commands in @minecraft/server 2.0.0
 SERVER_API = "2.0.0"
 UI_API = "2.0.0"
@@ -52,7 +52,7 @@ UUIDS = dict(bp="0b6f3c52-8e1d-4c7a-9f4e-2a6d1e7b5c31", bp_data="7d2e9a14-3b5f-4
              bp_script="e5a1c7d3-9f2b-4a6e-8d4c-1b7f3e9a2c65", rp="3c8f1e6a-2d4b-4f9e-b7a3-5e1c9d2f8b46",
              rp_res="9a4d2b7e-6c1f-4e3a-8b5d-7f2e1c9a4d83")
 
-BUILD_VERSION = "1.2.0"  # change it to rebuild the map in existing worlds
+BUILD_VERSION = "1.3.0"  # change it to rebuild the map in existing worlds
 SONGS_DIR = os.path.join(SRC, "canciones")
 AUDIO = (".ogg", ".mp3", ".wav", ".m4a", ".flac", ".opus")
 
@@ -514,7 +514,7 @@ def main():
         ic.save(os.path.join(pack, "pack_icon.png"))
     if sim and "--preview" in sys.argv:
         preview(sim).convert("RGB").save(os.path.join(DOCS, "natura_pvp_preview.png"))
-        iso_region("lobby", -76, -76, 75, 75, s=4, ymin=60).save(os.path.join(DOCS, "natura_pvp_lobby.png"))
+        iso_region("lobby", -90, -90, 89, 89, s=3, ymin=55).save(os.path.join(DOCS, "natura_pvp_lobby.png"))
         parts = [iso_region("hunt0", -40, -520, 30, -450, s=4, ymin=74), iso_region("hunt2", 520, -520, 600, -440, s=4, ymin=74)]
         both = Image.new("RGB", (sum(p.width for p in parts) + 20, max(p.height for p in parts)), (18, 26, 20))
         both.paste(parts[0], (0, (both.height - parts[0].height) // 2))

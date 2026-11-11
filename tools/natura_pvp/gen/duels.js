@@ -2,7 +2,7 @@
 // Every map is symmetric (the same cover on both halves) so no side is better.
 import { addTrees, decoration, FLOWERS, groundColumn, hash, pick, snowOver, vnoise, walledColumn, WALL_THEMES } from "./core.js";
 
-export const DUEL = { y: 80, half: 32, wallTop: 128, thick: 4 };
+export const DUEL = { y: 80, half: 32, wallTop: 150, thick: 6 };
 
 // the same point on the other half of the arena
 const mirror = (lx, lz) => [-1 - lx, -1 - lz];

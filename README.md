@@ -24,8 +24,9 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 
 ![El lobby: el Árbol del Mundo](docs/natura_pvp_lobby.png)
 
-Un **mapa PvP automatizado** ambientado en la naturaleza: un lobby colosal con parkour y tres modos con varios
-mapas. Todo lo demás del mundo está **completamente vacío**. El mapa **viene ya construido** dentro del mundo:
+Un **mapa PvP automatizado** ambientado en la naturaleza: un lobby colosal con parkour, tres modos con varios
+mapas y modo espectador. El lobby y todas las arenas están rodeados de **murallas colosales**, así que aunque
+tengas la distancia de renderizado al máximo no se ve nada de fuera. Todo lo demás del mundo está **completamente vacío**. El mapa **viene ya construido** dentro del mundo:
 se abre y se juega, sin esperar.
 
 **Cómo usarlo:** abre `dist/NaturaPvP.mcworld` (Minecraft Bedrock **1.21.100** o superior, sin experimentos). Se
@@ -47,28 +48,41 @@ No hace falta activar experimentos ni trucos.
 
 | Zona | Tamaño | Dónde |
 |---|---|---|
-| Lobby (Árbol del Mundo) | isla flotante de ~130 bloques; el árbol mide ~100 de alto | 0, 100, 0 |
-| Emparejamiento | **4 mapas** de **64x64** con **paredes colosales** de 48 bloques | z 320; x -160, 0, 160 y 320 |
-| Campal | **126x126**, muros de 38 bloques | 320, 80, 0 |
-| Caza | **3 mapas** de **365x365** con muro en el borde | (0, -480), (-560, 0) y (560, -480) |
+| Lobby (Árbol del Mundo) | isla flotante de ~130 bloques; el árbol mide ~100 de alto; muralla en anillo de 96 bloques | 0, 100, 0 |
+| Emparejamiento | **4 mapas** de **64x64** con murallas de **70 bloques** | z 320; x -160, 0, 160 y 320 |
+| Campal | **126x126**, murallas de **60 bloques** | 320, 80, 0 |
+| Caza | **3 mapas** de **365x365** con murallas de **~90 bloques** en el borde | (0, -480), (-560, 0) y (560, -480) |
+
+**Murallas colosales:** todas tienen 6 bloques de grosor y, por dentro, una **arcada de varios pisos como un
+coliseo**: arcos hondos entre pilares de troncos con luces, una cornisa en cada piso, hojas colgando de los arcos,
+almenas con faroles y una corona de hojas arriba, y **torres** más altas en las esquinas y a lo largo del muro.
+La del lobby es un anillo que flota en el vacío alrededor de la isla, con 8 torres y los cimientos colgando como un
+acantilado.
 
 **El clima está desactivado:** nunca llueve ni hay tormentas.
 
 ### Lobby: el Árbol del Mundo
-Una isla flotante enorme con el **Árbol del Mundo** en el centro: un tronco de casi 20 bloques de ancho y ~100 de
-alto, raíces gigantes por las que se puede caminar, ramas que salen a 30 bloques del tronco con copas enormes y
+Una isla flotante enorme con el **Árbol del Mundo** en el centro: un tronco de unos 22 bloques de ancho (más con
+la base) y ~100 de alto, raíces gigantes por las que se puede caminar, ramas que salen a 30 bloques del tronco con copas enormes y
 cortinas de hojas, un anillo de **pilares antiguos** de hasta 55 bloques y una plaza alrededor del tronco. Apareces
 en la plaza, mirando hacia arriba al árbol.
 
 - **Tres puertas de piedra de 40 bloques** de alto, una por modo, con su plataforma debajo: al pisarla entras
   (diamante = Emparejamiento al norte, redstone = Caza al oeste, esmeralda = Campal al este). Encima de cada una
   hay un texto con la cola y el **top 3**.
-- **Parkour:** la plataforma azul junto a la raíz del sureste. Subes por la raíz hasta el tronco y saltas en
-  espiral alrededor del árbol hasta un mirador bajo las ramas (36 saltos, 2 puntos de control). Tiene cronómetro,
-  y si caes vuelves al último punto de control (también con la *brújula de recuperación*). Los mejores tiempos
-  salen en un texto junto a la salida. Puedes estar en la cola de un modo mientras lo haces.
-- **Brújula** (*Menú de Natura PvP*): los tres modos (o salir de la cola), el parkour, la música y las
-  estadísticas y el ranking. En el lobby no se recibe daño ni se pasa hambre.
+- **Parkour dentro del árbol:** el tronco está hueco. Entras por la puerta que hay delante del spawn, pisas el
+  **bloque azul** y subes saltando en espiral por las plataformas del interior (iluminado con luces en la madera)
+  hasta el **bloque de oro**, a 46 bloques de altura (56 saltos). **No hay puntos de control:** si caes, vuelves a
+  empezar desde abajo. Tiene cronómetro y los mejores tiempos salen en un texto junto a la salida. Puedes estar en
+  la cola de un modo mientras lo haces.
+- **Brújula** (*Menú de Natura PvP*): los tres modos (o salir de la cola), **espectar**, el parkour, la música y
+  las estadísticas y el ranking. En el lobby no se recibe daño ni se pasa hambre.
+
+### Modo espectador
+Desde el menú, **Espectar** muestra las partidas en curso: cada duelo (quién contra quién y en qué mapa), la caza
+y el campal. Entras en modo espectador detrás de un jugador. **Agáchate** para pasar al siguiente jugador y
+**mantén agachado 2 segundos** (o usa `/natura:lobby`) para volver al lobby. Cuando la partida acaba vuelves solo
+al lobby. Los cazadores eliminados también miran la caza así.
 
 ### Emparejamiento (1 contra 1)
 - Cola automática: cuando hay 2 jugadores se les empareja en un mapa libre (hasta 4 duelos a la vez).
@@ -78,7 +92,7 @@ en la plaza, mirando hacia arriba al árbol.
 - **Cinemática de inicio:** la cámara recorre la arena con el nombre del mapa y presenta a los dos rivales.
 - Después, **5 segundos de aliste** con los jugadores quietos. Luego *¡A PELEAR!*
 - **Kit completo de diamante encantado**: armadura Protección IV, espada Filo V y Aspecto ígneo II, hacha Filo V,
-  arco Poder V con Infinidad y Fuego, escudo, 8 manzanas doradas y carne.
+  arco Poder V con Infinidad y Fuego, escudo, **16 manzanas doradas**, **8 perlas de ender** y carne.
 - Gana el que sobrevive y los dos vuelven al lobby. Si se acaban los 5 minutos (configurable) es empate.
 
 ### Caza (hasta 5 jugadores)
@@ -90,18 +104,21 @@ en la plaza, mirando hacia arriba al árbol.
 - **No se pueden romper bloques** (modo aventura). En cambio, cada mapa tiene **estructuras para los dos bandos**:
   torres de vigilancia, una torre de piedra, refugios, casas en los árboles, iglús y cabañas. Todas tienen
   **escaleras de mano para subir** y un **cofre con botín**, que se rellena al empezar cada caza (flechas, perlas,
-  manzanas doradas, telarañas, bolas de nieve, zanahorias doradas, escaleras de mano, andamios y, a veces, una
-  manzana de Notch o un tótem).
+  manzanas doradas, pociones de curación, telarañas, bolas de nieve, zanahorias doradas, escaleras de mano, andamios
+  y, a veces, una manzana de Notch o un tótem).
 - **Cinemática de inicio:** cada jugador ve su zona desde el aire con el nombre del mapa y luego si es el cazado
   o cazador.
 - Uno al azar es el **cazado**, con **kit de hierro encantado**; los demás son **cazadores** con **kit de diamante**.
 - **Cuantos más cazadores, mejor el kit de hierro**: con 2, 3 o 4 cazadores sube Protección, Filo, Poder,
-  Irrompibilidad y Caída de pluma, y da más manzanas doradas, telarañas y perlas. Con 3 añade Aspecto ígneo,
-  Infinidad y **velocidad**; con 4, Retroceso, Fuego, Golpe, una manzana de Notch y **vida extra**.
+  Irrompibilidad y Caída de pluma, y da más manzanas doradas (+3), perlas (+2), telarañas (+4) y pociones de
+  curación (+1) por cada cazador extra. Con 3 añade Aspecto ígneo, Infinidad y **velocidad**; con 4, Retroceso,
+  Fuego, Golpe, 2 manzanas de Notch y **vida extra**.
 - **Utilidades** (la mayoría para el cazado):
-  - **Cazado:** 24 telarañas, 4 perlas de ender, 16 bolas de nieve, 16 andamios, 16 escaleras de mano, ballesta con
-    Carga rápida, caña de pescar, tijeras, hacha y zanahorias doradas.
-  - **Cazadores:** tijeras, 2 perlas de ender, caña de pescar y 8 escaleras de mano.
+  - **Cazado:** **10 manzanas doradas**, **12 perlas de ender**, **pociones arrojadizas** (4 de curación II, 2 de
+    velocidad II, y para lanzar a los cazadores 3 de lentitud, 2 de debilidad y 2 de veneno), 24 telarañas,
+    16 bolas de nieve, 16 andamios, 16 escaleras de mano, ballesta con Carga rápida, caña de pescar, tijeras, hacha
+    y zanahorias doradas.
+  - **Cazadores:** **8 manzanas doradas**, **6 perlas de ender**, tijeras, caña de pescar y 8 escaleras de mano.
   - Las telarañas y los andamios solo se pueden poner sobre el suelo y la piedra; las escaleras de mano, en madera
     y piedra. Las tijeras y las espadas cortan telarañas. Todo lo que se pone se quita solo al acabar la caza.
 - El cazado tiene **20 s de ventaja** (después de la cinemática): los cazadores esperan ciegos y quietos. Cada
@@ -117,8 +134,8 @@ en la plaza, mirando hacia arriba al árbol.
 
 ### Campal
 Arena **siempre abierta** (un solo mapa, sin cinemática): entras cuando quieras desde la puerta o la brújula. Al
-morir reapareces dentro con el kit (lejos de los demás y con 3 s de protección). Cada baja da una manzana dorada y
-regeneración. La tabla de bajas sale a la derecha de la pantalla. Para salir usa la **brújula de recuperación**
+morir reapareces dentro con el kit (**10 manzanas doradas y 6 perlas**, lejos de los demás y con 3 s de
+protección). Cada baja da **2 manzanas doradas, una perla** y regeneración. La tabla de bajas sale a la derecha de la pantalla. Para salir usa la **brújula de recuperación**
 (*Volver al lobby*); no funciona si te han dado en los últimos 8 s.
 
 ### Música
@@ -174,10 +191,12 @@ recibe un **reloj** (*Panel de administración*) en el lobby y en el **modo libr
 Los ajustes, kits y estadísticas se guardan en el mundo.
 
 **Comandos:** `/natura:menu` (menú), `/natura:musica` (música y volumen), `/natura:lobby` (volver al lobby, salir
-de la cola o del parkour, o dejar de mirar la caza), `/natura:admin` (panel, con la etiqueta),
+de la cola o del parkour, o dejar de espectar), `/natura:admin` (panel, con la etiqueta),
 `/natura:hacer_admin` y `/natura:quitar_admin` (operadores).
 
 **Notas**
+- Las pociones de los kits se dan con `/give` (el tipo de poción no se puede elegir de otra forma). Si guardas un
+  kit desde tu inventario, las pociones mantienen su tipo cuando el juego lo informa; si no, se guardan sin tipo.
 - Reglas del mundo: inventario se conserva, reaparición inmediata, sin mobs, sin fuego que se propague y sin
   explosiones de TNT. Por defecto es de día (se cambia en el panel) y nunca llueve.
 - **Mundo prebuilt:** el `.mcworld` lleva los chunks del lobby y de todos los mapas ya escritos en su base de
@@ -187,7 +206,8 @@ de la cola o del parkour, o dejar de mirar la caza), `/natura:admin` (panel, con
 - Generador: `python3 tools/natura_pvp.py` (`--preview` actualiza las imágenes y `--music` vuelve a generar
   *Duelo Final*). Los mapas están en `tools/natura_pvp/gen/`; `world.py` escribe el mundo prebuilt.
   `node tools/natura_pvp/smoke/run.mjs` prueba los scripts con un juego simulado (con `--build`, también la
-  construcción por el script): mapas, cinemáticas, parkour, duelos, campal, caza, música, último en pie y panel.
+  construcción por el script): mapas, cinemáticas, parkour, espectador, duelos, campal, caza, kits, música,
+  último en pie y panel.
 
 ---
 

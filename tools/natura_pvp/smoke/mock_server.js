@@ -220,6 +220,7 @@ export class Player extends Entity {
     this.hp = 20;
     this.titles = [];
     this.cams = [];
+    this.isSneaking = false;
     this.camClears = 0;
     this.hud = "Reset";
     this.bars = [];
@@ -289,6 +290,9 @@ export class Player extends Entity {
     return { successCount: 1 };
   }
   setSpawnPoint() {}
+  getViewDirection() {
+    return { x: 0, y: 0, z: 1 };
+  }
   getDynamicProperty(k) {
     return (this.dyn ??= {})[k];
   }
