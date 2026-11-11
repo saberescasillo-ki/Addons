@@ -1,6 +1,6 @@
 // A tiny fake of @minecraft/server, enough to run the Natura PvP scripts in Node.
 export const log = [];
-export const state = { tick: 0, timers: [], jobs: [], players: [], entities: [], dyn: {}, commands: [], blockOps: 0, nextId: 1 };
+export const state = { tick: 0, timers: [], jobs: [], players: [], entities: [], dyn: {}, commands: [], blockOps: 0, nextId: 1, prebuilt: true, blocks: new Map() };
 
 class Signal {
   constructor() {
@@ -79,6 +79,8 @@ export const ObjectiveSortOrder = enumOf("Ascending", "Descending");
 export const CustomCommandStatus = enumOf("Success", "Failure");
 export const CommandPermissionLevel = enumOf("Any", "GameDirectors", "Admin");
 export const CustomCommandParamType = enumOf("PlayerSelector", "String", "Integer");
+export const HudVisibility = enumOf("Hide", "Reset");
+export const EasingType = enumOf("InOutSine", "Linear");
 
 export class BlockPermutation {
   static resolve(id, states) {
@@ -107,6 +109,18 @@ export class ItemStack {
   }
   getLore() {
     return [...this.lore];
+  }
+  setCanPlaceOn(l) {
+    this.placeOn = [...l];
+  }
+  getCanPlaceOn() {
+    return this.placeOn ?? [];
+  }
+  setCanDestroy(l) {
+    this.destroy = [...l];
+  }
+  getCanDestroy() {
+    return this.destroy ?? [];
   }
   getComponent(name) {
     if (name !== "minecraft:enchantable") return undefined;
@@ -148,11 +162,23 @@ class Block {
     this.dimension = dim;
     this.location = location;
   }
-  setPermutation() {
-    state.blockOps++;
+  get key() {
+    return `${this.location.x},${this.location.y},${this.location.z}`;
   }
-  setType() {
+  get typeId() {
+    return state.blocks.get(this.key)?.id ?? (state.prebuilt ? "minecraft:dark_oak_wood" : "minecraft:air");
+  }
+  setPermutation(p) {
     state.blockOps++;
+    if (p?.id === "minecraft:chest") state.blocks.set(this.key, { id: p.id, inv: new Container(27) });
+  }
+  setType(id) {
+    state.blockOps++;
+    state.blocks.set(this.key, { id });
+  }
+  getComponent(name) {
+    if (name === "minecraft:inventory") return { container: state.blocks.get(this.key)?.inv };
+    return undefined;
   }
 }
 
@@ -193,6 +219,9 @@ export class Player extends Entity {
     this.equip = {};
     this.hp = 20;
     this.titles = [];
+    this.cams = [];
+    this.camClears = 0;
+    this.hud = "Reset";
     this.bars = [];
     this.messages = [];
     this.sounds = [];
@@ -200,6 +229,17 @@ export class Player extends Entity {
     this.onScreenDisplay = {
       setTitle: (t, o) => self.titles.push(t + (o?.subtitle ? " / " + o.subtitle : "")),
       setActionBar: (t) => self.bars.push(t),
+      setHudVisibility: (v) => (self.hud = v),
+    };
+    this.camera = {
+      setCamera: (preset, o) => {
+        if (preset !== "minecraft:free" || !o?.location || !o?.facingLocation) throw new Error("camera");
+        self.cams.push(o);
+      },
+      fade: (o) => {
+        if (!o?.fadeTime) throw new Error("fade");
+      },
+      clear: () => self.camClears++,
     };
   }
   getComponent(name) {

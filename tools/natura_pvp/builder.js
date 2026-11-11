@@ -2,7 +2,7 @@
 // Each area is built in sections of 10x10 chunks: a temporary ticking area
 // loads the section, a job places its columns, and the ticking area is removed.
 import * as mc from "@minecraft/server";
-import { AREA, PALETTE } from "./gen.js";
+import { AREA, PALETTE } from "./gen/index.js";
 
 const { system, world } = mc;
 const SECTION = 160; // blocks (10 chunks): the biggest ticking area allowed
@@ -208,4 +208,30 @@ export function buildArea(id, clear = false) {
 // Rebuilds only some columns ("x,z" keys) of an area.
 export function rebuildColumns(id, keys, label) {
   return enqueue(id, { clear: true, only: keys, label });
+}
+
+// Runs fn(dim) with the area [x0..x1] x [z0..z1] loaded (one job at a time, like the builds).
+export function withArea(x0, z0, x1, z1, fn) {
+  const job = queue.then(async () => {
+    const dim = overworld();
+    const load = await loadSection(dim, x0, z0, x1, z1);
+    if (!load.ok) return false;
+    try {
+      await fn(dim);
+    } finally {
+      if (load.area) dropSection(dim);
+    }
+    return true;
+  });
+  queue = job.catch(() => false);
+  return job;
+}
+
+// The id of the block at (x, y, z), loading it if needed (undefined if it cannot).
+export async function probe(x, y, z) {
+  let id;
+  await withArea(x - 2, z - 2, x + 2, z + 2, (dim) => {
+    id = dim.getBlock({ x, y, z })?.typeId;
+  });
+  return id;
 }

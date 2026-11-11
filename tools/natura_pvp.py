@@ -13,8 +13,9 @@
 - An admin panel (tag "admin") to change modes, times, kits, world and more.
 - `dist/NaturaPvP.mcaddon` with the same packs, for an existing world.
 
-The world layout and terrain are in tools/natura_pvp/gen.js (pure JS, also run
-with Node for the preview); the rest of the scripts are in tools/natura_pvp/.
+The world is prebuilt: tools/natura_pvp/gen/ describes every area (pure JS, the
+same code the script uses), export.mjs dumps it and world.py writes the chunks
+into the world database. The rest of the scripts are in tools/natura_pvp/.
 
     python3 tools/natura_pvp.py            # packs, .mcworld and .mcaddon
     python3 tools/natura_pvp.py --preview  # also docs/natura_pvp_preview.png (needs node)
@@ -43,7 +44,7 @@ RP = os.path.join(ROOT, "NaturaPvP_RP")
 DIST = os.path.join(ROOT, "dist")
 DOCS = os.path.join(ROOT, "docs")
 
-VERSION = [1, 1, 1]
+VERSION = [1, 2, 0]
 MIN_ENGINE = [1, 21, 90]  # custom commands in @minecraft/server 2.0.0
 SERVER_API = "2.0.0"
 UI_API = "2.0.0"
@@ -51,7 +52,7 @@ UUIDS = dict(bp="0b6f3c52-8e1d-4c7a-9f4e-2a6d1e7b5c31", bp_data="7d2e9a14-3b5f-4
              bp_script="e5a1c7d3-9f2b-4a6e-8d4c-1b7f3e9a2c65", rp="3c8f1e6a-2d4b-4f9e-b7a3-5e1c9d2f8b46",
              rp_res="9a4d2b7e-6c1f-4e3a-8b5d-7f2e1c9a4d83")
 
-BUILD_VERSION = "1.1.0"  # change it to rebuild the map in existing worlds
+BUILD_VERSION = "1.2.0"  # change it to rebuild the map in existing worlds
 SONGS_DIR = os.path.join(SRC, "canciones")
 AUDIO = (".ogg", ".mp3", ".wav", ".m4a", ".flac", ".opus")
 
@@ -223,8 +224,9 @@ def scripts(tracks):
     with open(os.path.join(SRC, "main.js"), encoding="utf-8") as f:
         main = f.read().replace("__CONFIG__", json.dumps(cfg))
     write(os.path.join(BP, "scripts/main.js"), main)
-    for name in ("gen.js", "builder.js", "kits.js"):
+    for name in ("builder.js", "kits.js"):
         shutil.copy(os.path.join(SRC, name), os.path.join(BP, "scripts", name))
+    shutil.copytree(os.path.join(SRC, "gen"), os.path.join(BP, "scripts", "gen"))
 
 
 # ------------------------------------------------------------ level.dat (little-endian NBT)
@@ -273,7 +275,7 @@ VOID_LAYERS = json.dumps({"biome_id": 1, "block_layers": [{"block_name": "minecr
 
 
 def level_dat(packs_required=False):
-    game = [1, 21, 90, 0, 0]
+    game = [1, 21, 100, 0, 0]  # the blocks of the prebuilt chunks are from 1.21.100
     rules = dict(
         commandblockoutput=b(0), commandblocksenabled=b(1), dodaylightcycle=b(0), doentitydrops=b(1),
         dofiretick=b(0), doimmediaterespawn=b(1), doinsomnia=b(0), domobloot=b(1), domobspawning=b(0),
@@ -288,12 +290,12 @@ def level_dat(packs_required=False):
     root = dict(
         BiomeOverride=s(""), CenterMapsToOrigin=b(0), ConfirmedPlatformLockedContent=b(0), Difficulty=i(2),
         FlatWorldLayers=s(VOID_LAYERS), ForceGameType=b(0), GameType=i(2), Generator=i(2),
-        InventoryVersion=s("1.21.90"), LANBroadcast=b(1), LANBroadcastIntent=b(1), LastPlayed=l(int(time.time())),
+        InventoryVersion=s("1.21.100"), LANBroadcast=b(1), LANBroadcastIntent=b(1), LastPlayed=l(int(time.time())),
         LevelName=s(NAME), LimitedWorldDepth=i(16), LimitedWorldOriginX=i(0), LimitedWorldOriginY=i(32767),
         LimitedWorldOriginZ=i(0), LimitedWorldWidth=i(16), MinimumCompatibleClientVersion=ilist(game),
-        MultiplayerGame=b(1), MultiplayerGameIntent=b(1), NetherScale=i(8), NetworkVersion=i(818), Platform=i(2),
+        MultiplayerGame=b(1), MultiplayerGameIntent=b(1), NetherScale=i(8), NetworkVersion=i(827), Platform=i(2),
         PlatformBroadcastIntent=i(3), RandomSeed=l(73492026), SpawnV1Villagers=b(0), SpawnX=i(0), SpawnY=i(101),
-        SpawnZ=i(5), StorageVersion=i(10), Time=l(6000), WorldVersion=i(1), XBLBroadcastIntent=i(3),
+        SpawnZ=i(21), StorageVersion=i(10), Time=l(6000), WorldVersion=i(1), XBLBroadcastIntent=i(3),
         baseGameVersion=s("*"), bonusChestEnabled=b(0), bonusChestSpawned=b(0), commandsEnabled=b(1),
         currentTick=l(0), daylightCycle=i(0), editorWorldType=i(0), eduOffer=i(0), educationFeaturesEnabled=b(0),
         experiments=c(dict(experiments_ever_used=b(0), saved_with_toggled_experiments=b(0))),
@@ -365,6 +367,13 @@ COLORS = {
     "vineW": "#3d7a25", "vineE": "#3d7a25", "dark": "#3e2a17", "darkL": "#2c5a1a", "cherry": "#4a2a2a",
     "cherryL": "#f2a7c8",
 }
+COLORS.update({
+    "snow": "#f2f6f8", "snowL": "#eef3f6", "ice": "#9cc4f2", "pice": "#8db3e6", "bice": "#74a8f0", "petals": "#f4a6c9",
+    "tuff": "#6d6e66", "calcite": "#dfe0dc", "planks": "#73553a", "oplanks": "#a4834f", "slab": "#73553a",
+    "sfence": "#6b4f35", "hay": "#c9a92e", "slime": "#76c35d", "gold": "#f2d23a", "glow": "#f0c870", "sealantern": "#c8e0dc",
+    "mstwall": "#6f7a5d", "ladderN": "#9a7a4a", "ladderS": "#9a7a4a", "ladderW": "#9a7a4a", "ladderE": "#9a7a4a",
+    "lfern": "#4f8f36", "dark_wood": "#4a3a26", "oak_wood": "#6b5130", "spruce_wood": "#4b3620",
+})
 for _wood in ("oak", "birch", "spruce", "dark", "cherry"):
     for _ax in ("x", "z"):
         COLORS[f"{_wood}_{_ax}"] = COLORS[_wood]
@@ -412,25 +421,25 @@ def font(size):
 
 
 def preview(sim):
-    tiles = [("lobby", "Lobby", 4), ("duel0", "Emparejamiento 64x64", 3.2), ("campal", "Campal 126x126", 1.75),
-             ("hunt", "Caza 365x365", 1.2)]
-    imgs = [(label, render_area(sim[k], sc)) for k, label, sc in tiles]
-    pad, head = 24, 44
-    width = sum(max(im.width, 210) for _, im in imgs[:3]) + pad * 4
-    left_h = max(im.height for _, im in imgs[:3]) + head
-    hunt = imgs[3][1]
-    W = max(width, hunt.width + pad * 2)
-    H = pad + left_h + pad + head + hunt.height + pad
+    rows = [
+        [("lobby", "Lobby (Árbol del Mundo)", 2), ("campal", "Campal 126x126", 1.6)],
+        [(f"duel{i}", n, 2.4) for i, n in enumerate(["Claro del Bosque", "Ruinas Musgosas", "Cerezal", "Lago Helado"])],
+        [(f"hunt{i}", n, 0.9) for i, n in enumerate(["Caza: Bosque Antiguo", "Caza: Cañón del Río", "Caza: Taiga Nevada"])],
+    ]
+    pad, head = 20, 34
+    rendered = [[(label, render_area(sim[k], sc)) for k, label, sc in row] for row in rows]
+    W = max(sum(max(im.width, 160) + pad for _, im in row) + pad for row in rendered)
+    H = pad + sum(max(im.height for _, im in row) + head + pad for row in rendered)
     out = Image.new("RGBA", (W, H), (18, 26, 20, 255))
     d = ImageDraw.Draw(out)
-    x = pad
-    for label, im in imgs[:3]:
-        d.text((x, pad), label, fill=(235, 240, 225), font=font(18))
-        out.alpha_composite(im, (x, pad + head))
-        x += max(im.width, int(d.textlength(label, font=font(18)))) + pad
-    y = pad + left_h + pad
-    d.text(((W - hunt.width) // 2, y), imgs[3][0], fill=(235, 240, 225), font=font(22))
-    out.alpha_composite(hunt, ((W - hunt.width) // 2, y + head))
+    y = pad
+    for row in rendered:
+        x = pad
+        for label, im in row:
+            d.text((x, y), label, fill=(235, 240, 225), font=font(17))
+            out.alpha_composite(im, (x, y + head))
+            x += max(im.width, 160) + pad
+        y += max(im.height for _, im in row) + head + pad
     return out
 
 
@@ -446,7 +455,10 @@ def iso_region(area, x0, z0, x1, z1, s=4, ymin=70):
         col = {}
         for y0, y1, k in segs:
             for y in range(max(y0, ymin), y1 + 1):
-                col[y] = k
+                if k == "air":
+                    col.pop(y, None)
+                else:
+                    col[y] = k
         blocks += [(x - x0, y - ymin, z - z0, k) for y, k in col.items()]
     W, D = x1 - x0 + 1, z1 - z0 + 1
     top = max(b[1] for b in blocks)
@@ -502,15 +514,25 @@ def main():
         ic.save(os.path.join(pack, "pack_icon.png"))
     if sim and "--preview" in sys.argv:
         preview(sim).convert("RGB").save(os.path.join(DOCS, "natura_pvp_preview.png"))
-        lobby = iso_region("lobby", -30, -30, 29, 29, s=5, ymin=86)
-        forest = iso_region("hunt", -62, -540, -8, -486, s=5, ymin=72)
-        both = Image.new("RGB", (lobby.width + forest.width + 20, max(lobby.height, forest.height)), (18, 26, 20))
-        both.paste(lobby, (0, (both.height - lobby.height) // 2))
-        both.paste(forest, (lobby.width + 20, (both.height - forest.height) // 2))
-        both.save(os.path.join(DOCS, "natura_pvp_arboles.png"))
+        iso_region("lobby", -76, -76, 75, 75, s=4, ymin=60).save(os.path.join(DOCS, "natura_pvp_lobby.png"))
+        parts = [iso_region("hunt0", -40, -520, 30, -450, s=4, ymin=74), iso_region("hunt2", 520, -520, 600, -440, s=4, ymin=74)]
+        both = Image.new("RGB", (sum(p.width for p in parts) + 20, max(p.height for p in parts)), (18, 26, 20))
+        both.paste(parts[0], (0, (both.height - parts[0].height) // 2))
+        both.paste(parts[1], (parts[0].width + 20, (both.height - parts[1].height) // 2))
+        both.save(os.path.join(DOCS, "natura_pvp_caza.png"))
 
-    # the world: void, with the packs inside
+    # the world: void, with the whole map already built in its database
     os.makedirs(DIST, exist_ok=True)
+    import world as world_writer
+    tmp = tempfile.mkdtemp(prefix="natura_world_")
+    try:
+        subprocess.run(["node", os.path.join(SRC, "export.mjs"), tmp], check=True, cwd=SRC)
+        db = os.path.join(tmp, "db")
+        info = world_writer.build(tmp, db)
+        print("Mundo prebuilt:", info)
+        db_files = {name: open(os.path.join(db, name), "rb").read() for name in os.listdir(db)}
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
     jpg = io.BytesIO()
     ic.convert("RGB").save(jpg, "JPEG", quality=90)
 
@@ -523,8 +545,8 @@ def main():
             z.writestr(folder + "world_icon.jpeg", jpg.getvalue())
             z.writestr(folder + "world_behavior_packs.json", json.dumps([{"pack_id": UUIDS["bp"], "version": VERSION}], indent=2))
             z.writestr(folder + "world_resource_packs.json", json.dumps([{"pack_id": UUIDS["rp"], "version": VERSION}], indent=2))
-            if folder:
-                z.writestr(zipfile.ZipInfo(folder + "db/"), "")  # the server creates the database here
+            for name, data in db_files.items():
+                z.writestr(folder + "db/" + name, data)
             zip_dir(z, BP, folder + "behavior_packs/NaturaPvP_BP")
             zip_dir(z, RP, folder + "resource_packs/NaturaPvP_RP")
 

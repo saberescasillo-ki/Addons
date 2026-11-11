@@ -49,19 +49,15 @@ export const DEFAULT_KITS = {
       { slot: "legs", id: "minecraft:diamond_leggings" },
       { slot: "feet", id: "minecraft:diamond_boots" },
       { slot: "offhand", id: "minecraft:shield" },
-      { slot: 0, id: "minecraft:diamond_sword" },
+      { slot: 0, id: "minecraft:diamond_sword", destroy: "webs" },
       { slot: 1, id: "minecraft:bow" },
-      { slot: 2, id: "minecraft:diamond_pickaxe" },
-      { slot: 3, id: "minecraft:diamond_axe" },
-      { slot: 4, id: "minecraft:shears" },
-      { slot: 5, id: "minecraft:water_bucket" },
-      { slot: 6, id: "minecraft:ender_pearl", count: 2 },
+      { slot: 2, id: "minecraft:shears", destroy: "webs" },
+      { slot: 3, id: "minecraft:ender_pearl", count: 2 },
+      { slot: 4, id: "minecraft:fishing_rod" },
+      { slot: 5, id: "minecraft:ladder", count: 8, placeOn: "wood" },
       { slot: 7, id: "minecraft:golden_apple", count: 3 },
-      { slot: 8, id: "minecraft:oak_planks", count: 64 },
+      { slot: 8, id: "minecraft:cooked_beef", count: 32 },
       { slot: 9, id: "minecraft:arrow", count: 24 },
-      { slot: 10, id: "minecraft:cooked_beef", count: 32 },
-      { slot: 11, id: "minecraft:ladder", count: 8 },
-      { slot: 12, id: "minecraft:diamond_shovel" },
     ],
   },
   hunted: {
@@ -73,33 +69,47 @@ export const DEFAULT_KITS = {
       { slot: "legs", id: "minecraft:iron_leggings", ench: { protection: 1 } },
       { slot: "feet", id: "minecraft:iron_boots", ench: { protection: 1, feather_falling: 1 } },
       { slot: "offhand", id: "minecraft:shield" },
-      { slot: 0, id: "minecraft:iron_sword", ench: { sharpness: 1 } },
+      { slot: 0, id: "minecraft:iron_sword", ench: { sharpness: 1 }, destroy: "webs" },
       { slot: 1, id: "minecraft:bow", ench: { power: 1 } },
-      { slot: 2, id: "minecraft:iron_pickaxe", ench: { efficiency: 2 } },
-      { slot: 3, id: "minecraft:iron_axe", ench: { efficiency: 1 } },
-      { slot: 4, id: "minecraft:web|minecraft:cobweb", count: 16 },
-      { slot: 5, id: "minecraft:water_bucket" },
-      { slot: 6, id: "minecraft:ender_pearl", count: 4 },
+      { slot: 2, id: "minecraft:web|minecraft:cobweb", count: 16, placeOn: "ground" },
+      { slot: 3, id: "minecraft:ender_pearl", count: 4 },
+      { slot: 4, id: "minecraft:snowball", count: 16 },
+      { slot: 5, id: "minecraft:scaffolding", count: 16, placeOn: "ground" },
+      { slot: 6, id: "minecraft:ladder", count: 16, placeOn: "wood" },
       { slot: 7, id: "minecraft:golden_apple", count: 3 },
-      { slot: 8, id: "minecraft:oak_planks", count: 64 },
+      { slot: 8, id: "minecraft:cooked_beef", count: 32 },
       { slot: 9, id: "minecraft:arrow", count: 32 },
-      { slot: 10, id: "minecraft:cobblestone", count: 64 },
-      { slot: 11, id: "minecraft:lava_bucket" },
-      { slot: 12, id: "minecraft:cooked_beef", count: 32 },
-      { slot: 13, id: "minecraft:iron_shovel", ench: { efficiency: 2 } },
-      { slot: 14, id: "minecraft:shears" },
-      { slot: 15, id: "minecraft:fishing_rod" },
-      { slot: 16, id: "minecraft:ladder", count: 16 },
-      { slot: 17, id: "minecraft:scaffolding", count: 16 },
-      { slot: 18, id: "minecraft:snowball", count: 16 },
-      { slot: 19, id: "minecraft:crossbow", ench: { quick_charge: 1 } },
-      { slot: 20, id: "minecraft:water_bucket" },
-      { slot: 21, id: "minecraft:web|minecraft:cobweb", count: 8 },
+      { slot: 10, id: "minecraft:crossbow", ench: { quick_charge: 1 } },
+      { slot: 11, id: "minecraft:fishing_rod" },
+      { slot: 12, id: "minecraft:shears", destroy: "webs" },
+      { slot: 13, id: "minecraft:iron_axe", ench: { sharpness: 1 } },
+      { slot: 14, id: "minecraft:web|minecraft:cobweb", count: 8, placeOn: "ground" },
+      { slot: 15, id: "minecraft:golden_carrot", count: 8 },
     ],
   },
 };
 
 export const KIT_IDS = Object.keys(DEFAULT_KITS);
+
+// ------------------------------------------------------------ adventure mode
+// In the hunt nobody can break the map: these items can only be placed on
+// (or break) the blocks of these lists.
+const GROUND = [
+  "grass_block", "dirt", "coarse_dirt", "podzol", "moss_block", "stone", "andesite", "tuff", "calcite", "cobblestone",
+  "mossy_cobblestone", "stone_bricks", "mossy_stone_bricks", "cracked_stone_bricks", "chiseled_stone_bricks", "sand",
+  "gravel", "clay", "snow", "ice", "packed_ice", "spruce_planks", "oak_planks", "grass_path", "polished_andesite",
+];
+const WOOD = [
+  "oak_log", "spruce_log", "birch_log", "dark_oak_log", "cherry_log", "oak_wood", "dark_oak_wood", "spruce_planks",
+  "oak_planks", "stone_bricks", "mossy_stone_bricks", "cracked_stone_bricks", "mossy_cobblestone", "cobblestone",
+  "stone", "andesite", "snow",
+];
+export const BLOCK_LISTS = {
+  ground: GROUND.map((b) => `minecraft:${b}`),
+  wood: WOOD.map((b) => `minecraft:${b}`),
+  webs: ["minecraft:web"],
+};
+export const PLACEABLE = new Set(["minecraft:web", "minecraft:ladder", "minecraft:scaffolding"]);
 
 // ------------------------------------------------------------ stored kits
 const kitKey = (id) => `natura:kit:${id}`;
@@ -128,7 +138,7 @@ function clampLevel(type, level) {
   return Math.max(1, Math.min(max, Math.round(level)));
 }
 
-function makeItem(spec) {
+export function makeItem(spec) {
   let item;
   for (const id of spec.id.split("|")) {
     try {
@@ -138,6 +148,17 @@ function makeItem(spec) {
   }
   if (!item) return undefined;
   if (spec.name) item.nameTag = spec.name;
+  const list = (v) => (Array.isArray(v) ? v : BLOCK_LISTS[v] ?? []);
+  if (spec.placeOn) {
+    try {
+      item.setCanPlaceOn(list(spec.placeOn));
+    } catch {}
+  }
+  if (spec.destroy) {
+    try {
+      item.setCanDestroy(list(spec.destroy));
+    } catch {}
+  }
   if (spec.lore?.length) {
     try {
       item.setLore(spec.lore);
@@ -187,7 +208,7 @@ export function scaledHuntedKit(hunters) {
     const count = per ? Math.min(64, (s.count ?? 1) + bonus * per) : s.count;
     return { ...s, ench, count };
   });
-  if (bonus >= 3) items.push({ slot: 22, id: "minecraft:enchanted_golden_apple", count: 1 });
+  if (bonus >= 3) items.push({ slot: 16, id: "minecraft:enchanted_golden_apple", count: 1 });
   // and some effects for the whole hunt
   const effects = [];
   if (bonus >= 2) effects.push({ id: "speed", amp: 0 });
@@ -239,6 +260,12 @@ function readItem(item, slot) {
   try {
     const lore = item.getLore();
     if (lore?.length) spec.lore = lore;
+  } catch {}
+  try {
+    const on = item.getCanPlaceOn();
+    if (on?.length) spec.placeOn = on;
+    const de = item.getCanDestroy();
+    if (de?.length) spec.destroy = de;
   } catch {}
   try {
     const list = item.getComponent("minecraft:enchantable")?.getEnchantments() ?? [];

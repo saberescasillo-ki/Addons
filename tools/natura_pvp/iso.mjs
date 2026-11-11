@@ -1,5 +1,5 @@
 // Dumps every segment of a region (for tools/natura_pvp.py --preview: the 3D views).
-import { AREA } from "./gen.js";
+import { AREA } from "./gen/index.js";
 import { writeFileSync } from "node:fs";
 const [, , id, x0, z0, x1, z1, out] = process.argv;
 const a = AREA[id];

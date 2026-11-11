@@ -1,6 +1,6 @@
 // Runs gen.js in Node: checks every column and writes a top view of each area
 // (JSON with the top block of every column) for tools/natura_pvp.py --preview.
-import { AREAS, PALETTE } from "./gen.js";
+import { AREAS, PALETTE } from "./gen/index.js";
 import { writeFileSync } from "node:fs";
 
 const out = {};
@@ -18,7 +18,8 @@ for (const a of AREAS) {
         ops++;
         if (!(k in PALETTE)) throw new Error(`${a.id}: bloque ${k}`);
         if (!(y0 <= y1) || !Number.isInteger(y0) || !Number.isInteger(y1)) throw new Error(`${a.id}: ${x},${z} ${y0}..${y1} ${k}`);
-        if (k !== "barrier" && y1 >= by) { by = y1; best = k; }
+        if (k === "air" && by >= y0 && by <= y1) { by = y0 - 1; best = null; }
+        else if (k !== "barrier" && k !== "air" && y1 >= by) { by = y1; best = k; }
       }
       top[(z - a.z0) * w + (x - a.x0)] = best;
       ys[(z - a.z0) * w + (x - a.x0)] = by;

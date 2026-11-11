@@ -7,7 +7,7 @@
 | **Ruleta de Colores** – ruleta en el HUD con comandos de administrador | [`dist/Roulette.mcaddon`](dist/Roulette.mcaddon) | `tools/roulette.py` |
 | **Objetos de Ayuda** – 4 objetos especiales que ayudan al jugador | [`dist/HelperItems.mcaddon`](dist/HelperItems.mcaddon) | `tools/helper_items.py` |
 | **The LITIUS Blind** – nueva dimensión de islas flotantes | [`dist/LitiusBlind.mcaddon`](dist/LitiusBlind.mcaddon) | `tools/litius_blind.py` |
-| **Natura PvP** – mapa PvP automatizado (Emparejamiento, Caza y Campal) | [`dist/NaturaPvP.mcworld`](dist/NaturaPvP.mcworld) (mundo) · [`dist/NaturaPvP_Aternos.zip`](dist/NaturaPvP_Aternos.zip) (servidor) · [`dist/NaturaPvP.mcaddon`](dist/NaturaPvP.mcaddon) | `tools/natura_pvp.py` |
+| **Natura PvP** – mapa PvP automatizado (Emparejamiento, Caza, Campal y parkour) | [`dist/NaturaPvP.mcworld`](dist/NaturaPvP.mcworld) (mundo) · [`dist/NaturaPvP_Aternos.zip`](dist/NaturaPvP_Aternos.zip) (servidor) · [`dist/NaturaPvP.mcaddon`](dist/NaturaPvP.mcaddon) | `tools/natura_pvp.py` |
 
 Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo. No hace falta activar experimentos
 (salvo en The LITIUS Blind, ver abajo).
@@ -16,106 +16,110 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 - Medieval Mobs requiere **1.21.0** o superior.
 - Ruleta de Colores y Objetos de Ayuda requieren **1.21.90** o superior.
 - The LITIUS Blind requiere **26.20** o superior y el experimento **Beta APIs**.
-- Natura PvP requiere **1.21.90** o superior (sin experimentos). Es un **mundo**: abre el `.mcworld`.
+- Natura PvP requiere **1.21.100** o superior (sin experimentos). Es un **mundo**: abre el `.mcworld`.
 
 ---
 
 # Natura PvP
 
-![Vista desde arriba del lobby y las tres arenas](docs/natura_pvp_preview.png)
+![El lobby: el Árbol del Mundo](docs/natura_pvp_lobby.png)
 
-Un **mapa PvP automatizado** ambientado en la naturaleza, con lobby y tres modos. Todo lo demás del mundo está
-**completamente vacío**.
+Un **mapa PvP automatizado** ambientado en la naturaleza: un lobby colosal con parkour y tres modos con varios
+mapas. Todo lo demás del mundo está **completamente vacío**. El mapa **viene ya construido** dentro del mundo:
+se abre y se juega, sin esperar.
 
-**Cómo usarlo:** abre `dist/NaturaPvP.mcworld`. Se importa como un mundo nuevo con los packs ya activados. La
-**primera vez** que se abre, el script construye el mapa: el lobby en unos segundos y después las arenas (la caza,
-de 365x365, tarda un par de minutos). El progreso sale en la barra de acción y cada zona avisa en el chat cuando
-está lista. Hay que dejar el mundo abierto hasta que termine.
+**Cómo usarlo:** abre `dist/NaturaPvP.mcworld` (Minecraft Bedrock **1.21.100** o superior, sin experimentos). Se
+importa como un mundo nuevo con los packs ya activados.
 
 ### En un servidor (Aternos)
 Usa `dist/NaturaPvP_Aternos.zip`: es el mismo mundo dentro de una carpeta `NaturaPvP/`, con los packs ya puestos y
 el pack de recursos **obligatorio** al entrar (así todos descargan las canciones; son unos 14 MB la primera vez).
 
-1. Crea un servidor de **Bedrock** en Aternos con la versión más reciente (1.21.90 o superior).
+1. Crea un servidor de **Bedrock** en Aternos con la versión más reciente.
 2. En **Mundos**, pulsa **Subir** y elige `NaturaPvP_Aternos.zip`. Cuando termine, selecciona el mundo *NaturaPvP*.
 3. En **Jugadores → Operadores**, añade tu nombre de Xbox.
-4. Inicia el servidor y entra. La primera vez **quédate conectado** hasta que el chat diga que la *Caza* está lista
-   (unos minutos): Aternos apaga el servidor cuando no hay nadie, y la construcción sigue la próxima vez que se encienda.
+4. Inicia el servidor y entra: el mapa ya está construido.
 5. Hazte admin con `/natura:hacer_admin TuNombre` (o `/tag TuNombre add admin`).
 
-No hace falta activar experimentos ni trucos. Si el mundo ya estaba subido antes de una actualización, súbelo de
-nuevo: el mapa se reconstruye solo.
+No hace falta activar experimentos ni trucos.
+
+![Los mapas vistos desde arriba](docs/natura_pvp_preview.png)
 
 | Zona | Tamaño | Dónde |
 |---|---|---|
-| Lobby | isla flotante (~55 bloques) | 0, 100, 0 |
-| Emparejamiento | 2 arenas de **64x64** con **paredes colosales** de 48 bloques | 0, 80, 320 y 160, 80, 320 |
+| Lobby (Árbol del Mundo) | isla flotante de ~130 bloques; el árbol mide ~100 de alto | 0, 100, 0 |
+| Emparejamiento | **4 mapas** de **64x64** con **paredes colosales** de 48 bloques | z 320; x -160, 0, 160 y 320 |
 | Campal | **126x126**, muros de 38 bloques | 320, 80, 0 |
-| Caza | **365x365**, bosque abierto con muro en el borde | 0, 80, -480 |
-
-![Los árboles del lobby y de un bosque de la caza](docs/natura_pvp_arboles.png)
-
-**Árboles:** robles grandes con ramas y raíces, robles normales con copas irregulares, abedules (algunos muy
-altos), abetos por capas, abetos gigantes de 2x2, robles oscuros de 2x2 con copa ancha, cerezos con dos ramas,
-azaleas en flor, arbustos y troncos caídos con musgo. Las hojas no se caen.
+| Caza | **3 mapas** de **365x365** con muro en el borde | (0, -480), (-560, 0) y (560, -480) |
 
 **El clima está desactivado:** nunca llueve ni hay tormentas.
 
-### Lobby
-Una isla con una plaza, una fuente, farolas, árboles, flores y una barrera invisible en el borde para no caerse.
-Tiene tres **plataformas de colores**: al pisarlas entras al modo (diamante = Emparejamiento,
-redstone = Caza, esmeralda = Campal). También está la **brújula** (*Selector de modos*), que abre un menú con
-los tres modos, salir de la cola, la **música** y tus estadísticas. Encima de cada plataforma hay un texto flotante con la cola y
-el **top 3**. En el lobby no se recibe daño ni se pasa hambre.
+### Lobby: el Árbol del Mundo
+Una isla flotante enorme con el **Árbol del Mundo** en el centro: un tronco de casi 20 bloques de ancho y ~100 de
+alto, raíces gigantes por las que se puede caminar, ramas que salen a 30 bloques del tronco con copas enormes y
+cortinas de hojas, un anillo de **pilares antiguos** de hasta 55 bloques y una plaza alrededor del tronco. Apareces
+en la plaza, mirando hacia arriba al árbol.
+
+- **Tres puertas de piedra de 40 bloques** de alto, una por modo, con su plataforma debajo: al pisarla entras
+  (diamante = Emparejamiento al norte, redstone = Caza al oeste, esmeralda = Campal al este). Encima de cada una
+  hay un texto con la cola y el **top 3**.
+- **Parkour:** la plataforma azul junto a la raíz del sureste. Subes por la raíz hasta el tronco y saltas en
+  espiral alrededor del árbol hasta un mirador bajo las ramas (36 saltos, 2 puntos de control). Tiene cronómetro,
+  y si caes vuelves al último punto de control (también con la *brújula de recuperación*). Los mejores tiempos
+  salen en un texto junto a la salida. Puedes estar en la cola de un modo mientras lo haces.
+- **Brújula** (*Menú de Natura PvP*): los tres modos (o salir de la cola), el parkour, la música y las
+  estadísticas y el ranking. En el lobby no se recibe daño ni se pasa hambre.
 
 ### Emparejamiento (1 contra 1)
-- Cola automática: cuando hay 2 jugadores y una arena libre, se les empareja (2 arenas, 2 duelos a la vez).
+- Cola automática: cuando hay 2 jugadores se les empareja en un mapa libre (hasta 4 duelos a la vez).
+- **4 mapas**: *Claro del Bosque* (hierba, rocas y arbustos), *Ruinas Musgosas* (pilares rotos y un altar),
+  *Cerezal* (cerezos y pétalos) y *Lago Helado* (nieve, hielo y picos de hielo). Todos son simétricos: el mismo
+  terreno en las dos mitades.
+- **Cinemática de inicio:** la cámara recorre la arena con el nombre del mapa y presenta a los dos rivales.
+- Después, **5 segundos de aliste** con los jugadores quietos. Luego *¡A PELEAR!*
 - **Kit completo de diamante encantado**: armadura Protección IV, espada Filo V y Aspecto ígneo II, hacha Filo V,
   arco Poder V con Infinidad y Fuego, escudo, 8 manzanas doradas y carne.
-- **9 segundos** de cuenta atrás con los jugadores congelados. Luego *¡A PELEAR!*
 - Gana el que sobrevive y los dos vuelven al lobby. Si se acaban los 5 minutos (configurable) es empate.
-- Arena de hierba con rocas y arbustos simétricos para cubrirse, y paredes de ladrillos musgosos con pilares de
-  troncos, enredaderas, hojas y faroles. Tiene techo invisible.
 
 ### Caza (hasta 5 jugadores)
 - Te apuntas en la cola (mínimo 2). A los 30 s empieza; si se llena (5), a los 5 s.
+- **3 mapas:**
+  - *Bosque Antiguo*: bosques de todo tipo, lagos, rocas y ruinas.
+  - *Cañón del Río*: una meseta cortada por un cañón con un río, rampas para bajar y puentes para cruzar.
+  - *Taiga Nevada*: abetos nevados, montañas y lagos helados.
+- **No se pueden romper bloques** (modo aventura). En cambio, cada mapa tiene **estructuras para los dos bandos**:
+  torres de vigilancia, una torre de piedra, refugios, casas en los árboles, iglús y cabañas. Todas tienen
+  **escaleras de mano para subir** y un **cofre con botín**, que se rellena al empezar cada caza (flechas, perlas,
+  manzanas doradas, telarañas, bolas de nieve, zanahorias doradas, escaleras de mano, andamios y, a veces, una
+  manzana de Notch o un tótem).
+- **Cinemática de inicio:** cada jugador ve su zona desde el aire con el nombre del mapa y luego si es el cazado
+  o cazador.
 - Uno al azar es el **cazado**, con **kit de hierro encantado**; los demás son **cazadores** con **kit de diamante**.
 - **Cuantos más cazadores, mejor el kit de hierro**: con 2, 3 o 4 cazadores sube Protección, Filo, Poder,
-  Irrompibilidad y Caída de pluma, y da más manzanas doradas. Con 3 añade Aspecto ígneo, Infinidad y
-  **velocidad**; con 4, Retroceso, Fuego, Golpe, una manzana de Notch y **vida extra**.
+  Irrompibilidad y Caída de pluma, y da más manzanas doradas, telarañas y perlas. Con 3 añade Aspecto ígneo,
+  Infinidad y **velocidad**; con 4, Retroceso, Fuego, Golpe, una manzana de Notch y **vida extra**.
 - **Utilidades** (la mayoría para el cazado):
-  - **Cazado:** 16 + 8 telarañas, 2 cubos de agua, cubo de lava, 4 perlas de ender, pala, tijeras, caña de pescar,
-    escaleras de mano, andamios, 16 bolas de nieve, ballesta con Carga rápida, piedra y tablones. Con cada cazador
-    extra recibe además 4 telarañas, 1 perla y 2 manzanas doradas más.
-  - **Cazadores:** tijeras (para las telarañas), cubo de agua, 2 perlas de ender, escaleras de mano, pala y tablones.
-- El cazado tiene **20 s de ventaja**: los cazadores esperan ciegos y quietos. Cada 60 s los cazadores reciben su
-  posición. Dura 10 minutos: si el cazado sobrevive, gana él.
-- Se juega en **supervivencia**: se pueden **romper y poner bloques** (hasta Y 140). No hay fuego amigo entre
-  cazadores. Los eliminados pasan a espectadores. Si alguien sale del mundo cuenta como eliminado.
+  - **Cazado:** 24 telarañas, 4 perlas de ender, 16 bolas de nieve, 16 andamios, 16 escaleras de mano, ballesta con
+    Carga rápida, caña de pescar, tijeras, hacha y zanahorias doradas.
+  - **Cazadores:** tijeras, 2 perlas de ender, caña de pescar y 8 escaleras de mano.
+  - Las telarañas y los andamios solo se pueden poner sobre el suelo y la piedra; las escaleras de mano, en madera
+    y piedra. Las tijeras y las espadas cortan telarañas. Todo lo que se pone se quita solo al acabar la caza.
+- El cazado tiene **20 s de ventaja** (después de la cinemática): los cazadores esperan ciegos y quietos. Cada
+  60 s los cazadores reciben su posición. Dura 10 minutos: si el cazado sobrevive, gana él.
+- No hay fuego amigo entre cazadores. Los eliminados pasan a espectadores. Si alguien sale del mundo cuenta como
+  eliminado.
 - **Música de la caza:** suena la música que eligió **el cazado**, para todos los de la caza (también los
   espectadores). Cuando solo quedan **el cazado y un cazador** (aunque antes hubiera más, o si la caza empezó
-  1 contra 1) llega el **duelo final**: suena la canción del duelo final que eligió el cazado (por defecto
+  1 contra 1) llega el **duelo final**, con la canción del duelo final que eligió el cazado (por defecto
   *Duelo Final*) o, si así lo eligió, sigue su música.
-- **Forzar último en pie** (panel de admin): durante una caza, los cazadores pasan a tener solo **3 minutos**
-  (configurable) para atrapar al cazado. Si no lo consiguen, gana el cazado. La posición del cazado se revela
-  cada 30 s.
-- **Regeneración:** al terminar, el mapa se regenera solo: se reconstruye solo donde se rompió o puso algo (y
-  donde se usaron cubos). La regeneración completa de los 365x365 es lenta y por defecto no se hace sola (se
-  puede activar cada N cazas o lanzarla desde el panel). Si el mundo se cierra en mitad de una caza, se regenera
-  completo al volver a abrirlo.
-- **Empezar sin esperar a la regeneración:** en el panel, **Caza → Forzar inicio (sin regenerar)** empieza la caza
-  en el momento aunque se esté regenerando. La regeneración se corta y lo que faltaba se hace al terminar esa caza.
-  También se puede desactivar **«Esperar a que termine la regeneración»** (la cola empieza sola y la corta) o
-  **«Regenerar el mapa al terminar cada caza»** (no se regenera nada hasta que lo pidas con *Regenerar lo
-  modificado*).
-- Bosques de robles, abedules, abetos y azaleas, lagos con arena, rocas musgosas, cuatro anillos de ruinas y
-  una torre de vigilancia en ruinas en el centro. El suelo es de bedrock y el borde es un muro con barrera encima.
+- **Forzar último en pie** (panel de admin): los cazadores pasan a tener solo **3 minutos** (configurable) para
+  atrapar al cazado. Si no lo consiguen, gana el cazado. La posición del cazado se revela cada 30 s.
 
 ### Campal
-Arena **siempre abierta**: entras cuando quieras desde la plataforma o la brújula. Al morir reapareces dentro
-con el kit (lejos de los demás y con 3 s de protección). Cada baja da una manzana dorada y regeneración. La tabla
-de bajas sale a la derecha de la pantalla. Para salir usa la **brújula de recuperación** (*Volver al lobby*);
-no funciona si te han dado en los últimos 8 s. Tiene colinas, árboles, un estanque y unas ruinas en el centro.
+Arena **siempre abierta** (un solo mapa, sin cinemática): entras cuando quieras desde la puerta o la brújula. Al
+morir reapareces dentro con el kit (lejos de los demás y con 3 s de protección). Cada baja da una manzana dorada y
+regeneración. La tabla de bajas sale a la derecha de la pantalla. Para salir usa la **brújula de recuperación**
+(*Volver al lobby*); no funciona si te han dado en los últimos 8 s.
 
 ### Música
 Hay **7 canciones**. Así se llaman dentro del mundo (el ID sirve para `/playsound`):
@@ -130,18 +134,17 @@ Hay **7 canciones**. Así se llaman dentro del mundo (el ID sirve para `/playsou
 | 6 | The Sol Still Burns | `natura.song.the_sol_still_burns` | 3:00 |
 | 7 | Wilted Blossom | `natura.song.wilted_blossom` | 3:15 |
 
-Todas suenan **en bucle**: cuando
-una se acaba, empieza la siguiente de tu lista (o la misma si elegiste una sola). Se abre con la brújula
-(**Música**) o con `/natura:musica`:
+Todas suenan **en bucle**: cuando una se acaba, empieza la siguiente de tu lista (o la misma si elegiste una
+sola). Se abre con la brújula (**Música**) o con `/natura:musica`:
 
-- **Emparejamiento y Campal:** la música que oyes **tú solo** cada vez que entras a uno de esos modos. Cada
-  jugador oye la suya, así que a la vez pueden estar sonando canciones distintas.
-- **Mi caza (si soy el cazado):** la música que oirán **todos los de la caza** cuando tú seas el cazado, y la
-  **canción del duelo final** (o *Seguir con mi música*).
-- En los dos puedes elegir: **una sola canción** (en bucle), **tu lista en el orden que quieras** (hasta 7
-  puestos, se pueden repetir), **todas en orden**, **todas en orden aleatorio** o **sin música**.
-- **Volumen** de 0 a 100 %, para cada jugador.
+- **Emparejamiento y Campal:** la música que oyes **tú solo** cada vez que entras a uno de esos modos.
+- **Mi caza:** la música que oirán **todos los de la caza** cuando tú seas el cazado.
+- **Duelo final de mi caza:** la canción del 1 contra 1 final (o *Seguir con mi música*).
+- En los dos primeros eliges: **una sola canción** (en bucle), **mi lista** (añades canciones una a una en el orden
+  que quieras; se pueden repetir), **todas en orden**, **todas al azar** o **sin música**.
+- **Volumen:** 100, 75, 50, 25 %, otro valor o silencio, para cada jugador.
 - **Escuchar canciones:** en el lobby puedes poner una canción, todas en orden o todas al azar, y pararla.
+- **Volver a poner la canción:** si alguna vez no se oye, la vuelve a empezar.
 
 Todo se guarda para cada jugador. Las canciones son estéreo, así que se oyen igual en todo el mapa, y van con
 el control de volumen de **Tocadiscos y bloques musicales** de los ajustes de sonido del juego.
@@ -152,36 +155,39 @@ final de `canciones.json`, donde puedes cambiarle el nombre o el orden.
 
 ### Administradores (etiqueta `admin`)
 Quien tenga la etiqueta `admin` (`/tag <jugador> add admin`, o `/natura:hacer_admin <jugador>` siendo operador)
-recibe un **reloj** (*Panel de administración*) en el lobby. También puede usar `/natura:admin`. Desde el panel se
-puede:
+recibe un **reloj** (*Panel de administración*) en el lobby y en el **modo libre**. También puede usar
+`/natura:admin`. Cada botón dice debajo qué hace, y cada sección tiene **« Volver**:
 
-| Sección | Qué cambia |
+| Sección | Qué hay |
 |---|---|
-| Emparejamiento | activar/desactivar, segundos de cuenta atrás (9 por defecto), duración máxima, arenas en uso, terminar duelos, vaciar la cola |
-| Caza | activar/desactivar, jugadores máx./mín., espera de la cola, ventaja del cazado, duración, cada cuánto se revela la posición, música, fuego amigo, regenerar al terminar, esperar a la regeneración, cada cuántas cazas se regenera todo, minutos de «último en pie»; **forzar último en pie**, **forzar inicio (sin regenerar)**, cancelar la regeneración, detener, elegir el próximo cazado, regenerar lo modificado o todo, parar la música |
+| Partidas en curso | **empezar la caza ya**, **forzar último en pie**, detener la caza, elegir el próximo cazado, terminar los duelos, vaciar las colas, parar la música de la caza |
+| Emparejamiento | activar/desactivar, cinemática, **segundos de aliste** (5 por defecto), duración máxima; **mapas**: cuáles salen y cuál va después |
+| Caza | activar/desactivar, cinemática, jugadores máx./mín., espera de la cola, ventaja del cazado, duración, cada cuánto se revela la posición, minutos de «último en pie», música, cofres, fuego amigo; **mapas** |
 | Campal | abrir/cerrar, premio por baja, protección al aparecer, tiempo de combate para salir, tabla de bajas, reiniciar bajas, sacar a todos |
-| Kits | ver, probar, **guardar tu inventario como kit** (Emparejamiento, Campal, Cazador y Cazado) y restaurar el de por defecto |
-| Mundo y tiempo | hora (amanecer, mañana, mediodía, atardecer, noche, medianoche), congelar la hora, regeneración natural, **anuncio** con título para todos |
+| Kits | ver, probar (en el modo libre), **guardar tu inventario como kit** y restaurar el de por defecto |
 | Jugadores | enviar al lobby o sacar de la partida, dar/quitar admin, curar, ver o reiniciar estadísticas, ir hacia él, elegirlo como próximo cazado |
-| Teletransporte | lobby y cada arena |
-| Modo libre | creativo y sin límites, para moverse y construir (fuera de la caza los cambios no se deshacen solos) |
-| Reconstruir | vuelve a colocar una zona entera tal como era |
-| Estadísticas y ajustes | ranking, reiniciar estadísticas, volver a los ajustes por defecto |
+| Mundo | hora (amanecer, mañana, mediodía, atardecer, noche, medianoche), congelar la hora, regeneración natural, **anuncio** con título para todos |
+| Modo libre | creativo y sin límites, **con el reloj del panel a mano** |
+| Ir a una zona | lobby, meta del parkour, cada mapa |
+| Más | reconstruir una zona, reiniciar estadísticas, ajustes por defecto |
 
 Los ajustes, kits y estadísticas se guardan en el mundo.
 
-**Comandos:** `/natura:menu` (selector), `/natura:musica` (música y volumen), `/natura:lobby` (volver al lobby, salir de la cola o dejar de mirar
-la caza), `/natura:admin` (panel, con la etiqueta), `/natura:hacer_admin` y `/natura:quitar_admin` (operadores).
+**Comandos:** `/natura:menu` (menú), `/natura:musica` (música y volumen), `/natura:lobby` (volver al lobby, salir
+de la cola o del parkour, o dejar de mirar la caza), `/natura:admin` (panel, con la etiqueta),
+`/natura:hacer_admin` y `/natura:quitar_admin` (operadores).
 
 **Notas**
 - Reglas del mundo: inventario se conserva, reaparición inmediata, sin mobs, sin fuego que se propague y sin
   explosiones de TNT. Por defecto es de día (se cambia en el panel) y nunca llueve.
-- Al actualizar desde la versión 1.0, el mapa se reconstruye solo al abrir el mundo, con los árboles nuevos.
-- El `.mcaddon` lleva los mismos packs para ponerlos en otro mundo, pero el mapa está pensado para el mundo
-  vacío del `.mcworld`.
+- **Mundo prebuilt:** el `.mcworld` lleva los chunks del lobby y de todos los mapas ya escritos en su base de
+  datos, con los bloques de la versión 1.21.100 (las versiones nuevas del juego los actualizan solas). Si los
+  packs se ponen en otro mundo (el `.mcaddon`) o en un mundo de una versión anterior del mapa, el script
+  construye el mapa la primera vez (unos minutos) y avisa en el chat.
 - Generador: `python3 tools/natura_pvp.py` (`--preview` actualiza las imágenes y `--music` vuelve a generar
-  *Duelo Final*). El terreno está en `tools/natura_pvp/gen.js`. `node tools/natura_pvp/smoke/run.mjs` prueba los
-  scripts con un juego simulado: construcción, duelos, campal, caza, música, último en pie, regeneración y panel.
+  *Duelo Final*). Los mapas están en `tools/natura_pvp/gen/`; `world.py` escribe el mundo prebuilt.
+  `node tools/natura_pvp/smoke/run.mjs` prueba los scripts con un juego simulado (con `--build`, también la
+  construcción por el script): mapas, cinemáticas, parkour, duelos, campal, caza, música, último en pie y panel.
 
 ---
 
