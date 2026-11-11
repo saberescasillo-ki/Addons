@@ -95,9 +95,19 @@ function dropSection(dim) {
 // ------------------------------------------------------------ jobs
 export const progress = { busy: false, label: "", done: 0, total: 0, errors: 0 };
 let queue = Promise.resolve();
+const pending = new Map(); // area id -> jobs waiting or running
+const cancels = new Set(); // areas whose jobs must stop
 
-function* placeColumns(dim, area, cols, clear) {
+// Stops the jobs of an area (running or waiting). They resolve with "cancelled"
+// and `left` holds the columns ("x,z") they did not get to.
+export function cancelArea(id) {
+  if ((pending.get(id) ?? 0) > 0) cancels.add(id);
+}
+
+function* placeColumns(dim, area, cols, clear, state) {
   for (const [x, z] of cols) {
+    if (cancels.has(area.id)) return;
+    state.done++;
     try {
       if (clear) fill(dim, x, area.bottom, area.clearTop, z, "air");
       for (const s of area.column(x, z)) fill(dim, x, s[0], s[1], z, s[2]);
@@ -130,9 +140,13 @@ function sectionsOf(area, only) {
   return out;
 }
 
-async function run(id, { clear, only, label }) {
+async function run(id, { clear, only, label }, result) {
   const area = AREA[id];
   const dim = overworld();
+  if (cancels.has(id)) {
+    result.left = only ? [...only] : null;
+    return "cancelled";
+  }
   const sections = sectionsOf(area, only);
   progress.busy = true;
   progress.label = label ?? area.name;
@@ -140,7 +154,12 @@ async function run(id, { clear, only, label }) {
   progress.errors = 0;
   progress.total = sections.reduce((n, s) => n + s.cols.length, 0);
   let ok = true;
+  const left = [];
   for (const s of sections) {
+    if (cancels.has(id)) {
+      for (const [x, z] of s.cols) left.push(`${x},${z}`);
+      continue;
+    }
     let load = { ok: false };
     for (let tries = 0; tries < 5 && !load.ok; tries++) {
       load = await loadSection(dim, s.x0, s.z0, s.x1, s.z1);
@@ -152,21 +171,34 @@ async function run(id, { clear, only, label }) {
       progress.done += s.cols.length;
       continue;
     }
+    const state = { done: 0 };
     await new Promise((resolve) => system.runJob((function* () {
-      yield* placeColumns(dim, area, s.cols, clear);
+      yield* placeColumns(dim, area, s.cols, clear, state);
       resolve();
     })()));
     if (load.area) dropSection(dim);
+    if (state.done < s.cols.length) for (const [x, z] of s.cols.slice(state.done)) left.push(`${x},${z}`);
   }
   progress.busy = false;
+  if (cancels.has(id)) {
+    result.left = only ? left : null; // null: a whole build was cut short
+    return "cancelled";
+  }
   return ok;
 }
 
-// One job at a time (they share the ticking area).
+// One job at a time (they share the ticking area). Resolves with true (done),
+// false (some section could not be loaded) or "cancelled" (see job.left).
 function enqueue(id, opts) {
-  const job = queue.then(() => run(id, opts));
+  pending.set(id, (pending.get(id) ?? 0) + 1);
+  const result = {};
+  const job = queue.then(() => run(id, opts, result)).finally(() => {
+    const n = (pending.get(id) ?? 1) - 1;
+    pending.set(id, n);
+    if (n <= 0) cancels.delete(id);
+  });
   queue = job.catch(() => false);
-  return job;
+  return Object.assign(job.then((r) => r), { result });
 }
 
 export function buildArea(id, clear = false) {

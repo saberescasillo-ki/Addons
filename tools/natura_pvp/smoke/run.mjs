@@ -169,8 +169,32 @@ check(log.some((m) => m.includes("atraparon")), "ganan los cazadores");
 for (let i = 0; i < 400 && state.dyn["natura:huntDirty"]; i++) await advance(5);
 check(state.dyn["natura:huntDirty"] === false, "el mapa de caza se regenera");
 
+console.log("Forzar inicio sin regenerar");
+// a slow full regeneration is running and the admin forces the start
+for (const p of [a, b]) {
+  p.location = { x: -14.5, y: 101, z: 9.5 };
+  await advance(6);
+  p.location = { x: 0.5, y: 101, z: 5.5 };
+  await advance(6);
+}
+script = [pickButton("Caza"), pickButton("Regeneración completa"), () => ({ canceled: false, selection: 0 })];
+world.afterEvents.itemUse.fire({ source: admin, itemStack: admin.inv.getItem(8) });
+await advance(10, 200); // the jobs go slowly here
+check(log.some((m) => m.includes("Caza")) && admin.messages.some((m) => m.includes("Regenerando el mapa (completo)")), "regeneración completa en marcha");
+script = [pickButton("Caza"), pickButton("Forzar inicio (sin regenerar)")];
+world.afterEvents.itemUse.fire({ source: admin, itemStack: admin.inv.getItem(8) });
+await advance(20, 200);
+check(admin.messages.some((m) => m.includes("Regeneración cancelada")), "la regeneración se corta");
+check([a, b].every((p) => p.location.z < -290 && p.gm === "Survival"), "la caza empieza sin esperar");
+const role = (p) => p.titles.filter((t) => t.startsWith("§c§lERES") || t.startsWith("§a§lERES")).at(-1) ?? "";
+kill([a, b].find((p) => role(p).includes("CAZADO")));
+await advance(20 * 8, 200);
+for (let i = 0; i < 2000 && state.dyn["natura:huntDirty"]; i++) await advance(5);
+check(state.dyn["natura:huntDirty"] === false && admin.messages.some((m) => m.includes("Mapa regenerado")), "después de la caza se termina la regeneración pendiente (completa)");
+
 // hunt with 2 players: music from the start; a player leaving
 console.log("Caza 1 contra 1 y abandono");
+await advance(40);
 for (const p of [a, b]) {
   p.sounds.length = 0;
   p.location = { x: -14.5, y: 101, z: 9.5 };

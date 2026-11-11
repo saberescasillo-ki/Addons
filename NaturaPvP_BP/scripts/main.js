@@ -3,7 +3,7 @@
 import * as mc from "@minecraft/server";
 import * as ui from "@minecraft/server-ui";
 import { AREA, CAMPAL, campalSpawns, DUEL, duelSpawns, HUNT, huntSurface, inHunt, insideArea, LOBBY } from "./gen.js";
-import { buildArea, progress, rebuildColumns } from "./builder.js";
+import { buildArea, cancelArea, progress, rebuildColumns } from "./builder.js";
 import { clearPlayer, DEFAULT_KITS, describeKit, getKit, giveKit, KIT_IDS, MENU_LORE, resetKit, saveKitFrom, scaledHuntedKit } from "./kits.js";
 
 const { system, world, ItemStack } = mc;
@@ -139,7 +139,7 @@ const DEFAULTS = {
   duel: { enabled: true, countdown: 9, maxTime: 300, arenas: 2 },
   hunt: {
     enabled: true, maxPlayers: 5, minPlayers: 2, lobbyCountdown: 30, headStart: 20, timeLimit: 600,
-    reveal: 60, music: true, friendlyFire: false, fullRegenEvery: 5, lastStandMinutes: 3,
+    reveal: 60, music: true, friendlyFire: false, fullRegenEvery: 0, lastStandMinutes: 3, autoRegen: true, waitRegen: true,
   },
   campal: { enabled: true, reward: true, spawnProtection: 3, combatTag: 8, sidebar: true },
   world: { time: 2, lockTime: true, naturalRegen: true },
@@ -597,7 +597,7 @@ function duelTick() {
 const hunt = {
   phase: "idle", queue: [], countdown: 0, hunted: undefined, hunters: [], alive: new Set(), spectators: new Set(),
   names: {}, timeLeft: 0, headLeft: 0, released: 0, finalDuel: false, lastStand: false, dirty: new Set(), matches: 0,
-  regen: false, nextHunted: undefined, startCount: 0,
+  regen: false, regenJob: null, pendingFull: false, nextHunted: undefined, startCount: 0,
 };
 
 function huntJoin(player) {
@@ -683,7 +683,7 @@ function startHunt() {
   hunt.finalDuel = false;
   hunt.lastStand = false;
   hunt.phase = "running";
-  hunt.dirty.clear();
+  // (what a cancelled regeneration left undone stays in hunt.dirty for later)
   world.setDynamicProperty("natura:huntDirty", true);
 
   const preyLoc = randomSpot(undefined, 0);
@@ -811,36 +811,66 @@ function endHunt(winner, reason) {
     hunt.finalDuel = false;
     hunt.lastStand = false;
     hunt.matches++;
-    regenHunt(false);
+    if (S.hunt.autoRegen) regenHunt(false);
   }, 6 * SEC);
 }
 
+// Puts back what the players broke or placed (or the whole map). It can be
+// cancelled (to start a hunt right away): what was not done is kept for later.
 function regenHunt(forceFull) {
-  if (hunt.regen) return;
+  if (hunt.regen) return hunt.regenJob;
   const every = S.hunt.fullRegenEvery;
-  const full = forceFull || hunt.dirty.size > 30000 || (every > 0 && hunt.matches % every === 0);
+  const full = forceFull || hunt.pendingFull || hunt.dirty.size > 30000 || (every > 0 && hunt.matches > 0 && hunt.matches % every === 0);
   let keys = null;
   if (!full) {
     keys = new Set();
     for (const key of hunt.dirty) {
       const [x, z] = key.split(",").map(Number);
-      for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) if (inHunt(x + dx, z + dz)) keys.add(`${x + dx},${z + dz}`);
+      for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) if (inHunt(x + dx, z + dz)) keys.add(`${x + dx},${z + dz}`);
     }
     if (!keys.size) {
       hunt.dirty.clear();
       world.setDynamicProperty("natura:huntDirty", false);
-      return;
+      return Promise.resolve(true);
     }
   }
   hunt.regen = true;
+  hunt.pendingFull = false;
   hunt.dirty.clear();
   const job = full ? buildArea("hunt", true) : rebuildColumns("hunt", keys, "Regenerando la caza");
   for (const p of world.getPlayers()) if (isAdmin(p)) p.sendMessage(`§7[Caza] Regenerando el mapa (${full ? "completo" : `${keys.size} columnas`})...`);
-  job.then((ok) => {
+  hunt.regenJob = job.then((ok) => {
     hunt.regen = false;
+    hunt.regenJob = null;
+    if (ok === "cancelled") {
+      if (job.result.left) for (const k of job.result.left) hunt.dirty.add(k);
+      else hunt.pendingFull = true;
+      for (const p of world.getPlayers()) if (isAdmin(p)) p.sendMessage(`§7[Caza] Regeneración cancelada${job.result.left ? ` (quedan ${job.result.left.length} columnas para después)` : " (la regeneración completa queda para después)"}.`);
+      return ok;
+    }
     if (ok) world.setDynamicProperty("natura:huntDirty", false);
     for (const p of world.getPlayers()) if (isAdmin(p)) p.sendMessage(`§7[Caza] Mapa regenerado${ok ? "" : " con errores"}.`);
+    return ok;
   });
+  return hunt.regenJob;
+}
+
+function cancelHuntRegen() {
+  if (!hunt.regen) return Promise.resolve();
+  cancelArea("hunt");
+  return hunt.regenJob ?? Promise.resolve();
+}
+
+// Starts the hunt now, even if the map is regenerating (the regeneration stops).
+async function startHuntNow() {
+  if (hunt.phase === "running" || hunt.phase === "ending" || hunt.starting) return;
+  hunt.starting = true;
+  try {
+    await cancelHuntRegen();
+    if (hunt.queue.length >= 2 && hunt.phase !== "running") startHunt();
+  } finally {
+    hunt.starting = false;
+  }
 }
 
 function huntTick() {
@@ -857,7 +887,7 @@ function huntTick() {
       hunt.countdown = S.hunt.lobbyCountdown;
     }
     if (n >= S.hunt.maxPlayers) hunt.countdown = Math.min(hunt.countdown, 5);
-    if (hunt.regen) {
+    if (hunt.regen && S.hunt.waitRegen) {
       for (const id of hunt.queue) bar(byId(id), `§cCaza: §fregenerando el mapa... §7${pct()}%`);
       return;
     }
@@ -866,7 +896,7 @@ function huntTick() {
       bar(p, `§cCaza: §fempieza en §e${hunt.countdown}s §7(${n}/${S.hunt.maxPlayers})`);
       if (hunt.countdown <= 5) sound(p, "note.hat", 0.7, 1.4);
     }
-    if (hunt.countdown-- <= 0) startHunt();
+    if (hunt.countdown-- <= 0) startHuntNow();
     return;
   }
   if (hunt.phase !== "running") return;
@@ -1294,7 +1324,7 @@ async function ensureBuilt() {
   for (const id of ["lobby", "duel0", "duel1", "campal", "hunt"]) {
     if (built(id)) continue;
     const before = world.getDynamicProperty(`natura:built:${id}`);
-    const ok = await buildArea(id, before !== undefined);
+    const ok = (await buildArea(id, before !== undefined)) === true;
     if (ok) world.setDynamicProperty(`natura:built:${id}`, CFG.buildVersion);
     if (id === "lobby" && ok) {
       for (const p of world.getPlayers()) {
@@ -1305,19 +1335,17 @@ async function ensureBuilt() {
     }
     if (ok) world.sendMessage(`§2[Natura PvP]§r ${AREA[id].name} lista.`);
   }
-  if (world.getDynamicProperty("natura:huntDirty") === true && built("hunt")) regenHunt(true);
+  if (world.getDynamicProperty("natura:huntDirty") === true && built("hunt") && S.hunt.autoRegen) regenHunt(true);
 }
 
 async function rebuild(id) {
-  world.setDynamicProperty(`natura:built:${id}`, "rebuilding");
-  if (id === "hunt") hunt.regen = true;
-  const ok = await buildArea(id, true);
-  if (ok) world.setDynamicProperty(`natura:built:${id}`, CFG.buildVersion);
   if (id === "hunt") {
-    hunt.regen = false;
-    hunt.dirty.clear();
-    world.setDynamicProperty("natura:huntDirty", false);
+    if (hunt.regen) await cancelHuntRegen();
+    return regenHunt(true);
   }
+  world.setDynamicProperty(`natura:built:${id}`, "rebuilding");
+  const ok = (await buildArea(id, true)) === true;
+  world.setDynamicProperty(`natura:built:${id}`, CFG.buildVersion);
   world.sendMessage(`§2[Natura PvP]§r ${AREA[id].name} reconstruida${ok ? "" : " (con errores)"}.`);
 }
 
@@ -1539,18 +1567,24 @@ async function adminHunt(player) {
       ["reveal", "slider", "Revelar la posición del cazado cada (s, 0 = nunca)", 0, 180, 15],
       ["music", "toggle", "Música en la caza (la elige el cazado; la del duelo final también)"],
       ["friendlyFire", "toggle", "Fuego amigo entre cazadores"],
-      ["fullRegenEvery", "slider", "Regeneración completa cada N cazas (0 = solo lo modificado)", 0, 20, 1],
+      ["autoRegen", "toggle", "Regenerar el mapa al terminar cada caza"],
+      ["waitRegen", "toggle", "Esperar a que termine la regeneración antes de empezar (si no, se corta)"],
+      ["fullRegenEvery", "slider", "Regeneración completa (lenta) cada N cazas (0 = nunca, solo lo modificado)", 0, 20, 1],
       ["lastStandMinutes", "slider", "Minutos de «Forzar último en pie»", 1, 10, 1],
     ])],
     ["§4§lForzar último en pie", async () => {
       if (hunt.phase !== "running") return player.sendMessage("§c[Admin] No hay ninguna caza en curso.");
       if (await confirm(player, "Forzar último en pie", `Los cazadores tendrán solo ${S.hunt.lastStandMinutes} minuto(s) para atrapar al cazado. Si no lo consiguen, gana el cazado.`)) forceLastStand(player);
     }],
-    ["Forzar inicio", () => {
+    ["§a§lForzar inicio (sin regenerar)", () => {
       if (hunt.phase === "running" || hunt.phase === "ending") return player.sendMessage("§c[Admin] Ya hay una caza en curso.");
-      if (hunt.regen) return player.sendMessage("§c[Admin] El mapa se está regenerando.");
       if (hunt.queue.length < 2) return player.sendMessage("§c[Admin] Hacen falta al menos 2 jugadores en la cola.");
-      startHunt();
+      if (hunt.regen) player.sendMessage("§e[Admin] Se corta la regeneración; lo que faltaba se regenera después de esta caza.");
+      startHuntNow();
+    }],
+    ["Cancelar la regeneración", async () => {
+      if (!hunt.regen) return player.sendMessage("§7[Admin] No se está regenerando nada.");
+      await cancelHuntRegen();
     }],
     ["Detener la caza", () => {
       if (hunt.phase !== "running") return player.sendMessage("§c[Admin] No hay ninguna caza en curso.");

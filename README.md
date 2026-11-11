@@ -99,8 +99,15 @@ el **top 3**. En el lobby no se recibe daño ni se pasa hambre.
 - **Forzar último en pie** (panel de admin): durante una caza, los cazadores pasan a tener solo **3 minutos**
   (configurable) para atrapar al cazado. Si no lo consiguen, gana el cazado. La posición del cazado se revela
   cada 30 s.
-- **Regeneración:** al terminar, el mapa se regenera solo. Se reconstruyen las columnas donde se rompió o puso algo,
-  y cada 5 cazas el mapa entero. Si el mundo se cierra en mitad de una caza, se regenera completo al volver a abrirlo.
+- **Regeneración:** al terminar, el mapa se regenera solo: se reconstruye solo donde se rompió o puso algo (y
+  donde se usaron cubos). La regeneración completa de los 365x365 es lenta y por defecto no se hace sola (se
+  puede activar cada N cazas o lanzarla desde el panel). Si el mundo se cierra en mitad de una caza, se regenera
+  completo al volver a abrirlo.
+- **Empezar sin esperar a la regeneración:** en el panel, **Caza → Forzar inicio (sin regenerar)** empieza la caza
+  en el momento aunque se esté regenerando. La regeneración se corta y lo que faltaba se hace al terminar esa caza.
+  También se puede desactivar **«Esperar a que termine la regeneración»** (la cola empieza sola y la corta) o
+  **«Regenerar el mapa al terminar cada caza»** (no se regenera nada hasta que lo pidas con *Regenerar lo
+  modificado*).
 - Bosques de robles, abedules, abetos y azaleas, lagos con arena, rocas musgosas, cuatro anillos de ruinas y
   una torre de vigilancia en ruinas en el centro. El suelo es de bedrock y el borde es un muro con barrera encima.
 
@@ -151,7 +158,7 @@ puede:
 | Sección | Qué cambia |
 |---|---|
 | Emparejamiento | activar/desactivar, segundos de cuenta atrás (9 por defecto), duración máxima, arenas en uso, terminar duelos, vaciar la cola |
-| Caza | activar/desactivar, jugadores máx./mín., espera de la cola, ventaja del cazado, duración, cada cuánto se revela la posición, música, fuego amigo, cada cuántas cazas se regenera todo, minutos de «último en pie»; **forzar último en pie**, forzar inicio, detener, elegir el próximo cazado, regenerar, parar la música |
+| Caza | activar/desactivar, jugadores máx./mín., espera de la cola, ventaja del cazado, duración, cada cuánto se revela la posición, música, fuego amigo, regenerar al terminar, esperar a la regeneración, cada cuántas cazas se regenera todo, minutos de «último en pie»; **forzar último en pie**, **forzar inicio (sin regenerar)**, cancelar la regeneración, detener, elegir el próximo cazado, regenerar lo modificado o todo, parar la música |
 | Campal | abrir/cerrar, premio por baja, protección al aparecer, tiempo de combate para salir, tabla de bajas, reiniciar bajas, sacar a todos |
 | Kits | ver, probar, **guardar tu inventario como kit** (Emparejamiento, Campal, Cazador y Cazado) y restaurar el de por defecto |
 | Mundo y tiempo | hora (amanecer, mañana, mediodía, atardecer, noche, medianoche), congelar la hora, regeneración natural, **anuncio** con título para todos |
