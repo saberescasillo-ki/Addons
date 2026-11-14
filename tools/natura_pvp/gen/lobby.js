@@ -12,9 +12,9 @@ const PI2 = Math.PI * 2;
 // ------------------------------------------------------------ the tree
 const trunkR = (y) => 11 - 5.5 * Math.pow(Math.max(0, y - Y) / (TOP - Y), 1.3);
 const flare = (y) => (y < Y + 8 ? 4.5 * (1 - (y - Y) / 8) ** 2 : 0);
-// the trunk is hollow (walls 2.2 thick) up to the top of the parkour
+// the trunk is hollow at its base: the betting room (closed for now)
 const hollowR = (y) => trunkR(y) - 2.2;
-const SHAFT_TOP = 152;
+const SHAFT_TOP = Y + 8;
 const radiusAt = (y) => trunkR(y) + flare(y);
 
 function trunkTop(d) {
@@ -69,9 +69,13 @@ function treeColumn(x, z, segs) {
     } else if (d < hollowR(Y + 1) + 1.3) {
       for (let y = Y + 6; y < SHAFT_TOP; y += 7) if (hash(x, z + y, 1325) < 0.3) segs.push([y, y, "shroom"]);
     }
-    // the door, facing the spawn
+    // the door, facing the spawn: closed with yellow and black stripes ("en mantenimiento")
     const ax = Math.abs(x + 0.5);
-    if (z + 0.5 > 0 && ax <= 1.6 && d >= hollowR(Y + 1) - 1) segs.push([Y + 1, Y + (ax > 1 ? 3 : 4), "air"]);
+    if (z + 0.5 > 0 && ax <= 1.6 && d >= hollowR(Y + 1) - 1) {
+      const top = Y + (ax > 1 ? 3 : 4);
+      segs.push([Y + 1, top, "air"]);
+      if (d >= radiusAt(Y + 2) - 1.6) for (let y = Y + 1; y <= top; y++) segs.push([y, y, ((x + y) % 2 + 2) % 2 ? "blackC" : "yellowC"]);
+    }
   }
   // roots
   for (const R of ROOTS) {
@@ -175,57 +179,10 @@ function pillarColumn(x, z, segs) {
   return false;
 }
 
-// ------------------------------------------------------------ the parkour
-// Inside the hollow trunk: jumps around its inner wall, upwards, from the blue
-// start pad on the floor to the golden one at the top. No checkpoints: if you
-// fall, you start again from the bottom.
-export const PARKOUR = (() => {
-  const blocks = []; // { x, y, z, key }
-  const a0 = -Math.PI / 2; // the start pad is on the north side, in front of the door
-  const r0 = hollowR(Y + 1) - 2.2;
-  const sp = { x: Math.round(Math.cos(a0) * r0), z: Math.round(Math.sin(a0) * r0) };
-  for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) blocks.push({ x: sp.x + dx, y: Y, z: sp.z + dz, key: dx || dz ? "pandesite" : "lapis" });
-  const mats = ["moss", "dark_wood", "azaleaL", "msbrick", "mcobble", "oak_wood", "shroom"];
-  let a = a0, y = Y, prev = sp;
-  let finish = null;
-  const N = 56;
-  const used = []; // { x, y, z } of the platforms so far
-  // no platform right above another (3 blocks of room for the head)
-  const free = (px, py, pz) => !used.some((u) => u.x === px && u.z === pz && Math.abs(u.y - py) <= 3)
-    && !(Math.abs(px - sp.x) <= 1 && Math.abs(pz - sp.z) <= 1 && py - Y <= 3);
-  for (let i = 0; i < N; i++) {
-    const up = i % 5 !== 4;
-    y += up ? 1 : 0;
-    const r = hollowR(y + 4) - 1.3; // room for the head under the narrowing wall
-    let best = null;
-    for (const [lo, hi] of up ? [[2.9, 3.6], [2.6, 3.7]] : [[3.3, 4.2], [3.0, 4.3]]) {
-      for (let step = 1.5; step <= 8 && !best; step += 0.05) {
-        const px = Math.round(Math.cos(a + step / r) * r), pz = Math.round(Math.sin(a + step / r) * r);
-        const dd = Math.hypot(px - prev.x, pz - prev.z);
-        if (dd >= lo && dd <= hi && free(px, y, pz)) best = { px, pz, step };
-      }
-      if (best) break;
-    }
-    if (!best) throw new Error(`parkour: no hay sitio para el salto ${i}`);
-    a += best.step / r;
-    const { px, pz } = best;
-    prev = { x: px, z: pz };
-    used.push({ x: px, y, z: pz });
-    if (i === N - 1) {
-      for (const [dx, dz] of [[0, 0], [1, 0], [0, 1], [1, 1]]) blocks.push({ x: px + dx, y, z: pz + dz, key: "gold" });
-      blocks.push({ x: px, y: y + 1, z: pz + 1, key: "lantern" });
-      finish = { x: px + 0.5, y: y + 1, z: pz + 0.5 };
-    } else blocks.push({ x: px, y, z: pz, key: mats[i % mats.length] });
-  }
-  const start = { x: sp.x + 0.5, y: Y + 1, z: sp.z + 0.5 };
-  return { start, startPad: sp, finish, blocks, checkpoints: [start] };
-})();
-const PK = new Map();
-for (const b of PARKOUR.blocks) {
-  const k = `${b.x},${b.z}`;
-  if (!PK.has(k)) PK.set(k, []);
-  PK.get(k).push([b.y, b.y, b.key]);
-}
+// ------------------------------------------------------------ the betting room
+// Inside the trunk: a room for friendly bets between players. For now it is
+// closed (under maintenance): its door is blocked with yellow and black stripes.
+export const BETTING = { door: { x: 0.5, y: Y + 1, z: radiusAt(Y + 2) + 0.5 }, sign: { x: 0.5, y: Y + 5.4, z: radiusAt(Y + 2) + 1.6 } };
 
 // ------------------------------------------------------------ the ring wall
 // A colossal wall in a ring around the island, floating in the void: its
@@ -309,8 +266,6 @@ function lobbyColumn(x, z) {
   if (pond < POND.r + 1) segs[segs.length - 1] = [Y, Y, "sand"];
   const solid = treeColumn(x, z, segs);
   const gate = gateColumn(x, z, segs);
-  const pk = PK.get(`${x},${z}`);
-  if (pk) segs.push(...pk);
   if (solid || gate || pillarColumn(x, z, segs)) return segs;
   // lanterns around the plaza
   if (r > 24 && r < 25.2) {
@@ -334,7 +289,7 @@ export const LOBBY = {
   look: { x: 0.5, y: Y + 45, z: 0.5 },
   pads: Object.fromEntries(Object.entries(PADS).map(([k, p]) => [k, { x: p.x, z: p.z, block: p.block }])),
   marker: { x: 0, y: Y, z: 0, block: "minecraft:dark_oak_wood" },
-  parkour: PARKOUR,
+  betting: BETTING,
 };
 
 export const LOBBY_AREA = { id: "lobby", name: "Lobby", x0: -90, z0: -90, x1: 89, z1: 89, bottom: Y - 80, clearTop: 225, column: lobbyColumn };

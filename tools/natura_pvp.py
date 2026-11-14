@@ -19,7 +19,6 @@ into the world database. The rest of the scripts are in tools/natura_pvp/.
 
     python3 tools/natura_pvp.py            # packs, .mcworld and .mcaddon
     python3 tools/natura_pvp.py --preview  # also docs/natura_pvp_preview.png (needs node)
-    python3 tools/natura_pvp.py --music    # also renders the song again (needs ffmpeg)
 """
 import io
 import json
@@ -44,7 +43,7 @@ RP = os.path.join(ROOT, "NaturaPvP_RP")
 DIST = os.path.join(ROOT, "dist")
 DOCS = os.path.join(ROOT, "docs")
 
-VERSION = [1, 4, 0]
+VERSION = [1, 5, 0]
 MIN_ENGINE = [1, 21, 90]  # custom commands in @minecraft/server 2.0.0
 SERVER_API = "2.0.0"
 UI_API = "2.0.0"
@@ -52,7 +51,7 @@ UUIDS = dict(bp="0b6f3c52-8e1d-4c7a-9f4e-2a6d1e7b5c31", bp_data="7d2e9a14-3b5f-4
              bp_script="e5a1c7d3-9f2b-4a6e-8d4c-1b7f3e9a2c65", rp="3c8f1e6a-2d4b-4f9e-b7a3-5e1c9d2f8b46",
              rp_res="9a4d2b7e-6c1f-4e3a-8b5d-7f2e1c9a4d83")
 
-BUILD_VERSION = "1.4.0"  # change it to rebuild the map in existing worlds
+BUILD_VERSION = "1.5.0"  # change it to rebuild the map in existing worlds
 SONGS_DIR = os.path.join(SRC, "canciones")
 AUDIO = (".ogg", ".mp3", ".wav", ".m4a", ".flac", ".opus")
 
@@ -170,16 +169,13 @@ def duration(path):
 def songs(force_music):
     """The songs: tools/natura_pvp/canciones/canciones.json (in that order).
 
-    Any other audio file put in that folder is converted to .ogg (same loudness,
-    stereo) and added at the end, named after the file. "Duelo Final" is
-    synthesised by music.py."""
-    import music
+    Every song has a "use": lobby (always in the lobby), hunt (the whole hunt,
+    final duel included) or win (the victory of the hunted player), and a
+    volume. Any other audio file put in that folder is converted to .ogg (same
+    loudness, stereo) and added at the end, without a use."""
     listing = os.path.join(SONGS_DIR, "canciones.json")
     with open(listing, encoding="utf-8") as fh:
         entries = json.load(fh)
-    epic = os.path.join(SONGS_DIR, "duelo_final.ogg")
-    if force_music or not os.path.exists(epic):
-        music.write_ogg(epic)
     known = {e["file"] for e in entries}
     for name in sorted(os.listdir(SONGS_DIR)):
         stem, ext = os.path.splitext(name)
@@ -211,7 +207,8 @@ def songs(force_music):
         # stereo + a huge min_distance: the song sounds the same anywhere
         defs[sid] = {"category": "record", "min_distance": 4096.0, "max_distance": 8192.0,
                      "sounds": [{"name": rel, "stream": True, "volume": 1.0, "load_on_low_memory": True}]}
-        tracks.append({"id": sid, "name": e["name"], "ticks": int(e["seconds"] * 20) + 10})
+        tracks.append({"id": sid, "name": e["name"], "ticks": int(e["seconds"] * 20) + 10,
+                       "use": e.get("use", ""), "volume": e.get("volume", 1.0)})
     with open(listing, "w", encoding="utf-8") as fh:
         json.dump(entries, fh, indent=2, ensure_ascii=False)
         fh.write("\n")
@@ -375,7 +372,8 @@ COLORS.update({
     "lfern": "#4f8f36", "dark_wood": "#4a3a26", "oak_wood": "#6b5130", "spruce_wood": "#4b3620",
     "mangrove": "#6b3a2a", "mangroveL": "#4f7f2a", "mroots": "#5a4434", "mudroots": "#4a3a30", "mud": "#3f3a3c",
     "mudbricks": "#8a6c52", "pmud": "#8c6a50", "lily": "#2f7a2a", "mplanks": "#7a3a32", "mfence": "#6a332c",
-    "stairsBrick": "#7b7b7b",
+    "stairsBrick": "#7b7b7b", "yellowC": "#f0c21e", "blackC": "#16161a", "glass": "#cfe6ee", "bookshelf": "#8a6a3e",
+    "redCarpet": "#a8262a", "crafting": "#9a6a3a",
 })
 for _wood in ("oak", "birch", "spruce", "dark", "cherry"):
     for _ax in ("x", "z"):

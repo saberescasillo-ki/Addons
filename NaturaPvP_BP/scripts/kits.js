@@ -53,7 +53,7 @@ export const DEFAULT_KITS = {
   },
   hunter: {
     name: "Cazador",
-    desc: "Kit de diamante de los cazadores.",
+    desc: "Kit de diamante de los cazadores, con utilidades para perseguir.",
     items: [
       { slot: "head", id: "minecraft:diamond_helmet" },
       { slot: "chest", id: "minecraft:diamond_chestplate" },
@@ -64,9 +64,16 @@ export const DEFAULT_KITS = {
       { slot: 1, id: "minecraft:bow" },
       { slot: 2, id: "minecraft:fishing_rod" },
       { slot: 3, id: "minecraft:ender_pearl", count: 6 },
+      // utilities to chase: a spyglass, wind charges to jump, potions
+      { slot: 4, id: "minecraft:spyglass" },
+      { slot: 5, id: "minecraft:wind_charge", count: 8 },
       { slot: 7, id: "minecraft:golden_apple", count: 8 },
       { slot: 8, id: "minecraft:cooked_beef", count: 32 },
       { slot: 9, id: "minecraft:arrow", count: 24 },
+      // splash potions: swiftness II, healing II and slowness (to throw at the hunted)
+      { slot: 10, id: "minecraft:splash_potion", potion: 16, count: 2 },
+      { slot: 11, id: "minecraft:splash_potion", potion: 22, count: 1 },
+      { slot: 12, id: "minecraft:splash_potion", potion: 17, count: 2 },
     ],
   },
   hunted: {
@@ -77,11 +84,11 @@ export const DEFAULT_KITS = {
       { slot: "chest", id: "minecraft:iron_chestplate", ench: { protection: 1 } },
       { slot: "legs", id: "minecraft:iron_leggings", ench: { protection: 1 } },
       { slot: "feet", id: "minecraft:iron_boots", ench: { protection: 1, feather_falling: 1 } },
-      { slot: "offhand", id: "minecraft:shield" },
+      { slot: "offhand", id: "minecraft:totem_of_undying" },
       { slot: 0, id: "minecraft:iron_sword", ench: { sharpness: 1 } },
       { slot: 1, id: "minecraft:bow", ench: { power: 1 } },
       { slot: 2, id: "minecraft:crossbow", ench: { quick_charge: 1 } },
-      { slot: 3, id: "minecraft:ender_pearl", count: 9 },
+      { slot: 3, id: "minecraft:ender_pearl", count: 6 },
       { slot: 4, id: "minecraft:snowball", count: 16 },
       { slot: 5, id: "minecraft:fishing_rod" },
       { slot: 6, id: "minecraft:iron_axe", ench: { sharpness: 1 } },

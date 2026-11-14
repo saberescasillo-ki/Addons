@@ -77,7 +77,15 @@
 },
 "version": 18168865
 },
+"black_concrete": {
+"states": {},
+"version": 18168865
+},
 "blue_ice": {
+"states": {},
+"version": 18168865
+},
+"bookshelf": {
 "states": {},
 "version": 18168865
 },
@@ -112,6 +120,10 @@
 "version": 18168865
 },
 "clay": {
+"states": {},
+"version": 18168865
+},
+"coal_block": {
 "states": {},
 "version": 18168865
 },
@@ -153,6 +165,10 @@
 "version": 18168865
 },
 "cracked_stone_bricks": {
+"states": {},
+"version": 18168865
+},
+"crafting_table": {
 "states": {},
 "version": 18168865
 },
@@ -208,6 +224,10 @@
 "version": 18168865
 },
 "fern": {
+"states": {},
+"version": 18168865
+},
+"glass": {
 "states": {},
 "version": 18168865
 },
@@ -442,6 +462,10 @@
 "states": {},
 "version": 18168865
 },
+"red_carpet": {
+"states": {},
+"version": 18168865
+},
 "red_tulip": {
 "states": {},
 "version": 18168865
@@ -566,6 +590,10 @@
 "version": 18168865
 },
 "waterlily": {
+"states": {},
+"version": 18168865
+},
+"yellow_concrete": {
 "states": {},
 "version": 18168865
 }

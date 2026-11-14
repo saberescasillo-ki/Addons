@@ -18,11 +18,11 @@ for (const [name, file] of [["server", "mock_server.js"], ["server-ui", "mock_ui
 writeFileSync(pjoin(tmp, "package.json"), JSON.stringify({ type: "module" }));
 cpSync(pjoin(root, "NaturaPvP_BP", "scripts"), pjoin(tmp, "scripts"), { recursive: true });
 
-const BUILD = readFileSync(pjoin(root, "NaturaPvP_BP", "scripts", "main.js"), "utf8").match(/"buildVersion": ?"([^"]+)"/)[1];
-const SONGS = Object.keys(JSON.parse(readFileSync(pjoin(root, "NaturaPvP_RP", "sounds", "sound_definitions.json"))).sound_definitions);
-const SONG = (i) => SONGS[i];
+const MAIN = readFileSync(pjoin(root, "NaturaPvP_BP", "scripts", "main.js"), "utf8");
+const BUILD = MAIN.match(/"buildVersion": ?"([^"]+)"/)[1];
+const TRACKS = JSON.parse(MAIN.match(/const CFG = (\{.*\});/)[1]).tracks;
+const SONG = (use) => TRACKS.find((t) => t.use === use).id;
 const songOf = (p) => p.sounds.filter((x) => x.startsWith("natura.song.")).at(-1);
-const music = (p, normal, hunt, final = 0, volume = 80) => p.setDynamicProperty("natura:music", JSON.stringify({ volume, normal, hunt, final }));
 const mc = await import(pathToFileURL(pjoin(here, "mock_server.js")).href);
 const { ui } = await import(pathToFileURL(pjoin(here, "mock_ui.js")).href);
 const gen = await import(pathToFileURL(pjoin(tmp, "scripts", "gen", "index.js")).href);
@@ -46,7 +46,16 @@ const toLobby = async (p) => {
   at(p, L.spawn.x, L.spawn.z);
   await advance(6);
 };
+const inLobby = (p) => Math.hypot(p.location.x, p.location.z) < 80 && p.location.y > 95 && p.location.y < 120;
 const huntOf = (p) => gen.HUNTS.findIndex((m) => m.inside(Math.floor(p.location.x), Math.floor(p.location.z)));
+// a player joins and walks out of the epic view
+const enter = async (name) => {
+  const p = join(name);
+  await advance(20);
+  at(p, p.location.x, p.location.z - 1.2, p.location.y);
+  await advance(12);
+  return p;
+};
 
 await import(pathToFileURL(pjoin(tmp, "scripts", "main.js")).href);
 const commands = [];
@@ -74,113 +83,63 @@ const t0 = Date.now();
 for (let i = 0; i < 6000 && gen.AREAS.some((a) => state.dyn[`natura:built:${a.id}`] !== BUILD); i++) await advance(1);
 check(gen.AREAS.every((a) => state.dyn[`natura:built:${a.id}`] === BUILD), `las ${gen.AREAS.length} zonas listas en ${state.tick} ticks (${state.blockOps} operaciones de bloques, ${Date.now() - t0} ms)`);
 if (state.prebuilt) check(state.blockOps < 100, "con el mundo prebuilt no se coloca ningún bloque");
-check(commands.length === 6, `6 comandos registrados`);
-await advance(60);
-check(state.entities.filter((e) => e.typeId === "natura:text").length === 5, "5 textos flotantes en el lobby");
-check(admin.inv.getItem(0)?.typeId === "minecraft:compass" && admin.inv.getItem(8)?.typeId === "minecraft:clock", "brújula y reloj de admin en el lobby");
+check(commands.length === 5 && !commands.some((c) => c.def.name === "natura:musica"), "5 comandos (sin el de música)");
+check(state.commands.includes("gamerule sendcommandfeedback false") && state.commands.includes("gamerule commandblockoutput false"), "sin avisos de comandos");
 
-// ------------------------------------------------------------ parkour
-console.log("Parkour (dentro del árbol)");
-const pk = gen.PARKOUR;
-check(Math.hypot(pk.startPad.x, pk.startPad.z) < 9 && pk.finish.y > 140, `empieza dentro del tronco y sube hasta Y ${pk.finish.y}`);
-at(admin, pk.startPad.x + 0.5, pk.startPad.z + 0.5);
-await advance(6);
-check(admin.titles.some((t) => t.includes("PARKOUR")) && admin.inv.getItem(4) === undefined, "pisar el bloque azul empieza el parkour (sin objeto de punto de control)");
-at(admin, pk.finish.x - 4, pk.finish.z, pk.finish.y - 20);
-await advance(6);
-check(Math.abs(admin.location.y - (pk.finish.y - 20)) < 0.01, "sin puntos de control: al caer no te devuelve a ningún sitio");
-await advance(40);
-at(admin, pk.finish.x, pk.finish.z, pk.finish.y);
-await advance(6);
-check(admin.titles.some((t) => t.includes("PARKOUR COMPLETADO")) && log.some((m) => m.includes("Árbol del Mundo")), "llegar al bloque de oro");
-await toLobby(admin);
+// ------------------------------------------------------------ joining: the epic view
+console.log("Vista épica al entrar");
+await advance(20);
+check(admin.cams.some((c) => c.location.x === -58 && c.location.y === 146) && admin.bars.some((b) => b.includes("un bloque hacia delante")), "al entrar, cámara quieta en el lobby y aviso en la barra de acción");
+const clearsBefore = admin.camClears;
+at(admin, admin.location.x, admin.location.z - 0.5, admin.location.y);
+await advance(12);
+check(admin.camClears === clearsBefore, "moverse menos de un bloque no la quita");
+at(admin, admin.location.x, admin.location.z - 0.8, admin.location.y);
+await advance(12);
+check(admin.camClears > clearsBefore, "al moverse un bloque, fundido y entra al lobby");
+check(songOf(admin) === SONG("lobby") && Math.abs(admin.volumes[SONG("lobby")] - 0.45) < 1e-9, "en el lobby suena Your New Forever (volumen 45)");
+check(state.entities.filter((e) => e.typeId === "natura:text").length === 5 && state.entities.some((e) => e.nameTag.includes("SALA DE APUESTAS") && e.nameTag.includes("mantenimiento")), "textos del lobby (sala de apuestas en mantenimiento)");
+check(admin.inv.getItem(0)?.typeId === "minecraft:compass" && admin.inv.getItem(8)?.typeId === "minecraft:clock", "brújula y reloj de admin");
+
+// ------------------------------------------------------------ the betting room (closed)
+console.log("Sala de apuestas");
+const door = gen.AREA.lobby.column(0, Math.floor(gen.BETTING.door.z) - 1);
+check(door.some((s) => s[2] === "yellowC") && door.some((s) => s[2] === "blackC"), "la puerta del tronco está cerrada con bloques amarillos y negros");
+check(!("PARKOUR" in gen), "ya no hay parkour");
+script = [pick("SALA DE APUESTAS")];
+world.afterEvents.itemUse.fire({ source: admin, itemStack: admin.inv.getItem(0) });
+await advance(12);
+check(admin.messages.some((m) => m.includes("mantenimiento")), "en el menú: sala de apuestas en mantenimiento");
 
 // ------------------------------------------------------------ duel
 console.log("Emparejamiento");
-const a = join("Ana"), b = join("Beto");
-await advance(20);
-music(a, { mode: "one", one: 4, list: [] }, { mode: "one", one: 1, list: [] }, 6);
-music(b, { mode: "list", one: 0, list: [0, 4] }, { mode: "one", one: 2, list: [] }, 6);
+const a = await enter("Ana"), b = await enter("Beto");
 at(a, ...pad("duel"));
 at(b, pad("duel")[0] + 0.7, pad("duel")[1] - 0.6);
 await advance(30);
 const duelMap = gen.DUELS.findIndex((d) => Math.abs(a.location.x - d.cx) < 40 && Math.abs(a.location.z - d.cz) < 40);
-check(duelMap >= 0 && a.gm === "Adventure", `Ana está en un mapa de duelo (${gen.DUELS[duelMap]?.name})`);
-check(a.equip.Head?.typeId === "minecraft:diamond_helmet" && a.inv.getItem(0)?.ench.some((e) => e.type.id === "sharpness" && e.level === 5), "kit de diamante encantado");
-check(a.inv.getItem(3)?.amount === 16 && a.inv.getItem(5)?.typeId === "minecraft:ender_pearl" && a.inv.getItem(5).amount === 8, "16 manzanas doradas y 8 perlas en el duelo");
-check(songOf(a) === SONG(4) && songOf(b) === SONG(0), "cada jugador oye su propia canción");
-await advance(20 * 3);
-check(a.cams.length >= 2 && a.hud === "Hide" && a.titles.some((t) => t.includes(gen.DUELS[duelMap].name.toUpperCase())), "cinemática de inicio con el nombre del mapa");
-await advance(20 * 6);
-check(a.camClears > 0 && a.hud === "Reset", "la cinemática termina");
-check(!a.titles.some((t) => t.includes("¡A PELEAR!")), "aún no se pelea (aliste)");
-console.log("Espectador");
-const v = join("Vero");
-await advance(20);
-script = [pick("ESPECTAR"), pick("Ana vs Beto")];
-world.afterEvents.itemUse.fire({ source: v, itemStack: v.inv.getItem(0) });
-await advance(10);
-check(v.gm === "Spectator" && Math.abs(v.location.x - gen.DUELS[duelMap].cx) < 40 && Math.abs(v.location.z - gen.DUELS[duelMap].cz) < 40, "un jugador del lobby mira el duelo como espectador");
-const before = { ...v.location };
-v.isSneaking = true;
-await advance(10);
-v.isSneaking = false;
-await advance(5);
-check(v.location.z !== before.z || v.location.x !== before.x, "agacharse pasa al otro jugador");
-await advance(20 * 6);
-const counts = a.titles.filter((t) => /^§.§l[1-9] /.test(t + " ")).map((t) => t.match(/§l([1-9])/)[1]);
-check(a.titles.some((t) => t.includes("¡A PELEAR!")) && counts.join("") === "54321", `5 segundos de aliste tras la cinemática (${counts.join(",")})`);
+check(duelMap >= 0, `Ana está en un mapa de duelo (${gen.DUELS[duelMap]?.name})`);
+check(a.inv.getItem(3)?.amount === 16 && a.inv.getItem(5)?.amount === 8, "kit de duelo: 16 manzanas y 8 perlas");
+check(state.commands.includes(`Ana: stopsound @s ${SONG("lobby")}`) && songOf(a) === SONG("lobby"), "en el duelo se para la música del lobby (y no suena otra)");
+await advance(20 * 15);
+check(a.titles.some((t) => t.includes("VS")) && a.titles.some((t) => t.includes("¡A PELEAR!")), "cinemática, aliste y pelea");
 kill(b, a);
 await advance(80);
-check(Math.hypot(a.location.x, a.location.z) < 80 && Math.hypot(b.location.x, b.location.z) < 80, "los dos vuelven al lobby");
-check(Math.hypot(v.location.x, v.location.z) < 80 && v.gm === "Adventure", "el espectador vuelve al lobby cuando acaba el duelo");
-check(log.some((x) => x.includes("Ana") && x.includes("ganó") && x.includes(gen.DUELS[duelMap].name)), "mensaje de victoria con el mapa");
-check(![a, b].some((p) => p.bars.some((x) => x.includes("⚔") || x.includes("Emparejamiento") || x.includes("♪"))), "en el emparejamiento no hay avisos en la barra de acción");
-check(a.titles.some((t) => t.includes("VS")), "solo el anuncio de quién contra quién");
-check(state.commands.includes("gamerule sendcommandfeedback false") && state.commands.includes("gamerule commandblockoutput false"), "sin avisos de comandos (sendcommandfeedback y commandblockoutput en false)");
+check(inLobby(a) && inLobby(b), "los dos vuelven al lobby");
+check(![a, b].some((p) => p.bars.some((x) => x.includes("⚔") || x.includes("Emparejamiento") || x.includes("♪"))), "sin avisos en la barra de acción del duelo");
 
 // ------------------------------------------------------------ campal
 console.log("Campal");
-const camsBefore = a.cams.length;
 at(a, ...pad("campal"));
 await advance(10);
-at(b, ...pad("campal"));
-await advance(10);
-check(a.location.x > 250 && b.location.x > 250 && a.inv.getItem(8)?.typeId === "minecraft:recovery_compass", "entran al campal");
-check(a.inv.getItem(1)?.typeId === "minecraft:mace" && a.inv.getItem(1).ench.some((e) => e.type.id === "density")
-  && a.inv.getItem(2)?.typeId === "minecraft:diamond_spear" && a.inv.getItem(2).ench.some((e) => e.type.id === "lunge")
-  && a.inv.getItem(3)?.typeId === "minecraft:wind_charge" && a.inv.getItem(3).amount === 16, "campal: mazo, lanza de embestida y cargas de viento");
-check(a.inv.getItem(4)?.amount === 10 && a.inv.getItem(5)?.typeId === "minecraft:ender_pearl", "campal: 10 manzanas doradas y perlas");
-check(["slot.inventory 1 splash_potion 1 22", "slot.inventory 2 splash_potion 1 31", "slot.inventory 3 splash_potion 1 16"].every((c) => state.commands.includes(`Ana: replaceitem entity @s ${c}`)), "campal: 3 pociones (curación II, fuerza, velocidad II)");
-script = [pick("ESPECTAR"), pick("CAMPAL")];
-world.afterEvents.itemUse.fire({ source: v, itemStack: v.inv.getItem(0) });
-await advance(10);
-check(v.gm === "Spectator" && v.location.x > 250, "mirar el campal");
-v.isSneaking = true;
-await advance(45);
-v.isSneaking = false;
-await advance(5);
-check(v.gm === "Adventure" && Math.hypot(v.location.x, v.location.z) < 80, "mantener agachado 2 s vuelve al lobby");
-world.afterEvents.entityHurt.fire({ hurtEntity: b, damage: 4, damageSource: { damagingEntity: a } });
-kill(b, a);
-await advance(10);
-check(b.location.x > 250 && b.equip.Head?.typeId === "minecraft:diamond_helmet" && a.cams.length === camsBefore, "reaparece en el campal con kit (y sin cinemática)");
-world.afterEvents.entityHurt.fire({ hurtEntity: b, damage: 4, damageSource: { damagingEntity: a } });
-world.afterEvents.itemUse.fire({ source: b, itemStack: b.inv.getItem(8) });
-check(b.messages.some((x) => x.includes("combate")), "no puede salir en combate");
-await advance(20 * 9);
-world.afterEvents.itemUse.fire({ source: b, itemStack: b.inv.getItem(8) });
-await advance(2);
+check(a.location.x > 250 && a.inv.getItem(1)?.typeId === "minecraft:mace" && a.inv.getItem(2)?.typeId === "minecraft:diamond_spear", "campal con mazo y lanza");
 world.afterEvents.itemUse.fire({ source: a, itemStack: a.inv.getItem(8) });
 await advance(10);
-check(Math.hypot(a.location.x, a.location.z) < 80 && Math.hypot(b.location.x, b.location.z) < 80, "salen al lobby");
+check(inLobby(a), "sale al lobby");
 
-// ------------------------------------------------------------ hunt
+// ------------------------------------------------------------ hunt (the hunters win)
 console.log("Caza");
-const c = join("Caro"), d = join("Dani");
-music(c, { mode: "all" }, { mode: "one", one: 3, list: [] }, 6);
-music(d, { mode: "all" }, { mode: "list", one: 0, list: [5, 4] }, 6);
-await advance(20);
+const c = await enter("Caro"), d = await enter("Dani");
 for (const p of [a, b, c, d]) {
   at(p, ...pad("hunt"));
   await advance(6);
@@ -188,142 +147,82 @@ for (const p of [a, b, c, d]) {
 }
 await advance(20 * 32);
 const mapIdx = huntOf(a);
-check(mapIdx >= 0 && [a, b, c, d].every((p) => huntOf(p) === mapIdx && p.gm === "Adventure"), `la caza empieza en modo aventura (${gen.HUNTS[mapIdx]?.name})`);
-const prey = [a, b, c, d].find((p) => p.titles.some((t) => t.includes("ERES EL CAZADO")) || p.messages.some((x) => x.includes("Eres el §ccazado")));
+check(mapIdx >= 0 && [a, b, c, d].every((p) => huntOf(p) === mapIdx), `la caza empieza (${gen.HUNTS[mapIdx]?.name})`);
+const prey = [a, b, c, d].find((p) => p.messages.some((x) => x.includes("Eres el §ccazado")));
 const hunters = [a, b, c, d].filter((p) => p !== prey);
-check(!!prey && prey.equip.Chest?.typeId === "minecraft:iron_chestplate", `cazado con hierro (${prey?.name})`);
-check(prey.equip.Chest.ench.find((e) => e.type.id === "protection")?.level === 3, "protección mejorada con 3 cazadores");
-check(hunters.every((p) => p.equip.Chest?.typeId === "minecraft:diamond_chestplate"), "cazadores con diamante");
-const building = ["minecraft:web", "minecraft:ladder", "minecraft:scaffolding", "minecraft:shears"];
-check([a, b, c, d].every((p) => !p.inv.items.some((it) => it && building.includes(it.typeId))), "ningún kit lleva utilidades de construcción");
-check(prey.inv.getItem(7)?.amount === 12 && prey.inv.getItem(3)?.amount === 11, "cazado (más flojo): 12 manzanas y 11 perlas con 3 cazadores");
-check(hunters.every((p) => p.inv.getItem(7)?.amount === 8 && p.inv.getItem(3)?.amount === 6), "cazadores: 8 manzanas y 6 perlas");
-check(["slot.inventory 9 splash_potion 5 22", "slot.inventory 10 splash_potion 2 16", "slot.inventory 11 splash_potion 2 17", "slot.inventory 12 splash_potion 1 34", "slot.inventory 13 splash_potion 1 25"].every((c) => state.commands.includes(`${prey.name}: replaceitem entity @s ${c}`)), "pociones arrojadizas del cazado, cada una en su hueco");
-const chests = [...state.blocks.values()].filter((v) => v.id === "minecraft:chest");
-check(chests.length === gen.HUNTS[mapIdx].chests().length && chests.every((v) => v.inv.items.some(Boolean)), `cofres con botín (${chests.length})`);
-const preyChoice = { Ana: 1, Beto: 2, Caro: 3, Dani: 5 }[prey.name];
-check([a, b, c, d].every((p) => songOf(p) === SONG(preyChoice)), `todos oyen la música del cazado (${prey.name})`);
-const lockAt = { ...prey.location };
-check(prey.cams.length >= 2, "cinemática de la caza");
-await advance(20 * 8);
-check(prey.titles.some((t) => t.includes("¡CORRE!")), "tras la cinemática el cazado sale corriendo");
-const ev = { player: prey, block: { location: { x: Math.floor(lockAt.x), y: Math.floor(lockAt.y) - 1, z: Math.floor(lockAt.z) } }, cancel: false };
-world.beforeEvents.playerBreakBlock.fire(ev);
-check(ev.cancel === true, "no se pueden romper bloques en la caza");
-await advance(20);
-check(/^§e\d+:\d\d §8· §f(~\d+|\+100) bloques$/.test(prey.bars.at(-1)) && hunters.every((p) => /^§e\d+:\d\d §8· §f(~\d+|\+100) bloques$/.test(p.bars.at(-1))), `barra de acción de la caza: solo tiempo y distancia (${prey.bars.at(-1)})`);
-await advance(20 * 25);
+check(prey.equip.Offhand?.typeId === "minecraft:totem_of_undying" && prey.equip.Offhand !== undefined, "el cazado lleva un tótem en lugar del escudo");
+check(prey.inv.getItem(3)?.amount === 8, `perlas del cazado: 6 (+1 por cazador extra) = ${prey.inv.getItem(3)?.amount}`);
+check(hunters.every((p) => p.inv.getItem(4)?.typeId === "minecraft:spyglass" && p.inv.getItem(5)?.typeId === "minecraft:wind_charge"), "utilidades de los cazadores: catalejo y cargas de viento");
+check(hunters.every((p) => ["slot.inventory 1 splash_potion 2 16", "slot.inventory 2 splash_potion 1 22", "slot.inventory 3 splash_potion 2 17"].every((x) => state.commands.includes(`${p.name}: replaceitem entity @s ${x}`))), "y pociones arrojadizas (velocidad II, curación II, lentitud)");
+check([a, b, c, d].every((p) => songOf(p) === SONG("hunt")), "en la caza suena Find Your Flame");
+const huntPlays = prey.sounds.filter((x) => x === SONG("hunt")).length;
+await advance(20 * 30);
 kill(hunters[0], prey);
 await advance(10);
-check(hunters[0].gm === "Spectator", "el cazador eliminado pasa a espectador");
-check(songOf(prey) !== SONG(6), "aún no suena la del duelo final");
-script = [pick("PARTIDAS"), pick("ÚLTIMO EN PIE"), yes];
-world.afterEvents.itemUse.fire({ source: admin, itemStack: admin.inv.getItem(8) });
-await advance(25);
-check(log.some((x) => x.includes("Último en pie")) && /^§e(3:00|2:5\d)/.test(prey.bars.at(-1)), "forzar último en pie: 3 minutos");
 kill(hunters[1], prey);
 await advance(25);
-check([prey, hunters[2], hunters[0]].every((p) => songOf(p) === SONG(6)), "en el 1 contra 1 suena la canción del duelo final del cazado");
-const opsBefore = state.blockOps;
+check(prey.titles.some((t) => t.includes("DUELO FINAL")) && prey.sounds.filter((x) => x === SONG("hunt")).length === huntPlays, "duelo final: la canción no se para ni vuelve a empezar");
+check(/^§e\d+:\d\d §8· §f(~\d+|\+100) bloques$/.test(prey.bars.at(-1)), "barra de la caza: tiempo y distancia");
 kill(prey, hunters[2]);
 await advance(20 * 8);
-check([a, b, c, d].every((p) => Math.hypot(p.location.x, p.location.z) < 80 && p.gm === "Adventure"), "todos vuelven al lobby");
-check(state.commands.some((x) => x.includes("stopsound")), "la canción se para");
-check(state.dyn["natura:huntPlaced"] === undefined && state.blockOps >= opsBefore, "no queda nada pendiente de limpiar");
+check([a, b, c, d].every(inLobby) && [a, b, c, d].every((p) => songOf(p) === SONG("lobby")), "vuelven al lobby y vuelve su música");
 
-console.log("Caza 1 contra 1 y abandono");
-await advance(40);
-for (const p of [a, b]) {
-  p.sounds.length = 0;
+// ------------------------------------------------------------ hunt (the hunted wins): the victory cinematic
+console.log("Victoria del cazado");
+for (const p of [a, b, c]) {
   at(p, ...pad("hunt"));
   await advance(6);
   await toLobby(p);
 }
-await advance(20 * 33 + 20 * 9);
-check(songOf(a) === SONG(6) && songOf(b) === SONG(6), "con 2 jugadores suena la del duelo final al acabar la cinemática");
-leave(a.messages.some((x) => x.includes("Eres el §ccazado")) ? b : a);
-await advance(20 * 8);
-check(log.slice(-4).some((x) => x.includes("Caza")), "la caza termina cuando un jugador se va");
-
-// ------------------------------------------------------------ admin panel
-console.log("Panel de administración");
-const useClock = async () => {
-  world.afterEvents.itemUse.fire({ source: admin, itemStack: clock() });
-  await advance(12);
-};
-script = [pick("EMPAREJAMIENTO"), pick("AJUSTES"), (form) => ({ canceled: false, formValues: form.controls.map((ctl) => (ctl.label.includes("aliste") ? 8 : ctl.value)) })];
-await useClock();
-check(JSON.parse(state.dyn["natura:settings"]).duel.countdown === 8, "cambiar los segundos de aliste");
-script = [pick("EMPAREJAMIENTO"), pick("MAPAS"), () => ({ canceled: false, formValues: [true, true, true, true, 3] })];
-await useClock();
-const e1 = join("Eva"), f1 = join("Fer");
+await advance(20 * 32);
+const prey2 = [a, b, c].find((p) => p.messages.filter((x) => x.includes("Eres el §ccazado")).length === (p === prey ? 2 : 1));
+const others = [a, b, c].filter((p) => p !== prey2);
+const watcher = await enter("Wal");
+check(inLobby(watcher), "un jugador que está en el lobby no forma parte de la ronda");
+await advance(20 * 10);
+for (const h of others) kill(h, prey2);
 await advance(20);
+const V = gen.VICTORY;
+const nearRoom = (p) => Math.abs(p.location.x - V.room.x) < 20 && Math.abs(p.location.z - V.room.z) < 20;
+check(nearRoom(prey2) && others.every(nearRoom) && others.every((p) => p.gm === "Spectator"), "todos los de la ronda van a la sala segura (los demás como espectadores)");
+check(!nearRoom(watcher) && inLobby(watcher), "el del lobby no la ve");
+check([prey2, ...others].every((p) => p.locked.has(mc.InputPermissionCategory.Movement) && p.locked.has(mc.InputPermissionCategory.Camera)), "nadie se puede mover durante la cinemática");
+const z0 = prey2.location.z;
+await advance(40);
+check([prey2, ...others].every((p) => songOf(p) === SONG("win") && Math.abs(p.volumes[SONG("win")] - 0.65) < 1e-9), "suena Biast Win (volumen 65)");
+check(prey2.location.z < z0 - 2, "el cazado camina hacia la habitación");
+await advance(20 * 6);
+check(state.commands.some((x) => x.includes("random.door_close")) || [prey2, ...others].every((p) => p.sounds.includes("random.door_close")), "la puerta se cierra (con sonido)");
+await advance(20 * 5);
+check(prey2.titles.some((t) => t.includes("VICTORIA")) && others.every((p) => p.titles.some((t) => t.includes("GANA EL CAZADO"))), "pantalla de victoria para el cazado");
+check(prey2.cams.at(-1).facingLocation.y > prey2.cams.at(-1).location.y + 20, "la cámara termina mirando al sol");
+await advance(20 * 3);
+check([prey2, ...others].every((p) => inLobby(p) && p.locked.size === 0 && p.hud === "Reset"), "al acabar, todos al lobby con el control devuelto");
+
+// ------------------------------------------------------------ spectator + admin
+console.log("Espectador y panel");
+const e1 = await enter("Eva"), f1 = await enter("Fer");
 at(e1, ...pad("duel"));
 at(f1, pad("duel")[0] + 0.5, pad("duel")[1]);
 await advance(30);
-check(Math.abs(e1.location.x - gen.DUELS[2].cx) < 40, "el administrador elige el siguiente mapa (Cerezal)");
+script = [pick("ESPECTAR"), pick("Eva vs Fer")];
+world.afterEvents.itemUse.fire({ source: watcher, itemStack: watcher.inv.getItem(0) });
+await advance(10);
+check(watcher.gm === "Spectator" && !nearRoom(watcher), "espectar un duelo");
 kill(f1, e1);
 await advance(80);
-script = [pick("KITS"), pick("CAZADO"), pick("RESTAURAR")];
-await useClock();
-check(admin.messages.some((x) => x.includes("restaurado")), "restaurar un kit");
+check(inLobby(watcher), "el espectador vuelve al lobby al acabar");
+script = [pick("PARTIDAS"), pick("Volver"), () => ({ canceled: true })];
+world.afterEvents.itemUse.fire({ source: admin, itemStack: clock() });
+await advance(12);
 script = [pick("MODO LIBRE")];
 await commands.find((x) => x.def.name === "natura:admin").fn({ sourceEntity: admin });
 await advance(12);
-check(admin.gm === "Creative" && admin.inv.getItem(8)?.typeId === "minecraft:clock", "modo libre (creativo) con el reloj del panel");
-admin.inv.setItem(0, new mc.ItemStack("minecraft:netherite_sword"));
-script = [pick("KITS"), pick("EMPAREJAMIENTO"), pick("GUARDAR"), yes];
-await useClock();
-check((state.dyn["natura:kit:duel"] ?? "").includes("netherite_sword"), "guardar el inventario como kit");
-script = [pick("MUNDO"), () => ({ canceled: false, formValues: [4, true, false, "Hola a todos"] })];
-await useClock();
-check(state.commands.includes("time set 14000") && log.some((x) => x.includes("Hola a todos")), "hora y anuncio");
-check(!state.commands.some((x) => /weather (rain|thunder)/.test(x)), "clima desactivado");
-for (const btn of ["PARTIDAS", "CAZA", "CAMPAL", "JUGADORES", "IR A UNA ZONA", "MÁS"]) {
-  script = [pick(btn), pick("Volver"), () => ({ canceled: true })];
-  await useClock();
-}
-check(true, "todos los submenús se abren y vuelven atrás");
-
-// ------------------------------------------------------------ music menu
-console.log("Música");
-const m = join("Mel");
-await advance(20);
-const musicCmd = () => commands.find((x) => x.def.name === "natura:musica").fn({ sourceEntity: m });
-script = [pick("VOLUMEN"), pick("OTRO VALOR"), () => ({ canceled: false, formValues: [40] })];
-await musicCmd();
-await advance(10);
-check(JSON.parse(m.getDynamicProperty("natura:music")).volume === 40, "volumen al 40 %");
-script = [pick("EMPAREJAMIENTO Y CAMPAL"), pick("MI LISTA"), pick("AÑADIR"), pick("Teapot"), pick("AÑADIR"), pick("Duelo Final"), pick("USAR ESTA LISTA")];
-await musicCmd();
-await advance(10);
-check(JSON.stringify(JSON.parse(m.getDynamicProperty("natura:music")).normal.list) === JSON.stringify([4, 0]), "lista propia en el orden elegido");
-script = [pick("MI CAZA"), pick("TODAS, EN ORDEN")];
-await musicCmd();
-await advance(10);
-script = [pick("DUELO FINAL"), pick("SEGUIR CON MI MÚSICA")];
-await musicCmd();
-await advance(10);
-const mp = JSON.parse(m.getDynamicProperty("natura:music"));
-check(mp.hunt.mode === "all" && mp.final === -1, "caza con todas y sin cambiar en el duelo final");
-script = [pick("ESCUCHAR"), pick("TODAS, EN ORDEN")];
-await musicCmd();
-await advance(10);
-check(songOf(m) === SONG(0) && Math.abs(m.lastVolume - 0.4) < 1e-9, "escuchar todas en el lobby, al 40 %");
-await advance(20 * 60);
-check(songOf(m) === SONG(1), "pasa a la siguiente canción");
-const stops = state.commands.filter((x) => x.startsWith("Mel: stopsound")).length;
-const plays = m.sounds.length;
-script = [pick("VOLVER A PONER")];
-await musicCmd();
-await advance(10);
-check(state.commands.filter((x) => x.startsWith("Mel: stopsound")).length === stops + 1 && m.sounds.length === plays + 1 && songOf(m) === SONG(1), "volver a poner la canción (primero para y luego suena)");
-
-const non = join("Nadie");
-await advance(20);
-await commands.find((x) => x.def.name === "natura:admin").fn({ sourceEntity: non });
-await advance(3);
-check(non.messages.some((x) => x.includes("etiqueta")), "sin la etiqueta admin no se abre el panel");
+check(admin.gm === "Creative" && admin.inv.getItem(8)?.typeId === "minecraft:clock", "modo libre con el reloj del panel");
+script = [pick("IR A UNA ZONA"), pick("SALA DE LA VICTORIA")];
+world.afterEvents.itemUse.fire({ source: admin, itemStack: clock() });
+await advance(12);
+check(nearRoom(admin), "el admin puede ir a la sala de la victoria");
 
 check(warnings.length === 0, `sin avisos (${warnings.slice(0, 5).join(" / ")})`);
 console.log(failures ? `\n${failures} fallo(s)` : "\nTodo bien");

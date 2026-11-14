@@ -81,6 +81,7 @@ export const CommandPermissionLevel = enumOf("Any", "GameDirectors", "Admin");
 export const CustomCommandParamType = enumOf("PlayerSelector", "String", "Integer");
 export const HudVisibility = enumOf("Hide", "Reset");
 export const EasingType = enumOf("InOutSine", "Linear");
+export const InputPermissionCategory = { Camera: 1, Movement: 2, LateralMovement: 4, Sneak: 5, Jump: 6, Mount: 7, Dismount: 8 };
 
 export class BlockPermutation {
   static resolve(id, states) {
@@ -221,6 +222,10 @@ export class Player extends Entity {
     this.titles = [];
     this.cams = [];
     this.isSneaking = false;
+    this.locked = new Set();
+    this.inputPermissions = {
+      setPermissionCategory: (c, enabled) => (enabled ? self.locked.delete(c) : self.locked.add(c)),
+    };
     this.camClears = 0;
     this.hud = "Reset";
     this.bars = [];
@@ -284,6 +289,7 @@ export class Player extends Entity {
   playSound(id, o) {
     this.sounds.push(id);
     this.lastVolume = o?.volume;
+    this.volumes = { ...(this.volumes ?? {}), [id]: o?.volume };
   }
   runCommand(c) {
     state.commands.push(`${this.name}: ${c}`);
@@ -353,6 +359,7 @@ export const world = {
     else state.dyn[k] = v;
   },
   setDefaultSpawnLocation() {},
+  getTimeOfDay: () => 6000,
   scoreboard: {
     getObjective: (id) => objectives.get(id),
     addObjective: (id) => {

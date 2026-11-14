@@ -113,6 +113,12 @@ export const PALETTE = {
   mplanks: { id: "minecraft:mangrove_planks|minecraft:oak_planks" },
   mfence: { id: "minecraft:mangrove_fence|minecraft:oak_fence" },
   stairsBrick: { id: "minecraft:stone_bricks" },
+  yellowC: { id: "minecraft:yellow_concrete|minecraft:gold_block" },
+  blackC: { id: "minecraft:black_concrete|minecraft:coal_block" },
+  glass: { id: "minecraft:glass" },
+  bookshelf: { id: "minecraft:bookshelf" },
+  redCarpet: { id: "minecraft:red_carpet|minecraft:moss_carpet" },
+  crafting: { id: "minecraft:crafting_table" },
 };
 
 // ------------------------------------------------------------ noise

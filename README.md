@@ -7,7 +7,7 @@
 | **Ruleta de Colores** – ruleta en el HUD con comandos de administrador | [`dist/Roulette.mcaddon`](dist/Roulette.mcaddon) | `tools/roulette.py` |
 | **Objetos de Ayuda** – 4 objetos especiales que ayudan al jugador | [`dist/HelperItems.mcaddon`](dist/HelperItems.mcaddon) | `tools/helper_items.py` |
 | **The LITIUS Blind** – nueva dimensión de islas flotantes | [`dist/LitiusBlind.mcaddon`](dist/LitiusBlind.mcaddon) | `tools/litius_blind.py` |
-| **Natura PvP** – mapa PvP automatizado (Emparejamiento, Caza, Campal y parkour) | [`dist/NaturaPvP.mcworld`](dist/NaturaPvP.mcworld) (mundo) · [`dist/NaturaPvP_Aternos.zip`](dist/NaturaPvP_Aternos.zip) (servidor) · [`dist/NaturaPvP.mcaddon`](dist/NaturaPvP.mcaddon) | `tools/natura_pvp.py` |
+| **Natura PvP** – mapa PvP automatizado (Emparejamiento, Caza y Campal) | [`dist/NaturaPvP.mcworld`](dist/NaturaPvP.mcworld) (mundo) · [`dist/NaturaPvP_Aternos.zip`](dist/NaturaPvP_Aternos.zip) (servidor) · [`dist/NaturaPvP.mcaddon`](dist/NaturaPvP.mcaddon) | `tools/natura_pvp.py` |
 
 Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo. No hace falta activar experimentos
 (salvo en The LITIUS Blind, ver abajo).
@@ -24,7 +24,7 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 
 ![El lobby: el Árbol del Mundo](docs/natura_pvp_lobby.png)
 
-Un **mapa PvP automatizado** ambientado en la naturaleza: un lobby colosal con parkour, tres modos con varios
+Un **mapa PvP automatizado** ambientado en la naturaleza: un lobby colosal, tres modos con varios
 mapas y modo espectador. El lobby y todas las arenas están rodeados de **murallas colosales**, así que aunque
 tengas la distancia de renderizado al máximo no se ve nada de fuera. Todo lo demás del mundo está **completamente vacío**. El mapa **viene ya construido** dentro del mundo:
 se abre y se juega, sin esperar.
@@ -34,7 +34,7 @@ importa como un mundo nuevo con los packs ya activados.
 
 ### En un servidor (Aternos)
 Usa `dist/NaturaPvP_Aternos.zip`: es el mismo mundo dentro de una carpeta `NaturaPvP/`, con los packs ya puestos y
-el pack de recursos **obligatorio** al entrar (así todos descargan las canciones; son unos 14 MB la primera vez).
+el pack de recursos **obligatorio** al entrar (así todos descargan las canciones).
 
 1. Crea un servidor de **Bedrock** en Aternos con la versión más reciente.
 2. En **Mundos**, pulsa **Subir** y elige `NaturaPvP_Aternos.zip`. Cuando termine, selecciona el mundo *NaturaPvP*.
@@ -67,15 +67,17 @@ la base) y ~100 de alto, raíces gigantes por las que se puede caminar, ramas qu
 cortinas de hojas, un anillo de **pilares antiguos** de hasta 55 bloques y una plaza alrededor del tronco. Apareces
 en la plaza, mirando hacia arriba al árbol.
 
+- **Vista épica al entrar:** cada vez que entras al mundo, la cámara se queda quieta en un ángulo bonito del lobby
+  (con un fundido). En la barra de acción sale el aviso: *muévete un bloque hacia delante para entrar al lobby*. Al
+  moverte, otro fundido y ya estás en el lobby.
+
 - **Tres puertas de piedra de 40 bloques** de alto, una por modo, con su plataforma debajo: al pisarla entras
   (diamante = Emparejamiento al norte, redstone = Caza al oeste, esmeralda = Campal al este). Encima de cada una
   hay un texto con la cola y el **top 3**.
-- **Parkour dentro del árbol:** el tronco está hueco. Entras por la puerta que hay delante del spawn, pisas el
-  **bloque azul** y subes saltando en espiral por las plataformas del interior (iluminado con luces en la madera)
-  hasta el **bloque de oro**, a 46 bloques de altura (56 saltos). **No hay puntos de control:** si caes, vuelves a
-  empezar desde abajo. Tiene cronómetro y los mejores tiempos salen en un texto junto a la salida. Puedes estar en
-  la cola de un modo mientras lo haces.
-- **Brújula** (*Menú de Natura PvP*): los tres modos (o salir de la cola), **espectar**, el parkour, la música y
+- **Sala de apuestas** (en mantenimiento): dentro del tronco hay una sala para hacer apuestas amigables entre
+  jugadores. Por ahora está **cerrada**: su puerta, delante del spawn, está tapada con bloques **amarillos y
+  negros** en diagonal y encima pone *Sala de apuestas (mantenimiento)*.
+- **Brújula** (*Menú de Natura PvP*): los tres modos (o salir de la cola), **espectar**, la sala de apuestas y
   las estadísticas y el ranking. En el lobby no se recibe daño ni se pasa hambre.
 
 ### Modo espectador
@@ -119,20 +121,26 @@ al lobby. Los cazadores eliminados también miran la caza así.
   cazador extra. Con 3 añade Aspecto ígneo, Infinidad y **velocidad**; con 4, Retroceso, Fuego, Golpe, una
   manzana de Notch y **vida extra**.
 - **Kits** (ninguno lleva utilidades de construcción):
-  - **Cazado:** hierro encantado, espada, hacha, arco, ballesta con Carga rápida, **8 manzanas doradas**, **9 perlas
-    de ender**, **pociones arrojadizas** (3 de curación II, 2 de velocidad II, y para lanzar a los cazadores 2 de
+  - **Cazado:** hierro encantado, **un tótem de la inmortalidad** (en lugar del escudo), espada, hacha, arco,
+    ballesta con Carga rápida, **8 manzanas doradas**, **6 perlas de ender**, **pociones arrojadizas** (3 de curación II, 2 de velocidad II, y para lanzar a los cazadores 2 de
     lentitud, 1 de debilidad y 1 de veneno), 16 bolas de nieve, caña de pescar y zanahorias doradas.
-  - **Cazadores:** diamante, espada, arco, **8 manzanas doradas**, **6 perlas de ender** y caña de pescar.
+  - **Cazadores:** diamante, escudo, espada, arco, **8 manzanas doradas**, **6 perlas de ender**, caña de pescar y
+    utilidades para perseguir: **catalejo**, **8 cargas de viento** y pociones arrojadizas (2 de velocidad II, 1 de
+    curación II y 2 de lentitud para lanzar al cazado).
 - El cazado tiene **20 s de ventaja** (después de la cinemática): los cazadores esperan ciegos y quietos. Cada
   60 s los cazadores reciben su posición. Dura 10 minutos: si el cazado sobrevive, gana él.
 - **Barra de acción:** solo el **tiempo** que queda y una **distancia**: los cazadores ven a cuánto está el cazado;
   el cazado, a cuánto está el cazador más cercano.
 - No hay fuego amigo entre cazadores. Los eliminados pasan a espectadores. Si alguien sale del mundo cuenta como
   eliminado.
-- **Música de la caza:** suena la música que eligió **el cazado**, para todos los de la caza (también los
-  espectadores). Cuando solo quedan **el cazado y un cazador** (aunque antes hubiera más, o si la caza empezó
-  1 contra 1) llega el **duelo final**, con la canción del duelo final que eligió el cazado (por defecto
-  *Duelo Final*) o, si así lo eligió, sigue su música.
+- **Música:** durante toda la caza suena *Find Your Flame* (también para los espectadores). Cuando solo quedan **el
+  cazado y un cazador** llega el **duelo final**: la canción sigue sonando, sin pararse ni volver a empezar.
+- **Si gana el cazado: cinemática de victoria.** La ven todos los que siguen en esa ronda (no los que se fueron ni
+  los que ya están en el lobby), y nadie se puede mover, saltar, agacharse ni girar la cámara mientras dura. El
+  cazado aparece en un camino, **entra en una habitación segura** (una casita en una isla apartada), se mira la
+  mano, **se da la vuelta y ve cerrarse la puerta** por la que entró, **mira al suelo** pensando, y la **cámara sube
+  por el tragaluz hasta el sol**. Suena *Biast Win* (volumen 65) y al cazado le sale la pantalla de **¡VICTORIA!**.
+  Luego todos vuelven al lobby.
 - **Forzar último en pie** (panel de admin): los cazadores pasan a tener solo **3 minutos** (configurable) para
   atrapar al cazado. Si no lo consiguen, gana el cazado. La posición del cazado se revela cada 30 s.
 
@@ -155,36 +163,19 @@ Arena **siempre abierta** (un solo mapa, sin cinemática): entras cuando quieras
 - La **lanza** existe desde Minecraft **1.21.130**: en versiones anteriores el kit sale sin ella.
 
 ### Música
-Hay **7 canciones**. Así se llaman dentro del mundo (el ID sirve para `/playsound`):
+Cada situación tiene su canción (el ID sirve para `/playsound`):
 
-| # | Nombre en el menú | ID del sonido | Duración |
+| Canción | Cuándo suena | Volumen | ID del sonido |
 |---|---|---|---|
-| 1 | Duelo Final (original, hecha para el mapa) | `natura.song.duelo_final` | 0:58 |
-| 2 | Eternity - Eternal V4 | `natura.song.eternity_eternal_v4` | 2:17 |
-| 3 | Find Your Flame | `natura.song.find_your_flame` | 5:17 |
-| 4 | In Your Dreams | `natura.song.in_your_dreams` | 4:26 |
-| 5 | Teapot Palace Tour | `natura.song.teapot_palace_tour` | 1:14 |
-| 6 | The Sol Still Burns | `natura.song.the_sol_still_burns` | 3:00 |
-| 7 | Wilted Blossom | `natura.song.wilted_blossom` | 3:15 |
+| Your New Forever | siempre en el **lobby**, en bucle | 45 % | `natura.song.your_new_forever` |
+| Find Your Flame | toda la **caza**, también el duelo final (no se para ni vuelve a empezar) | 80 % | `natura.song.find_your_flame` |
+| Biast Win | la **victoria del cazado** (cinemática) | 65 % | `natura.song.biast_win` |
 
-Todas suenan **en bucle**: cuando una se acaba, empieza la siguiente de tu lista (o la misma si elegiste una
-sola). Se abre con la brújula (**Música**) o con `/natura:musica`:
+En Emparejamiento y Campal no suena música. Las canciones son estéreo, así que se oyen igual en todo el mapa, y van
+con el control de volumen de **Tocadiscos y bloques musicales** de los ajustes de sonido del juego.
 
-- **Emparejamiento y Campal:** la música que oyes **tú solo** cada vez que entras a uno de esos modos.
-- **Mi caza:** la música que oirán **todos los de la caza** cuando tú seas el cazado.
-- **Duelo final de mi caza:** la canción del 1 contra 1 final (o *Seguir con mi música*).
-- En los dos primeros eliges: **una sola canción** (en bucle), **mi lista** (añades canciones una a una en el orden
-  que quieras; se pueden repetir), **todas en orden**, **todas al azar** o **sin música**.
-- **Volumen:** 100, 75, 50, 25 %, otro valor o silencio, para cada jugador.
-- **Escuchar canciones:** en el lobby puedes poner una canción, todas en orden o todas al azar, y pararla.
-- **Volver a poner la canción:** si alguna vez no se oye, la vuelve a empezar.
-
-Todo se guarda para cada jugador. Las canciones son estéreo, así que se oyen igual en todo el mapa, y van con
-el control de volumen de **Tocadiscos y bloques musicales** de los ajustes de sonido del juego.
-
-**Añadir canciones:** pon el archivo (`.ogg`, `.mp3`, `.wav`, `.m4a`...) en `tools/natura_pvp/canciones/` y ejecuta
-`python3 tools/natura_pvp.py`. La canción se convierte a `.ogg` con el mismo volumen que las demás y se añade al
-final de `canciones.json`, donde puedes cambiarle el nombre o el orden.
+**Cambiar las canciones:** están en `tools/natura_pvp/canciones/`; en `canciones.json` cada una tiene su uso
+(`lobby`, `hunt` o `win`) y su volumen. Ejecuta `python3 tools/natura_pvp.py` después de cambiarlas.
 
 ### Administradores (etiqueta `admin`)
 Quien tenga la etiqueta `admin` (`/tag <jugador> add admin`, o `/natura:hacer_admin <jugador>` siendo operador)
@@ -201,13 +192,12 @@ recibe un **reloj** (*Panel de administración*) en el lobby y en el **modo libr
 | Jugadores | enviar al lobby o sacar de la partida, dar/quitar admin, curar, ver o reiniciar estadísticas, ir hacia él, elegirlo como próximo cazado |
 | Mundo | hora (amanecer, mañana, mediodía, atardecer, noche, medianoche), congelar la hora, regeneración natural, **anuncio** con título para todos |
 | Modo libre | creativo y sin límites, **con el reloj del panel a mano** |
-| Ir a una zona | lobby, meta del parkour, cada mapa |
+| Ir a una zona | lobby, sala de la victoria, cada mapa |
 | Más | reconstruir una zona, reiniciar estadísticas, ajustes por defecto |
 
 Los ajustes, kits y estadísticas se guardan en el mundo.
 
-**Comandos:** `/natura:menu` (menú), `/natura:musica` (música y volumen), `/natura:lobby` (volver al lobby, salir
-de la cola o del parkour, o dejar de espectar), `/natura:admin` (panel, con la etiqueta),
+**Comandos:** `/natura:menu` (menú), `/natura:lobby` (volver al lobby, salir de la cola o dejar de espectar), `/natura:admin` (panel, con la etiqueta),
 `/natura:hacer_admin` y `/natura:quitar_admin` (operadores).
 
 **Notas**
@@ -222,11 +212,11 @@ de la cola o del parkour, o dejar de espectar), `/natura:admin` (panel, con la e
   datos, con los bloques de la versión 1.21.100 (las versiones nuevas del juego los actualizan solas). Si los
   packs se ponen en otro mundo (el `.mcaddon`) o en un mundo de una versión anterior del mapa, el script
   construye el mapa la primera vez (unos minutos) y avisa en el chat.
-- Generador: `python3 tools/natura_pvp.py` (`--preview` actualiza las imágenes y `--music` vuelve a generar
-  *Duelo Final*). Los mapas están en `tools/natura_pvp/gen/`; `world.py` escribe el mundo prebuilt.
-  `node tools/natura_pvp/smoke/run.mjs` prueba los scripts con un juego simulado (con `--build`, también la
-  construcción por el script): mapas, cinemáticas, parkour, espectador, duelos, campal, caza, kits, música,
-  último en pie y panel.
+- Generador: `python3 tools/natura_pvp.py` (`--preview` actualiza las imágenes). Los mapas están en
+  `tools/natura_pvp/gen/`; `world.py` escribe el mundo prebuilt y `update_block_states.py` actualiza los bloques
+  desde minecraft-data. `node tools/natura_pvp/smoke/run.mjs` prueba los scripts con un juego simulado (con
+  `--build`, también la construcción por el script): vista épica, mapas, cinemáticas, victoria del cazado,
+  espectador, duelos, campal, caza, kits, música y panel.
 
 ---
 

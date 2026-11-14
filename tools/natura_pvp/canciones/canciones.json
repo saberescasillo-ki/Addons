@@ -1,37 +1,23 @@
 [
   {
-    "file": "duelo_final.ogg",
-    "name": "Duelo Final",
-    "seconds": 58.18
-  },
-  {
-    "file": "eternity_eternal_v4.ogg",
-    "name": "Eternity - Eternal V4",
-    "seconds": 137.3
+    "file": "your_new_forever.ogg",
+    "name": "Your New Forever",
+    "use": "lobby",
+    "volume": 0.45,
+    "seconds": 121.6
   },
   {
     "file": "find_your_flame.ogg",
     "name": "Find Your Flame",
+    "use": "hunt",
+    "volume": 0.8,
     "seconds": 317.0
   },
   {
-    "file": "in_your_dreams.ogg",
-    "name": "In Your Dreams",
-    "seconds": 266.7
-  },
-  {
-    "file": "teapot_palace_tour.ogg",
-    "name": "Teapot Palace Tour",
-    "seconds": 74.6
-  },
-  {
-    "file": "the_sol_still_burns.ogg",
-    "name": "The Sol Still Burns",
-    "seconds": 180.9
-  },
-  {
-    "file": "wilted_blossom.ogg",
-    "name": "Wilted Blossom",
-    "seconds": 195.0
+    "file": "biast_win.ogg",
+    "name": "Biast Win",
+    "use": "win",
+    "volume": 0.65,
+    "seconds": 15.0
   }
 ]
