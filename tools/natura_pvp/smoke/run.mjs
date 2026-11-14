@@ -66,13 +66,19 @@ const enter = async (name) => {
 const isPrey = (p) => p.messages.some((x) => x.includes("Eres el §ccazado"));
 // gives the hunt of the part before time to end
 const huntIdle = () => advance(40);
-const joinHunt = async (players) => {
+// kind: the button of the hunt pad ("1 CONTRA TODOS" or "2 CONTRA TODOS")
+const joinHunt = async (players, kind = "1 CONTRA TODOS") => {
   for (const p of players) {
+    script = [pick(kind)];
     at(p, ...pad("hunt"));
     await advance(6);
     await toLobby(p);
   }
   await advance(20 * 32);
+};
+const timeOf = (p) => {
+  const m = p.bars.at(-1)?.match(/^§e(\d+):(\d\d)/);
+  return m ? Number(m[1]) * 60 + Number(m[2]) : -1;
 };
 
 await import(pathToFileURL(pjoin(tmp, "scripts", "main.js")).href);
@@ -118,6 +124,7 @@ const PARTS = {
     check(state.commands.includes("gamerule sendcommandfeedback false") && state.commands.includes("gamerule commandblockoutput false"), "sin avisos de comandos");
     const p = join(`Nuevo${++n}`);
     await advance(20);
+    check(!songOf(p), "al entrar la canción espera a que el juego haya cargado");
     check(p.cams.some((c) => c.location.x === -58 && c.location.y === 146) && p.bars.some((b) => b.includes("un bloque hacia delante")), "al entrar, cámara quieta en el lobby y aviso en la barra de acción");
     const clears = p.camClears;
     at(p, p.location.x, p.location.z - 0.5, p.location.y);
@@ -127,6 +134,9 @@ const PARTS = {
     await advance(12);
     check(p.camClears > clears, "al moverse un bloque, fundido y entra al lobby");
     check(songOf(p) === SONG("lobby") && Math.abs(p.volumes[SONG("lobby")] - 0.45) < 1e-9, "en el lobby suena Your New Forever (volumen 45)");
+    const q = join(`Quieto${++n}`);
+    await advance(20 * 6);
+    check(songOf(q) === SONG("lobby"), "sin moverse, la canción del lobby empieza a los 5 s");
     check(state.entities.filter((e) => e.typeId === "natura:text").length === 5, "5 textos en el lobby");
     check(p.inv.getItem(0)?.typeId === "minecraft:compass" && admin.inv.getItem(8)?.typeId === "minecraft:clock", "brújula, y reloj para el admin");
   },
@@ -169,7 +179,7 @@ const PARTS = {
     at(a, ...pad("campal"));
     await advance(10);
     check(a.location.x > 250, "entra al campal");
-    check(a.inv.getItem(1)?.typeId === "minecraft:mace" && a.inv.getItem(2)?.typeId === "minecraft:diamond_spear" && a.inv.getItem(3)?.amount === 16, "mazo, lanza y 16 cargas de viento");
+    check(a.inv.getItem(1)?.typeId === "minecraft:mace" && a.inv.getItem(2)?.typeId === "minecraft:diamond_spear" && a.inv.getItem(3)?.amount === 32, "mazo, lanza y 32 cargas de viento");
     check(["slot.inventory 1 splash_potion 1 22", "slot.inventory 2 splash_potion 1 31", "slot.inventory 3 splash_potion 1 16"].every((c) => state.commands.includes(`${a.name}: replaceitem entity @s ${c}`)), "3 pociones");
     world.afterEvents.itemUse.fire({ source: a, itemStack: a.inv.getItem(8) });
     await advance(10);
@@ -189,21 +199,112 @@ const PARTS = {
     check(prey.inv.getItem(3)?.amount === 8, `perlas del cazado: 6 (+1 por cazador extra) = ${prey.inv.getItem(3)?.amount}`);
     check(hunters.every((p) => p.inv.getItem(4)?.typeId === "minecraft:spyglass" && p.inv.getItem(5)?.typeId === "minecraft:wind_charge"), "cazadores: catalejo y cargas de viento");
     check(hunters.every((p) => ["slot.inventory 1 splash_potion 2 16", "slot.inventory 2 splash_potion 1 22", "slot.inventory 3 splash_potion 2 17"].every((x) => state.commands.includes(`${p.name}: replaceitem entity @s ${x}`))), "cazadores: pociones arrojadizas");
-    check(ps.every((p) => songOf(p) === SONG("hunt")), "suena Find Your Flame");
+    check(ps.every((p) => songOf(p) === SONG("hunt") && Math.abs(p.volumes[SONG("hunt")] - 0.45) < 1e-9), "suena Find Your Flame (volumen 45)");
     const plays = prey.sounds.filter((x) => x === SONG("hunt")).length;
     await advance(20 * 30);
+    check(timeOf(prey) > 240 && timeOf(prey) < 300, `la caza dura 5 minutos (quedan ${prey.bars.at(-1)})`);
     kill(hunters[0], prey);
     await advance(10);
     kill(hunters[1], prey);
     await advance(25);
     check(prey.titles.some((t) => t.includes("DUELO FINAL")) && prey.sounds.filter((x) => x === SONG("hunt")).length === plays, "duelo final: la canción no se para ni vuelve a empezar");
+    check(timeOf(prey) >= 148 && timeOf(prey) <= 150, `queda un cazador: el tiempo pasa a 2:30 (${prey.bars.at(-1)})`);
     check(/^§e\d+:\d\d §8· §f(~\d+|\+100) bloques$/.test(prey.bars.at(-1)), "barra de la caza: tiempo y distancia");
     await useClock([pick("PARTIDAS"), pick("ÚLTIMO EN PIE"), yes]);
     await advance(20);
-    check(log.some((x) => x.includes("Último en pie")) && /^§e(3:00|2:5\d)/.test(prey.bars.at(-1)), "forzar último en pie: 3 minutos");
+    check(log.some((x) => x.includes("Último en pie")) && timeOf(prey) > 100 && timeOf(prey) <= 150, "forzar último en pie (no alarga el duelo final)");
     kill(prey, hunters[2]);
     await advance(20 * 8);
     check(ps.every(inLobby) && ps.every((p) => songOf(p) === SONG("lobby")), "vuelven al lobby y vuelve su música");
+  },
+
+  // ---------------------------------------------------------- Caza: 2 contra todos
+  async caza2() {
+    await huntIdle();
+    const ps = [await enter("Da"), await enter("Db"), await enter("Dc"), await enter("Dd"), await enter("De")];
+    await joinHunt(ps, "2 CONTRA TODOS");
+    const m = huntOf(ps[0]);
+    check(m >= 0 && ps.every((p) => huntOf(p) === m), "empieza la caza de 2 contra todos");
+    const preys = ps.filter(isPrey);
+    const hunters = ps.filter((p) => !isPrey(p));
+    check(preys.length === 2 && preys.every((p) => p.messages.some((x) => x.includes("Vas en equipo"))), "hay 2 cazados, en equipo");
+    check(preys.every((p) => p.inv.getItem(3)?.amount === 7), `kit según los cazadores de cada uno (3 / 2 → 2): perlas ${preys[0].inv.getItem(3)?.amount}`);
+    await advance(20 * 30);
+    kill(preys[0], hunters[0]);
+    await advance(10);
+    check(preys[1].titles.some((t) => t.includes("ESTÁS SOLO")) && huntOf(preys[1]) === m, "cae un cazado: la caza sigue con el otro");
+    kill(hunters[0], preys[1]);
+    await advance(10);
+    kill(hunters[1], preys[1]);
+    await advance(25);
+    check(preys[1].titles.some((t) => t.includes("DUELO FINAL")) && timeOf(preys[1]) >= 148 && timeOf(preys[1]) <= 150, "último cazador: duelo final y 2:30");
+    kill(preys[1], hunters[2]);
+    await advance(20 * 8);
+    check(ps.every(inLobby) && log.some((x) => x.includes("atraparon a")), "los cazadores ganan y todos vuelven al lobby");
+  },
+
+  // ---------------------------------------------------------- the options of every player
+  async opciones() {
+    const p = await enter("Opi");
+    const lobbyAt = TRACKS.findIndex((t) => t.use === "lobby");
+    const vals = (form, lobby, epic) => ({
+      canceled: false,
+      formValues: form.controls.map((c, i) => (c.label.includes("Vista épica") ? epic : Math.floor(i / 2) === lobbyAt ? (i % 2 ? lobby[1] : lobby[0]) : c.value)),
+    });
+    script = [pick("OPCIONES"), (form) => vals(form, [false, 45], false)];
+    world.afterEvents.itemUse.fire({ source: p, itemStack: p.inv.getItem(0) });
+    await advance(12);
+    const o = JSON.parse(p.dyn?.["natura:opts"] ?? p.getDynamicProperty("natura:opts"));
+    check(o.vol.lobby === 0 && o.epic === false, "se guardan en el jugador: sin canción del lobby y sin vista épica");
+    const n0 = p.sounds.filter((x) => x === SONG("lobby")).length;
+    await advance(20 * 3);
+    check(p.sounds.filter((x) => x === SONG("lobby")).length === n0, "la canción del lobby ya no suena");
+    script = [pick("OPCIONES"), (form) => vals(form, [true, 70], true)];
+    world.afterEvents.itemUse.fire({ source: p, itemStack: p.inv.getItem(0) });
+    await advance(12);
+    check(songOf(p) === SONG("lobby") && Math.abs(p.volumes[SONG("lobby")] - 0.7) < 1e-9, "otra vez activada, con su volumen (70)");
+    script = [pick("CAZA DEL JEFE")];
+    world.afterEvents.itemUse.fire({ source: p, itemStack: p.inv.getItem(0) });
+    await advance(12);
+    check(p.titles.some((t) => t.includes("CAZA DEL JEFE")) && p.messages.some((x) => x.includes("próximamente") || x.includes("pronto")), "caza del jefe: próximamente");
+  },
+
+  // ---------------------------------------------------------- the secret corridor
+  async secreto() {
+    const p = await enter("Curioso");
+    const S = L.secret, C = gen.CORRIDOR;
+    check(gen.AREA.lobby.column(S.x0, S.z0).some((x) => x[2] === "air" && x[0] < S.y), "hay un agujero en el suelo del lobby");
+    at(p, S.x0 + 0.5, S.z0 + 0.5, S.y - 2);
+    await advance(20);
+    check(Math.abs(p.location.z - C.spawn.z) < 3 && state.commands.includes(`${p.name}: fog @s push natura:corridor natura_corridor`), "te lleva al pasillo, con niebla");
+    const cut = C.spawn.z - 120;
+    check(gen.AREA.corridor.column(0, Math.floor(cut)).some((x) => x[0] === C.floor && x[1] === C.floor), "el pasillo sigue mucho más allá de lo que se ve");
+    await advance(20 * 5);
+    check(!inLobby(p), "sigue en el pasillo a los 5 s");
+    await advance(20 * 7);
+    check(inLobby(p) && state.commands.includes(`${p.name}: fog @s remove natura_corridor`) && songOf(p) === SONG("lobby"), "a los 10 s vuelve al lobby sin niebla");
+  },
+
+  // ---------------------------------------------------------- the maps
+  async mapa() {
+    const vines = (a, step = 1) => {
+      for (let x = a.x0; x <= a.x1; x += step) for (let z = a.z0; z <= a.z1; z += step) if (a.column(x, z).some((s) => s[2].startsWith("vine"))) return true;
+      return false;
+    };
+    check(gen.AREAS.filter((a) => a.id !== "lobby").every((a) => !vines(a, a.id.startsWith("hunt") ? 3 : 1)), "sin lianas en las paredes (solo en el lobby)");
+    // the lobby keeps the leaves hanging from the arches of its ring wall
+    let curtains = 0;
+    for (let a = 0; a < 360; a += 0.5) {
+      const x = Math.round(Math.cos((a * Math.PI) / 180) * 82.6), z = Math.round(Math.sin((a * Math.PI) / 180) * 82.6);
+      const col = gen.AREA.lobby.column(x, z);
+      if (col.some((s) => /L$/.test(s[2]) && s[1] > 110 && s[1] < 190)) curtains++;
+    }
+    check(curtains > 20, `el lobby conserva sus lianas (${curtains} cortinas de hojas)`);
+    const keys = new Set();
+    const a = gen.AREA.victory;
+    for (let x = a.x0; x <= a.x1; x++) for (let z = a.z0; z <= a.z1; z++) for (const s of a.column(x, z)) keys.add(s[2]);
+    check(["lilypad", "campfire", "hedge", "brick", "soulLantern", "dripstone"].every((k) => keys.has(k)), "isla de la victoria: estanque, chimenea, setos, arco y estalactitas");
+    check(gen.CORRIDOR.length >= 400 && gen.AREA.corridor, `pasillo de ${gen.CORRIDOR.length} bloques`);
   },
 
   // ---------------------------------------------------------- the victory of the hunted

@@ -109,7 +109,7 @@ export const PALETTE = {
   mud: { id: "minecraft:mud|minecraft:coarse_dirt" },
   mudbricks: { id: "minecraft:mud_bricks|minecraft:stone_bricks" },
   pmud: { id: "minecraft:packed_mud|minecraft:coarse_dirt" },
-  lily: { id: "minecraft:waterlily" },
+  lilypad: { id: "minecraft:waterlily" },
   mplanks: { id: "minecraft:mangrove_planks|minecraft:oak_planks" },
   mfence: { id: "minecraft:mangrove_fence|minecraft:oak_fence" },
   stairsBrick: { id: "minecraft:stone_bricks" },
@@ -119,6 +119,31 @@ export const PALETTE = {
   bookshelf: { id: "minecraft:bookshelf" },
   redCarpet: { id: "minecraft:red_carpet|minecraft:moss_carpet" },
   crafting: { id: "minecraft:crafting_table" },
+  // the secret corridor and the victory island
+  dtiles: { id: "minecraft:deepslate_tiles|minecraft:stone_bricks" },
+  dbricks: { id: "minecraft:deepslate_bricks|minecraft:stone_bricks" },
+  pdeep: { id: "minecraft:polished_deepslate|minecraft:stone" },
+  chdeep: { id: "minecraft:chiseled_deepslate|minecraft:chiseled_stone_bricks" },
+  cdtiles: { id: "minecraft:cracked_deepslate_tiles|minecraft:deepslate_tiles" },
+  deep: { id: "minecraft:deepslate|minecraft:stone", s: { pillar_axis: "y" } },
+  cdeep: { id: "minecraft:cobbled_deepslate|minecraft:cobblestone" },
+  pbbricks: { id: "minecraft:polished_blackstone_bricks|minecraft:stone_bricks" },
+  gilded: { id: "minecraft:gilded_blackstone|minecraft:gold_block" },
+  soulLantern: { id: "minecraft:soul_lantern|minecraft:lantern", s: { hanging: true } },
+  soulLanternF: { id: "minecraft:soul_lantern|minecraft:lantern", s: { hanging: false } },
+  chain: { id: "minecraft:chain|minecraft:iron_bars", s: { pillar_axis: "y" } },
+  qpillar: { id: "minecraft:quartz_pillar|minecraft:quartz_block", s: { pillar_axis: "y" } },
+  qblock: { id: "minecraft:quartz_block", s: { pillar_axis: "y" } },
+  vfrog: { id: "minecraft:verdant_froglight|minecraft:sea_lantern", s: { pillar_axis: "y" } },
+  pfrog: { id: "minecraft:pearlescent_froglight|minecraft:sea_lantern", s: { pillar_axis: "y" } },
+  soulSoil: { id: "minecraft:soul_soil|minecraft:soul_sand" },
+  tglass: { id: "minecraft:tinted_glass|minecraft:glass" },
+  hedge: { id: "minecraft:azalea_leaves", s: { persistent_bit: true } },
+  campfire: { id: "minecraft:campfire" },
+  brick: { id: "minecraft:brick_block|minecraft:stone_bricks" },
+  roots: { id: "minecraft:hanging_roots|minecraft:air" },
+  rdirt: { id: "minecraft:dirt_with_roots|minecraft:rooted_dirt|minecraft:dirt" },
+  dripstone: { id: "minecraft:dripstone_block|minecraft:stone" },
 };
 
 // ------------------------------------------------------------ noise
@@ -460,7 +485,7 @@ export function hangingColumn(segs, x, z, top, floor, dir, leaf = "oakL") {
 // face is an arcade of several floors, like a coliseum: deep arches between
 // pillars of logs with lights, a cornice on every floor, leaves hanging from
 // the arches, battlements and towers. `along` = position along the wall.
-export function colossalWall(segs, x, z, w, along, bottom, floor, top, thick, theme = WALL_THEMES.forest, tower = false) {
+export function colossalWall(segs, x, z, w, along, bottom, floor, top, thick, theme = WALL_THEMES.forest, tower = false, vines = false) {
   const P = 12, T = 22;
   const a = ((Math.floor(along) % P) + P) % P;
   const pillar = a <= 1;
@@ -487,7 +512,7 @@ export function colossalWall(segs, x, z, w, along, bottom, floor, top, thick, th
       const archTop = tb + 12 + Math.round(Math.sqrt(Math.max(0, 25 - dx * dx)) * 1.2);
       if (w <= 2) {
         segs.push([tb + 1, archTop, "air"]);
-        if (hash(x, z, 42 + tb) < 0.4) segs.push([archTop - 2 - Math.floor(hash(x, z, 43 + tb) * 6), archTop, hash(x, z, 44) < 0.5 ? theme.crest[0] : "azaleaL"]);
+        if (vines && hash(x, z, 42 + tb) < 0.4) segs.push([archTop - 2 - Math.floor(hash(x, z, 43 + tb) * 6), archTop, hash(x, z, 44) < 0.5 ? theme.crest[0] : "azaleaL"]);
         if (w === 1 && hash(x, z, 45 + tb) < 0.3) segs.push([tb + 1, tb + 1, theme.snow ? "snowL" : "mcarpet"]);
       } else if (w === 3) {
         // the back of the arch: darker and mossy
@@ -535,11 +560,7 @@ export function walledColumn(x, z, cfg, inner) {
     return segs;
   }
   inner(lx, lz, segs);
-  const leaf = theme.crest[0] === "cherryL" ? "cherryL" : theme.snow ? "spruceL" : "oakL";
-  if (lx === -H) hangingColumn(segs, x, z, cfg.wallTop - 1, cfg.y, "vineW", leaf);
-  else if (lx === H - 1) hangingColumn(segs, x, z, cfg.wallTop - 1, cfg.y, "vineE", leaf);
-  else if (lz === -H) hangingColumn(segs, x, z, cfg.wallTop - 1, cfg.y, "vineN", leaf);
-  else if (lz === H - 1) hangingColumn(segs, x, z, cfg.wallTop - 1, cfg.y, "vineS", leaf);
+  // (no vines nor hanging leaves: only the lobby walls have them)
   segs.push([cfg.wallTop + 1, cfg.wallTop + 1, "barrier"]);
   return segs;
 }

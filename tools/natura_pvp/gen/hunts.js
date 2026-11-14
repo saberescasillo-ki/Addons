@@ -359,7 +359,7 @@ const swamp = frame({ id: "hunt2", name: "Pantano de los Manglares", desc: "agua
       segs.push([h + 1, W, "water"]);
       used = m.index.apply(x, z, segs);
       const trunk = addTrees(gridTrees(lx, lz, 7, (cx, cz) => treeCell(m, cx, cz, 7, pickType)), lx, lz, segs);
-      if (!used && !trunk && hash(x, z, 1131) < 0.1) segs.push([W + 1, W + 1, "lily"]);
+      if (!used && !trunk && hash(x, z, 1131) < 0.1) segs.push([W + 1, W + 1, "lilypad"]);
       return segs;
     }
     const n = vnoise(lx, lz, 14, 1132);

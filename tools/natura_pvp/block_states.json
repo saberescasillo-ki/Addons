@@ -89,8 +89,34 @@
 "states": {},
 "version": 18168865
 },
+"brick_block": {
+"states": {},
+"version": 18168865
+},
 "calcite": {
 "states": {},
+"version": 18168865
+},
+"campfire": {
+"states": {
+"extinguished": [
+"byte",
+0
+],
+"minecraft:cardinal_direction": [
+"string",
+"south"
+]
+},
+"version": 18168865
+},
+"chain": {
+"states": {
+"pillar_axis": [
+"string",
+"y"
+]
+},
 "version": 18168865
 },
 "cherry_leaves": {
@@ -115,6 +141,10 @@
 },
 "version": 18168865
 },
+"chiseled_deepslate": {
+"states": {},
+"version": 18168865
+},
 "chiseled_stone_bricks": {
 "states": {},
 "version": 18168865
@@ -128,6 +158,10 @@
 "version": 18168865
 },
 "coarse_dirt": {
+"states": {},
+"version": 18168865
+},
+"cobbled_deepslate": {
 "states": {},
 "version": 18168865
 },
@@ -161,6 +195,10 @@
 "version": 18168865
 },
 "cornflower": {
+"states": {},
+"version": 18168865
+},
+"cracked_deepslate_tiles": {
 "states": {},
 "version": 18168865
 },
@@ -207,6 +245,23 @@
 },
 "version": 18168865
 },
+"deepslate": {
+"states": {
+"pillar_axis": [
+"string",
+"y"
+]
+},
+"version": 18168865
+},
+"deepslate_bricks": {
+"states": {},
+"version": 18168865
+},
+"deepslate_tiles": {
+"states": {},
+"version": 18168865
+},
 "diamond_block": {
 "states": {},
 "version": 18168865
@@ -219,11 +274,23 @@
 "states": {},
 "version": 18168865
 },
+"dirt_with_roots": {
+"states": {},
+"version": 18168865
+},
+"dripstone_block": {
+"states": {},
+"version": 18168865
+},
 "emerald_block": {
 "states": {},
 "version": 18168865
 },
 "fern": {
+"states": {},
+"version": 18168865
+},
+"gilded_blackstone": {
 "states": {},
 "version": 18168865
 },
@@ -251,6 +318,10 @@
 "states": {},
 "version": 18168865
 },
+"hanging_roots": {
+"states": {},
+"version": 18168865
+},
 "hay_block": {
 "states": {
 "deprecated": [
@@ -265,6 +336,10 @@
 "version": 18168865
 },
 "ice": {
+"states": {},
+"version": 18168865
+},
+"iron_bars": {
 "states": {},
 "version": 18168865
 },
@@ -287,6 +362,10 @@
 "version": 18168865
 },
 "lapis_block": {
+"states": {},
+"version": 18168865
+},
+"lily_of_the_valley": {
 "states": {},
 "version": 18168865
 },
@@ -437,6 +516,15 @@
 "states": {},
 "version": 18168865
 },
+"pearlescent_froglight": {
+"states": {
+"pillar_axis": [
+"string",
+"y"
+]
+},
+"version": 18168865
+},
 "pink_petals": {
 "states": {
 "growth": [
@@ -458,8 +546,34 @@
 "states": {},
 "version": 18168865
 },
+"polished_blackstone_bricks": {
+"states": {},
+"version": 18168865
+},
+"polished_deepslate": {
+"states": {},
+"version": 18168865
+},
 "poppy": {
 "states": {},
+"version": 18168865
+},
+"quartz_block": {
+"states": {
+"pillar_axis": [
+"string",
+"y"
+]
+},
+"version": 18168865
+},
+"quartz_pillar": {
+"states": {
+"pillar_axis": [
+"string",
+"y"
+]
+},
 "version": 18168865
 },
 "red_carpet": {
@@ -509,6 +623,23 @@
 0
 ]
 },
+"version": 18168865
+},
+"soul_lantern": {
+"states": {
+"hanging": [
+"byte",
+0
+]
+},
+"version": 18168865
+},
+"soul_sand": {
+"states": {},
+"version": 18168865
+},
+"soul_soil": {
+"states": {},
 "version": 18168865
 },
 "spruce_fence": {
@@ -567,8 +698,21 @@
 "states": {},
 "version": 18168865
 },
+"tinted_glass": {
+"states": {},
+"version": 18168865
+},
 "tuff": {
 "states": {},
+"version": 18168865
+},
+"verdant_froglight": {
+"states": {
+"pillar_axis": [
+"string",
+"y"
+]
+},
 "version": 18168865
 },
 "vine": {

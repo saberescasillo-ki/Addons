@@ -199,7 +199,7 @@ function ringColumn(x, z, segs) {
   const tower = m < 7 || m > seg - 7;
   // the foundation hangs below the island level, like a cliff
   const bottom = Y - 26 - Math.floor(hash(x, z, 1390) * 14) - (w > 2 && w < 5 ? 10 : 0);
-  colossalWall(segs, x, z, w, along, bottom, Y, RING.top, RING.thick, WALL_THEMES.forest, tower);
+  colossalWall(segs, x, z, w, along, bottom, Y, RING.top, RING.thick, WALL_THEMES.forest, tower, true);
   return true;
 }
 
@@ -209,6 +209,26 @@ const islandR = (x, z) => {
   return 66 + Math.sin(a * 3 + 0.7) * 3 + Math.sin(a * 7 + 2.1) * 2 + vnoise(Math.cos(a) * 60, Math.sin(a) * 60, 12, 1360) * 1.5;
 };
 const POND = { x: -24, z: 30, r: 5.5 };
+
+// The secret: a dark pit in a forgotten corner, behind a pillar near the wall,
+// hidden by bushes. Falling into it takes the player to the secret corridor.
+export const SECRET = { x0: -57, x1: -56, z0: -24, z1: -23, y: Y };
+function secretColumn(x, z, segs) {
+  const S = SECRET;
+  const inX = x >= S.x0 && x <= S.x1, inZ = z >= S.z0 && z <= S.z1;
+  if (inX && inZ) {
+    segs.push([Y - 6, Y - 6, "soulSoil"], [Y - 5, Y, "air"], [Y - 5, Y - 5, x === S.x0 && z === S.z0 ? "soulLanternF" : "air"]);
+    return true;
+  }
+  const near = x >= S.x0 - 1 && x <= S.x1 + 1 && z >= S.z0 - 1 && z <= S.z1 + 1;
+  if (near) {
+    segs.push([Y - 5, Y - 1, "cdeep"], [Y, Y, "moss"]);
+    // a ring of bushes and ferns that hides the hole (one side is open)
+    if (x !== S.x1 + 1) segs.push([Y + 1, Y + 1, hash(x, z, 1395) < 0.6 ? "azaleaL" : "fern"]);
+    return true;
+  }
+  return false;
+}
 
 const pathDirs = [[0, -1], [-1, 0], [1, 0]];
 function onPath(x, z) {
@@ -264,6 +284,7 @@ function lobbyColumn(x, z) {
     return segs;
   }
   if (pond < POND.r + 1) segs[segs.length - 1] = [Y, Y, "sand"];
+  if (secretColumn(x, z, segs)) return segs;
   const solid = treeColumn(x, z, segs);
   const gate = gateColumn(x, z, segs);
   if (solid || gate || pillarColumn(x, z, segs)) return segs;
@@ -290,6 +311,7 @@ export const LOBBY = {
   pads: Object.fromEntries(Object.entries(PADS).map(([k, p]) => [k, { x: p.x, z: p.z, block: p.block }])),
   marker: { x: 0, y: Y, z: 0, block: "minecraft:dark_oak_wood" },
   betting: BETTING,
+  secret: SECRET,
 };
 
 export const LOBBY_AREA = { id: "lobby", name: "Lobby", x0: -90, z0: -90, x1: 89, z1: 89, bottom: Y - 80, clearTop: 225, column: lobbyColumn };

@@ -52,11 +52,13 @@ No hace falta activar experimentos ni trucos.
 | Emparejamiento | **4 mapas** de **64x64** con murallas de **70 bloques** | z 320; x -160, 0, 160 y 320 |
 | Campal | **126x126**, murallas de **60 bloques** | 320, 80, 0 |
 | Caza | **3 mapas** de **365x365** con murallas de **~90 bloques** en el borde | (0, -480), (-560, 0) y (560, -480) |
+| Isla de la victoria | isla flotante de ~50 bloques con la casita segura | 0, 150, 700 |
+| Pasillo secreto | **520 bloques** de largo, 28 de ancho y ~100 de alto | 0, 80, -1200 |
 
 **Murallas colosales:** todas tienen 6 bloques de grosor y, por dentro, una **arcada de varios pisos como un
-coliseo**: arcos hondos entre pilares de troncos con luces, una cornisa en cada piso, hojas colgando de los arcos,
-almenas con faroles y una corona de hojas arriba, y **torres** más altas en las esquinas y a lo largo del muro.
-La del lobby es un anillo que flota en el vacío alrededor de la isla, con 8 torres y los cimientos colgando como un
+coliseo**: arcos hondos entre pilares de troncos con luces, una cornisa en cada piso, almenas con faroles y una
+corona de hojas arriba, y **torres** más altas en las esquinas y a lo largo del muro. **Solo las del lobby tienen
+lianas** (cortinas de hojas colgando de los arcos); las de los mapas están limpias. La del lobby es un anillo que flota en el vacío alrededor de la isla, con 8 torres y los cimientos colgando como un
 acantilado.
 
 **El clima está desactivado:** nunca llueve ni hay tormentas.
@@ -69,7 +71,9 @@ en la plaza, mirando hacia arriba al árbol.
 
 - **Vista épica al entrar:** cada vez que entras al mundo, la cámara se queda quieta en un ángulo bonito del lobby
   (con un fundido). En la barra de acción sale el aviso: *muévete un bloque hacia delante para entrar al lobby*. Al
-  moverte, otro fundido y ya estás en el lobby.
+  moverte, otro fundido y ya estás en el lobby. Se puede quitar en **Opciones**.
+- **La canción al entrar:** el juego todavía está cargando cuando apareces, y la primera canción se perdía. Ahora
+  *Your New Forever* empieza en cuanto te mueves (o a los 5 segundos si no te mueves).
 
 - **Tres puertas de piedra de 40 bloques** de alto, una por modo, con su plataforma debajo: al pisarla entras
   (diamante = Emparejamiento al norte, redstone = Caza al oeste, esmeralda = Campal al este). Encima de cada una
@@ -77,8 +81,20 @@ en la plaza, mirando hacia arriba al árbol.
 - **Sala de apuestas** (en mantenimiento): dentro del tronco hay una sala para hacer apuestas amigables entre
   jugadores. Por ahora está **cerrada**: su puerta, delante del spawn, está tapada con bloques **amarillos y
   negros** en diagonal y encima pone *Sala de apuestas (mantenimiento)*.
-- **Brújula** (*Menú de Natura PvP*): los tres modos (o salir de la cola), **espectar**, la sala de apuestas y
-  las estadísticas y el ranking. En el lobby no se recibe daño ni se pasa hambre.
+- **Brújula** (*Menú de Natura PvP*): los modos (o salir de la cola), **espectar**, la **Caza del jefe**
+  (próximamente), la sala de apuestas, las estadísticas y el ranking, y las **Opciones**. En el lobby no se recibe
+  daño ni se pasa hambre.
+- **Opciones (de cada jugador):** cada uno puede **quitar cualquier canción** (la del lobby, la de la caza y la de la
+  victoria) o **cambiar su volumen**, y quitar la **vista épica** al entrar. Se guardan en el jugador: valen para
+  la próxima vez que entre.
+- **Caza del jefe (próximamente):** un modo de **jugadores contra mobs** (un jefe enorme y sus esbirros). Ya sale en
+  la brújula, pero todavía no está disponible.
+- **El pasillo secreto:** en una esquina olvidada del lobby, detrás de un pilar cerca de la muralla (al suroeste,
+  hacia X -56, Z -23), hay un **agujero oscuro en el suelo** escondido entre arbustos. Si caes dentro, apareces lejos,
+  en un **pasillo colosal**: 28 bloques de ancho, ~100 de alto y 520 de largo, de pizarra profunda, con pilastras con
+  luces, una bóveda con nervios y oro, cadenas con linternas de alma, braseros y **estatuas gigantes** de guardianes
+  con espada en hornacinas. Te rodea una **niebla algo más densa** y el final no se llega a ver nunca. A los **10
+  segundos** vuelves al lobby y la niebla (y todo lo del pasillo) se quita.
 
 ### Modo espectador
 Desde el menú, **Espectar** muestra las partidas en curso: cada duelo (quién contra quién y en qué mapa), la caza
@@ -101,8 +117,14 @@ al lobby. Los cazadores eliminados también miran la caza así.
 - Gana el que sobrevive y los dos vuelven al lobby. No hay límite de tiempo (un admin puede poner uno; no se
   muestra en pantalla).
 
-### Caza (hasta 5 jugadores)
-- Te apuntas en la cola (mínimo 2). A los 30 s empieza; si se llena (5), a los 5 s.
+### Caza (1 contra todos y 2 contra todos)
+- **Dos cazas**, cada una con su cola (al pisar la plataforma eliges cuál):
+  - **1 contra todos:** 1 cazado contra 1, 2, 3, 4 o más cazadores (mínimo 2 jugadores, máximo 6 por defecto).
+  - **2 contra todos:** **2 cazados en equipo** contra 2, 3, 4, 5 o más cazadores (mínimo 4 jugadores, máximo 7 por
+    defecto). Entre los dos cazados no hay fuego amigo. Si cae uno, el otro sigue; los cazadores ganan cuando caen
+    los dos.
+- A los 30 s de tener el mínimo empieza; si la cola se llena, a los 5 s. Solo hay una caza a la vez: la otra cola
+  espera a que acabe.
 - **3 mapas:**
   - *Bosque Antiguo*: bosques de todo tipo, lagos, rocas y ruinas.
   - *Cañón del Río*: una meseta cortada por un cañón con un río, rampas para bajar y puentes para cruzar.
@@ -115,8 +137,9 @@ al lobby. Los cazadores eliminados también miran la caza así.
   una manzana de Notch o un tótem).
 - **Cinemática de inicio:** cada jugador ve su zona desde el aire con el nombre del mapa y luego si es el cazado
   o cazador.
-- Uno al azar es el **cazado**, con **kit de hierro encantado**; los demás son **cazadores** con **kit de diamante**.
-- **Cuantos más cazadores, mejor el kit de hierro**: con 2, 3 o 4 cazadores sube Protección, Filo, Poder,
+- Uno (o dos) al azar son los **cazados**, con **kit de hierro encantado**; los demás son **cazadores** con **kit de
+  diamante**.
+- **Cuantos más cazadores, mejor el kit de hierro** (en 2 contra todos cuentan los cazadores que tiene cada cazado): con 2, 3 o 4 cazadores sube Protección, Filo, Poder,
   Irrompibilidad y Caída de pluma, y da más manzanas doradas (+2), perlas (+1) y pociones de curación (+1) por cada
   cazador extra. Con 3 añade Aspecto ígneo, Infinidad y **velocidad**; con 4, Retroceso, Fuego, Golpe, una
   manzana de Notch y **vida extra**.
@@ -128,19 +151,28 @@ al lobby. Los cazadores eliminados también miran la caza así.
     utilidades para perseguir: **catalejo**, **8 cargas de viento** y pociones arrojadizas (2 de velocidad II, 1 de
     curación II y 2 de lentitud para lanzar al cazado).
 - El cazado tiene **20 s de ventaja** (después de la cinemática): los cazadores esperan ciegos y quietos. Cada
-  60 s los cazadores reciben su posición. Dura 10 minutos: si el cazado sobrevive, gana él.
+  60 s los cazadores reciben su posición. Dura **5 minutos**: si el cazado sobrevive, gana él.
+- **Último cazador: 2:30.** En las dos cazas, cuando solo queda **un cazador** empieza el **duelo final** y el tiempo
+  pasa a **2:30**, quede el tiempo que quede (más o menos).
 - **Barra de acción:** solo el **tiempo** que queda y una **distancia**: los cazadores ven a cuánto está el cazado;
   el cazado, a cuánto está el cazador más cercano.
 - No hay fuego amigo entre cazadores. Los eliminados pasan a espectadores. Si alguien sale del mundo cuenta como
   eliminado.
-- **Música:** durante toda la caza suena *Find Your Flame* (también para los espectadores). Cuando solo quedan **el
-  cazado y un cazador** llega el **duelo final**: la canción sigue sonando, sin pararse ni volver a empezar.
+- **Música:** durante toda la caza suena *Find Your Flame* (volumen 45, también para los espectadores). En el
+  **duelo final** la canción sigue sonando, sin pararse ni volver a empezar.
 - **Si gana el cazado: cinemática de victoria.** La ven todos los que siguen en esa ronda (no los que se fueron ni
   los que ya están en el lobby), y nadie se puede mover, saltar, agacharse ni girar la cámara mientras dura. El
-  cazado aparece en un camino, **entra en una habitación segura** (una casita en una isla apartada), se mira la
+  cazado (en 2 contra todos, uno de los que siguen vivos; el otro lo ve y también gana) aparece en un camino, pasa
+  bajo un arco con farolas y **entra en una habitación segura**, se mira la
   mano, **se da la vuelta y ve cerrarse la puerta** por la que entró, **mira al suelo** pensando, y la **cámara sube
   por el tragaluz hasta el sol**. Suena *Biast Win* (volumen 65) y al cazado le sale la pantalla de **¡VICTORIA!**.
   Luego todos vuelven al lobby.
+- **La isla de la victoria:** una isla flotante más grande, con la casita (porche con faroles y una **chimenea que
+  echa humo**), un camino con **arco de piedra** y farolas, un **estanque con nenúfares**, un **jardín con setos** y
+  filas de flores, cerezos, abedules y azaleas, un seto bajo por el borde y, por debajo, **estalactitas y raíces
+  colgando**.
+
+![La isla de la victoria](docs/natura_pvp_victoria.png)
 - **Forzar último en pie** (panel de admin): los cazadores pasan a tener solo **3 minutos** (configurable) para
   atrapar al cazado. Si no lo consiguen, gana el cazado. La posición del cazado se revela cada 30 s.
 
@@ -155,7 +187,7 @@ Arena **siempre abierta** (un solo mapa, sin cinemática): entras cuando quieras
   escaleras, en el centro de cada lado un **arco en ruinas** y, entre medias, **casas en los árboles**, bosquecillos,
   rocas y prados con flores.
 - **Kit:** armadura de diamante Protección III, espada Filo IV, **mazo** (Densidad III, Explosión de viento),
-  **lanza de diamante con Embestida II**, **16 cargas de viento**, arco, **10 manzanas doradas**, **6 perlas** y
+  **lanza de diamante con Embestida II**, **32 cargas de viento**, arco, **10 manzanas doradas**, **6 perlas** y
   **3 pociones arrojadizas** (curación II, fuerza y velocidad II).
 - Al morir reapareces dentro con el kit, lejos de los demás y con 3 s de protección. Cada baja da **2 manzanas
   doradas, una perla** y regeneración. La tabla de bajas sale a la derecha de la pantalla. Para salir usa la
@@ -168,14 +200,14 @@ Cada situación tiene su canción (el ID sirve para `/playsound`):
 | Canción | Cuándo suena | Volumen | ID del sonido |
 |---|---|---|---|
 | Your New Forever | siempre en el **lobby**, en bucle | 45 % | `natura.song.your_new_forever` |
-| Find Your Flame | toda la **caza**, también el duelo final (no se para ni vuelve a empezar) | 80 % | `natura.song.find_your_flame` |
+| Find Your Flame | toda la **caza**, también el duelo final (no se para ni vuelve a empezar) | 45 % | `natura.song.find_your_flame` |
 | Biast Win | la **victoria del cazado** (cinemática) | 65 % | `natura.song.biast_win` |
 
 En Emparejamiento y Campal no suena música. Las canciones son estéreo, así que se oyen igual en todo el mapa, y van
 con el control de volumen de **Tocadiscos y bloques musicales** de los ajustes de sonido del juego.
 
 **Cambiar las canciones:** están en `tools/natura_pvp/canciones/`; en `canciones.json` cada una tiene su uso
-(`lobby`, `hunt` o `win`) y su volumen. Ejecuta `python3 tools/natura_pvp.py` después de cambiarlas.
+(`lobby`, `hunt` o `win`) y su volumen por defecto (cada jugador lo puede cambiar o quitar en **Opciones**). Ejecuta `python3 tools/natura_pvp.py` después de cambiarlas.
 
 ### Administradores (etiqueta `admin`)
 Quien tenga la etiqueta `admin` (`/tag <jugador> add admin`, o `/natura:hacer_admin <jugador>` siendo operador)
@@ -184,9 +216,9 @@ recibe un **reloj** (*Panel de administración*) en el lobby y en el **modo libr
 
 | Sección | Qué hay |
 |---|---|
-| Partidas en curso | **empezar la caza ya**, **forzar último en pie**, detener la caza, elegir el próximo cazado, terminar los duelos, vaciar las colas, parar la música de la caza |
+| Partidas en curso | **empezar la caza ya** (1 contra todos o 2 contra todos), **forzar último en pie**, detener la caza, elegir el próximo cazado, terminar los duelos, vaciar las colas, parar la música de la caza |
 | Emparejamiento | activar/desactivar, cinemática, **segundos de aliste** (5 por defecto), duración máxima; **mapas**: cuáles salen y cuál va después |
-| Caza | activar/desactivar, cinemática, jugadores máx./mín., espera de la cola, ventaja del cazado, duración, cada cuánto se revela la posición, minutos de «último en pie», música, cofres, fuego amigo; **mapas** |
+| Caza | activar/desactivar, cinemática, jugadores máx./mín. de cada caza, espera de la cola, ventaja del cazado, duración, cada cuánto se revela la posición, minutos de «último en pie», música, cofres, fuego amigo; **mapas** |
 | Campal | abrir/cerrar, premio por baja, protección al aparecer, tiempo de combate para salir, tabla de bajas, reiniciar bajas, sacar a todos |
 | Kits | ver, probar (en el modo libre), **guardar tu inventario como kit** y restaurar el de por defecto |
 | Jugadores | enviar al lobby o sacar de la partida, dar/quitar admin, curar, ver o reiniciar estadísticas, ir hacia él, elegirlo como próximo cazado |
@@ -216,7 +248,8 @@ Los ajustes, kits y estadísticas se guardan en el mundo.
 - Generador: `python3 tools/natura_pvp.py` (`--preview` actualiza las imágenes). Los mapas están en
   `tools/natura_pvp/gen/`; `world.py` escribe el mundo prebuilt y `update_block_states.py` actualiza los bloques
   desde minecraft-data. `node tools/natura_pvp/smoke/run.mjs` prueba los scripts con un juego simulado, por partes que se pueden lanzar
-  solas: `entrada`, `apuestas`, `duelo`, `campal`, `caza`, `victoria`, `espectador`, `panel` y `pruebas` (por
+  solas: `entrada`, `apuestas`, `duelo`, `campal`, `caza`, `caza2`, `opciones`, `secreto`, `mapa`, `victoria`,
+  `espectador`, `panel` y `pruebas` (por
   ejemplo `node tools/natura_pvp/smoke/run.mjs victoria`; sin nombres, todas; `--lista` las enseña; `--build`
   prueba también la construcción por el script).
 

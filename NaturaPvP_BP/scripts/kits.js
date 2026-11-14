@@ -39,7 +39,7 @@ export const DEFAULT_KITS = {
       { slot: 1, id: "minecraft:mace", ench: { density: 3, wind_burst: 1, unbreaking: 3 } },
       // the spear with Lunge ("embestida"), from Minecraft 1.21.130
       { slot: 2, id: "minecraft:diamond_spear", ench: { lunge: 2, sharpness: 2, unbreaking: 3 } },
-      { slot: 3, id: "minecraft:wind_charge", count: 16 },
+      { slot: 3, id: "minecraft:wind_charge", count: 32 },
       { slot: 4, id: "minecraft:golden_apple", count: 10 },
       { slot: 5, id: "minecraft:ender_pearl", count: 6 },
       { slot: 6, id: "minecraft:bow", ench: { power: 3, unbreaking: 3 } },
