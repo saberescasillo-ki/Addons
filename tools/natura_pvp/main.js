@@ -215,7 +215,7 @@ async function cinematic(players, shotsOf) {
 
 // ------------------------------------------------------------ settings
 const DEFAULTS = {
-  duel: { enabled: true, countdown: 5, maxTime: 300, cinematic: true, maps: DUELS.map(() => true), nextMap: -1 },
+  duel: { enabled: true, countdown: 5, maxTime: 0, cinematic: true, maps: DUELS.map(() => true), nextMap: -1 },
   hunt: {
     enabled: true, maxPlayers: 5, minPlayers: 2, lobbyCountdown: 30, headStart: 20, timeLimit: 600, reveal: 60, music: true,
     friendlyFire: false, lastStandMinutes: 3, cinematic: true, chests: true, maps: HUNTS.map(() => true), nextMap: -1,
@@ -261,6 +261,7 @@ function applyGamerules() {
     "tntexplodes false", "doinsomnia false", "commandblockoutput false", "showcoordinates false", "spawnradius 0",
     "pvp true", "falldamage true", "showdeathmessages true", "doentitydrops true", "dotiledrops false",
     "projectilescanbreakblocks false", "dopatrolspawning false", "dotraderspawning false",
+    "sendcommandfeedback false", "commandblocksenabled true", "showtags false",
   ]) cmd(`gamerule ${rule}`);
   cmd("difficulty normal");
   try {
@@ -443,7 +444,9 @@ function playTrack(player, index, announce = true) {
     try {
       player.playSound(t.id, { volume: vol });
     } catch {}
-    if (announce) bar(player, `§d♪ §f${t.name}`);
+    // no song names on the action bar during a duel or a hunt
+    const mode = st(player).mode;
+    if (announce && mode !== "duel" && mode !== "hunt" && mode !== "hunt_spec") bar(player, `§d♪ §f${t.name}`);
   }, 4);
 }
 
@@ -666,7 +669,7 @@ function specView(player, t) {
   } catch {}
   const l = target.location;
   tp(player, { x: l.x - dir.x * 4, y: l.y + 2.5, z: l.z - dir.z * 4 }, { x: l.x, y: l.y + 1.4, z: l.z });
-  bar(player, `§7Mirando a §f${target.name}`);
+  if (t.kind !== "hunt") bar(player, `§7Mirando a §f${target.name}`);
 }
 
 function specEnter(player, t) {
@@ -824,15 +827,11 @@ function duelTick() {
   if (S.duel.enabled) {
     while (duel.queue.length >= 2) {
       const free = freeDuelMaps();
-      if (!free.length) {
-        for (const id of duel.queue) bar(byId(id), "§bEmparejamiento: §fesperando a que se libere una arena...");
-        break;
-      }
+      if (!free.length) break;
       const i = free.includes(S.duel.nextMap) ? S.duel.nextMap : randOf(free);
       const a = byId(duel.queue.shift()), b = byId(duel.queue.shift());
       startDuel(i, a, b);
     }
-    if (duel.queue.length === 1) bar(byId(duel.queue[0]), "§bEmparejamiento: §fbuscando rival...");
   }
   for (const m of duel.matches) {
     if (!m || m.phase === "end" || m.phase === "intro") continue;
@@ -858,7 +857,6 @@ function duelTick() {
     } else if (m.phase === "fight") {
       m.time++;
       const left = S.duel.maxTime > 0 ? S.duel.maxTime - m.time : undefined;
-      for (const p of players) if (p) bar(p, `§b⚔ §f${m.names[0]} §7vs §f${m.names[1]}${left !== undefined ? `  §7| §e${fmtTime(left)}` : ""}`);
       if (left !== undefined && left <= 0) endDuel(m, undefined, "se acabó el tiempo");
     }
   }
@@ -947,12 +945,9 @@ const LOOT = [
   [8, () => ({ id: "minecraft:ender_pearl", count: 2 + Math.floor(Math.random() * 3) })],
   [9, () => ({ id: "minecraft:golden_apple", count: 2 + Math.floor(Math.random() * 3) })],
   [5, () => ({ id: "minecraft:splash_potion", potion: 22, count: 1 + Math.floor(Math.random() * 2) })],
-  [6, () => ({ id: "minecraft:web|minecraft:cobweb", count: 4 + Math.floor(Math.random() * 5), placeOn: "ground" })],
   [6, () => ({ id: "minecraft:snowball", count: 8 + Math.floor(Math.random() * 9) })],
   [5, () => ({ id: "minecraft:golden_carrot", count: 4 })],
-  [4, () => ({ id: "minecraft:ladder", count: 6, placeOn: "wood" })],
   [3, () => ({ id: "minecraft:fishing_rod" })],
-  [3, () => ({ id: "minecraft:scaffolding", count: 8, placeOn: "ground" })],
   [1, () => ({ id: "minecraft:enchanted_golden_apple" })],
   [1, () => ({ id: "minecraft:totem_of_undying" })],
 ];
@@ -1251,17 +1246,17 @@ function huntTick() {
     prey.sendMessage("§c[Caza]§r ¡Los cazadores han visto tu posición!");
     sound(prey, "note.bass", 1, 0.6);
   }
-  // HUD
-  const hn = aliveHunters().length;
+  // the action bar: only the time left and a distance
+  const hunters = aliveHunters().map(byId).filter(Boolean);
+  const dist = (a, b) => Math.round(Math.sqrt(dist2(a.location, b.location)));
+  const near = (p) => (hunters.length ? Math.min(...hunters.map((h) => dist(p, h))) : 0);
+  const show = (d) => (d > 100 ? "+100" : `~${Math.max(5, Math.ceil(d / 5) * 5)}`);
   for (const p of huntParticipants()) {
-    const s = st(p);
-    let text;
-    if (p.id === hunt.hunted) text = `§cCAZADO §7| §fcazadores: §a${hn} §7| §e${fmtTime(hunt.timeLeft)}`;
-    else if (s.mode === "hunt" && prey) {
-      const d = Math.round(Math.sqrt(dist2(p.location, prey.location)));
-      text = hunt.headLeft > 0 ? `§aCAZADOR §7| §fsales en §e${hunt.headLeft}s` : `§aCAZADOR §7| §fpresa: §c${hunt.names[hunt.hunted]} §7~${d > 100 ? "+100" : Math.ceil(d / 10) * 10} bloques §7| §e${fmtTime(hunt.timeLeft)}`;
-    } else text = `§7ESPECTADOR §7| §fcazadores: §a${hn} §7| §e${fmtTime(hunt.timeLeft)} §8| agáchate: cambiar · mantén: salir`;
-    bar(p, hunt.lastStand ? `§4ÚLTIMO EN PIE §7| ${text}` : text);
+    let d;
+    if (p.id === hunt.hunted) d = near(p);
+    else if (st(p).mode === "hunt" && prey) d = dist(p, prey);
+    else d = prey ? near(prey) : 0;
+    bar(p, `§e${fmtTime(hunt.timeLeft)} §8· §f${show(d)} bloques`);
   }
   if (hunt.timeLeft <= 0) endHunt("hunted", "sobrevivió hasta el final del tiempo");
 }
@@ -1982,7 +1977,7 @@ async function adminDuel(player) {
       ["enabled", "toggle", "§fModo activado"],
       ["cinematic", "toggle", "§fCinemática de inicio (la cámara recorre la arena y presenta a los rivales)"],
       ["countdown", "slider", "§fSegundos de aliste después de la cinemática", 3, 30, 1],
-      ["maxTime", "slider", "§fDuración máxima del duelo en segundos (0 = sin límite)", 0, 900, 30],
+      ["maxTime", "slider", "§fDuración máxima del duelo en segundos (0 = sin límite; no se muestra en pantalla)", 0, 900, 30],
     ]), "textures/ui/settings_glyph_color_2x"],
     ["§f§lMAPAS\n§r§8cuáles salen y cuál va después", () => mapsForm(player, "duel", DUELS), "textures/items/map_filled"],
   ], () => openAdmin(player));

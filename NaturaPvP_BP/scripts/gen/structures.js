@@ -113,21 +113,116 @@ export const stoneTower = () => makeStamp(({ set, box, marker }) => {
   marker(-1, 12, 1, "chest", { dir: "north" });
 });
 
-// A wooden bridge `len` blocks long along z (centered), deck at y = 0.
-export const bridge = (len) => makeStamp(({ set, box }) => {
+// A wooden bridge `len` blocks long along z (or x), centered, deck at y = 0.
+export const bridge = (len, axis = "z") => makeStamp(({ set }) => {
   const h = Math.floor(len / 2);
-  box(-1, 0, -h, 1, 0, h, "planks");
-  for (let z = -h; z <= h; z++) {
-    set(-2, 1, z, "sfence");
-    set(2, 1, z, "sfence");
-    set(-2, 0, z, "spruce_z");
-    set(2, 0, z, "spruce_z");
-    if (z % 6 === 0) {
-      set(-2, 2, z, "lantern");
-      set(2, 2, z, "sfence");
+  const at = (u, y, v, k) => (axis === "z" ? set(v, y, u, k) : set(u, y, v, k));
+  const side = axis === "z" ? "spruce_z" : "spruce_x";
+  for (let u = -h; u <= h; u++) {
+    for (let v = -1; v <= 1; v++) at(u, 0, v, "planks");
+    at(u, 1, -2, "sfence");
+    at(u, 1, 2, "sfence");
+    at(u, 0, -2, side);
+    at(u, 0, 2, side);
+    if (u % 6 === 0) {
+      at(u, 2, -2, "lantern");
+      at(u, 2, 2, "sfence");
     }
   }
 });
 
 // A small spruce cabin (for the snowy map).
 export const cabin = () => hideout("planks", "snow", "oplanks");
+
+// A mangrove hut on stilts over the water (y = 0 is the water level), with a
+// ladder, a door, windows and a chest.
+export const stiltHut = () => makeStamp(({ set, box, marker }) => {
+  for (const [x, z] of [[-3, -3], [3, -3], [-3, 3], [3, 3]]) box(x, -4, z, x, 8, z, "mangrove");
+  box(-3, 3, -3, 3, 3, 3, "mplanks");
+  box(-3, 4, -3, 3, 6, 3, "mplanks");
+  box(-2, 4, -2, 2, 6, 2, "air");
+  for (const [x, z] of [[-3, 0], [3, 0], [0, -3]]) set(x, 5, z, "air");
+  box(0, 4, 3, 0, 5, 3, "air");
+  box(-4, 7, -4, 4, 7, 4, "mplanks");
+  box(-3, 8, -3, 3, 8, 3, "mangroveL");
+  box(-2, 9, -2, 2, 9, 2, "mangroveL");
+  box(0, -4, 5, 0, 4, 5, "mangrove");
+  box(0, -1, 4, 0, 4, 4, "ladderS");
+  for (let x = -3; x <= 3; x++) set(x, 3, 4, x === 0 ? "ladderS" : "mplanks");
+  set(2, 4, -2, "lantern");
+  marker(-2, 4, -2, "chest", { dir: "south" });
+});
+
+// A wooden walkway on posts, `len` long along x or z; deck at y = 2 over the water level.
+export const boardwalk = (len, axis = "x") => makeStamp(({ set }) => {
+  const h = Math.floor(len / 2);
+  const at = (u, y, v, k) => (axis === "x" ? set(u, y, v, k) : set(v, y, u, k));
+  for (let u = -h; u <= h; u++) {
+    for (let v = -1; v <= 1; v++) at(u, 2, v, "mplanks");
+    if (u % 5 === 0) {
+      for (const v of [-2, 2]) {
+        for (let y = -3; y <= 3; y++) at(u, y, v, "mangrove");
+        if (u % 10 === 0) at(u, 4, v, "lantern");
+      }
+    } else if (hash(u, len, 705) < 0.6) {
+      at(u, 3, -2, "mfence");
+      at(u, 3, 2, "mfence");
+    }
+  }
+});
+
+// A ruined arch: two pillars and a broken top.
+export const ruinArch = (axis = "x") => makeStamp(({ set }) => {
+  const at = (u, y, v, k) => (axis === "x" ? set(u, y, v, k) : set(v, y, u, k));
+  for (const u of [-5, -4, 4, 5])
+    for (const v of [-1, 0, 1])
+      for (let y = 1; y <= 13; y++) at(u, y, v, hash(u * 3 + y, v, 706) < 0.4 ? "msbrick" : y % 6 ? "sbrick" : "chbrick");
+  for (let u = -3; u <= 3; u++) {
+    const under = 9 + Math.round(Math.sqrt(Math.max(0, 16 - u * u)) * 0.9);
+    for (const v of [-1, 0, 1]) for (let y = under; y <= 13; y++) if (!(u > 1 && y > 11)) at(u, y, v, "msbrick");
+  }
+  for (const u of [-5, 5]) for (const v of [-1, 1]) at(u, 14, v, "azaleaL");
+  at(-4, 14, 0, "lantern");
+});
+
+// The temple in the middle of the Campal: a raised round floor, a ring of
+// columns joined at the top (to climb with wind charges and fall with the mace)
+// and a fountain. y = 0 is the floor of the temple.
+export const temple = () => makeStamp(({ set, box }) => {
+  for (let x = -11; x <= 11; x++)
+    for (let z = -11; z <= 11; z++) {
+      const d = Math.hypot(x, z);
+      if (d > 11.3) continue;
+      set(x, 0, z, d < 2.5 ? "sbrick" : (x + z) % 4 === 0 ? "chbrick" : hash(x, z, 707) < 0.35 ? "msbrick" : "sbrick");
+      set(x, -1, z, "sbrick");
+      set(x, -2, z, "sbrick");
+    }
+  for (let k = 0; k < 12; k++) {
+    const a = (k / 12) * Math.PI * 2;
+    const x = Math.round(Math.cos(a) * 9), z = Math.round(Math.sin(a) * 9);
+    const broken = k % 5 === 3;
+    for (let y = 1; y <= (broken ? 6 : 10); y++) set(x, y, z, y === 1 || y === 10 ? "chbrick" : hash(k, y, 708) < 0.4 ? "msbrick" : "sbrick");
+  }
+  // the ring at the top of the columns
+  for (let x = -10; x <= 10; x++)
+    for (let z = -10; z <= 10; z++) {
+      const d = Math.hypot(x, z);
+      if (d > 8.3 && d < 10 && !(x > 4 && z > 4)) set(x, 11, z, hash(x, z, 709) < 0.3 ? "msbrick" : "sbrick");
+      if (d > 8.3 && d < 10 && hash(x, z, 710) < 0.25) set(x, 12, z, "azaleaL");
+    }
+  // the fountain
+  for (let x = -2; x <= 2; x++)
+    for (let z = -2; z <= 2; z++) {
+      const d = Math.hypot(x, z);
+      if (d <= 1.5) set(x, 0, z, "water");
+      else if (d <= 2.9) set(x, 1, z, "msbrick");
+    }
+  box(0, -1, 0, 0, -1, 0, "sbrick");
+  set(0, 1, 0, "chbrick");
+  set(0, 2, 0, "chbrick");
+  set(0, 3, 0, "shroom");
+  for (const [x, z] of [[6, 0], [-6, 0], [0, 6], [0, -6]]) {
+    set(x, 1, z, "fence");
+    set(x, 2, z, "lantern");
+  }
+});

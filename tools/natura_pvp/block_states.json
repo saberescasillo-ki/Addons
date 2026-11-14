@@ -270,7 +270,37 @@
 "states": {},
 "version": 18168865
 },
-"lily_of_the_valley": {
+"mangrove_fence": {
+"states": {},
+"version": 18168865
+},
+"mangrove_leaves": {
+"states": {
+"persistent_bit": [
+"byte",
+0
+],
+"update_bit": [
+"byte",
+0
+]
+},
+"version": 18168865
+},
+"mangrove_log": {
+"states": {
+"pillar_axis": [
+"string",
+"y"
+]
+},
+"version": 18168865
+},
+"mangrove_planks": {
+"states": {},
+"version": 18168865
+},
+"mangrove_roots": {
 "states": {},
 "version": 18168865
 },
@@ -313,6 +343,23 @@
 },
 "mossy_stone_bricks": {
 "states": {},
+"version": 18168865
+},
+"mud": {
+"states": {},
+"version": 18168865
+},
+"mud_bricks": {
+"states": {},
+"version": 18168865
+},
+"muddy_mangrove_roots": {
+"states": {
+"pillar_axis": [
+"string",
+"y"
+]
+},
 "version": 18168865
 },
 "oak_fence": {
@@ -363,6 +410,10 @@
 "version": 18168865
 },
 "packed_ice": {
+"states": {},
+"version": 18168865
+},
+"packed_mud": {
 "states": {},
 "version": 18168865
 },
@@ -512,6 +563,10 @@
 0
 ]
 },
+"version": 18168865
+},
+"waterlily": {
+"states": {},
 "version": 18168865
 }
 },

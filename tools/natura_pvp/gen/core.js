@@ -102,6 +102,17 @@ export const PALETTE = {
   ladderW: { id: "minecraft:ladder", s: { facing_direction: 5 } },
   ladderE: { id: "minecraft:ladder", s: { facing_direction: 4 } },
   lfern: { id: "minecraft:fern|minecraft:short_grass" },
+  mangrove: { id: "minecraft:mangrove_log|minecraft:oak_log", s: { pillar_axis: "y" } },
+  mangroveL: { id: "minecraft:mangrove_leaves|minecraft:oak_leaves", s: { persistent_bit: true } },
+  mroots: { id: "minecraft:mangrove_roots|minecraft:oak_fence" },
+  mudroots: { id: "minecraft:muddy_mangrove_roots|minecraft:dirt", s: { pillar_axis: "y" } },
+  mud: { id: "minecraft:mud|minecraft:coarse_dirt" },
+  mudbricks: { id: "minecraft:mud_bricks|minecraft:stone_bricks" },
+  pmud: { id: "minecraft:packed_mud|minecraft:coarse_dirt" },
+  lily: { id: "minecraft:waterlily" },
+  mplanks: { id: "minecraft:mangrove_planks|minecraft:oak_planks" },
+  mfence: { id: "minecraft:mangrove_fence|minecraft:oak_fence" },
+  stairsBrick: { id: "minecraft:stone_bricks" },
 };
 
 // ------------------------------------------------------------ noise
@@ -283,6 +294,26 @@ export function treeShape(t) {
       }
       break;
     }
+    case "mangrove": {
+      // a trunk standing on arching roots (also over water)
+      const n = 5 + (R(1) < 0.5 ? 1 : 0);
+      for (let k = 0; k < n; k++) {
+        const a = (k / n) * Math.PI * 2 + R(2) * 2;
+        for (let d = 1; d <= 3; d++) {
+          const rx = Math.round(Math.cos(a) * d), rz = Math.round(Math.sin(a) * d);
+          if (!rx && !rz) continue;
+          col(rx, rz).logs.push([y + (d === 1 ? 2 : d === 2 ? 1 : 0), y + 4 - d, "mroots"]);
+          if (d === 3) col(rx, rz).logs.push([y, y, "mudroots"]);
+        }
+      }
+      trunk(0, 0, y + 1, top, "mangrove");
+      blob(0, top, 0, 3.4, "mangroveL", 0.6, 0.35);
+      for (let i = 0; i < 2; i++) {
+        const a = R(10 + i) * Math.PI * 2;
+        blob(Math.round(Math.cos(a) * 2), top - 1.5, Math.round(Math.sin(a) * 2), 2.3, "mangroveL", 0.7, 0.4);
+      }
+      break;
+    }
     case "bush": {
       log(0, y + 1, 0, "oak");
       blob(0, y + 1.5, 0, 1.8, R(1) < 0.5 ? "oakL" : "azaleaL", 0.7, 0.35);
@@ -313,6 +344,7 @@ export function treeHeight(type, r) {
     case "dark": return 6 + Math.floor(r * 3);
     case "azalea": return 2 + Math.floor(r * 2);
     case "cherry": return 5 + Math.floor(r * 2);
+    case "mangrove": return 8 + Math.floor(r * 4);
     case "bush":
     case "fallen": return 1;
     default: return 4 + Math.floor(r * 3);

@@ -4,7 +4,7 @@
 import {
   addTrees, colossalWall, decoration, WALL_THEMES, fbm, gridTrees, groundColumn, hash, smooth, snowOver, stampIndex, topOf, treeHeight, vnoise,
 } from "./core.js";
-import { bridge, cabin, hideout, igloo, stoneTower, treehouse, watchtower } from "./structures.js";
+import { boardwalk, bridge, hideout, stiltHut, stoneTower, treehouse, watchtower } from "./structures.js";
 
 export const HUNT = { size: 365, floor: 60, wallTop: 170, wallThick: 6, clearTop: 150, barrierTop: 319 };
 
@@ -79,8 +79,8 @@ function treeCell(m, cx, cz, cell, pickType) {
   const lz = cz * cell + 1 + Math.floor(hash(cx, cz, m.seed + 51) * (cell - 2));
   const x = lx + m.cx, z = lz + m.cz;
   if (x - m.x0 < 6 || m.x1 - x < 6 || z - m.z0 < 6 || m.z1 - z < 6) return null;
-  for (const f of m.flats) if (Math.max(Math.abs(lx - f.x), Math.abs(lz - f.z)) < f.r + 6) return null;
-  const y = m.height(x, z);
+  for (const f of [...m.flats, ...(m.keepOut ?? [])]) if (Math.max(Math.abs(lx - f.x), Math.abs(lz - f.z)) < f.r + 6) return null;
+  const y = m.treeBase ? m.treeBase(x, z) : m.height(x, z);
   const type = pickType(lx, lz, y, hash(cx, cz, m.seed + 53), hash(cx, cz, m.seed + 52));
   if (!type) return null;
   return { x: lx, z: lz, y, type, h: treeHeight(type, hash(cx, cz, m.seed + 54)) };
@@ -294,73 +294,91 @@ const canyon = frame({ id: "hunt1", name: "Cañón del Río", desc: "meseta cort
   m.chests = () => m.index.markers();
 }
 
-// ------------------------------------------------------------ 3. Taiga Nevada
-const taiga = frame({ id: "hunt2", name: "Taiga Nevada", desc: "bosque nevado con montañas, lagos helados e iglús", cx: 560, cz: -480, seed: 900, water: 78, edgeY: 84 });
+// ------------------------------------------------------------ 3. Pantano de los Manglares
+// Shallow water everywhere, islands of mud and grass, mangroves standing on
+// their roots, huts on stilts joined by wooden walkways and an old stone tower.
+const swamp = frame({ id: "hunt2", name: "Pantano de los Manglares", desc: "agua poco profunda, manglares, pasarelas y chozas sobre pilotes", cx: 560, cz: -480, seed: 1100, water: 78, edgeY: 82 });
 {
-  const m = taiga;
-  const peaks = [{ x: -90, z: -70, h: 34, r: 85 }, { x: 100, z: 90, h: 26, r: 70 }];
+  const m = swamp;
+  const W = m.water;
   const raw = (lx, lz) => {
-    let h = 84 + fbm(lx, lz, 60, 900) * 8 + fbm(lx, lz, 150, 910) * 5;
-    for (const p of peaks) {
-      const d = Math.hypot(lx - p.x, lz - p.z);
-      if (d < p.r) h += p.h * (1 - d / p.r) ** 2 * (0.8 + 0.4 * vnoise(lx, lz, 20, 920));
-    }
-    const lake = vnoise(lx, lz, 70, 930);
-    if (lake < -0.4) h -= (-0.4 - lake) * 30;
-    return h;
+    let h = 78.2 + fbm(lx, lz, 45, 1100) * 3.5 + fbm(lx, lz, 130, 1110) * 3;
+    const isl = vnoise(lx, lz, 70, 1120);
+    if (isl > 0.25) h += (isl - 0.25) * 12;
+    return Math.max(W - 3, h);
   };
-  const rock = (lx, lz) => raw(lx, lz) > 108;
-  const S = sites(raw, m.water, [
-    { x: 0, z: 0, r: 4, s: "watch" }, { x: -150, z: 60, r: 3, s: "watch" }, { x: 140, z: -100, r: 3, s: "watch" },
-    { x: -40, z: 130, r: 5, s: "igloo" }, { x: 60, z: -150, r: 5, s: "igloo" }, { x: 160, z: 30, r: 5, s: "igloo" }, { x: -150, z: -150, r: 5, s: "igloo" },
-    { x: 40, z: 40, r: 4, s: "cabin" }, { x: -120, z: 150, r: 4, s: "cabin" }, { x: 150, z: 160, r: 4, s: "cabin" },
-  ], rock);
+  const S = sites(raw, W, [
+    { x: -120, z: -120, r: 4, s: "stone" }, { x: 130, z: 110, r: 3, s: "watch" }, { x: -130, z: 120, r: 3, s: "watch" },
+    { x: 120, z: -130, r: 4, s: "hide" }, { x: 10, z: 150, r: 6, s: "tree" },
+  ]);
+  // huts on stilts (over water or land) and the walkways between them
+  const HUTS = [{ x: 0, z: 0 }, { x: 70, z: -40 }, { x: -60, z: -50 }, { x: -70, z: 60 }, { x: 60, z: 70 }, { x: 0, z: -110 }, { x: 140, z: 0 }, { x: -140, z: -10 }];
+  const LINKS = [[0, 1], [0, 2], [0, 3], [0, 4], [2, 5], [1, 6], [3, 7]];
+  const walks = [];
+  for (const [i, j] of LINKS) {
+    const A = HUTS[i], B = HUTS[j];
+    // along x from A to the corner, then along z to B
+    const lenX = Math.abs(B.x - A.x), lenZ = Math.abs(B.z - A.z);
+    if (lenX > 8) walks.push({ x: Math.round((A.x + B.x) / 2), z: A.z, stamp: boardwalk(lenX - 8 + 1, "x") });
+    if (lenZ > 8) walks.push({ x: B.x, z: Math.round((A.z + B.z) / 2) + (B.z > A.z ? 0 : 0), stamp: boardwalk(lenZ - 8 + 1, "z") });
+  }
   m.flats = S;
-  const stamps = { watch: watchtower("spruce", "planks"), igloo: igloo(), cabin: cabin() };
-  m.index = stampIndex(S.map((s) => ({ x: s.x + m.cx, z: s.z + m.cz, y: s.y, stamp: stamps[s.s] })));
+  m.keepOut = [...HUTS.map((h) => ({ ...h, r: 4 })), ...walks.map((w) => ({ x: w.x, z: w.z, r: w.stamp.r }))].map((f) => ({ ...f, r: Math.min(f.r, 6) }));
+  const walkOn = (lx, lz) => walks.some((w) => w.stamp.cols.has(`${lx - w.x},${lz - w.z}`));
+  const stamps = { stone: stoneTower(), watch: watchtower("mangrove", "mplanks"), hide: hideout("mudbricks", "moss", "mplanks"), tree: treehouse("mangroveL") };
+  const hut = stiltHut();
+  m.index = stampIndex([
+    ...S.map((s) => ({ x: s.x + m.cx, z: s.z + m.cz, y: s.y, stamp: stamps[s.s] })),
+    ...HUTS.map((h) => ({ x: h.x + m.cx, z: h.z + m.cz, y: W, stamp: hut })),
+    ...walks.map((w) => ({ x: w.x + m.cx, z: w.z + m.cz, y: W, stamp: w.stamp })),
+  ]);
   m.height = (x, z) => {
     const lx = x - m.cx, lz = z - m.cz;
-    const h = edgeBlend(m, x, z, blendFlats(raw(lx, lz), lx, lz, S), 84);
-    return Math.max(HUNT.floor + 4, Math.min(140, Math.round(h)));
+    const h = edgeBlend(m, x, z, blendFlats(raw(lx, lz), lx, lz, S), m.edgeY);
+    return Math.max(HUNT.floor + 4, Math.min(100, Math.round(h)));
   };
+  // mangroves stand on the water surface
+  m.treeBase = (x, z) => Math.max(W, m.height(x, z));
   const pickType = (lx, lz, y, r, roll) => {
-    if (y <= m.water + 1 || y > 112) return null;
-    const dense = vnoise(lx, lz, 50, 940) > -0.2;
-    if (roll > (dense ? 0.8 : 0.3)) return null;
-    return r < 0.62 ? "spruce" : r < 0.8 ? "mega" : r < 0.88 ? "fallen" : r < 0.95 ? "bush" : "birch";
+    if (walkOn(lx, lz)) return null;
+    const wet = raw(lx, lz) < W + 1;
+    if (roll > (wet ? 0.45 : 0.6)) return null;
+    if (wet) return r < 0.85 ? "mangrove" : "bush";
+    return r < 0.5 ? "mangrove" : r < 0.7 ? "big" : r < 0.82 ? "azalea" : r < 0.92 ? "bush" : "fallen";
   };
   m.column = (x, z) => {
     const segs = [];
-    if (border(m, x, z, segs, "snow")) return segs;
+    if (border(m, x, z, segs, "forest")) return segs;
     const lx = x - m.cx, lz = z - m.cz;
     const h = m.height(x, z);
-    const F = HUNT.floor, W = m.water;
+    const F = HUNT.floor;
     segs.push([F, F, "bedrock"]);
+    let used = false;
     if (h < W) {
-      groundColumn(segs, F + 1, h, "gravel", "gravel", "stone", 2);
-      if (h + 1 <= W - 1) segs.push([h + 1, W - 1, "water"]);
-      segs.push([W, W, hash(x, z, 950) < 0.12 ? "pice" : "ice"]);
+      groundColumn(segs, F + 1, h, hash(x, z, 1130) < 0.6 ? "mud" : "clay", "mud", "stone", 3);
+      segs.push([h + 1, W, "water"]);
+      used = m.index.apply(x, z, segs);
+      const trunk = addTrees(gridTrees(lx, lz, 7, (cx, cz) => treeCell(m, cx, cz, 7, pickType)), lx, lz, segs);
+      if (!used && !trunk && hash(x, z, 1131) < 0.1) segs.push([W + 1, W + 1, "lily"]);
       return segs;
     }
-    if (h > 108) {
-      // rocky, snowy peaks
-      groundColumn(segs, F + 1, h, hash(x, z, 951) < 0.6 ? "snow" : "stone", "stone", "stone");
-      if (hash(x, z, 952) < 0.5) segs.push([h + 1, h + 1, "snowL"]);
-      return segs;
-    }
-    const top = vnoise(lx, lz, 16, 953) > 0.35 ? "podzol" : hash(x, z, 954) < 0.1 ? "coarse" : "grass";
-    groundColumn(segs, F + 1, h, top);
-    const used = m.index.apply(x, z, segs);
+    const n = vnoise(lx, lz, 14, 1132);
+    const top = h <= W + 1 ? (n > 0 ? "mud" : "pmud") : n > 0.3 ? "moss" : n < -0.4 ? "podzol" : "grass";
+    groundColumn(segs, F + 1, h, top, h <= W + 1 ? "mud" : "dirt");
+    used = m.index.apply(x, z, segs);
     const trunk = addTrees(gridTrees(lx, lz, 7, (cx, cz) => treeCell(m, cx, cz, 7, pickType)), lx, lz, segs);
-    if (!used && !trunk && hash(x, z, 955) < 0.12) segs.push([h + 1, h + 1, hash(x, z, 956) < 0.5 ? "fern" : "tgrass"]);
-    else if (!used && !trunk && hash(x, z, 957) < 0.004) segs.push([h + 1, h + 2, "mcobble"]);
-    if (!used) snowOver(segs);
+    if (!used && !trunk && (top === "grass" || top === "moss" || top === "podzol")) {
+      const r = hash(x, z, 1133);
+      if (r < 0.3) segs.push([h + 1, h + 1, r < 0.12 ? "fern" : "tgrass"]);
+      else if (r < 0.34) segs.push([h + 1, h + 1, "mcarpet"]);
+      else if (r < 0.36) segs.push([h + 1, h + 1, "azaleaL"]);
+    }
     return segs;
   };
   m.chests = () => m.index.markers();
 }
 
-export const HUNTS = [forest, canyon, taiga];
+export const HUNTS = [forest, canyon, swamp];
 for (const m of HUNTS) {
   m.surface = (x, z) => surfaceOf(m, x, z);
   m.inside = (x, z) => x >= m.x0 && x <= m.x1 && z >= m.z0 && z <= m.z1;

@@ -44,7 +44,7 @@ RP = os.path.join(ROOT, "NaturaPvP_RP")
 DIST = os.path.join(ROOT, "dist")
 DOCS = os.path.join(ROOT, "docs")
 
-VERSION = [1, 3, 0]
+VERSION = [1, 4, 0]
 MIN_ENGINE = [1, 21, 90]  # custom commands in @minecraft/server 2.0.0
 SERVER_API = "2.0.0"
 UI_API = "2.0.0"
@@ -52,7 +52,7 @@ UUIDS = dict(bp="0b6f3c52-8e1d-4c7a-9f4e-2a6d1e7b5c31", bp_data="7d2e9a14-3b5f-4
              bp_script="e5a1c7d3-9f2b-4a6e-8d4c-1b7f3e9a2c65", rp="3c8f1e6a-2d4b-4f9e-b7a3-5e1c9d2f8b46",
              rp_res="9a4d2b7e-6c1f-4e3a-8b5d-7f2e1c9a4d83")
 
-BUILD_VERSION = "1.3.0"  # change it to rebuild the map in existing worlds
+BUILD_VERSION = "1.4.0"  # change it to rebuild the map in existing worlds
 SONGS_DIR = os.path.join(SRC, "canciones")
 AUDIO = (".ogg", ".mp3", ".wav", ".m4a", ".flac", ".opus")
 
@@ -281,8 +281,8 @@ def level_dat(packs_required=False):
         dofiretick=b(0), doimmediaterespawn=b(1), doinsomnia=b(0), domobloot=b(1), domobspawning=b(0),
         dotiledrops=b(1), doweathercycle=b(0), drowningdamage=b(1), falldamage=b(1), firedamage=b(1),
         freezedamage=b(1), keepinventory=b(1), mobgriefing=b(0), naturalregeneration=b(1), pvp=b(1),
-        respawnblocksexplode=b(1), sendcommandfeedback=b(1), showbordereffect=b(1), showcoordinates=b(0),
-        showdaysplayed=b(0), showdeathmessages=b(1), showtags=b(1), tntexplodes=b(0),
+        respawnblocksexplode=b(1), sendcommandfeedback=b(0), showbordereffect=b(1), showcoordinates=b(0),
+        showdaysplayed=b(0), showdeathmessages=b(1), showtags=b(0), tntexplodes=b(0),
         projectilescanbreakblocks=b(0), recipesunlock=b(0), showrecipemessages=b(0),
         functioncommandlimit=i(10000), maxcommandchainlength=i(65535), spawnradius=i(0),
         playerssleepingpercentage=i(100), randomtickspeed=i(1),
@@ -373,6 +373,9 @@ COLORS.update({
     "sfence": "#6b4f35", "hay": "#c9a92e", "slime": "#76c35d", "gold": "#f2d23a", "glow": "#f0c870", "sealantern": "#c8e0dc",
     "mstwall": "#6f7a5d", "ladderN": "#9a7a4a", "ladderS": "#9a7a4a", "ladderW": "#9a7a4a", "ladderE": "#9a7a4a",
     "lfern": "#4f8f36", "dark_wood": "#4a3a26", "oak_wood": "#6b5130", "spruce_wood": "#4b3620",
+    "mangrove": "#6b3a2a", "mangroveL": "#4f7f2a", "mroots": "#5a4434", "mudroots": "#4a3a30", "mud": "#3f3a3c",
+    "mudbricks": "#8a6c52", "pmud": "#8c6a50", "lily": "#2f7a2a", "mplanks": "#7a3a32", "mfence": "#6a332c",
+    "stairsBrick": "#7b7b7b",
 })
 for _wood in ("oak", "birch", "spruce", "dark", "cherry"):
     for _ax in ("x", "z"):
@@ -424,7 +427,7 @@ def preview(sim):
     rows = [
         [("lobby", "Lobby (Árbol del Mundo)", 2), ("campal", "Campal 126x126", 1.6)],
         [(f"duel{i}", n, 2.4) for i, n in enumerate(["Claro del Bosque", "Ruinas Musgosas", "Cerezal", "Lago Helado"])],
-        [(f"hunt{i}", n, 0.9) for i, n in enumerate(["Caza: Bosque Antiguo", "Caza: Cañón del Río", "Caza: Taiga Nevada"])],
+        [(f"hunt{i}", n, 0.9) for i, n in enumerate(["Caza: Bosque Antiguo", "Caza: Cañón del Río", "Caza: Pantano de los Manglares"])],
     ]
     pad, head = 20, 34
     rendered = [[(label, render_area(sim[k], sc)) for k, label, sc in row] for row in rows]
@@ -520,6 +523,7 @@ def main():
         both.paste(parts[0], (0, (both.height - parts[0].height) // 2))
         both.paste(parts[1], (parts[0].width + 20, (both.height - parts[1].height) // 2))
         both.save(os.path.join(DOCS, "natura_pvp_caza.png"))
+        iso_region("campal", 251, -69, 388, 68, s=4, ymin=74).save(os.path.join(DOCS, "natura_pvp_campal.png"))
 
     # the world: void, with the whole map already built in its database
     os.makedirs(DIST, exist_ok=True)

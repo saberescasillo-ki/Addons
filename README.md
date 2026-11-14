@@ -89,40 +89,44 @@ al lobby. Los cazadores eliminados también miran la caza así.
 - **4 mapas**: *Claro del Bosque* (hierba, rocas y arbustos), *Ruinas Musgosas* (pilares rotos y un altar),
   *Cerezal* (cerezos y pétalos) y *Lago Helado* (nieve, hielo y picos de hielo). Todos son simétricos: el mismo
   terreno en las dos mitades.
-- **Cinemática de inicio:** la cámara recorre la arena con el nombre del mapa y presenta a los dos rivales.
+- **Cinemática de inicio:** la cámara recorre la arena con el nombre del mapa y presenta a los dos rivales
+  (*quién contra quién*).
 - Después, **5 segundos de aliste** con los jugadores quietos. Luego *¡A PELEAR!*
+- **Sin avisos en la barra de acción** (ni tiempo, ni cola, ni nombre de la canción): solo el anuncio de quién
+  contra quién.
 - **Kit completo de diamante encantado**: armadura Protección IV, espada Filo V y Aspecto ígneo II, hacha Filo V,
   arco Poder V con Infinidad y Fuego, escudo, **16 manzanas doradas**, **8 perlas de ender** y carne.
-- Gana el que sobrevive y los dos vuelven al lobby. Si se acaban los 5 minutos (configurable) es empate.
+- Gana el que sobrevive y los dos vuelven al lobby. No hay límite de tiempo (un admin puede poner uno; no se
+  muestra en pantalla).
 
 ### Caza (hasta 5 jugadores)
 - Te apuntas en la cola (mínimo 2). A los 30 s empieza; si se llena (5), a los 5 s.
 - **3 mapas:**
   - *Bosque Antiguo*: bosques de todo tipo, lagos, rocas y ruinas.
   - *Cañón del Río*: una meseta cortada por un cañón con un río, rampas para bajar y puentes para cruzar.
-  - *Taiga Nevada*: abetos nevados, montañas y lagos helados.
+  - *Pantano de los Manglares*: agua poco profunda por todas partes, islas de barro y hierba, manglares sobre sus
+    raíces, nenúfares, **chozas sobre pilotes** unidas por **pasarelas de madera**, y una vieja torre de piedra.
 - **No se pueden romper bloques** (modo aventura). En cambio, cada mapa tiene **estructuras para los dos bandos**:
-  torres de vigilancia, una torre de piedra, refugios, casas en los árboles, iglús y cabañas. Todas tienen
-  **escaleras de mano para subir** y un **cofre con botín**, que se rellena al empezar cada caza (flechas, perlas,
-  manzanas doradas, pociones de curación, telarañas, bolas de nieve, zanahorias doradas, escaleras de mano, andamios
-  y, a veces, una manzana de Notch o un tótem).
+  torres de vigilancia, una torre de piedra, refugios, casas en los árboles, chozas sobre pilotes y pasarelas. Todas
+  tienen **escaleras de mano para subir** y un **cofre con botín**, que se rellena al empezar cada caza (flechas,
+  perlas, manzanas doradas, pociones de curación, bolas de nieve, zanahorias doradas, una caña de pescar y, a veces,
+  una manzana de Notch o un tótem).
 - **Cinemática de inicio:** cada jugador ve su zona desde el aire con el nombre del mapa y luego si es el cazado
   o cazador.
 - Uno al azar es el **cazado**, con **kit de hierro encantado**; los demás son **cazadores** con **kit de diamante**.
 - **Cuantos más cazadores, mejor el kit de hierro**: con 2, 3 o 4 cazadores sube Protección, Filo, Poder,
-  Irrompibilidad y Caída de pluma, y da más manzanas doradas (+3), perlas (+2), telarañas (+4) y pociones de
-  curación (+1) por cada cazador extra. Con 3 añade Aspecto ígneo, Infinidad y **velocidad**; con 4, Retroceso,
-  Fuego, Golpe, 2 manzanas de Notch y **vida extra**.
-- **Utilidades** (la mayoría para el cazado):
-  - **Cazado:** **10 manzanas doradas**, **12 perlas de ender**, **pociones arrojadizas** (4 de curación II, 2 de
-    velocidad II, y para lanzar a los cazadores 3 de lentitud, 2 de debilidad y 2 de veneno), 24 telarañas,
-    16 bolas de nieve, 16 andamios, 16 escaleras de mano, ballesta con Carga rápida, caña de pescar, tijeras, hacha
-    y zanahorias doradas.
-  - **Cazadores:** **8 manzanas doradas**, **6 perlas de ender**, tijeras, caña de pescar y 8 escaleras de mano.
-  - Las telarañas y los andamios solo se pueden poner sobre el suelo y la piedra; las escaleras de mano, en madera
-    y piedra. Las tijeras y las espadas cortan telarañas. Todo lo que se pone se quita solo al acabar la caza.
+  Irrompibilidad y Caída de pluma, y da más manzanas doradas (+2), perlas (+1) y pociones de curación (+1) por cada
+  cazador extra. Con 3 añade Aspecto ígneo, Infinidad y **velocidad**; con 4, Retroceso, Fuego, Golpe, una
+  manzana de Notch y **vida extra**.
+- **Kits** (ninguno lleva utilidades de construcción):
+  - **Cazado:** hierro encantado, espada, hacha, arco, ballesta con Carga rápida, **8 manzanas doradas**, **9 perlas
+    de ender**, **pociones arrojadizas** (3 de curación II, 2 de velocidad II, y para lanzar a los cazadores 2 de
+    lentitud, 1 de debilidad y 1 de veneno), 16 bolas de nieve, caña de pescar y zanahorias doradas.
+  - **Cazadores:** diamante, espada, arco, **8 manzanas doradas**, **6 perlas de ender** y caña de pescar.
 - El cazado tiene **20 s de ventaja** (después de la cinemática): los cazadores esperan ciegos y quietos. Cada
   60 s los cazadores reciben su posición. Dura 10 minutos: si el cazado sobrevive, gana él.
+- **Barra de acción:** solo el **tiempo** que queda y una **distancia**: los cazadores ven a cuánto está el cazado;
+  el cazado, a cuánto está el cazador más cercano.
 - No hay fuego amigo entre cazadores. Los eliminados pasan a espectadores. Si alguien sale del mundo cuenta como
   eliminado.
 - **Música de la caza:** suena la música que eligió **el cazado**, para todos los de la caza (también los
@@ -133,10 +137,22 @@ al lobby. Los cazadores eliminados también miran la caza así.
   atrapar al cazado. Si no lo consiguen, gana el cazado. La posición del cazado se revela cada 30 s.
 
 ### Campal
-Arena **siempre abierta** (un solo mapa, sin cinemática): entras cuando quieras desde la puerta o la brújula. Al
-morir reapareces dentro con el kit (**10 manzanas doradas y 6 perlas**, lejos de los demás y con 3 s de
-protección). Cada baja da **2 manzanas doradas, una perla** y regeneración. La tabla de bajas sale a la derecha de la pantalla. Para salir usa la **brújula de recuperación**
-(*Volver al lobby*); no funciona si te han dado en los últimos 8 s.
+Arena **siempre abierta** (un solo mapa, sin cinemática): entras cuando quieras desde la puerta o la brújula.
+
+![El Campal](docs/natura_pvp_campal.png)
+
+- **El mapa:** en el centro, un **templo** sobre una meseta: un anillo de 12 columnas unidas por arriba (se puede
+  subir con cargas de viento y caer con el mazo) y una fuente. Se sube por cuatro **rampas** con farolas, o se
+  salta. Alrededor corre un **arroyo** con **cuatro puentes**. En las esquinas hay **torres de vigilancia** con
+  escaleras, en el centro de cada lado un **arco en ruinas** y, entre medias, **casas en los árboles**, bosquecillos,
+  rocas y prados con flores.
+- **Kit:** armadura de diamante Protección III, espada Filo IV, **mazo** (Densidad III, Explosión de viento),
+  **lanza de diamante con Embestida II**, **16 cargas de viento**, arco, **10 manzanas doradas**, **6 perlas** y
+  **3 pociones arrojadizas** (curación II, fuerza y velocidad II).
+- Al morir reapareces dentro con el kit, lejos de los demás y con 3 s de protección. Cada baja da **2 manzanas
+  doradas, una perla** y regeneración. La tabla de bajas sale a la derecha de la pantalla. Para salir usa la
+  **brújula de recuperación** (*Volver al lobby*); no funciona si te han dado en los últimos 8 s.
+- La **lanza** existe desde Minecraft **1.21.130**: en versiones anteriores el kit sale sin ella.
 
 ### Música
 Hay **7 canciones**. Así se llaman dentro del mundo (el ID sirve para `/playsound`):
@@ -195,8 +211,11 @@ de la cola o del parkour, o dejar de espectar), `/natura:admin` (panel, con la e
 `/natura:hacer_admin` y `/natura:quitar_admin` (operadores).
 
 **Notas**
-- Las pociones de los kits se dan con `/give` (el tipo de poción no se puede elegir de otra forma). Si guardas un
+- Las pociones de los kits se dan con `/replaceitem` en su hueco del inventario (el tipo de poción no se puede elegir
+  de otra forma). Si guardas un
   kit desde tu inventario, las pociones mantienen su tipo cuando el juego lo informa; si no, se guardan sin tipo.
+- **Sin avisos de comandos:** `sendcommandfeedback` y `commandblockoutput` vienen en `false` (en el mundo y cada vez
+  que se abre).
 - Reglas del mundo: inventario se conserva, reaparición inmediata, sin mobs, sin fuego que se propague y sin
   explosiones de TNT. Por defecto es de día (se cambia en el panel) y nunca llueve.
 - **Mundo prebuilt:** el `.mcworld` lleva los chunks del lobby y de todos los mapas ya escritos en su base de

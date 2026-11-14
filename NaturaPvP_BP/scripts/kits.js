@@ -27,36 +27,43 @@ export const DEFAULT_KITS = {
   },
   campal: {
     name: "Campal",
-    desc: "Kit de diamante encantado para la arena siempre activa.",
+    desc: "Kit de diamante con mazo, lanza de embestida, cargas de viento y 3 pociones.",
     items: [
       { slot: "head", id: "minecraft:diamond_helmet", ench: { protection: 3, unbreaking: 3 } },
       { slot: "chest", id: "minecraft:diamond_chestplate", ench: { protection: 3, unbreaking: 3 } },
       { slot: "legs", id: "minecraft:diamond_leggings", ench: { protection: 3, unbreaking: 3 } },
-      { slot: "feet", id: "minecraft:diamond_boots", ench: { protection: 3, feather_falling: 3, unbreaking: 3 } },
+      { slot: "feet", id: "minecraft:diamond_boots", ench: { protection: 3, feather_falling: 4, unbreaking: 3 } },
       { slot: "offhand", id: "minecraft:shield" },
       { slot: 0, id: "minecraft:diamond_sword", ench: { sharpness: 4, unbreaking: 3 } },
-      { slot: 1, id: "minecraft:bow", ench: { power: 3, unbreaking: 3 } },
-      { slot: 2, id: "minecraft:golden_apple", count: 10 },
-      { slot: 4, id: "minecraft:ender_pearl", count: 6 },
-      { slot: 3, id: "minecraft:cooked_beef", count: 16 },
+      // the mace: hits harder the more you fall (towers, the temple and wind charges)
+      { slot: 1, id: "minecraft:mace", ench: { density: 3, wind_burst: 1, unbreaking: 3 } },
+      // the spear with Lunge ("embestida"), from Minecraft 1.21.130
+      { slot: 2, id: "minecraft:diamond_spear", ench: { lunge: 2, sharpness: 2, unbreaking: 3 } },
+      { slot: 3, id: "minecraft:wind_charge", count: 16 },
+      { slot: 4, id: "minecraft:golden_apple", count: 10 },
+      { slot: 5, id: "minecraft:ender_pearl", count: 6 },
+      { slot: 6, id: "minecraft:bow", ench: { power: 3, unbreaking: 3 } },
+      { slot: 7, id: "minecraft:cooked_beef", count: 16 },
       { slot: 9, id: "minecraft:arrow", count: 32 },
+      // 3 splash potions: healing II, strength, swiftness II
+      { slot: 10, id: "minecraft:splash_potion", potion: 22, count: 1 },
+      { slot: 11, id: "minecraft:splash_potion", potion: 31, count: 1 },
+      { slot: 12, id: "minecraft:splash_potion", potion: 16, count: 1 },
     ],
   },
   hunter: {
     name: "Cazador",
-    desc: "Kit de diamante de los cazadores, con utilidades para perseguir.",
+    desc: "Kit de diamante de los cazadores.",
     items: [
       { slot: "head", id: "minecraft:diamond_helmet" },
       { slot: "chest", id: "minecraft:diamond_chestplate" },
       { slot: "legs", id: "minecraft:diamond_leggings" },
       { slot: "feet", id: "minecraft:diamond_boots" },
       { slot: "offhand", id: "minecraft:shield" },
-      { slot: 0, id: "minecraft:diamond_sword", destroy: "webs" },
+      { slot: 0, id: "minecraft:diamond_sword" },
       { slot: 1, id: "minecraft:bow" },
-      { slot: 2, id: "minecraft:shears", destroy: "webs" },
+      { slot: 2, id: "minecraft:fishing_rod" },
       { slot: 3, id: "minecraft:ender_pearl", count: 6 },
-      { slot: 4, id: "minecraft:fishing_rod" },
-      { slot: 5, id: "minecraft:ladder", count: 8, placeOn: "wood" },
       { slot: 7, id: "minecraft:golden_apple", count: 8 },
       { slot: 8, id: "minecraft:cooked_beef", count: 32 },
       { slot: 9, id: "minecraft:arrow", count: 24 },
@@ -64,36 +71,31 @@ export const DEFAULT_KITS = {
   },
   hunted: {
     name: "Cazado",
-    desc: "Kit de hierro encantado con muchas utilidades para escapar; mejora con cada cazador extra.",
+    desc: "Kit de hierro encantado con pociones arrojadizas; mejora con cada cazador extra.",
     items: [
       { slot: "head", id: "minecraft:iron_helmet", ench: { protection: 1 } },
       { slot: "chest", id: "minecraft:iron_chestplate", ench: { protection: 1 } },
       { slot: "legs", id: "minecraft:iron_leggings", ench: { protection: 1 } },
       { slot: "feet", id: "minecraft:iron_boots", ench: { protection: 1, feather_falling: 1 } },
       { slot: "offhand", id: "minecraft:shield" },
-      { slot: 0, id: "minecraft:iron_sword", ench: { sharpness: 1 }, destroy: "webs" },
+      { slot: 0, id: "minecraft:iron_sword", ench: { sharpness: 1 } },
       { slot: 1, id: "minecraft:bow", ench: { power: 1 } },
-      { slot: 2, id: "minecraft:web|minecraft:cobweb", count: 16, placeOn: "ground" },
-      { slot: 3, id: "minecraft:ender_pearl", count: 12 },
+      { slot: 2, id: "minecraft:crossbow", ench: { quick_charge: 1 } },
+      { slot: 3, id: "minecraft:ender_pearl", count: 9 },
       { slot: 4, id: "minecraft:snowball", count: 16 },
-      { slot: 5, id: "minecraft:scaffolding", count: 16, placeOn: "ground" },
-      { slot: 6, id: "minecraft:ladder", count: 16, placeOn: "wood" },
-      { slot: 7, id: "minecraft:golden_apple", count: 10 },
+      { slot: 5, id: "minecraft:fishing_rod" },
+      { slot: 6, id: "minecraft:iron_axe", ench: { sharpness: 1 } },
+      { slot: 7, id: "minecraft:golden_apple", count: 8 },
       { slot: 8, id: "minecraft:cooked_beef", count: 32 },
       { slot: 9, id: "minecraft:arrow", count: 32 },
-      { slot: 10, id: "minecraft:crossbow", ench: { quick_charge: 1 } },
-      { slot: 11, id: "minecraft:fishing_rod" },
-      { slot: 12, id: "minecraft:shears", destroy: "webs" },
-      { slot: 13, id: "minecraft:iron_axe", ench: { sharpness: 1 } },
-      { slot: 14, id: "minecraft:web|minecraft:cobweb", count: 8, placeOn: "ground" },
-      { slot: 15, id: "minecraft:golden_carrot", count: 8 },
+      { slot: 10, id: "minecraft:golden_carrot", count: 8 },
       // splash potions (data value of the potion: 22 healing II, 16 swiftness II,
       // 17 slowness, 34 weakness, 25 poison)
-      { slot: 18, id: "minecraft:splash_potion", potion: 22, count: 4 },
+      { slot: 18, id: "minecraft:splash_potion", potion: 22, count: 3 },
       { slot: 19, id: "minecraft:splash_potion", potion: 16, count: 2 },
-      { slot: 20, id: "minecraft:splash_potion", potion: 17, count: 3 },
-      { slot: 21, id: "minecraft:splash_potion", potion: 34, count: 2 },
-      { slot: 22, id: "minecraft:splash_potion", potion: 25, count: 2 },
+      { slot: 20, id: "minecraft:splash_potion", potion: 17, count: 2 },
+      { slot: 21, id: "minecraft:splash_potion", potion: 34, count: 1 },
+      { slot: 22, id: "minecraft:splash_potion", potion: 25, count: 1 },
     ],
   },
 };
@@ -213,11 +215,11 @@ export function scaledHuntedKit(hunters) {
       }
     }
     // more apples, cobwebs and pearls with every extra hunter
-    const per = { "minecraft:golden_apple": 3, "minecraft:web|minecraft:cobweb": 4, "minecraft:ender_pearl": 2 }[s.id] ?? (s.potion === 22 ? 1 : 0);
+    const per = { "minecraft:golden_apple": 2, "minecraft:ender_pearl": 1 }[s.id] ?? (s.potion === 22 ? 1 : 0);
     const count = per ? Math.min(64, (s.count ?? 1) + bonus * per) : s.count;
     return { ...s, ench, count };
   });
-  if (bonus >= 3) items.push({ slot: 16, id: "minecraft:enchanted_golden_apple", count: 2 });
+  if (bonus >= 3) items.push({ slot: 16, id: "minecraft:enchanted_golden_apple", count: 1 });
   // and some effects for the whole hunt
   const effects = [];
   if (bonus >= 2) effects.push({ id: "speed", amp: 0 });
@@ -260,7 +262,9 @@ export function giveKit(player, kit) {
   }
   for (const p of potions) {
     try {
-      player.runCommand(`give @s ${p.id.replace("minecraft:", "")} ${Math.max(1, p.count ?? 1)} ${p.potion}`);
+      const n = Math.max(1, p.count ?? 1), id = p.id.replace("minecraft:", "");
+      const where = typeof p.slot === "number" ? (p.slot < 9 ? `slot.hotbar ${p.slot}` : `slot.inventory ${p.slot - 9}`) : null;
+      player.runCommand(where ? `replaceitem entity @s ${where} ${id} ${n} ${p.potion}` : `give @s ${id} ${n} ${p.potion}`);
     } catch {}
   }
   for (const e of kit.effects ?? []) {
@@ -343,7 +347,7 @@ export function saveKitFrom(player, id) {
 }
 
 export function describeKit(kit) {
-  const POTION_NAMES = { 21: "curación", 22: "curación II", 16: "velocidad II", 14: "velocidad", 17: "lentitud", 34: "debilidad", 25: "veneno", 23: "daño", 24: "daño II" };
+  const POTION_NAMES = { 21: "curación", 22: "curación II", 16: "velocidad II", 14: "velocidad", 17: "lentitud", 34: "debilidad", 25: "veneno", 23: "daño", 24: "daño II", 31: "fuerza", 33: "fuerza II" };
   const names = kit.items.map((s) => {
     let n = s.id.split("|")[0].replace("minecraft:", "").replace(/_/g, " ");
     if (s.potion !== undefined) n += ` de ${POTION_NAMES[s.potion] ?? s.potion}`;
