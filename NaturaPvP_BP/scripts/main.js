@@ -685,6 +685,17 @@ function duelLeave(player) {
   player.sendMessage("§b[Emparejamiento]§r Saliste de la cola.");
 }
 
+// The intro of a hunt, for one player: their zone from the air, then them.
+function huntShots(map, p, isPrey, hunters, preyName) {
+  const l = p.location;
+  const eye = { x: l.x, y: l.y + 1.6, z: l.z };
+  return [
+    { pos: { x: l.x + 34, y: l.y + 40, z: l.z + 34 }, look: eye, hold: 0 },
+    { pos: { x: l.x - 30, y: l.y + 22, z: l.z + 26 }, look: eye, ease: 3.2, hold: 0.2, title: `§6§l${map.name.toUpperCase()}`, sub: `§fCaza · ${map.desc}` },
+    { pos: { x: l.x + 3, y: l.y + 2.2, z: l.z + 3 }, look: eye, ease: 2, hold: 0.8, title: isPrey ? "§c§lERES EL CAZADO" : "§a§lERES CAZADOR", sub: isPrey ? `§f${hunters} cazador(es) te buscan` : `§fatrapa a §c${preyName}` },
+  ];
+}
+
 function duelShots(map, spawns, names) {
   const c = { x: map.cx + 0.5, y: DUEL.y + 3, z: map.cz + 0.5 };
   const face = (sp, other) => {
@@ -850,8 +861,7 @@ function huntCenter() {
   return { x: m.cx + 0.5, y: s.y + 25, z: m.cz + 0.5 };
 }
 
-function randomSpot(awayFrom, minDist) {
-  const m = huntMap();
+function randomSpot(awayFrom, minDist, m = huntMap()) {
   let best, bestD = -1;
   for (let i = 0; i < 120; i++) {
     const x = m.x0 + 14 + Math.floor(Math.random() * (HUNT.size - 28));
@@ -866,7 +876,7 @@ function randomSpot(awayFrom, minDist) {
       bestD = d;
     }
   }
-  return best ?? huntCenter();
+  return best ?? { x: m.cx + 0.5, y: m.surface(m.cx, m.cz).y + 1, z: m.cz + 0.5 };
 }
 
 function huntParticipants() {
@@ -1015,16 +1025,7 @@ function startHunt() {
     checkMusic();
   };
   if (S.hunt.cinematic) {
-    cinematic(huntParticipants(), (p) => {
-      const l = p.location;
-      const prey_ = p.id === hunt.hunted;
-      const eye = { x: l.x, y: l.y + 1.6, z: l.z };
-      return [
-        { pos: { x: l.x + 34, y: l.y + 40, z: l.z + 34 }, look: eye, hold: 0 },
-        { pos: { x: l.x - 30, y: l.y + 22, z: l.z + 26 }, look: eye, ease: 3.2, hold: 0.2, title: `§6§l${map.name.toUpperCase()}`, sub: `§fCaza · ${map.desc}` },
-        { pos: { x: l.x + 3, y: l.y + 2.2, z: l.z + 3 }, look: eye, ease: 2, hold: 0.8, title: prey_ ? "§c§lERES EL CAZADO" : "§a§lERES CAZADOR", sub: prey_ ? `§f${hunt.hunters.length} cazador(es) te buscan` : `§fatrapa a §c${hunt.names[hunt.hunted]}` },
-      ];
-    }).then(release);
+    cinematic(huntParticipants(), (p) => huntShots(map, p, p.id === hunt.hunted, hunt.hunters.length, hunt.names[hunt.hunted])).then(release);
   } else release();
 }
 
@@ -1153,12 +1154,12 @@ function sunPoint(from) {
   return { x: from.x + Math.cos(a) * 40, y: from.y + Math.max(0.2, Math.sin(a)) * 40, z: from.z + 6 };
 }
 
-async function victoryCinematic(prey) {
+async function victoryCinematic(prey, viewers = huntParticipants().filter((p) => p.id !== prey.id && ["hunt", "hunt_spec", "spec"].includes(st(p).mode))) {
   const V = VICTORY;
-  const viewers = huntParticipants().filter((p) => p.id !== prey.id && ["hunt", "hunt_spec", "spec"].includes(st(p).mode));
   const all = [prey, ...viewers];
   const alive = () => all.filter(valid);
-  huntMusicStop();
+  if (prey.id === hunt.hunted) huntMusicStop(); // a test does not touch a real hunt
+  else for (const p of all) stopSong(p);
   for (const p of all) {
     st(p).mode = "victory";
     lockInput(p, true);
@@ -1846,6 +1847,7 @@ async function openAdmin(player) {
     ["§3§lMUNDO\n§r§8hora, vida y anuncios", () => adminWorld(player), "textures/items/compass_item"],
     [free ? "§2§lSALIR DEL MODO LIBRE\n§r§8vuelves al lobby" : "§2§lMODO LIBRE\n§r§8creativo, con el panel a mano", () => toggleFree(player), "textures/items/diamond_pickaxe"],
     ["§3§lIR A UNA ZONA\n§r§8teletransporte", () => adminTeleport(player), "textures/items/ender_pearl"],
+    ["§d§lPRUEBAS\n§r§8cinemáticas, vista épica, canciones", () => adminTests(player), "textures/items/totem"],
     ["§8§lMÁS\n§r§8reconstruir, estadísticas, reiniciar", () => adminMore(player), "textures/items/book_writable"],
   ]);
 }
@@ -2093,6 +2095,106 @@ async function adminTeleport(player) {
     ...DUELS.map((d) => [`§b§l${d.name}\n§r§8Emparejamiento`, () => go({ x: d.cx + 0.5, y: DUEL.y + 6, z: d.cz + 0.5 }), "textures/items/diamond_sword"]),
     ["§a§lCAMPAL", () => go({ x: CAMPAL.cx + 0.5, y: CAMPAL.y + 8, z: CAMPAL.cz + 0.5 }), "textures/items/iron_sword"],
     ...HUNTS.map((m) => [`§c§l${m.name}\n§r§8Caza`, () => go({ x: m.cx + 0.5, y: m.surface(m.cx, m.cz).y + 25, z: m.cz + 0.5 }), "textures/items/bow_standby"]),
+  ], () => openAdmin(player));
+}
+
+// ------------------------------------------------------------ admin: tests
+// Every cinematic, the epic view and every song, on yourself, without playing a match.
+function canTest(player) {
+  const m = st(player).mode;
+  if (m === "lobby" || m === "free") return true;
+  player.sendMessage("§c[Pruebas] Sal antes de la partida (vuelve al lobby o al modo libre).");
+  return false;
+}
+
+// a test takes the player out of the game loop, and puts them back in the lobby at the end
+function testStart(player) {
+  const s = st(player);
+  leaveQueues(player);
+  s.mode = "test";
+  stopMusic(player);
+  clearPlayer(player);
+  setMode(player, GM.adventure);
+  effect(player, "resistance", 60, 255);
+}
+
+async function testVictory(player, all) {
+  if (!canTest(player)) return;
+  const viewers = all ? world.getPlayers().filter((p) => p.id !== player.id && st(p).mode === "lobby") : [];
+  testStart(player);
+  for (const p of viewers) testStart(p);
+  player.sendMessage("§d[Pruebas]§r Cinemática de victoria: tú eres el cazado.");
+  try {
+    await victoryCinematic(player, viewers);
+  } finally {
+    for (const p of [player, ...viewers]) if (valid(p)) sendToLobby(p);
+  }
+}
+
+async function testEpic(player) {
+  if (!canTest(player)) return;
+  sendToLobby(player);
+  epicView(player);
+  player.sendMessage("§d[Pruebas]§r Vista épica: muévete un bloque para salir.");
+}
+
+async function testDuel(player, i) {
+  if (!canTest(player)) return;
+  if (duel.matches[i]) return player.sendMessage("§c[Pruebas] Hay un duelo en ese mapa ahora.");
+  const map = DUELS[i];
+  const spawns = map.spawns();
+  testStart(player);
+  lockInput(player, true);
+  tp(player, spawns[0]);
+  await sleep(20);
+  try {
+    await cinematic([player], duelShots(map, spawns, [player.name, "Rival"]));
+    for (let t = 5; t > 0; t--) {
+      title(player, `${t <= 2 ? "§c" : t <= 3 ? "§6" : "§e"}§l${t}`, "§7prepárate", 16);
+      sound(player, "note.pling", 0.8, t <= 3 ? 1.5 : 1);
+      await sleep(SEC);
+    }
+    title(player, "§a§l¡A PELEAR!", "§7(prueba)", 20);
+    await sleep(2 * SEC);
+  } finally {
+    if (valid(player)) sendToLobby(player, "§d[Pruebas]§r Fin de la prueba del duelo.");
+  }
+}
+
+async function testHunt(player, i, asPrey) {
+  if (!canTest(player)) return;
+  if (hunt.phase === "running" && hunt.map === i) return player.sendMessage("§c[Pruebas] Hay una caza en ese mapa ahora.");
+  const map = HUNTS[i];
+  testStart(player);
+  lockInput(player, true);
+  tp(player, randomSpot(undefined, 0, map));
+  await sleep(30);
+  try {
+    await cinematic([player], (p) => huntShots(map, p, asPrey, 3, asPrey ? "" : "el cazado"));
+    await sleep(SEC);
+  } finally {
+    if (valid(player)) sendToLobby(player, "§d[Pruebas]§r Fin de la prueba de la caza.");
+  }
+}
+
+function testSong(player, i) {
+  personal.delete(player.id);
+  playTrack(player, i);
+  player.sendMessage(`§d[Pruebas]§r Sonando: §f${TRACKS[i].name}§r (volumen ${Math.round((TRACKS[i].volume ?? 1) * 100)}).`);
+}
+
+async function adminTests(player) {
+  await menu(player, "§l§dPRUEBAS", "§7Prueba cada cosa sobre ti, sin jugar una partida. Al acabar vuelves al lobby.\n ", [
+    ["§6§lCINEMÁTICA DE VICTORIA\n§r§8tú eres el cazado", () => testVictory(player, false), "textures/items/totem"],
+    ["§6§lVICTORIA CON ESPECTADORES\n§r§8también la ven los del lobby", () => testVictory(player, true), "textures/items/totem"],
+    ["§b§lVISTA ÉPICA AL ENTRAR", () => testEpic(player), "textures/items/spyglass"],
+    ["§b§lCINEMÁTICA DE DUELO\n§r§8elige el mapa", () => menu(player, "§l§bDUELO", "§7Cinemática y los 5 segundos de aliste.\n ",
+      DUELS.map((d, i) => [`§f${d.name}`, () => testDuel(player, i), "textures/items/diamond_sword"]), () => adminTests(player)), "textures/items/diamond_sword"],
+    ["§c§lCINEMÁTICA DE CAZA\n§r§8elige el mapa", () => menu(player, "§l§cCAZA", "§7Como cazado o como cazador.\n ",
+      HUNTS.flatMap((m, i) => [[`§f${m.name}\n§8como cazado`, () => testHunt(player, i, true), "textures/items/bow_standby"], [`§f${m.name}\n§8como cazador`, () => testHunt(player, i, false), "textures/items/bow_standby"]]),
+      () => adminTests(player)), "textures/items/bow_standby"],
+    ...TRACKS.map((t, i) => [`§d§l${t.name.toUpperCase()}\n§r§8${t.use === "lobby" ? "lobby" : t.use === "hunt" ? "caza" : t.use === "win" ? "victoria" : "sin uso"} · volumen ${Math.round((t.volume ?? 1) * 100)}`, () => testSong(player, i), "textures/items/record_cat"]),
+    ["§7§lPARAR LA CANCIÓN\n§r§8y volver a la del lobby", () => (st(player).mode === "lobby" ? lobbyMusic(player) : stopMusic(player)), "textures/blocks/barrier"],
   ], () => openAdmin(player));
 }
 

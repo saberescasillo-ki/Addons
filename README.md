@@ -193,6 +193,7 @@ recibe un **reloj** (*Panel de administración*) en el lobby y en el **modo libr
 | Mundo | hora (amanecer, mañana, mediodía, atardecer, noche, medianoche), congelar la hora, regeneración natural, **anuncio** con título para todos |
 | Modo libre | creativo y sin límites, **con el reloj del panel a mano** |
 | Ir a una zona | lobby, sala de la victoria, cada mapa |
+| Pruebas | probar cada cosa sobre ti, sin jugar una partida: **cinemática de victoria** (tú eres el cazado; sola o con los del lobby mirando), **vista épica** al entrar, **cinemática de duelo** (con los 5 s de aliste) y **de caza** (como cazado o cazador) en el mapa que elijas, y **cada canción** con su volumen |
 | Más | reconstruir una zona, reiniciar estadísticas, ajustes por defecto |
 
 Los ajustes, kits y estadísticas se guardan en el mundo.
@@ -214,9 +215,10 @@ Los ajustes, kits y estadísticas se guardan en el mundo.
   construye el mapa la primera vez (unos minutos) y avisa en el chat.
 - Generador: `python3 tools/natura_pvp.py` (`--preview` actualiza las imágenes). Los mapas están en
   `tools/natura_pvp/gen/`; `world.py` escribe el mundo prebuilt y `update_block_states.py` actualiza los bloques
-  desde minecraft-data. `node tools/natura_pvp/smoke/run.mjs` prueba los scripts con un juego simulado (con
-  `--build`, también la construcción por el script): vista épica, mapas, cinemáticas, victoria del cazado,
-  espectador, duelos, campal, caza, kits, música y panel.
+  desde minecraft-data. `node tools/natura_pvp/smoke/run.mjs` prueba los scripts con un juego simulado, por partes que se pueden lanzar
+  solas: `entrada`, `apuestas`, `duelo`, `campal`, `caza`, `victoria`, `espectador`, `panel` y `pruebas` (por
+  ejemplo `node tools/natura_pvp/smoke/run.mjs victoria`; sin nombres, todas; `--lista` las enseña; `--build`
+  prueba también la construcción por el script).
 
 ---
 
