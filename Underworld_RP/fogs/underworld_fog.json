@@ -1,0 +1,46 @@
+{
+  "format_version": "1.16.100",
+  "minecraft:fog_settings": {
+    "description": {
+      "identifier": "underworld:underworld_fog"
+    },
+    "distance": {
+      "air": {
+        "fog_start": 6,
+        "fog_end": 76,
+        "fog_color": "#0a1a1e",
+        "render_distance_type": "fixed"
+      },
+      "weather": {
+        "fog_start": 6,
+        "fog_end": 76,
+        "fog_color": "#0a1a1e",
+        "render_distance_type": "fixed"
+      },
+      "water": {
+        "fog_start": 2,
+        "fog_end": 24,
+        "fog_color": "#06282e",
+        "render_distance_type": "fixed"
+      },
+      "lava": {
+        "fog_start": 0.0,
+        "fog_end": 0.6,
+        "fog_color": "#991a00",
+        "render_distance_type": "fixed"
+      },
+      "lava_resistance": {
+        "fog_start": 2,
+        "fog_end": 20,
+        "fog_color": "#991a00",
+        "render_distance_type": "fixed"
+      },
+      "powder_snow": {
+        "fog_start": 0.5,
+        "fog_end": 1.5,
+        "fog_color": "#f9ffff",
+        "render_distance_type": "fixed"
+      }
+    }
+  }
+}

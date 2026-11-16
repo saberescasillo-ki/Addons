@@ -1,0 +1,54 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Underworld",
+    "description": "Una dimensión de pizarra profunda, arena de almas y huesos.",
+    "uuid": "b3f0c7a2-6f0e-4d1b-9a55-2e7f1c0d8a41",
+    "version": [
+      1,
+      0,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      26,
+      20
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "0c9d4e7b-51a3-4f2e-8b6d-7a1e3c5f9b20",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "7e2a9b14-3c6d-4e8f-a1b0-5d4c3b2a1f6e",
+      "version": [
+        1,
+        0,
+        0
+      ],
+      "entry": "scripts/main.js"
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "d48f1a6c-2b3e-4c7d-9e0f-6a5b4c3d2e1f",
+      "version": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "beta"
+    }
+  ]
+}

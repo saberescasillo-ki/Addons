@@ -1,0 +1,17 @@
+{
+  "format_version": "1.17.0",
+  "minecraft:ore_feature": {
+    "description": {
+      "identifier": "underworld:hallucinogenic_rock_ore_feature"
+    },
+    "count": 4,
+    "replace_rules": [
+      {
+        "places_block": "underworld:hallucinogenic_rock_ore",
+        "may_replace": [
+          "minecraft:deepslate"
+        ]
+      }
+    ]
+  }
+}

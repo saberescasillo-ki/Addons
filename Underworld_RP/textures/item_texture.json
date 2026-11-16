@@ -1,0 +1,9 @@
+{
+  "resource_pack_name": "underworld",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "underworld_hallucinogenic_rock": {
+      "textures": "textures/items/underworld/hallucinogenic_rock"
+    }
+  }
+}

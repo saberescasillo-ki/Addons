@@ -7,14 +7,76 @@
 | **Ruleta de Colores** – ruleta en el HUD con comandos de administrador | [`dist/Roulette.mcaddon`](dist/Roulette.mcaddon) | `tools/roulette.py` |
 | **Objetos de Ayuda** – 4 objetos especiales que ayudan al jugador | [`dist/HelperItems.mcaddon`](dist/HelperItems.mcaddon) | `tools/helper_items.py` |
 | **The LITIUS Blind** – nueva dimensión de islas flotantes | [`dist/LitiusBlind.mcaddon`](dist/LitiusBlind.mcaddon) | `tools/litius_blind.py` |
+| **Underworld** – dimensión procedural de pizarra profunda, arena de almas y huesos | [`dist/Underworld.mcaddon`](dist/Underworld.mcaddon) | `tools/underworld.py` |
 
 Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo. No hace falta activar experimentos
-(salvo en The LITIUS Blind, ver abajo).
+(salvo en The LITIUS Blind y Underworld, ver abajo).
 
 - The Revamp of the Soul requiere Minecraft Bedrock **1.26.0** o superior.
 - Medieval Mobs requiere **1.21.0** o superior.
 - Ruleta de Colores y Objetos de Ayuda requieren **1.21.90** o superior.
-- The LITIUS Blind requiere **26.20** o superior y el experimento **Beta APIs**.
+- The LITIUS Blind y Underworld requieren **26.20** o superior y el experimento **Beta APIs**.
+
+---
+
+# Underworld
+
+![Simulación de tres celdas, una de cada bioma](docs/underworld_preview.png)
+
+Una dimensión **generada proceduralmente**: un mundo de cavernas cerrado, como el Nether, pero hecho de
+**pizarra profunda, arena de almas y huesos**, donde solo viven **mobs esqueléticos**.
+
+**Cómo activarlo:** en los ajustes del mundo, *Experimentos → Beta APIs* activado, y el pack *Behavior* activo.
+Las dimensiones nuevas en Bedrock solo se pueden crear con la *Custom Dimension API*, que de momento es beta
+(Minecraft **26.20** o superior). Sin ese experimento el addon no carga.
+
+**Cómo entrar**
+
+1. Busca la **Mena de Roca Alucinógena** (`underworld:hallucinogenic_rock_ore`) en las **capas negativas del
+   Overworld** (de y -4 a y -60, dentro de la pizarra profunda). Brilla un poco, con vetas de colores. Solo aparece
+   en chunks generados después de activar el addon. Se pica con cualquier herramienta y suelta la roca.
+2. Haz **click derecho** con la **Roca Alucinógena** (`underworld:hallucinogenic_rock`) en la mano. Te da
+   **ceguera y mareo durante 4 segundos** y después despiertas en el Underworld, en la caverna que queda bajo tus
+   mismas coordenadas X/Z.
+3. **Para salir** se usa la misma roca, con los mismos efectos: vuelves a **tu última posición del Overworld**
+   (el punto exacto donde la usaste para entrar).
+4. La roca tiene **30 segundos de cooldown** tras cada uso, tanto para entrar como para salir. No se gasta.
+
+Solo funciona en el Overworld y en el Underworld. Si pierdes la roca dentro, también hay vetas de la mena en el
+Underworld (raras) y a veces viene en los cofres de los santuarios. También está en el inventario creativo.
+
+**La generación**
+
+- **Forma:** bedrock en y 0 y en el techo (y 103). Entre medias, un ruido 3D excava cavernas de varios niveles,
+  grandes salas, túneles estrechos y **columnas** que unen suelo y techo. En las simas más profundas hay un
+  **mar de lava** (hasta y 11). Todo depende solo de las coordenadas y de una semilla propia que se guarda en el
+  mundo, así que el terreno es continuo y siempre el mismo.
+- **Tres biomas:**
+
+| Bioma | Suelo | Qué hay |
+|---|---|---|
+| **Páramo de Pizarra** | pizarra profunda con parches de pizarra empedrada y algo de tierra de almas | estalagmitas y estalactitas de pizarra, menas |
+| **Valle de Almas** | arena y tierra de almas | **fuego de almas**, púas de hueso, costillares |
+| **Osario** | bloques de hueso mezclados con pizarra y tierra de almas; hueso también en el techo | bosques de púas de hueso, calaveras por el suelo, costillares |
+
+- **Su toque propio:** **calaveras gigantes** de hueso con farolillos de almas en las cuencas de los ojos,
+  **costillares** de bestias enormes medio enterrados, **estalactitas de hueso con un farolillo de almas** colgando
+  (la única luz junto a la lava y el fuego de almas), y **santuarios en ruinas** de ladrillos y baldosas de pizarra
+  con un cofre (huesos, flechas, antorchas de almas, lingotes, calaveras y, a veces, Roca Alucinógena).
+- **Menas:** todas las de pizarra profunda, más la Mena de Roca Alucinógena.
+- **Niebla** propia, densa y fría, que se quita sola al salir.
+
+**Mobs:** solo esqueléticos. Aparecen por el suelo de las cavernas cerca de cada jugador (hasta 9 a la vez):
+esqueletos en todas partes, **strays** sobre arena de almas, **esqueletos wither**, **bogged** y **parched** sobre
+hueso, y rara vez un **caballo esqueleto**. Cualquier otro mob (también de huevo) se elimina al aparecer; los mobs
+de otros addons con la familia `skeleton` sí se respetan.
+
+**Cómo se genera:** en celdas de 4x4 chunks (64x64 bloques). Se generan las 5x5 celdas alrededor de cada jugador,
+la más cercana primero; la celda de llegada se forma mientras dura el efecto de la roca. Si llegas al borde de lo
+generado, el addon te devuelve al último suelo firme hasta que la caverna termina de formarse. La imagen de arriba
+es la simulación hecha con el mismo generador (`python3 tools/underworld.py --preview`, necesita `node`).
+El generador está en `tools/underworld/gen.js` y se copia tal cual al pack; `CONFIG` en `tools/underworld.py`
+cambia el radio de generación, el cooldown, la duración del efecto y los mobs.
 
 ---
 
