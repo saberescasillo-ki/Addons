@@ -1,0 +1,14 @@
+{
+  "path_type": "moogs_paths:desert_highway",
+  "biomes": "#moogs_paths:has_path/desert_highway",
+  "weight": 4,
+  "region_size": 36,
+  "structure_sets": [
+    "moogs_paths:desert_lamps",
+    "moogs_paths:birch_decorations"
+  ],
+  "feature_decorator_sets": [
+    "moogs_paths:desert_dead_bushes"
+  ],
+  "bush_decorator_sets": []
+}

@@ -1,0 +1,30 @@
+{
+  "structures": [
+    {
+      "nbt": "moogs_paths:birch_button",
+      "rotation": "none",
+      "weight": 6,
+      "offset": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "nbt": "moogs_paths:birch_pressure_plate",
+      "rotation": "none",
+      "weight": 4,
+      "offset": [
+        0,
+        1,
+        0
+      ]
+    }
+  ],
+  "placement": "interval",
+  "spacing": 10,
+  "spacing_variance": 5,
+  "flatness_tolerance": 4,
+  "terrain_adjustment": "beard_thin",
+  "side_offset": 0
+}

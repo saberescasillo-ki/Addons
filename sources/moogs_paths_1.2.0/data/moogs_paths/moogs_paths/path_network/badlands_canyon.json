@@ -1,0 +1,11 @@
+{
+  "path_type": "moogs_paths:badlands_canyon",
+  "biomes": "#moogs_paths:has_path/badlands_canyon",
+  "weight": 3,
+  "region_size": 24,
+  "structure_sets": [
+    "moogs_paths:badlands_markers"
+  ],
+  "feature_decorator_sets": [],
+  "bush_decorator_sets": []
+}

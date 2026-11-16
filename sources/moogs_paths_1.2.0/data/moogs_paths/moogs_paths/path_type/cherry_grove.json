@@ -1,0 +1,29 @@
+{
+  "surface_blocks": [
+    {
+      "block": "minecraft:dirt_path",
+      "weight": 4
+    },
+    {
+      "block": "minecraft:grass_block",
+      "weight": 1
+    }
+  ],
+  "edge_blocks": [],
+  "fill_block": "minecraft:dirt",
+  "width": {
+    "min": 1,
+    "max": 2
+  },
+  "rigidness": 0.05,
+  "carver": 0.55,
+  "length": {
+    "type": "minecraft:uniform",
+    "min_inclusive": 60,
+    "max_inclusive": 250
+  },
+  "fade": {
+    "start_blocks": 5,
+    "end_blocks": 5
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "path_type": "moogs_paths:desert_highway",
+  "biomes": "#minecraft:is_overworld",
+  "structure_sets": [
+    "moogs_paths:desert_lamps"
+  ],
+  "feature_decorator_sets": [
+    "moogs_paths:desert_dead_bushes"
+  ],
+  "bush_decorator_sets": [],
+  "origin": {
+    "structure_set": "mvs:desert_house",
+    "structure": "mvs:desert_house",
+    "path_count": 1,
+    "anchor": {
+      "local_pos": [0, 0, 4],
+      "facing": "west"
+    }
+  }
+}

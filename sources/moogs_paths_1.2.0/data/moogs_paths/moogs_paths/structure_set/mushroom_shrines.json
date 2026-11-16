@@ -1,0 +1,20 @@
+{
+  "structures": [
+    {
+      "nbt": "moogs_paths:mushroom_marker",
+      "rotation": "random",
+      "weight": 1,
+      "offset": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "placement": "interval",
+  "spacing": 10,
+  "spacing_variance": 7,
+  "flatness_tolerance": 5,
+  "terrain_adjustment": "beard_thin",
+  "side_offset": 3
+}

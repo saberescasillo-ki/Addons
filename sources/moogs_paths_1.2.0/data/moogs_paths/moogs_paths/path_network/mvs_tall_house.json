@@ -1,0 +1,22 @@
+{
+  "path_type": "moogs_paths:dirt_trail",
+  "biomes": "#minecraft:is_overworld",
+  "structure_sets": [
+    "moogs_paths:oak_posts"
+  ],
+  "feature_decorator_sets": [
+    "moogs_paths:plains_grass_both"
+  ],
+  "bush_decorator_sets": [
+    "moogs_paths:plains_bushes"
+  ],
+  "origin": {
+    "structure_set": "mvs:tall_house",
+    "structure": "mvs:tall_house",
+    "path_count": 1,
+    "anchor": {
+      "local_pos": [9, 0, 16],
+      "facing": "south"
+    }
+  }
+}

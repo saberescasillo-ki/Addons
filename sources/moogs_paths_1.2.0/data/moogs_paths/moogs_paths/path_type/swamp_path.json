@@ -1,0 +1,89 @@
+{
+  "surface_blocks": [
+    {
+      "block": "minecraft:mud_bricks",
+      "weight": 8
+    },
+    {
+      "block": "minecraft:packed_mud",
+      "weight": 5
+    },
+    {
+      "block": "minecraft:coarse_dirt",
+      "weight": 2
+    },
+    {
+      "block": "minecraft:mud",
+      "weight": 1
+    },
+    {
+      "block": "minecraft:structure_void",
+      "weight": 3
+    }
+  ],
+  "edge_blocks": [
+    {
+      "block": "minecraft:packed_mud",
+      "weight": 3
+    },
+    {
+      "block": "minecraft:coarse_dirt",
+      "weight": 2
+    },
+    {
+      "block": "minecraft:mud",
+      "weight": 1
+    },
+    {
+      "block": "minecraft:structure_void",
+      "weight": 8
+    }
+  ],
+  "fill_block": "minecraft:packed_mud",
+  "width": {
+    "min": 2,
+    "max": 3
+  },
+  "rigidness": 0.05,
+  "carver": 0.1,
+  "length": {
+    "type": "minecraft:uniform",
+    "min_inclusive": 75,
+    "max_inclusive": 300
+  },
+  "fade": {
+    "start_blocks": 3,
+    "end_blocks": 3
+  },
+  "water_settings": {
+    "surface_blocks": [
+      {
+        "block": "minecraft:oak_planks",
+        "weight": 5
+      },
+      {
+        "block": "minecraft:spruce_planks",
+        "weight": 4
+      },
+      {
+        "block": "minecraft:stripped_oak_log",
+        "weight": 1
+      },
+      {
+        "block": "minecraft:stripped_spruce_log",
+        "weight": 1
+      }
+    ],
+    "edge_blocks": [
+      {
+        "block": "minecraft:oak_planks",
+        "weight": 2
+      },
+      {
+        "block": "minecraft:spruce_planks",
+        "weight": 1
+      }
+    ]
+  },
+  "water_cost": 0
+}

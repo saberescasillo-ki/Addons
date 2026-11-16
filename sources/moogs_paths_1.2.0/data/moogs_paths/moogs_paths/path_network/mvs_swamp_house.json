@@ -1,0 +1,20 @@
+{
+  "path_type": "moogs_paths:swamp_path",
+  "biomes": "#moogs_paths:has_path/witch_hut_trail",
+  "structure_sets": [
+    "moogs_paths:swamp_posts"
+  ],
+  "feature_decorator_sets": [
+    "moogs_paths:swamp_grass"
+  ],
+  "bush_decorator_sets": [],
+  "origin": {
+    "structure_set": "mvs:small_swamp_house",
+    "structure": "mvs:small_swamp_house",
+    "path_count": 1,
+    "anchor": {
+      "local_pos": [0, 0, 3],
+      "facing": "west"
+    }
+  }
+}

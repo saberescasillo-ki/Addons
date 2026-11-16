@@ -1,0 +1,72 @@
+{
+  "structures": [
+    {
+      "nbt": "moogs_paths:snowy_cairn",
+      "rotation": "random",
+      "weight": 2,
+      "offset": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "nbt": "moogs_paths:stone_marker",
+      "rotation": "random",
+      "weight": 3,
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "placement_chance": 0.1
+    },
+    {
+      "nbt": "moogs_paths:swamp_post",
+      "rotation": "random",
+      "weight": 2,
+      "offset": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "nbt": "moogs_paths:taiga_marker",
+      "rotation": "random",
+      "weight": 2,
+      "offset": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "nbt": "moogs_paths:mushroom_marker",
+      "rotation": "random",
+      "weight": 1,
+      "offset": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "nbt": "moogs_paths:dark_forest_shrine",
+      "rotation": "random",
+      "weight": 1,
+      "offset": [
+        0,
+        0,
+        0
+      ],
+      "placement_chance": 0.1
+    }
+  ],
+  "placement": "interval",
+  "spacing": 9,
+  "spacing_variance": 5,
+  "flatness_tolerance": 5,
+  "terrain_adjustment": "beard_thin",
+  "side_offset": 2
+}

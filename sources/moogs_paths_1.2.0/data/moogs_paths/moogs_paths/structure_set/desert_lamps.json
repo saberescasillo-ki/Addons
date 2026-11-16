@@ -1,0 +1,30 @@
+{
+  "structures": [
+    {
+      "nbt": "moogs_paths:desert_lamp",
+      "rotation": "random",
+      "weight": 1,
+      "offset": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "nbt": "moogs_paths:sandstone_pillar",
+      "rotation": "none",
+      "weight": 2,
+      "offset": [
+        2,
+        1,
+        0
+      ]
+    }
+  ],
+  "placement": "endpoint",
+  "spacing": 35,
+  "spacing_variance": 12,
+  "flatness_tolerance": 5,
+  "terrain_adjustment": "beard_thin",
+  "side_offset": 3
+}

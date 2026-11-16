@@ -1,0 +1,46 @@
+{
+  "surface_blocks": [
+    {
+      "block": "minecraft:coarse_dirt",
+      "weight": 3
+    },
+    {
+      "block": "minecraft:podzol",
+      "weight": 2
+    },
+    {
+      "block": "minecraft:rooted_dirt",
+      "weight": 2
+    }
+  ],
+  "edge_blocks": [
+    {
+      "block": "minecraft:rooted_dirt",
+      "weight": 2
+    },
+    {
+      "block": "minecraft:podzol",
+      "weight": 1
+    },
+    {
+      "block": "minecraft:structure_void",
+      "weight": 4
+    }
+  ],
+  "fill_block": "minecraft:dirt",
+  "width": {
+    "min": 2,
+    "max": 4
+  },
+  "rigidness": 0.15,
+  "carver": 0.45,
+  "length": {
+    "type": "minecraft:uniform",
+    "min_inclusive": 400,
+    "max_inclusive": 1000
+  },
+  "fade": {
+    "start_blocks": 6,
+    "end_blocks": 6
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "structures": [
+    {
+      "nbt": "moogs_paths:badlands_marker_1",
+      "rotation": "random",
+      "weight": 3,
+      "offset": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "nbt": "moogs_paths:badlands_marker_2",
+      "rotation": "random",
+      "weight": 2,
+      "offset": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "placement": "interval",
+  "spacing": 13,
+  "spacing_variance": 10,
+  "flatness_tolerance": 4,
+  "terrain_adjustment": "beard_thin",
+  "side_offset": 2
+}

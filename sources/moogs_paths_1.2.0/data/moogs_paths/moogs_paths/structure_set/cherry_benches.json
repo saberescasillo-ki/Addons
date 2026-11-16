@@ -1,0 +1,20 @@
+{
+  "structures": [
+    {
+      "nbt": "moogs_paths:cherry_bench",
+      "rotation": "random",
+      "weight": 1,
+      "offset": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "placement": "interval",
+  "spacing": 25,
+  "spacing_variance": 6,
+  "flatness_tolerance": 2,
+  "terrain_adjustment": "beard_thin",
+  "side_offset": 3
+}

@@ -1,0 +1,46 @@
+{
+  "surface_blocks": [
+    {
+      "block": "minecraft:gravel",
+      "weight": 4
+    },
+    {
+      "block": "minecraft:cobblestone",
+      "weight": 3
+    },
+    {
+      "block": "minecraft:andesite",
+      "weight": 2
+    },
+    {
+      "block": "minecraft:structure_void",
+      "weight": 2
+    }
+  ],
+  "edge_blocks": [
+    {
+      "block": "minecraft:gravel",
+      "weight": 2
+    },
+    {
+      "block": "minecraft:structure_void",
+      "weight": 6
+    }
+  ],
+  "fill_block": "minecraft:gravel",
+  "width": {
+    "min": 1,
+    "max": 2
+  },
+  "rigidness": 0.15,
+  "carver": 0.35,
+  "length": {
+    "type": "minecraft:uniform",
+    "min_inclusive": 300,
+    "max_inclusive": 700
+  },
+  "fade": {
+    "start_blocks": 5,
+    "end_blocks": 5
+  }
+}

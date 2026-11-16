@@ -1,0 +1,15 @@
+{
+  "path_type": "moogs_paths:dirt_trail",
+  "biomes": "#moogs_paths:has_path/plains_trail",
+  "weight": 6,
+  "region_size": 32,
+  "structure_sets": [
+    "moogs_paths:overworld_cairns"
+  ],
+  "feature_decorator_sets": [
+    "moogs_paths:plains_grass_both"
+  ],
+  "bush_decorator_sets": [
+    "moogs_paths:plains_bushes"
+  ]
+}

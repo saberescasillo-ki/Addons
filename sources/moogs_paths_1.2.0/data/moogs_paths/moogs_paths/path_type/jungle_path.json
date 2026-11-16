@@ -1,0 +1,62 @@
+{
+  "surface_blocks": [
+    {
+      "block": "minecraft:mossy_stone_bricks",
+      "weight": 6
+    },
+    {
+      "block": "minecraft:mossy_cobblestone",
+      "weight": 3
+    },
+    {
+      "block": "minecraft:rooted_dirt",
+      "weight": 1
+    },
+    {
+      "block": "minecraft:stone_bricks",
+      "weight": 5
+    }
+  ],
+  "edge_blocks": [
+    {
+      "block": "minecraft:mossy_stone_bricks",
+      "weight": 1
+    },
+    {
+      "block": "minecraft:mossy_cobblestone",
+      "weight": 1
+    },
+    {
+      "block": "minecraft:rooted_dirt",
+      "weight": 1
+    },
+    {
+      "block": "minecraft:stone_bricks",
+      "weight": 1
+    },
+    {
+      "block": "minecraft:moss_block",
+      "weight": 4
+    },
+    {
+      "block": "minecraft:structure_void",
+      "weight": 30
+    }
+  ],
+  "fill_block": "minecraft:dirt",
+  "width": {
+    "min": 2,
+    "max": 4
+  },
+  "rigidness": 0.15,
+  "carver": 0.2,
+  "length": {
+    "type": "minecraft:uniform",
+    "min_inclusive": 300,
+    "max_inclusive": 800
+  },
+  "fade": {
+    "start_blocks": 5,
+    "end_blocks": 5
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "path_type": "moogs_paths:jungle_path",
+  "biomes": "#minecraft:is_jungle",
+  "weight": 5,
+  "region_size": 32,
+  "structure_sets": [
+    "moogs_paths:jungle_branch_shrines"
+  ],
+  "feature_decorator_sets": [],
+  "bush_decorator_sets": []
+}

@@ -1,0 +1,13 @@
+{
+  "path_type": "moogs_paths:overworld_trail",
+  "biomes": "#minecraft:is_overworld",
+  "weight": 2,
+  "region_size": 56,
+  "structure_sets": [
+    "moogs_paths:oak_posts"
+  ],
+  "feature_decorator_sets": [
+    "moogs_paths:forest_flowers_left"
+  ],
+  "bush_decorator_sets": []
+}

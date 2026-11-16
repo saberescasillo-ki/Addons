@@ -1,0 +1,130 @@
+{
+  "structures": [
+    {
+      "nbt": "moogs_paths:candles/candle_1",
+      "rotation": "random",
+      "weight": 4,
+      "offset": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "nbt": "moogs_paths:candles/candle_2",
+      "rotation": "random",
+      "weight": 3,
+      "offset": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "nbt": "moogs_paths:candles/candle_3",
+      "rotation": "random",
+      "weight": 2,
+      "offset": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "nbt": "moogs_paths:candles/candle_4",
+      "rotation": "random",
+      "weight": 1,
+      "offset": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "nbt": "moogs_paths:candles/purple_candle_1",
+      "rotation": "random",
+      "weight": 4,
+      "offset": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "nbt": "moogs_paths:candles/purple_candle_2",
+      "rotation": "random",
+      "weight": 3,
+      "offset": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "nbt": "moogs_paths:candles/purple_candle_3",
+      "rotation": "random",
+      "weight": 2,
+      "offset": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "nbt": "moogs_paths:candles/purple_candle_4",
+      "rotation": "random",
+      "weight": 1,
+      "offset": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "nbt": "moogs_paths:candles/light_blue_candle_1",
+      "rotation": "random",
+      "weight": 4,
+      "offset": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "nbt": "moogs_paths:candles/light_blue_candle_2",
+      "rotation": "random",
+      "weight": 3,
+      "offset": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "nbt": "moogs_paths:candles/light_blue_candle_3",
+      "rotation": "random",
+      "weight": 2,
+      "offset": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "nbt": "moogs_paths:candles/light_blue_candle_4",
+      "rotation": "random",
+      "weight": 1,
+      "offset": [
+        0,
+        1,
+        0
+      ]
+    }
+  ],
+  "placement": "interval",
+  "spacing": 4,
+  "spacing_variance": 3,
+  "flatness_tolerance": 3,
+  "terrain_adjustment": "beard_thin",
+  "side_offset": 0
+}

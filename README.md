@@ -8,6 +8,7 @@
 | **Objetos de Ayuda** – 4 objetos especiales que ayudan al jugador | [`dist/HelperItems.mcaddon`](dist/HelperItems.mcaddon) | `tools/helper_items.py` |
 | **The LITIUS Blind** – nueva dimensión de islas flotantes | [`dist/LitiusBlind.mcaddon`](dist/LitiusBlind.mcaddon) | `tools/litius_blind.py` |
 | **Underworld** – dimensión procedural de pizarra profunda, arena de almas y huesos | [`dist/Underworld.mcaddon`](dist/Underworld.mcaddon) | `tools/underworld.py` |
+| **Moog's Paths** – caminos y senderos generados por el mundo (port del mod de Java de FinnDog) | [`dist/MoogsPaths.mcaddon`](dist/MoogsPaths.mcaddon) | `tools/moogs_paths/build.py` |
 
 Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se añade solo. No hace falta activar experimentos
 (salvo en The LITIUS Blind y Underworld, ver abajo).
@@ -16,6 +17,66 @@ Abre el `.mcaddon` y activa el pack *Behavior* en el mundo; el de recursos se a�
 - Medieval Mobs requiere **1.21.0** o superior.
 - Ruleta de Colores y Objetos de Ayuda requieren **1.21.90** o superior.
 - The LITIUS Blind y Underworld requieren **26.20** o superior y el experimento **Beta APIs**.
+- Moog's Paths requiere **1.21.120** o superior (solo tiene pack *Behavior*, sin experimentos).
+
+---
+
+# Moog's Paths (port a Bedrock)
+
+Port no oficial de [Moog's Paths](https://github.com/FinnSetchell/MoogsPaths) 1.2.0 (NeoForge 26.3), de FinnDog,
+publicado bajo **CC0**. Añade al Overworld una **red de caminos y senderos** con estilo propio según el bioma y
+**decoraciones al borde**: postes, mojones de piedra, farolas, bancos, santuarios, velas, arbustos y flores.
+
+| Camino | Dónde | Suelo | Decoración |
+|---|---|---|---|
+| Sendero de tierra | llanuras, praderas, sabana | sendero de tierra con borde de podzol | mojones, postes de acacia, arbustos, flores |
+| Sendero empedrado / camino de ladrillo | cualquier bioma | adoquín y adoquín musgoso / ladrillo y granito pulido | postes de roble, farolas, cartel colgante |
+| Camino de tierra | taiga, bosque oscuro | tierra estéril, podzol y raíces | mojones |
+| Calzada del desierto | desierto | arenisca lisa, cortada y cincelada (7-9 de ancho) | farolas dobles, pilares, arbustos muertos |
+| Cañón de badlands | badlands | arena roja y arenisca roja | hitos de terracota |
+| Camino de jungla | jungla | ladrillos de piedra musgosos | santuarios |
+| Camino de montaña / ventoso | picos, colinas ventosas | adoquín, andesita, grava | farolas de andesita |
+| Sendero nevado | llanuras nevadas, taiga nevada | nieve, hielo compacto, grava | mojones con farol de almas, abetos |
+| Camino del pantano | pantano, manglar | ladrillos de barro; **pasarela de madera sobre el agua** | postes con lámpara |
+| Sendero de cerezos | arboleda de cerezos | sendero de tierra | bancos, hojas de cerezo |
+| Camino de champiñones | isla de champiñones | micelio y podzol | velas, setas, hitos |
+| Caminos de aldea | al salir de una aldea (2 por aldea) | según el bioma de la aldea | las del camino equivalente |
+
+**Cómo funciona.** El mundo se divide en regiones (de 12 a 56 chunks según la red); cada región tiene un punto de
+origen fijo que depende de la semilla. Si el bioma del origen admite caminos, de ahí sale uno de 60 a 1000 bloques
+hacia un destino al azar. La ruta se calcula con el mismo A* del mod (rejilla de 4 bloques, penaliza pendientes y
+agua, no entra en océanos y cruza ríos de hasta 32 bloques), se suaviza, se allana el terreno (corta o rellena
+hasta 8 bloques) y se pavimenta mezclando bloques con los pesos originales.
+
+**Diferencias con el mod de Java** (Bedrock no deja añadir generación de mundo por código, así que lo hace un
+script mientras juegas):
+
+- Los caminos **se van trazando cuando los chunks están cargados cerca de un jugador**, a tramos de unos 40 bloques
+  por segundo, y siguen creciendo cuando vuelves a acercarte. También aparecen en zonas ya exploradas.
+- Un camino solo empieza si su origen queda en chunks cargados, así que las regiones son un 40 % más pequeñas que
+  en Java para que haya una densidad parecida. Se cambia con `REGION_SCALE` al principio de `scripts/main.js`
+  (`1.0` = como en Java). Ahí mismo está `CHANCE`, el equivalente a los deslizadores de rareza por red.
+- **Caminos de aldea:** el script no puede consultar las estructuras, así que detecta la aldea por sus aldeanos
+  (4 o más juntos) y saca dos caminos hacia fuera. Es una aproximación: no salen de las calles de la aldea.
+- **No portado:** los caminos que salen de cabañas de bruja y templos de jungla, y los de mods de Java
+  (Moog's Voyager Structures, Towns & Towers, Terralith). Tampoco el menú de configuración.
+- Las flores del borde se colocan directamente (en Java usa las *features* del juego).
+- Las posiciones no coinciden con las de Java para la misma semilla.
+
+**Comandos** (con trucos activados):
+
+- `/scriptevent moogs:path` traza un camino desde donde estás, del tipo que toque por bioma.
+  `/scriptevent moogs:path desert_highway` fuerza una red concreta (`brick_road`, `jungle_path`, `swamp_path`…).
+- `/scriptevent moogs:info` muestra los caminos en construcción. `/scriptevent moogs:debug` avisa por chat cuando
+  empieza o termina uno.
+
+**Regenerar y probar**
+
+```
+python3 -I tools/moogs_paths/build.py sources/moogs_paths_1.2.0 MoogsPaths_BP   # datos y estructuras -> scripts/data.js
+node tools/moogs_paths/check_blocks.mjs <@minecraft/vanilla-data>/lib/mojang-block.d.ts   # valida ids y estados de bloque
+cd tools/moogs_paths/test && node --import ./register.mjs run.mjs               # mundo simulado, imprime un mapa
+```
 
 ---
 

@@ -1,0 +1,11 @@
+{
+  "features": [
+    {
+      "feature": "minecraft:flower_plain",
+      "weight": 1
+    }
+  ],
+  "density": 0.04,
+  "side": "both",
+  "scatter_width": 3
+}

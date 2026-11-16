@@ -1,0 +1,41 @@
+{
+  "surface_blocks": [
+    {
+      "block": "minecraft:smooth_sandstone",
+      "weight": 5
+    },
+    {
+      "block": "minecraft:cut_sandstone",
+      "weight": 4
+    },
+    {
+      "block": "minecraft:chiseled_sandstone",
+      "weight": 2
+    },
+    {
+      "block": "minecraft:birch_planks",
+      "weight": 1
+    },
+    {
+      "block": "minecraft:structure_void",
+      "weight": 2
+    }
+  ],
+  "edge_blocks": [],
+  "fill_block": "minecraft:sandstone",
+  "width": {
+    "min": 3,
+    "max": 4
+  },
+  "rigidness": 0.3,
+  "carver": 0.7,
+  "length": {
+    "type": "minecraft:uniform",
+    "min_inclusive": 300,
+    "max_inclusive": 1000
+  },
+  "fade": {
+    "start_blocks": 8,
+    "end_blocks": 8
+  }
+}

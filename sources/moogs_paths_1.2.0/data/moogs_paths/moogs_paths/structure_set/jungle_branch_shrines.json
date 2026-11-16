@@ -1,0 +1,20 @@
+{
+  "structures": [
+    {
+      "nbt": "moogs_paths:jungle_shrine",
+      "rotation": "random",
+      "weight": 1,
+      "offset": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "placement": "interval",
+  "spacing": 100,
+  "spacing_variance": 40,
+  "flatness_tolerance": 5,
+  "terrain_adjustment": "beard_thin",
+  "side_offset": 5
+}

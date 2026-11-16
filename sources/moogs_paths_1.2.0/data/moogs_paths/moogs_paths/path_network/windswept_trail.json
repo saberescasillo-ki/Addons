@@ -1,0 +1,11 @@
+{
+  "path_type": "moogs_paths:windswept_trail",
+  "biomes": "#moogs_paths:has_path/windswept_trail",
+  "weight": 3,
+  "region_size": 36,
+  "structure_sets": [
+    "moogs_paths:simple_andesite_lamp"
+  ],
+  "feature_decorator_sets": [],
+  "bush_decorator_sets": []
+}

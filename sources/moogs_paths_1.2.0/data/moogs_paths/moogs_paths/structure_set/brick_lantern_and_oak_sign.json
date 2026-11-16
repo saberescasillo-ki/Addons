@@ -1,0 +1,30 @@
+{
+  "structures": [
+    {
+      "nbt": "moogs_paths:brick_lantern",
+      "rotation": "random",
+      "weight": 20,
+      "offset": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "nbt": "moogs_paths:oak_sign",
+      "rotation": "random",
+      "weight": 1,
+      "offset": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "placement": "interval",
+  "spacing": 13,
+  "spacing_variance": 10,
+  "flatness_tolerance": 4,
+  "terrain_adjustment": "beard_thin",
+  "side_offset": 2
+}

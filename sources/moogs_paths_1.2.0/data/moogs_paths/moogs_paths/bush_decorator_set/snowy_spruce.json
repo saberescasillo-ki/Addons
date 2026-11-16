@@ -1,0 +1,19 @@
+{
+  "blocks": [
+    {
+      "block": "minecraft:spruce_leaves",
+      "weight": 5
+    },
+    {
+      "block": "minecraft:snow_block",
+      "weight": 2
+    }
+  ],
+  "density": 0.10,
+  "side": "both",
+  "min_offset": 2,
+  "max_offset": 4,
+  "min_size": 1,
+  "max_size": 2,
+  "min_spacing": 12
+}

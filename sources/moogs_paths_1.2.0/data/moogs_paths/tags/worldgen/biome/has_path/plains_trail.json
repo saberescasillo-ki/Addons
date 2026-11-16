@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:plains",
+    "minecraft:sunflower_plains",
+    "minecraft:meadow",
+    { "id": "#c:is_plains", "required": false },
+    { "id": "#c:plains", "required": false }
+  ]
+}

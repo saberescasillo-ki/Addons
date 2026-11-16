@@ -1,0 +1,18 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Moog's Paths (Bedrock port)",
+    "description": "Caminos y senderos generados por el mundo, con estilos por bioma y decoraciones. Port no oficial del mod de FinnDog (CC0).",
+    "uuid": "0c777ed6-9f6f-4f91-be9b-0674ed3ec3c4",
+    "version": [1, 2, 0],
+    "min_engine_version": [1, 21, 120]
+  },
+  "modules": [
+    { "type": "data", "uuid": "7a002266-5149-442e-857c-c3f3e1940448", "version": [1, 2, 0] },
+    { "type": "script", "language": "javascript", "entry": "scripts/main.js", "uuid": "89c086ce-9cad-4777-a495-16d1b9aa078c", "version": [1, 2, 0] }
+  ],
+  "dependencies": [
+    { "module_name": "@minecraft/server", "version": "2.3.0" }
+  ],
+  "metadata": { "authors": ["FinnDog (original Java mod)"], "license": "CC0-1.0", "url": "https://github.com/FinnSetchell/MoogsPaths" }
+}

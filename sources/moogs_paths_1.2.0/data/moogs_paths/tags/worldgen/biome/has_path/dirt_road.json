@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:taiga",
+    "minecraft:old_growth_pine_taiga",
+    "minecraft:old_growth_spruce_taiga",
+    "minecraft:dark_forest",
+    "#minecraft:is_taiga",
+    { "id": "#c:is_taiga", "required": false },
+    { "id": "#c:taiga", "required": false }
+  ]
+}

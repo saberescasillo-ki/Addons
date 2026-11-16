@@ -1,0 +1,16 @@
+{
+  "path_type": "moogs_paths:mushroom_path",
+  "biomes": "#moogs_paths:has_path/mushroom_path",
+  "weight": 4,
+  "region_size": 12,
+  "structure_sets": [
+    "moogs_paths:mushroom_shrines",
+    "moogs_paths:mushroom_decorations",
+    "moogs_paths:candles"
+  ],
+  "feature_decorator_sets": [
+    "moogs_paths:sparse_mushrooms"
+  ],
+  "bush_decorator_sets": [
+  ]
+}

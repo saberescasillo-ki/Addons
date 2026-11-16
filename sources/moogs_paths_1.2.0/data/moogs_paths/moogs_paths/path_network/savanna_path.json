@@ -1,0 +1,11 @@
+{
+  "path_type": "moogs_paths:dirt_trail",
+  "biomes": "#moogs_paths:has_path/savanna_path",
+  "weight": 6,
+  "region_size": 20,
+  "structure_sets": [
+    "moogs_paths:savanna_posts"
+  ],
+  "feature_decorator_sets": [],
+  "bush_decorator_sets": []
+}

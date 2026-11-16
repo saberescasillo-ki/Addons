@@ -1,0 +1,42 @@
+{
+  "surface_blocks": [
+    {
+      "block": "minecraft:snow_block",
+      "weight": 4
+    },
+    {
+      "block": "minecraft:packed_ice",
+      "weight": 2
+    },
+    {
+      "block": "minecraft:gravel",
+      "weight": 3
+    }
+  ],
+  "edge_blocks": [
+    {
+      "block": "minecraft:snow_block",
+      "weight": 3
+    },
+    {
+      "block": "minecraft:structure_void",
+      "weight": 5
+    }
+  ],
+  "fill_block": "minecraft:packed_ice",
+  "width": {
+    "min": 1,
+    "max": 2
+  },
+  "rigidness": 0.2,
+  "carver": 0.4,
+  "length": {
+    "type": "minecraft:uniform",
+    "min_inclusive": 200,
+    "max_inclusive": 600
+  },
+  "fade": {
+    "start_blocks": 4,
+    "end_blocks": 4
+  }
+}

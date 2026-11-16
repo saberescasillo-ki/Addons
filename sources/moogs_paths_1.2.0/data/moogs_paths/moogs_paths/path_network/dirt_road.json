@@ -1,0 +1,11 @@
+{
+  "path_type": "moogs_paths:dirt_road",
+  "biomes": "#moogs_paths:has_path/dirt_road",
+  "weight": 3,
+  "region_size": 36,
+  "structure_sets": [
+    "moogs_paths:overworld_cairns"
+  ],
+  "feature_decorator_sets": [],
+  "bush_decorator_sets": []
+}

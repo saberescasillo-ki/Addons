@@ -1,0 +1,11 @@
+{
+  "path_type": "moogs_paths:dirt_trail",
+  "biomes": "#minecraft:is_overworld",
+  "weight": 1,
+  "region_size": 56,
+  "structure_sets": [
+    "moogs_paths:simple_andesite_lamp"
+  ],
+  "feature_decorator_sets": [],
+  "bush_decorator_sets": []
+}

@@ -1,0 +1,30 @@
+{
+  "path_type": "moogs_paths:desert_highway",
+  "biomes": "#minecraft:is_overworld",
+  "structure_sets": [
+    "moogs_paths:desert_lamps"
+  ],
+  "feature_decorator_sets": [
+    "moogs_paths:desert_dead_bushes"
+  ],
+  "bush_decorator_sets": [],
+  "origin": {
+    "structure_set": [
+      "minecraft:villages",
+      "towns_and_towers:towns"
+    ],
+    "structure": [
+      "minecraft:village_desert",
+      "towns_and_towers:village_badlands",
+      "towns_and_towers:village_wooded_badlands",
+      "towns_and_towers:exclusives/village_wandering_trader_camp"
+    ],
+    "path_count": 2,
+    "anchor": {
+      "piece": [
+        "minecraft:village/*/terminators/*",
+        "kaisyn:village/**/terminators/**"
+      ]
+    }
+  }
+}

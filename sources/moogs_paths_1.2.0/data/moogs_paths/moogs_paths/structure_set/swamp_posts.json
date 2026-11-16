@@ -1,0 +1,20 @@
+{
+  "structures": [
+    {
+      "nbt": "moogs_paths:swamp_post",
+      "rotation": "random",
+      "weight": 3,
+      "offset": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "placement": "interval",
+  "spacing": 11,
+  "spacing_variance": 5,
+  "flatness_tolerance": 2,
+  "terrain_adjustment": "beard_thin",
+  "side_offset": 3
+}

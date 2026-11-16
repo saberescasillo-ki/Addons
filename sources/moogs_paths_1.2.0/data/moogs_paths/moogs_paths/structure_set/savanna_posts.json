@@ -1,0 +1,40 @@
+{
+  "structures": [
+    {
+      "nbt": "moogs_paths:savanna_post_1",
+      "rotation": "random",
+      "weight": 2,
+      "offset": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "nbt": "moogs_paths:savanna_post_2",
+      "rotation": "random",
+      "weight": 2,
+      "offset": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "nbt": "moogs_paths:savanna_post_3",
+      "rotation": "random",
+      "weight": 1,
+      "offset": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "placement": "interval",
+  "spacing": 7,
+  "spacing_variance": 4,
+  "flatness_tolerance": 5,
+  "terrain_adjustment": "beard_thin",
+  "side_offset": 2
+}

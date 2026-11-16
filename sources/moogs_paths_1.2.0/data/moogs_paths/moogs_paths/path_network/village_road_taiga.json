@@ -1,0 +1,28 @@
+{
+  "path_type": "moogs_paths:dirt_road",
+  "biomes": "#minecraft:is_overworld",
+  "structure_sets": [
+    "moogs_paths:overworld_cairns"
+  ],
+  "feature_decorator_sets": [],
+  "bush_decorator_sets": [],
+  "origin": {
+    "structure_set": [
+      "minecraft:villages",
+      "towns_and_towers:towns"
+    ],
+    "structure": [
+      "minecraft:village_taiga",
+      "towns_and_towers:village_old_growth_taiga",
+      "towns_and_towers:exclusives/village_rustic",
+      "towns_and_towers:exclusives/village_swedish"
+    ],
+    "path_count": 2,
+    "anchor": {
+      "piece": [
+        "minecraft:village/*/terminators/*",
+        "kaisyn:village/**/terminators/**"
+      ]
+    }
+  }
+}

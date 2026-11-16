@@ -1,0 +1,33 @@
+{
+  "surface_blocks": [
+    {
+      "block": "minecraft:mycelium",
+      "weight": 5
+    },
+    {
+      "block": "minecraft:podzol",
+      "weight": 3
+    },
+    {
+      "block": "minecraft:coarse_dirt",
+      "weight": 1
+    }
+  ],
+  "edge_blocks": [],
+  "fill_block": "minecraft:dirt",
+  "width": {
+    "min": 2,
+    "max": 3
+  },
+  "rigidness": 0.15,
+  "carver": 0.35,
+  "length": {
+    "type": "minecraft:uniform",
+    "min_inclusive": 150,
+    "max_inclusive": 400
+  },
+  "fade": {
+    "start_blocks": 4,
+    "end_blocks": 4
+  }
+}

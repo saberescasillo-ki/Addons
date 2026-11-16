@@ -1,0 +1,30 @@
+{
+  "path_type": "moogs_paths:snowy_trail",
+  "biomes": "#minecraft:is_overworld",
+  "structure_sets": [
+    "moogs_paths:snowy_cairns"
+  ],
+  "feature_decorator_sets": [],
+  "bush_decorator_sets": [
+    "moogs_paths:snowy_spruce"
+  ],
+  "origin": {
+    "structure_set": [
+      "minecraft:villages",
+      "towns_and_towers:towns"
+    ],
+    "structure": [
+      "minecraft:village_snowy",
+      "towns_and_towers:village_snowy_taiga",
+      "towns_and_towers:village_snowy_slopes",
+      "towns_and_towers:village_grove"
+    ],
+    "path_count": 2,
+    "anchor": {
+      "piece": [
+        "minecraft:village/*/terminators/*",
+        "kaisyn:village/**/terminators/**"
+      ]
+    }
+  }
+}

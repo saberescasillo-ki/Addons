@@ -1,0 +1,13 @@
+{
+  "path_type": "moogs_paths:snowy_trail",
+  "biomes": "#moogs_paths:has_path/snowy_trail",
+  "weight": 5,
+  "region_size": 32,
+  "structure_sets": [
+    "moogs_paths:snowy_cairns"
+  ],
+  "feature_decorator_sets": [],
+  "bush_decorator_sets": [
+    "moogs_paths:snowy_spruce"
+  ]
+}

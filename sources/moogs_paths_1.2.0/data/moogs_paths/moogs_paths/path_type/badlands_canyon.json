@@ -1,0 +1,32 @@
+{
+  "surface_blocks": [
+    {
+      "block": "minecraft:red_sand",
+      "weight": 5
+    },
+    {
+      "block": "minecraft:red_sandstone",
+      "weight": 2
+    },
+    {
+      "block": "minecraft:terracotta",
+      "weight": 1
+    }
+  ],
+  "fill_block": "minecraft:red_sandstone",
+  "width": {
+    "min": 2,
+    "max": 2
+  },
+  "rigidness": 0.15,
+  "carver": 0.5,
+  "length": {
+    "type": "minecraft:uniform",
+    "min_inclusive": 400,
+    "max_inclusive": 1000
+  },
+  "fade": {
+    "start_blocks": 4,
+    "end_blocks": 0
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "features": [
+    {
+      "feature": "minecraft:brown_mushroom_normal",
+      "weight": 2
+    },
+    {
+      "feature": "minecraft:red_mushroom_normal",
+      "weight": 1
+    }
+  ],
+  "density": 0.015,
+  "side": "both",
+  "scatter_width": 3
+}
